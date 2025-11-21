@@ -46,9 +46,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [contactEmail, setContactEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [username, setUsername] = useState("");
-  const [address, setAddress] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [schedule, setSchedule] = useState<UserSchedule>({ days: [] });
   const [showCalendarPreview, setShowCalendarPreview] = useState(false);
@@ -120,8 +118,6 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
       setName(profile.name || "");
       setUsername(profile.username || "");
       setContactEmail(profile.contactEmail || user?.email || "");
-      setPhone(profile.phone || "");
-      setAddress(profile.address || "");
       setAvatarUrl(profile.avatarUrl || null);
       setSchedule(normalizeUserSchedule(profile.schedule || { days: [] }));
       return;
@@ -130,8 +126,6 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
     setName("");
     setUsername("");
     setContactEmail(user?.email || "");
-    setPhone("");
-    setAddress("");
     setAvatarUrl(null);
     setSchedule({ days: [] });
   }, [user]);
