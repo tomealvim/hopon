@@ -194,11 +194,8 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
     if (!user?.profile) return;
     updateProfile({
       ...user.profile,
-      name: name.trim(),
       username: username.trim() || undefined,
-      phone: phone.trim(),
       contactEmail: contactEmail.trim() || undefined,
-      address: address.trim(),
       avatarUrl: avatarUrl || undefined,
     });
     setOpenEdit(false);
@@ -287,51 +284,43 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
   }
 
   return (
-    <div className="bg-[#F7F7F9] min-h-screen pb-28">
+    <div className="relative min-h-screen pb-28 text-white overflow-hidden">
+      {/* Blur effects coloridos */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/20 blur-[180px]" />
+        <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/20 blur-[160px]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/15 blur-[200px]" />
+      </div>
+      
+      <div className="relative z-10">
       {/* Card topo - design melhorado */}
-      <section className="bg-white mb-4 relative overflow-hidden">
+      <section className="bg-white/5 border border-white/10 mb-4 rounded-xl mx-4 shadow-sm backdrop-blur-sm relative overflow-hidden">
         {/* Gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent h-32" aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FF719A]/10 via-[#FFA99F]/5 to-transparent h-32" aria-hidden />
         
-        <div className="relative px-6 pt-8 pb-6">
-          {/* Avatar */}
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center text-3xl font-bold mx-auto mb-4 overflow-hidden shadow-lg ring-4 ring-white" aria-hidden>
-            {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initials(name)}</span>}
-          </div>
+        <div className="relative px-4 py-4">
+          {/* Layout horizontal: foto + nome e email */}
+          <div className="flex items-center gap-4">
+            {/* Avatar */}
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden shadow-lg ring-2 ring-white/10" aria-hidden>
+              {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initials(name)}</span>}
+            </div>
 
-          {/* Info principal */}
-          <div className="text-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">{name}</h1>
-            {visibleEmail && <div className="text-sm text-gray-500 mb-3">{visibleEmail}</div>}
-            
-            {/* Badges de info */}
-            <div className="flex flex-wrap gap-2 justify-center">
-              {username && (
-                <div className="inline-flex items-center px-3 py-1.5 bg-purple-50 text-purple-700 rounded-full text-xs font-medium">
-                  @{username}
-                </div>
-              )}
-              {phone && (
-                <div className="inline-flex items-center px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                  {phone}
-                </div>
-              )}
-              {address && (
-                <div className="inline-flex items-center px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-xs font-medium">
-                  {address}
-                </div>
-              )}
+            {/* Nome e email na mesma linha */}
+            <div className="flex-1 min-w-0">
+              {name && <div className="text-base font-semibold text-white truncate">{name}</div>}
+              {visibleEmail && <div className="text-sm text-white/70 truncate">{visibleEmail}</div>}
             </div>
           </div>
         </div>
       </section>
 
       {/* Horário - preview inteligente */}
-      <section className="bg-white px-4 py-4 mb-4 rounded-xl mx-4 shadow-sm">
+      <section className="bg-white/5 border border-white/10 px-4 py-4 mb-4 rounded-xl mx-4 shadow-sm backdrop-blur-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">Ritmo semanal</p>
-            <h2 className="text-base font-bold text-gray-900">O meu horário</h2>
+            <p className="text-[11px] uppercase tracking-wide text-white/50 font-semibold">Ritmo semanal</p>
+            <h2 className="text-base font-bold text-white">O meu horário</h2>
           </div>
           <button
             className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-medium hover:bg-primary/20 transition"
@@ -343,8 +332,8 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
 
         {!hasSchedule ? (
           <div className="text-center py-8">
-            <p className="text-sm font-semibold text-gray-900 mb-1">Ainda não adicionaste aulas</p>
-            <p className="text-xs text-gray-500">Define o teu horário para desbloquear sugestões automáticas.</p>
+            <p className="text-sm font-semibold text-white mb-1">Ainda não adicionaste aulas</p>
+            <p className="text-xs text-white/60">Define o teu horário para desbloquear sugestões automáticas.</p>
           </div>
         ) : (
           <>
@@ -385,7 +374,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
                     key={day.key}
                     type="button"
                     className={`rounded-2xl border px-3 py-2 text-left transition ${
-                      hasBlocks ? "border-gray-900 bg-gray-900 text-white" : "border-dashed border-gray-200 bg-white text-gray-500"
+                      hasBlocks ? "border-[#FF719A] bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black" : "border-dashed border-white/20 bg-white/5 text-white/50"
                     }`}
                     onClick={() => setOpenSchedule(true)}
                   >
@@ -408,7 +397,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
               })}
             </div>
 
-            <div className="mt-3 flex items-center justify-center gap-3 text-xs text-gray-500">
+            <div className="mt-3 flex items-center justify-center gap-3 text-xs text-white/60">
               <span>
                 {totalBlocks} {totalBlocks === 1 ? "aula" : "aulas"}
               </span>
@@ -420,7 +409,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
 
             <button
               type="button"
-              className="mt-3 w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
+              className="mt-3 w-full px-3 py-2.5 rounded-xl border border-white/20 bg-white/5 text-white text-sm font-semibold hover:bg-white/10 transition"
               onClick={() => setShowCalendarPreview(prev => !prev)}
             >
               {showCalendarPreview ? "Esconder calendário semanal" : "Ver calendário semanal"}
@@ -435,9 +424,9 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
         )}
       </section>
 
-      <nav className="bg-white rounded-xl mx-4 mb-4 overflow-hidden shadow-sm" aria-label="Perfil">
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Perfil</h3>
+      <nav className="bg-white/5 border border-white/10 rounded-xl mx-4 mb-4 overflow-hidden shadow-sm backdrop-blur-sm" aria-label="Perfil">
+        <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+          <h3 className="text-xs font-bold text-white/70 uppercase tracking-wide">Perfil</h3>
         </div>
         <ListRow label="Editar perfil" onClick={() => setOpenEdit(true)} />
         <ListRow label="Editar palavra-passe" onClick={() => setOpenPassword(true)} />
@@ -447,9 +436,9 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
         <ListRow label="Pagamentos" caption="MB Way e cartão" onClick={() => setOpenWallet(true)} />
       </nav>
 
-      <nav className="bg-white rounded-xl mx-4 mb-4 overflow-hidden shadow-sm" aria-label="Benefícios">
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Benefícios</h3>
+      <nav className="bg-white/5 border border-white/10 rounded-xl mx-4 mb-4 overflow-hidden shadow-sm backdrop-blur-sm" aria-label="Benefícios">
+        <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+          <h3 className="text-xs font-bold text-white/70 uppercase tracking-wide">Benefícios</h3>
         </div>
         <ListRow
           label="Convidar amigos"
@@ -458,9 +447,9 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
         />
       </nav>
 
-      <nav className="bg-white rounded-xl mx-4 mb-4 overflow-hidden shadow-sm" aria-label="Ajuda e qualidade">
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Ajuda & Qualidade</h3>
+      <nav className="bg-white/5 border border-white/10 rounded-xl mx-4 mb-4 overflow-hidden shadow-sm backdrop-blur-sm" aria-label="Ajuda e qualidade">
+        <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+          <h3 className="text-xs font-bold text-white/70 uppercase tracking-wide">Ajuda & Qualidade</h3>
         </div>
         <ListRow
           label="Idioma da app"
@@ -480,7 +469,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
         />
       </nav>
 
-      <div className="bg-white rounded-xl mx-4 mb-4 overflow-hidden shadow-sm">
+      <div className="bg-white/5 border border-white/10 rounded-xl mx-4 mb-4 overflow-hidden shadow-sm backdrop-blur-sm">
         <ListRow label="Terminar sessão" tone="danger" onClick={handleLogout} />
         <ListRow label="Apagar conta" tone="danger" onClick={() => setOpenDeleteConfirm(true)} />
       </div>
@@ -534,18 +523,6 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
               Informação pessoal
             </h3>
-            
-            <Field label="Nome completo" htmlFor="pf-name" hint="É o que todos vão ver nas boleias e mensagens.">
-            <input
-              id="pf-name"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="O teu nome"
-              title="Editar nome"
-              autoComplete="name"
-            />
-          </Field>
 
             <Field label="Username / apelido público" htmlFor="pf-username" hint="Opcional. Usa um @apelido curto para partilhar o perfil.">
               <input
@@ -563,21 +540,8 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
           {/* Contactos */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-              Contactos & morada
+              Contactos
             </h3>
-
-            <Field label="Telemóvel" htmlFor="pf-phone" hint="Usado para confirmações e avisos rápidos.">
-              <input
-                id="pf-phone"
-                type="tel"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                placeholder="+351 912 345 678"
-                title="Editar telemóvel"
-                autoComplete="tel"
-              />
-            </Field>
 
             <Field label="Email preferencial" htmlFor="pf-contact-email" hint="Opcional para recibos, suporte e alertas.">
               <input
@@ -589,18 +553,6 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
                 placeholder="Ex: joao@exemplo.com"
                 title="Editar email preferencial"
                 autoComplete="email"
-              />
-            </Field>
-
-            <Field label="Morada principal" htmlFor="pf-address" hint='Usamos como atalho "Casa" e para sugestões mais rápidas.'>
-              <input
-                id="pf-address"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                value={address}
-                onChange={e => setAddress(e.target.value)}
-                placeholder="Ex: Amadora, Quinta da Fonte"
-                title="Editar morada"
-                autoComplete="street-address"
               />
             </Field>
           </div>
@@ -837,6 +789,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
 
       <WalletSheet open={openWallet} onClose={() => setOpenWallet(false)} />
       <SupportContactSheet open={openSupport} onClose={() => setOpenSupport(false)} />
+      </div>
     </div>
   );
 }
@@ -940,7 +893,7 @@ function ListRow({
 }: ListRowProps) {
   return (
     <button 
-      className={`w-full flex items-center justify-between px-4 py-3.5 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition ${tone === "danger" ? "text-red-600" : "text-gray-900"}`} 
+      className={`w-full flex items-center justify-between px-4 py-3.5 border-b border-white/10 last:border-b-0 hover:bg-white/10 transition ${tone === "danger" ? "text-red-300" : "text-white"}`} 
       onClick={onClick}
       aria-haspopup={ariaHasPopup}
       aria-controls={ariaControls}
@@ -949,10 +902,10 @@ function ListRow({
         {icon && <span className="text-xl" aria-hidden>{icon}</span>}
         <div>
           <div className="text-sm font-medium">{label}</div>
-          {caption && <div className="text-xs text-gray-500 mt-0.5">{caption}</div>}
+          {caption && <div className="text-xs text-white/60 mt-0.5">{caption}</div>}
         </div>
       </div>
-      <svg className={tone === "danger" ? "text-red-400" : "text-gray-400"} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <svg className={tone === "danger" ? "text-red-300" : "text-white/50"} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
         <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
       </svg>
     </button>

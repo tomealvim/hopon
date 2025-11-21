@@ -13,6 +13,14 @@ export default {
         'primary-dark': '#000000',
         'primary-light': '#f3f4f6',
         
+        // NOVAS CORES DO DESIGN ESCURO
+        'gradient-start': '#FFE29F',
+        'gradient-mid': '#FFA99F',
+        'gradient-end': '#FF719A',
+        'dark-bg-start': '#0a0611',
+        'dark-bg-mid': '#1b0b24',
+        'dark-bg-end': '#050308',
+        
         // Tons de cinza (já vêm do Tailwind mas podes personalizar)
         gray: {
           50: '#fafafa',

@@ -13,7 +13,7 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
 
   return (
     <nav 
-      className="fixed left-0 right-0 bottom-0 z-50 bg-white border-t border-gray-200 pb-[env(safe-area-inset-bottom)]" 
+      className="fixed left-0 right-0 bottom-0 z-50 bg-[#0a0611] border-t border-white/10 pb-[env(safe-area-inset-bottom)]" 
       role="navigation" 
       aria-label="Navegação inferior"
     >
@@ -21,8 +21,8 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
         {/* esquerda */}
         <button
           className={cn(
-            "h-10 w-full inline-flex items-center justify-center text-gray-500 text-sm font-medium rounded-xl transition-colors",
-            isActive("discover") && "text-gray-900 bg-gray-100 shadow-sm"
+            "h-10 w-full inline-flex items-center justify-center text-white/70 text-sm font-medium rounded-xl transition-colors",
+            isActive("discover") && "text-white bg-white/10 shadow-sm"
           )}
           onClick={() => onChange("discover")}
           aria-label="Explorar"
@@ -31,8 +31,8 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
         </button>
         <button
           className={cn(
-            "h-10 w-full inline-flex items-center justify-center text-gray-500 text-sm font-medium rounded-xl transition-colors",
-            isActive("rides") && "text-gray-900 bg-gray-100 shadow-sm"
+            "h-10 w-full inline-flex items-center justify-center text-white/70 text-sm font-medium rounded-xl transition-colors",
+            isActive("rides") && "text-white bg-white/10 shadow-sm"
           )}
           onClick={() => onChange("rides")}
           aria-label="Boleias"
@@ -42,7 +42,7 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
 
         {/* PLUS central */}
         <button
-          className="relative -top-3 h-14 w-14 rounded-full bg-gray-900 text-white text-[28px] leading-none inline-flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+          className="relative -top-3 h-14 w-14 rounded-full bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black text-[28px] leading-none inline-flex items-center justify-center shadow-[0_20px_45px_rgba(255,113,154,0.35)] hover:opacity-90 transition-colors focus-visible:outline-2 focus-visible:outline-[#FF719A] focus-visible:outline-offset-2"
           aria-label="Adicionar"
           onClick={() => onPlus?.()}
         >
@@ -52,8 +52,8 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
         {/* direita */}
         <button
           className={cn(
-            "h-10 w-full inline-flex items-center justify-center text-gray-500 text-sm font-medium rounded-xl transition-colors",
-            isActive("inbox") && "text-gray-900 bg-gray-100 shadow-sm"
+            "h-10 w-full inline-flex items-center justify-center text-white/70 text-sm font-medium rounded-xl transition-colors",
+            isActive("inbox") && "text-white bg-white/10 shadow-sm"
           )}
           onClick={() => onChange("inbox")}
           aria-label="Mensagens"
@@ -62,8 +62,8 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
         </button>
         <button
           className={cn(
-            "h-10 w-full inline-flex items-center justify-center text-gray-500 text-sm font-medium rounded-xl transition-colors",
-            isActive("profile") && "text-gray-900 bg-gray-100 shadow-sm"
+            "h-10 w-full inline-flex items-center justify-center text-white/70 text-sm font-medium rounded-xl transition-colors",
+            isActive("profile") && "text-white bg-white/10 shadow-sm"
           )}
           onClick={() => onChange("profile")}
           aria-label="Perfil"

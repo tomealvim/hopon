@@ -15,23 +15,23 @@ export default function InboxRow({
 }: InboxRowProps) {
   return (
     <button 
-      className="w-full flex items-center justify-between px-4 py-3 bg-white rounded-xl hover:bg-gray-50 transition shadow-sm border border-gray-100" 
+      className="w-full flex items-center justify-between px-4 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition shadow-sm" 
       onClick={onClick}
       aria-label={`${title}${subtitle ? ` - ${subtitle}` : ""}${unread ? ` - ${unread} mensagens não lidas` : ""}`}
     >
       <div className="flex-1 text-left">
-        <div className="text-sm font-semibold text-gray-900">{title}</div>
-        {subtitle && <div className="text-xs text-gray-500 mt-0.5">{subtitle}</div>}
+        <div className="text-sm font-semibold text-white">{title}</div>
+        {subtitle && <div className="text-xs text-white/70 mt-0.5">{subtitle}</div>}
       </div>
       <div className="flex items-center gap-2 ml-3">
-        {cta && <span className="text-xs font-medium text-primary px-2 py-1 bg-blue-50 rounded">{cta}</span>}
+        {cta && <span className="text-xs font-medium text-white px-2 py-1 bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black rounded">{cta}</span>}
         {unread && unread > 0 && (
           <span className="min-w-5 h-5 flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full px-1.5" aria-label={`${unread} mensagens não lidas`}>
             {unread}
           </span>
         )}
         <svg 
-          className="text-gray-400" 
+          className="text-white/50" 
           width="18" 
           height="18" 
           viewBox="0 0 24 24" 

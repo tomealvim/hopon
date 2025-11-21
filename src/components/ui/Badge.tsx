@@ -7,11 +7,11 @@ type Props = {
   className?: string;
 };
 const map = {
-  neutral: "bg-gray-100 text-gray-900",
-  brand: "bg-blue-100 text-blue-900",
-  success: "bg-green-100 text-green-900",
-  warning: "bg-amber-100 text-amber-900",
-  danger: "bg-red-100 text-red-900",
+  neutral: "bg-white/10 text-white border border-white/20",
+  brand: "bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black",
+  success: "bg-green-500/20 text-green-300 border border-green-500/30",
+  warning: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
+  danger: "bg-red-500/20 text-red-300 border border-red-500/30",
 };
 export function Badge({ children, tone = "neutral", className }: Props) {
   return (

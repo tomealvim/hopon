@@ -39,7 +39,7 @@ function Sheet({ open, onClose, title, children, footer, height = "md" }: Props)
         <div className="sheet-handle" />
         <div className="sheet-head">
           <h3 className="sheet-title">{title}</h3>
-          <button onClick={onClose} className="rounded-xl p-2 hover:bg-gray-100" aria-label="Fechar">✕</button>
+          <button onClick={onClose} className="rounded-xl p-2 hover:bg-white/10 text-white" aria-label="Fechar">✕</button>
         </div>
         <div className="sheet-body">{children}</div>
         {footer && <div className="sheet-foot">{footer}</div>}

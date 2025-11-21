@@ -78,11 +78,11 @@ export default function TimePicker({ value, onChange, label, minTime }: TimePick
 
   return (
     <div>
-      {label && <label className="block text-xs font-semibold text-gray-700 mb-1">{label}</label>}
+      {label && <label className="block text-xs font-semibold text-white/70 mb-1">{label}</label>}
       
       <button
         type="button"
-        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-center font-medium"
+        className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 text-center font-medium"
         onClick={() => setIsOpen(true)}
       >
         <span>{value}</span>
@@ -90,19 +90,19 @@ export default function TimePicker({ value, onChange, label, minTime }: TimePick
 
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 z-[100] flex items-end justify-center" onClick={() => setIsOpen(false)}>
-          <div className="bg-white rounded-t-3xl w-full max-w-md pb-safe" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+          <div className="bg-[#0a0611] border border-white/10 rounded-t-3xl w-full max-w-md pb-safe" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
               <button
                 type="button"
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="text-sm text-white/70 hover:text-white"
                 onClick={() => setIsOpen(false)}
               >
                 Cancelar
               </button>
-              <div className="text-sm font-semibold text-gray-900">{label || "Escolher hora"}</div>
+              <div className="text-sm font-semibold text-white">{label || "Escolher hora"}</div>
               <button
                 type="button"
-                className="text-sm text-primary font-medium hover:text-primary/80"
+                className="text-sm text-white font-medium hover:text-white/80"
                 onClick={() => setIsOpen(false)}
               >
                 OK
@@ -110,7 +110,7 @@ export default function TimePicker({ value, onChange, label, minTime }: TimePick
             </div>
 
             <div className="relative py-6">
-              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-10 border-y border-gray-200 pointer-events-none" />
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-10 border-y border-white/10 pointer-events-none" />
               
               <div className="flex justify-center items-center gap-2">
                 <div className="h-48 overflow-y-auto scrollbar-none" ref={hoursRef}>
@@ -121,7 +121,7 @@ export default function TimePicker({ value, onChange, label, minTime }: TimePick
                       <button
                         key={i}
                         type="button"
-                        className={`block w-16 h-10 text-center ${hours === i ? "text-lg font-bold text-gray-900" : "text-gray-400"} ${isDisabled ? "opacity-30 cursor-not-allowed" : "hover:text-gray-700"}`}
+                        className={`block w-16 h-10 text-center ${hours === i ? "text-lg font-bold text-white" : "text-white/50"} ${isDisabled ? "opacity-30 cursor-not-allowed" : "hover:text-white/80"}`}
                         data-value={i}
                         onClick={() => !isDisabled && handleHourChange(i)}
                         disabled={isDisabled}
@@ -133,7 +133,7 @@ export default function TimePicker({ value, onChange, label, minTime }: TimePick
                   <div className="h-20" />
                 </div>
 
-                <div className="text-2xl font-bold text-gray-300">:</div>
+                <div className="text-2xl font-bold text-white/30">:</div>
 
                 <div className="h-48 overflow-y-auto scrollbar-none" ref={minutesRef}>
                   <div className="h-20" />
@@ -143,7 +143,7 @@ export default function TimePicker({ value, onChange, label, minTime }: TimePick
                       <button
                         key={i}
                         type="button"
-                        className={`block w-16 h-10 text-center ${minutes === i ? "text-lg font-bold text-gray-900" : "text-gray-400"} ${isDisabled ? "opacity-30 cursor-not-allowed" : "hover:text-gray-700"}`}
+                        className={`block w-16 h-10 text-center ${minutes === i ? "text-lg font-bold text-white" : "text-white/50"} ${isDisabled ? "opacity-30 cursor-not-allowed" : "hover:text-white/80"}`}
                         data-value={i}
                         onClick={() => !isDisabled && handleMinuteChange(i)}
                         disabled={isDisabled}

@@ -17,7 +17,7 @@ html {
 }
 
 body { 
-  background: #f8fafc; 
+  background: #0a0611; 
   -webkit-tap-highlight-color: transparent; 
   overflow-x: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -60,9 +60,10 @@ body {
   bottom: 0; 
   width: 100%; 
   max-width: 440px;
-  background: #fff; 
+  background: #0a0611; 
   border-top-left-radius: 24px; 
   border-top-right-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.1);
   box-shadow: var(--shadow-md); 
   transition: transform .2s;
   display: flex; 
@@ -92,7 +93,7 @@ body {
 .sheet-handle { 
   width: 44px; 
   height: 4px; 
-  background: rgba(0,0,0,.16); 
+  background: rgba(255,255,255,0.3); 
   border-radius: 999px; 
   margin: 8px auto 4px; 
   flex-shrink: 0; 
@@ -109,6 +110,7 @@ body {
 .sheet-title { 
   font-size: 15px; 
   font-weight: 600; 
+  color: white;
 }
 
 .sheet-body { 
@@ -121,8 +123,8 @@ body {
 .sheet-foot { 
   padding: 12px 20px; 
   padding-bottom: calc(20px + env(safe-area-inset-bottom)); 
-  border-top: 1px solid #e5e7eb; 
-  background: #fff; 
+  border-top: 1px solid rgba(255,255,255,0.1); 
+  background: #0a0611; 
   flex-shrink: 0; 
 }
 

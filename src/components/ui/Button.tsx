@@ -18,13 +18,13 @@ const base =
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-black text-white hover:bg-black/90 focus-visible:ring-black ring-offset-white",
+    "bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black font-semibold shadow-[0_20px_45px_rgba(255,113,154,0.35)] hover:opacity-90 focus-visible:ring-[#FF719A] ring-offset-black",
   secondary:
-    "bg-gray-100 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-300 ring-offset-white",
+    "bg-white/10 text-white border border-white/20 hover:bg-white/20 focus-visible:ring-white/50 ring-offset-black",
   ghost:
-    "bg-transparent text-gray-900 hover:bg-gray-100 focus-visible:ring-gray-300 ring-offset-white",
+    "bg-transparent text-white hover:bg-white/10 focus-visible:ring-white/50 ring-offset-black",
   danger:
-    "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 ring-offset-white",
+    "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 ring-offset-black",
 };
 
 const sizes: Record<Size, string> = {

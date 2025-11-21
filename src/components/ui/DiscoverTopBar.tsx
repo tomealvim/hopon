@@ -18,14 +18,14 @@ export default function DiscoverTopBar({ active, onChange, onFilter }: Props) {
   };
 
   const pillClass = (tab: DiscoverTab) => cn(
-    "h-9 px-2 text-xs font-bold tracking-wide text-gray-500 bg-transparent border-0 cursor-pointer inline-flex items-center rounded-lg transition-all",
-    "hover:text-gray-700 hover:bg-gray-50",
-    "focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2 focus-visible:rounded-lg",
-    active === tab && "text-gray-900 bg-gray-100 shadow-sm"
+    "h-9 px-2 text-xs font-bold tracking-wide text-white/70 bg-transparent border-0 cursor-pointer inline-flex items-center rounded-lg transition-all",
+    "hover:text-white hover:bg-white/10",
+    "focus-visible:outline-2 focus-visible:outline-[#FF719A] focus-visible:outline-offset-2 focus-visible:rounded-lg",
+    active === tab && "text-white bg-white/10 shadow-sm"
   );
 
   return (
-    <div className="sticky top-0 z-40 bg-white border-b border-gray-200" role="region" aria-label="Navegação Explorar">
+    <div className="sticky top-0 z-40 bg-[#0a0611] border-b border-white/10 backdrop-blur-sm" role="region" aria-label="Navegação Explorar">
       <div className="max-w-mobile md:max-w-tablet lg:max-w-desktop mx-auto grid grid-cols-[44px_1fr_44px] items-center h-14 px-2" onKeyDown={onKeyDown}>
         <div className="w-10 h-10" aria-hidden />
 
@@ -57,7 +57,7 @@ export default function DiscoverTopBar({ active, onChange, onFilter }: Props) {
 
         <button 
           type="button" 
-          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-transparent border-0 cursor-pointer hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2 focus-visible:rounded-2xl" 
+          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-transparent border-0 cursor-pointer hover:bg-white/10 text-white focus-visible:outline-2 focus-visible:outline-[#FF719A] focus-visible:outline-offset-2 focus-visible:rounded-2xl" 
           aria-label="Ajustes" 
           onClick={onFilter}
         >

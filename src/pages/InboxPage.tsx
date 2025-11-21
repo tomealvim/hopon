@@ -134,9 +134,15 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
     const thread = threads.find(t => t.id === initialThreadId);
     if (!thread) {
       return (
-        <main className="bg-[#F7F7F9] min-h-screen px-4 pb-28 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-sm text-gray-500">A carregar conversa...</div>
+        <main className="relative min-h-screen px-4 pb-28 flex items-center justify-center text-white overflow-hidden">
+          {/* Blur effects coloridos */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/20 blur-[180px]" />
+            <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/20 blur-[160px]" />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/15 blur-[200px]" />
+          </div>
+          <div className="relative z-10 text-center">
+            <div className="text-sm text-white/70">A carregar conversa...</div>
           </div>
         </main>
       );
@@ -169,9 +175,17 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
   }
 
   return (
-    <main className="bg-[#F7F7F9] min-h-screen px-4 pb-28" role="main" aria-label="Caixa de entrada">
+    <main className="relative min-h-screen px-4 pb-28 text-white overflow-hidden" role="main" aria-label="Caixa de entrada">
+      {/* Blur effects coloridos */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/20 blur-[180px]" />
+        <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/20 blur-[160px]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/15 blur-[200px]" />
+      </div>
+      
+      <div className="relative z-10">
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert" aria-live="polite">
+        <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded mb-4" role="alert" aria-live="polite">
           {error}
         </div>
       )}
@@ -221,6 +235,7 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
           />
         ))}
       </Section>
+      </div>
     </main>
   );
 }
@@ -237,7 +252,7 @@ function Section({
 }) {
   return (
     <section className="pt-4 pb-6" aria-label={ariaLabel}>
-      <h2 className="text-sm font-bold text-gray-900 mb-3">{title}</h2>
+      <h2 className="text-sm font-bold text-white mb-3">{title}</h2>
       <div className="grid gap-2" aria-label={`Lista de ${title.toLowerCase()}`}>
         {children}
       </div>
@@ -246,7 +261,7 @@ function Section({
 }
 
 function Empty({ label }: { label: string }) {
-  return <div className="text-center text-gray-500 py-8 text-sm">{label}</div>;
+  return <div className="text-center text-white/50 py-8 text-sm">{label}</div>;
 }
 
 

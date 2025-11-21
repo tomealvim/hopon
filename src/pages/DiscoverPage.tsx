@@ -216,17 +216,24 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
     <>
       <DiscoverTopBar active={tab} onChange={setTab} onFilter={openAdjustments} />
 
-      <main className="bg-[#F7F7F9] min-h-screen px-4 pb-28">
-  
+      <main className="relative min-h-screen px-4 pb-28 text-white overflow-hidden">
+        {/* Blur effects coloridos */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/20 blur-[180px]" />
+          <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/20 blur-[160px]" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/15 blur-[200px]" />
+        </div>
+        
+        <div className="relative z-10">
         {tab === "explore" && (
           <>
-            <h2 className="text-sm font-bold text-gray-900 mt-3 mb-2">
+            <h2 className="text-sm font-bold text-white mt-3 mb-2">
               Boleias disponíveis {filteredOffers.length > 0 && `(${filteredOffers.length})`}
             </h2>
             {filteredOffers.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-sm text-gray-500 mb-1">Sem boleias disponíveis</p>
-                <p className="text-xs text-gray-400">
+                <p className="text-sm text-white/70 mb-1">Sem boleias disponíveis</p>
+                <p className="text-xs text-white/50">
                   {availableOffers.length > 0 
                     ? "Tenta ajustar os filtros"
                     : "Sê o primeiro a oferecer uma boleia!"}
@@ -271,18 +278,18 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
 
         {tab === "requests" && (
           <>
-            <h2 className="text-sm font-bold text-gray-900 mt-3 mb-2">
+            <h2 className="text-sm font-bold text-white mt-3 mb-2">
               Pedidos de boleia {matchedRequestsForMyOffers.length > 0 && `(${matchedRequestsForMyOffers.length} compatíveis)`}
             </h2>
             {myOffers.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-sm text-gray-500 mb-1">Sem pedidos disponíveis</p>
-                <p className="text-xs text-gray-400">Cria uma oferta de boleia para veres pedidos compatíveis</p>
+                <p className="text-sm text-white/70 mb-1">Sem pedidos disponíveis</p>
+                <p className="text-xs text-white/50">Cria uma oferta de boleia para veres pedidos compatíveis</p>
               </div>
             ) : matchedRequestsForMyOffers.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-sm text-gray-500 mb-1">Sem pedidos compatíveis</p>
-                <p className="text-xs text-gray-400">Ainda ninguém pediu boleia no teu percurso</p>
+                <p className="text-sm text-white/70 mb-1">Sem pedidos compatíveis</p>
+                <p className="text-xs text-white/50">Ainda ninguém pediu boleia no teu percurso</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -318,13 +325,13 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
 
         {tab === "for-you" && (
           <>
-            <h2 className="text-sm font-bold text-gray-900 mt-3 mb-2">
+            <h2 className="text-sm font-bold text-white mt-3 mb-2">
               Para ti {forYouOffers.length > 0 && `(${forYouOffers.length})`}
             </h2>
             {forYouOffers.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-sm text-gray-500 mb-1">Sem sugestões personalizadas</p>
-                <p className="text-xs text-gray-400">Cria um pedido de boleia para veres ofertas compatíveis</p>
+                <p className="text-sm text-white/70 mb-1">Sem sugestões personalizadas</p>
+                <p className="text-xs text-white/50">Cria um pedido de boleia para veres ofertas compatíveis</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -349,6 +356,7 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
             )}
           </>
         )}
+        </div>
       </main>
 
       <DiscoverFiltersSheet
@@ -403,10 +411,10 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
         {selectedRideForDetails && (
           <div className="grid gap-4 p-1">
             <div className="grid gap-2">
-              <div className="text-xs font-semibold text-gray-500 uppercase">
+              <div className="text-xs font-semibold text-white/70 uppercase">
                 {selectedRideForDetails && "hora" in selectedRideForDetails ? "Oferta de Boleia" : "Pedido de Boleia"}
               </div>
-              <div className="text-xl font-bold text-gray-900">
+              <div className="text-xl font-bold text-white">
                 {"hora" in selectedRideForDetails
                   ? selectedRideForDetails.hora
                   : "horaMin" in selectedRideForDetails
@@ -415,70 +423,70 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
               </div>
             </div>
 
-            <div className="grid gap-2 p-4 bg-gray-50 rounded-xl">
+            <div className="grid gap-2 p-4 bg-white/5 border border-white/10 rounded-xl">
               <div className="flex items-center gap-2">
                 <span className="text-lg">📍</span>
                 <div>
-                  <div className="text-xs text-gray-500">Origem</div>
-                  <div className="text-sm font-semibold text-gray-900">
+                  <div className="text-xs text-white/70">Origem</div>
+                  <div className="text-sm font-semibold text-white">
                     {"origem" in selectedRideForDetails ? selectedRideForDetails.origem : ""}
                   </div>
                 </div>
               </div>
-              <div className="h-px bg-gray-200 my-1" />
+              <div className="h-px bg-white/10 my-1" />
               <div className="flex items-center gap-2">
                 <span className="text-lg">🎯</span>
                 <div>
-                  <div className="text-xs text-gray-500">Destino</div>
-                  <div className="text-sm font-semibold text-gray-900">
+                  <div className="text-xs text-white/70">Destino</div>
+                  <div className="text-sm font-semibold text-white">
                     {"destino" in selectedRideForDetails ? selectedRideForDetails.destino : ""}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-2 p-4 bg-gray-50 rounded-xl">
-              <div className="text-xs text-gray-500">Data</div>
-              <div className="text-sm font-semibold text-gray-900">
+            <div className="grid gap-2 p-4 bg-white/5 border border-white/10 rounded-xl">
+              <div className="text-xs text-white/70">Data</div>
+              <div className="text-sm font-semibold text-white">
                 {"data" in selectedRideForDetails ? selectedRideForDetails.data : ""}
               </div>
             </div>
 
             {selectedRideForDetails && "lugaresDisponiveis" in selectedRideForDetails && (
               <>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <div className="text-xs text-green-900">
+                <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+                  <div className="text-xs text-green-300">
                     <strong>
                       {selectedRideForDetails.lugaresDisponiveis}/{selectedRideForDetails.lugares} lugares disponíveis
                     </strong>
                   </div>
                 </div>
 
-                <div className="grid gap-3 p-4 bg-gray-50 rounded-xl">
-                  <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Características</div>
+                <div className="grid gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
+                  <div className="text-xs font-semibold text-white/70 uppercase mb-1">Características</div>
                   <div className="grid gap-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Aceita desvios:</span>
-                      <span className="font-semibold text-gray-900">
+                      <span className="text-white/60">Aceita desvios:</span>
+                      <span className="font-semibold text-white">
                         {selectedRideForDetails.aceitaDesvios ? "Sim" : "Não"}
                       </span>
                     </div>
                     {selectedRideForDetails.aceitaDesvios && (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Desvio máximo:</span>
-                        <span className="font-semibold text-gray-900">{selectedRideForDetails.desvioMaxMin} min</span>
+                        <span className="text-white/60">Desvio máximo:</span>
+                        <span className="font-semibold text-white">{selectedRideForDetails.desvioMaxMin} min</span>
                       </div>
                     )}
                     {selectedRideForDetails.pontoEncontro && (
                       <div className="flex items-start gap-2 text-sm">
-                        <span className="text-gray-600">Ponto de encontro:</span>
-                        <span className="font-semibold text-gray-900">{selectedRideForDetails.pontoEncontro}</span>
+                        <span className="text-white/60">Ponto de encontro:</span>
+                        <span className="font-semibold text-white">{selectedRideForDetails.pontoEncontro}</span>
                       </div>
                     )}
                     {selectedRideForDetails.recorrente && (
                       <div className="flex items-start gap-2 text-sm">
-                        <span className="text-gray-600">Recorrente:</span>
-                        <span className="font-semibold text-gray-900">
+                        <span className="text-white/60">Recorrente:</span>
+                        <span className="font-semibold text-white">
                           {selectedRideForDetails.diasSemana.map((d) => {
                             const dias: Record<string, string> = {
                               seg: "Seg",
@@ -495,26 +503,26 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
                   </div>
                 </div>
 
-                <div className="grid gap-3 p-4 bg-gray-50 rounded-xl">
-                  <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Preferências</div>
+                <div className="grid gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
+                  <div className="text-xs font-semibold text-white/70 uppercase mb-1">Preferências</div>
                   <div className="grid grid-cols-2 gap-2">
                     {selectedRideForDetails.preferencias.musica && (
-                      <div className="text-xs text-gray-600">🎵 Música</div>
+                      <div className="text-xs text-white/70">🎵 Música</div>
                     )}
                     {selectedRideForDetails.preferencias.falar && (
-                      <div className="text-xs text-gray-600">💬 Conversa</div>
+                      <div className="text-xs text-white/70">💬 Conversa</div>
                     )}
                     {selectedRideForDetails.preferencias.bagagem && (
-                      <div className="text-xs text-gray-600">🧳 Bagagem</div>
+                      <div className="text-xs text-white/70">🧳 Bagagem</div>
                     )}
                     {selectedRideForDetails.preferencias.animais && (
-                      <div className="text-xs text-gray-600">🐕 Animais</div>
+                      <div className="text-xs text-white/70">🐕 Animais</div>
                     )}
                     {!selectedRideForDetails.preferencias.musica &&
                       !selectedRideForDetails.preferencias.falar &&
                       !selectedRideForDetails.preferencias.bagagem &&
                       !selectedRideForDetails.preferencias.animais && (
-                        <div className="text-xs text-gray-500 col-span-2">Sem preferências especiais</div>
+                        <div className="text-xs text-white/50 col-span-2">Sem preferências especiais</div>
                       )}
                   </div>
                 </div>
@@ -523,68 +531,68 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
 
             {selectedRideForDetails && "passageiros" in selectedRideForDetails && (
               <>
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <div className="text-xs text-blue-900">
+                <div className="p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                  <div className="text-xs text-blue-300">
                     <strong>{selectedRideForDetails.passageiros} passageiro{selectedRideForDetails.passageiros > 1 ? "s" : ""}</strong>
                   </div>
                 </div>
 
-                <div className="grid gap-3 p-4 bg-gray-50 rounded-xl">
-                  <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Características</div>
+                <div className="grid gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
+                  <div className="text-xs font-semibold text-white/70 uppercase mb-1">Características</div>
                   <div className="grid gap-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Aceita desvios:</span>
-                      <span className="font-semibold text-gray-900">
+                      <span className="text-white/60">Aceita desvios:</span>
+                      <span className="font-semibold text-white">
                         {selectedRideForDetails.aceitaDesvios ? "Sim" : "Não"}
                       </span>
                     </div>
                     {selectedRideForDetails.aceitaDesvios && (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Desvio máximo:</span>
-                        <span className="font-semibold text-gray-900">{selectedRideForDetails.desvioMaxMin} min</span>
+                        <span className="text-white/60">Desvio máximo:</span>
+                        <span className="font-semibold text-white">{selectedRideForDetails.desvioMaxMin} min</span>
                       </div>
                     )}
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Urgência:</span>
-                      <span className="font-semibold text-gray-900 capitalize">{selectedRideForDetails.urgencia}</span>
+                      <span className="text-white/60">Urgência:</span>
+                      <span className="font-semibold text-white capitalize">{selectedRideForDetails.urgencia}</span>
                     </div>
                     {selectedRideForDetails.orcamentoMax && (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Orçamento máximo:</span>
-                        <span className="font-semibold text-gray-900">{selectedRideForDetails.orcamentoMax}€</span>
+                        <span className="text-white/60">Orçamento máximo:</span>
+                        <span className="font-semibold text-white">{selectedRideForDetails.orcamentoMax}€</span>
                       </div>
                     )}
                     <div className="flex items-start gap-2 text-sm">
-                      <span className="text-gray-600">Contacto:</span>
-                      <span className="font-semibold text-gray-900">{selectedRideForDetails.contacto}</span>
+                      <span className="text-white/60">Contacto:</span>
+                      <span className="font-semibold text-white">{selectedRideForDetails.contacto}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid gap-3 p-4 bg-gray-50 rounded-xl">
-                  <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Preferências</div>
+                <div className="grid gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
+                  <div className="text-xs font-semibold text-white/70 uppercase mb-1">Preferências</div>
                   <div className="grid grid-cols-2 gap-2">
                     {selectedRideForDetails.preferencias.musica && (
-                      <div className="text-xs text-gray-600">🎵 Música</div>
+                      <div className="text-xs text-white/70">🎵 Música</div>
                     )}
                     {selectedRideForDetails.preferencias.falar && (
-                      <div className="text-xs text-gray-600">💬 Conversa</div>
+                      <div className="text-xs text-white/70">💬 Conversa</div>
                     )}
                     {selectedRideForDetails.preferencias.bagagem && (
-                      <div className="text-xs text-gray-600">🧳 Bagagem</div>
+                      <div className="text-xs text-white/70">🧳 Bagagem</div>
                     )}
                     {selectedRideForDetails.preferencias.animais && (
-                      <div className="text-xs text-gray-600">🐕 Animais</div>
+                      <div className="text-xs text-white/70">🐕 Animais</div>
                     )}
                     {selectedRideForDetails.preferencias.fumador && (
-                      <div className="text-xs text-gray-600">🚬 Fumador</div>
+                      <div className="text-xs text-white/70">🚬 Fumador</div>
                     )}
                     {!selectedRideForDetails.preferencias.musica &&
                       !selectedRideForDetails.preferencias.falar &&
                       !selectedRideForDetails.preferencias.bagagem &&
                       !selectedRideForDetails.preferencias.animais &&
                       !selectedRideForDetails.preferencias.fumador && (
-                        <div className="text-xs text-gray-500 col-span-2">Sem preferências especiais</div>
+                        <div className="text-xs text-white/50 col-span-2">Sem preferências especiais</div>
                       )}
                   </div>
                 </div>
@@ -593,8 +601,8 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
 
             {"observacoes" in selectedRideForDetails && selectedRideForDetails.observacoes && (
               <div className="grid gap-2">
-                <div className="text-xs font-semibold text-gray-500">Observações</div>
-                <div className="text-sm text-gray-700 p-3 bg-gray-50 rounded-lg">
+                <div className="text-xs font-semibold text-white/70">Observações</div>
+                <div className="text-sm text-white/80 p-3 bg-white/5 border border-white/10 rounded-lg">
                   {selectedRideForDetails.observacoes}
                 </div>
               </div>
