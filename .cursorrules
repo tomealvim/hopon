@@ -1,0 +1,54 @@
+# Regras do Projeto (schollTrack) — Cursor
+
+## Objetivo
+- App **mobile-first** (telemóvel por defeito), com suporte a **tablet** e **landscape**.
+- UI simples, consistente e acessível.
+- Código em **TypeScript** e textos/labels em **Português (pt-PT)**.
+
+## Stack e padrões
+- **React + Vite + TS**
+- **Tailwind** para todos os estilos (NÃO usar CSS Modules)
+- **NÃO usar `clsx`**. Utilizar `cn()` local quando preciso.
+
+## Arquitetura & Estrutura
+- `src/components/*` → componentes puros e reutilizáveis.
+- `src/pages/*` → páginas (conteúdo + composição de componentes).  
+- `src/components/ui/*` → UI primitives (Button, Card, Badge, Avatar, Sheet, etc.).
+- `src/utils/cn.ts` → helper para concatenar classes.
+- **Discover** tem **topbar própria** (filtro à esquerda, tabs EXPLORE/FOLLOWING/FOR YOU ao centro, lupa à direita) **e mantém a bottom-nav** como o resto da app.
+
+## Convenções de código
+- Imports por ordem: libs → alias/paths → relativos.
+- Export default para componentes de página e componentes simples.
+- **Tipos explícitos** nas props. Não usar `any`.
+- Hooks: `useState`, `useEffect`, etc. Importar apenas o necessário.
+- JSX runtime moderno (não importar `React` se não for usado).
+- **Acessibilidade**: usar ARIA válido. Ex.: `aria-selected={expr}` (boolean), nunca `aria-selected="{expr}"`.
+
+## Tailwind & Estilos
+- Mobile-first; usar breakpoints para tablet (`md:` em 768px) e landscape quando necessário.
+- Garantir espaço para a bottom-nav: página com `pb-28` ou `pb-[112px]` adequado.
+- **Sheet**: usar `h-[65svh]` ou `h-[85svh]` com `env(safe-area-inset-bottom)`.
+- Classes condicionais: usar `cn()` helper.
+
+## Regras específicas de UI já decididas
+- **BottomNav** existe em TODAS as páginas (incluindo Discover).
+- **DiscoverTopBar**:
+  - Layout: [filtro][tabs pílula centradas][lupa]
+  - Tabs: EXPLORE, FOLLOWING, FOR YOU
+  - Props: `{ active, onChange, onFilter, onSearch }`
+- **Grid de cartões**: 1 coluna no telemóvel; 2 colunas em tablet (breakpoint `md:`).
+- **Buttons**: usar `min-h-[48px]` para ações principais no mobile (área de toque adequada).
+
+## Lint & Acessibilidade
+- Remover regras de Next (`@next/*`).
+- `aria-*` sempre com booleanos/valores válidos.
+- Não bloquear zoom no `<meta viewport>` (sem `maximum-scale` / `user-scalable`).
+- Evitar Quirks Mode: primeira linha do `index.html` é `<!DOCTYPE html>`.
+
+## Utilitários
+- `src/utils/cn.ts`:
+  ```ts
+  export function cn(...parts: Array<string | false | null | undefined>) {
+    return parts.filter(Boolean).join(" ");
+  }

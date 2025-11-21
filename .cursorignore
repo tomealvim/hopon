@@ -1,0 +1,13 @@
+node_modules/
+build/
+dist/
+coverage/
+.tmp/
+.cache/
+*.log
+*.lock
+*.png
+*.jpg
+*.jpeg
+*.pdf
+.DS_Store
