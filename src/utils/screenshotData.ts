@@ -92,6 +92,13 @@ export function populateScreenshotData() {
       createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
       status: "active",
       pedidos: ["request_1"],
+      vehicle: {
+        id: "v1",
+        brand: "Toyota",
+        model: "Corolla",
+        color: "Cinza",
+        plate: "AA-00-AA"
+      },
     },
     {
       id: "offer_2",
@@ -115,6 +122,13 @@ export function populateScreenshotData() {
       createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
       status: "active",
       pedidos: [],
+      vehicle: {
+        id: "v2",
+        brand: "BMW",
+        model: "Série 1",
+        color: "Preto",
+        plate: "BB-11-BB"
+      },
     },
     {
       id: "offer_3",
@@ -139,6 +153,13 @@ export function populateScreenshotData() {
       createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
       status: "active",
       pedidos: [],
+      vehicle: {
+        id: "v3",
+        brand: "Renault",
+        model: "Clio",
+        color: "Branco",
+        plate: "CC-22-CC"
+      },
     },
   ];
 

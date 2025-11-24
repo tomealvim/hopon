@@ -7,19 +7,19 @@
 - Tasks estão agrupadas por domínio para facilitar owners.
 
 ## Pré-requisitos (bloqueadores)
-- [ ] Definir stack backend final (NestJS + PostgreSQL + Redis futuro) e documentar decisões.
+- [x] Definir stack backend final (NestJS + PostgreSQL + Redis futuro) e documentar decisões.
   - **Decisão:** Node.js LTS (20/22) + TypeScript, NestJS, PostgreSQL, Prisma, Redis (futuro) para OTP/rate limiting/filas.
   - **Motivação:** módulos de NestJS encaixam no roadmap (Auth, Wallet, Rides), traz DI/guards/filters; TypeScript dá tipos end-to-end e alinhamento com frontend; Postgres garante transações e integridade (wallet, reservas); Prisma fornece DX ótima e migrações versionadas; Redis permite OTP com TTL e controlo de tentativas sem necessidade imediata no MVP.
   - **Segurança:** passwords com bcrypt/argon2 no Postgres, OTPs isolados em Redis, rate limiting fácil e validações centralizadas em pipes/guards.
-- [ ] Escolher hosting inicial (Railway, Render, Fly.io ou VM) e plano de ambientes.
+- [x] Escolher hosting inicial (Railway, Render, Fly.io ou VM) e plano de ambientes.
   - **Decisão:** Railway para backend + PostgreSQL (pode migrar mais tarde para Render/Fly/VM).
   - **Motivação:** deploy direto via GitHub, criação de Postgres num clique, logs/dashboards simples; foco em features em vez de DevOps. VM própria adiada para fase com mais tráfego.
   - **Plano:** projetos separados em Railway para `dev`, `staging`, `prod` (cada um com BD própria e backups ativos em produção).
-- [ ] Configurar ambientes `dev`, `staging`, `prod` com variáveis isoladas.
+- [~] Configurar ambientes `dev`, `staging`, `prod` com variáveis isoladas.
   - **Decisão:** development local (Docker ou Railway dev), staging deploy de branch `staging`, production a partir de `main`.
   - **Variáveis:** `DATABASE_URL`, `REDIS_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `TWILIO_*` (ou equivalente), `APP_URL` → todas separadas por ambiente; nunca commitar `.env`.
   - **Prática:** manter `.env.example` documentado; gerir secrets via UI/CLI do provider.
-- [ ] Criar repositório `hopon-backend` com estrutura modular, ESLint/Prettier e scripts (`dev`, `build`, `start`).
+- [x] Criar repositório `hopon-backend` com estrutura modular, ESLint/Prettier e scripts (`dev`, `build`, `start`).
   - **Decisão:** repo dedicado com NestJS estruturado por módulos (`modules/auth`, `modules/users`, `modules/wallet`, ...), pasta `common/` para guards/dto/filters, diretório `prisma/` com `schema.prisma`.
   - **Scripts npm:**
     ```json
@@ -35,7 +35,7 @@
     }
     ```
   - **Motivação:** módulos tornam onboarding simples, ESLint/Prettier asseguram consistência, scripts suportam CI/CD e Railway.
-- [ ] Estabelecer convenções de API: prefixo `/api/v1`, formato de erro, autenticação Bearer.
+- [x] Estabelecer convenções de API: prefixo `/api/v1`, formato de erro, autenticação Bearer.
   - **Prefixo:** todas as rotas expostas começam em `https://api.hopon.app/api/v1/...` para permitir versionamento futuro.
   - **Erros:** sempre `{ "error": { "code": "AUTH_INVALID_OTP", "message": "...", "details": null } }` com `code` estável; sucesso sempre JSON (`{ "user": {...} }`, `{ "wallet": {...} }`).
   - **Auth:** JWT via header `Authorization: Bearer <token>`, guard NestJS (`JwtAuthGuard`) para rotas privadas, endpoints públicos como `/auth/otp/send` sem auth.
@@ -122,11 +122,59 @@
 - [ ] (F2) Sistema de avaliações mútuas (condutor ⇄ passageiro) após viagem.
 - [ ] (F2) Dashboard admin: gerir reclamações, mudar status, adicionar notas internas.
 
-### 8. Segurança, logs e backups
+### 8. Infra / DX (Developer Experience)
+- [ ] **CI/CD & Testes:**
+  - [ ] Configurar GitHub Actions: Lint + Testes em PRs.
+  - [ ] Build backend em main/staging.
+  - [ ] Deploy automático para staging; manual para prod.
+  - [ ] Definir testes unitários (Jest) para Auth/Wallet e integração para fluxos críticos.
+- [ ] **Ambiente Local:**
+  - [ ] `docker-compose` com PostgreSQL (+ Redis futuro).
+  - [ ] Script `npm run dev:all` para arrancar tudo.
+  - [ ] Script de seed/reset de BD.
+- [ ] **Documentação de API:**
+  - [ ] Ativar Swagger/OpenAPI no NestJS.
+  - [ ] Documentar endpoints principais (/auth, /rides, etc.).
+  - [ ] DTOs anotados para contrato claro com frontend.
+
+### 9. Notificações & Comunicação
+- [ ] **Notification Service (módulo NestJS):**
+  - [ ] Canais: Email (transacional), (F2) Push.
+  - [ ] Modelo `NotificationPreference` por user.
+- [ ] **Gatilhos MVP:**
+  - [ ] Nova reserva / Confirmação / Cancelamento.
+  - [ ] Top-up wallet (sucesso/falha).
+  - [ ] Reclamações.
+
+### 10. Geo / Mapas / Distâncias
+- [ ] **Provider de Mapas:** Escolher (Google Maps, Mapbox, etc.).
+- [ ] **Modelo de Localização:** Endereços + lat/lng normalizados.
+- [ ] **Serviços:**
+  - [ ] Cálculo de distância/duração.
+  - [ ] (F2) Ranking de rides por proximidade.
+
+### 11. Segurança / Compliance
+- [ ] **Gestão de Sessões:**
+  - [ ] Logout global (invalidar refresh tokens).
+  - [ ] Expiração curta de JWT + Refresh Token longo.
+- [ ] **Auditoria:**
+  - [ ] Logs de eventos críticos (login, pagamentos, alterações de perfil).
+- [ ] **GDPR:**
+  - [ ] Procedimento de eliminação de conta (apagar vs anonimizar).
+
+### 12. Administração / Operações (F2)
+- [ ] **Admin Dashboard:**
+  - [ ] Ver utilizadores, rides, bookings, wallets.
+  - [ ] Bloquear utilizadores (ban).
+  - [ ] Gerir reclamações e tickets.
+- [ ] **Fraude:**
+  - [ ] Limites de contas por telefone/IBAN.
+  - [ ] Deteção de abuso em referrals.
+
+### 13. Segurança, logs e backups (Geral)
 - [ ] Rate limiting para endpoints sensíveis (`/auth/otp/send`, `/auth/login`, etc.).
 - [ ] Logging estruturado para auth, pagamentos e erros críticos.
 - [ ] Backups automáticos de PostgreSQL (diário/semanal) + testes de restore.
-- [ ] Política de retenção/direito ao esquecimento (GDPR).
 
 ## Fase 2 e além
 - [ ] Cash-out na wallet (`POST /wallet/cashout`) com compliance local.

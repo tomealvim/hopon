@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  phone        String?  @unique
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile      Profile?
+  vehicles     Vehicle[]
+  wallets      Wallet[]
+  
+  // Rides as driver
+  offeredRides Ride[]   @relation("DriverRides")
+  
+  // Bookings as passenger
+  bookings     Booking[]
+
+  @@map("users")
+}
+
+model Profile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  username     String?  @unique
+  avatarUrl    String?
+  bio          String?
+  
+  // JSONB for schedule flexibility (SQLite: String)
+  schedule     String?    
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+model Vehicle {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  brand     String
+  model     String
+  plate     String?  // Hashed ideally, or encrypted
+  color     String?
+  seats     Int      @default(4)
+  
+  features  String?    // { airConditioning: true, etc } (SQLite: String)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rides     Ride[]
+
+  @@map("vehicles")
+}
+
+model Ride {
+  id             String    @id @default(uuid())
+  driverId       String
+  driver         User      @relation("DriverRides", fields: [driverId], references: [id])
+  vehicleId      String
+  vehicle        Vehicle   @relation(fields: [vehicleId], references: [id])
+  
+  origin         String
+  destination    String
+  departureTime  DateTime
+  
+  availableSeats Int
+  price          Float?    // (SQLite: Float)
+  
+  status         String    @default("SCHEDULED") // (SQLite: String)
+  
+  bookings       Booking[]
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@map("rides")
+}
+
+model Booking {
+  id        String        @id @default(uuid())
+  rideId    String
+  ride      Ride          @relation(fields: [rideId], references: [id])
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  
+  seats     Int           @default(1)
+  status    String        @default("PENDING") // (SQLite: String)
+  
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("bookings")
+}
+
+model Wallet {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  balance   Float    @default(0) // (SQLite: Float)
+  currency  String   @default("EUR")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("wallets")
+}
