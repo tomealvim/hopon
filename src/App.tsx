@@ -69,7 +69,7 @@ function AppContent() {
 
   // Authenticated and profile complete
   return (
-          <div className="min-h-[100svh] overflow-x-hidden">
+          <div className="min-h-[100svh] overflow-x-hidden bg-[#0a0611]">
       {showGlobalHeader && (
         <header className="sticky top-0 z-30 bg-[#0a0611] border-b border-white/10 backdrop-blur-sm">
           <div className="w-full max-w-mobile md:max-w-tablet lg:max-w-desktop mx-auto px-4 h-14 flex items-center justify-between">

@@ -3,6 +3,7 @@ import type { AriaAttributes } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage, type LanguageCode } from "../contexts/LanguageContext";
 import { useNotifications } from "../contexts/NotificationContext";
+import { cn } from "../utils/cn";
 import type { UserSchedule, Vehicle } from "./types/user";
 import ScheduleEditor from "../components/ui/ScheduleEditor";
 import WeekCalendar from "../components/ui/WeekCalendar";
@@ -34,7 +35,7 @@ type PasswordFeedback = {
 };
 
 export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStateChange }: ProfilePageProps) {
-  const { user, updateProfile, upsertVehicle, setActiveVehicle, completeVerification } = useAuth();
+  const { user, updateProfile, upsertVehicle, removeVehicle, setActiveVehicle, completeVerification } = useAuth();
   const { language, setLanguage, getLanguageLabel } = useLanguage();
   const { showSuccess } = useNotifications();
   
@@ -61,6 +62,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
   const [openVehicleSheet, setOpenVehicleSheet] = useState(false);
   const [openVehicleList, setOpenVehicleList] = useState(false);
   const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
+  const [vehicleToDelete, setVehicleToDelete] = useState<Vehicle | null>(null);
   const [verificationSheetOpen, setVerificationSheetOpen] = useState(false);
   const [verificationChannel, setVerificationChannel] = useState<"email" | "phone" | null>(null);
   const [copiedReferral, setCopiedReferral] = useState(false);
@@ -358,9 +360,9 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
     <div className="relative min-h-screen pb-32 text-white overflow-hidden">
       {/* Blur effects coloridos */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/20 blur-[180px]" />
-        <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/20 blur-[160px]" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/15 blur-[200px]" />
+        <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/8 blur-[180px]" />
+        <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/8 blur-[160px]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/6 blur-[200px]" />
       </div>
       
       <div className="relative z-10">
@@ -459,7 +461,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
             </Button>
 
             {showCalendarPreview && (
-              <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-2">
+              <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-2">
                 <WeekCalendar schedule={schedule} onBlockClick={() => setOpenSchedule(true)} compact />
               </div>
             )}
@@ -610,7 +612,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
       >
         <div className="grid gap-6">
           {/* Foto */}
-          <div className="flex flex-col items-center gap-3 pb-6 border-b border-gray-200">
+          <div className="flex flex-col items-center gap-3 pb-6 border-b border-white/10">
             <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center text-3xl font-bold overflow-hidden shadow-lg ring-4 ring-primary/10" aria-label="Foto de perfil">
               {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initials(name)}</span>}
             </div>
@@ -637,14 +639,14 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
 
           {/* Informação pessoal */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+            <h3 className="text-xs font-bold text-white/60 uppercase tracking-wide">
               Informação pessoal
             </h3>
 
             <Field label="Username / apelido público" htmlFor="pf-username" hint="Opcional. Usa um @apelido curto para partilhar o perfil.">
               <input
                 id="pf-username"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none placeholder:text-white/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 placeholder="Ex: joaosilva"
@@ -656,7 +658,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
 
           {/* Contactos */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+            <h3 className="text-xs font-bold text-white/60 uppercase tracking-wide">
               Contactos
             </h3>
 
@@ -664,7 +666,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
               <input
                 id="pf-contact-email"
                 type="email"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none placeholder:text-white/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 value={contactEmail}
                 onChange={e => setContactEmail(e.target.value)}
                 placeholder="Ex: joao@exemplo.com"
@@ -790,20 +792,20 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
       >
         <div className="space-y-6 py-2">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-gray-900">Ganha descontos a cada convite</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-base font-semibold text-white">Ganha descontos a cada convite</p>
+            <p className="text-sm text-white/60">
               Em breve, quando um amigo usar o teu código, ambos recebem uma percentagem de desconto na próxima viagem.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-gray-200 bg-gray-50 p-4 shadow-inner">
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">O teu código</div>
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <div className="text-xs font-semibold text-white/60 uppercase tracking-wide mb-3">O teu código</div>
             <div className="flex items-center justify-between gap-3">
-              <span className="font-mono text-lg tracking-[0.35em] text-gray-900">{referralCode}</span>
+              <span className="font-mono text-lg tracking-[0.35em] text-white">{referralCode}</span>
               <button
                 type="button"
                 onClick={handleCopyReferralCode}
-                className="p-3 rounded-2xl bg-white border border-gray-200 shadow-sm hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="p-3 rounded-2xl bg-white/10 border border-white/20 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-white"
                 aria-label="Copiar código de convite"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -812,33 +814,33 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
                 </svg>
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-3 min-h-[16px]" aria-live="polite">
+            <p className="text-xs text-white/50 mt-3 min-h-[16px]" aria-live="polite">
               {copiedReferral ? "Código copiado! Cola em qualquer app de mensagens." : "Toca para copiar e partilha com colegas."}
             </p>
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Como vai funcionar</h4>
+            <h4 className="text-xs font-bold text-white/60 uppercase tracking-wide">Como vai funcionar</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <span className="h-8 w-8 rounded-2xl bg-primary/10 text-primary font-semibold flex items-center justify-center">1</span>
+                <span className="h-8 w-8 rounded-2xl bg-primary/20 text-primary font-semibold flex items-center justify-center">1</span>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Partilha o teu código</p>
-                  <p className="text-xs text-gray-500">Copia e envia pelo WhatsApp, Instagram ou onde preferires.</p>
+                  <p className="text-sm font-semibold text-white">Partilha o teu código</p>
+                  <p className="text-xs text-white/60">Copia e envia pelo WhatsApp, Instagram ou onde preferires.</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <span className="h-8 w-8 rounded-2xl bg-primary/10 text-primary font-semibold flex items-center justify-center">2</span>
+                <span className="h-8 w-8 rounded-2xl bg-primary/20 text-primary font-semibold flex items-center justify-center">2</span>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">O amigo usa o convite</p>
-                  <p className="text-xs text-gray-500">Assim que ele confirmar a conta, o desconto fica reservado.</p>
+                  <p className="text-sm font-semibold text-white">O amigo usa o convite</p>
+                  <p className="text-xs text-white/60">Assim que ele confirmar a conta, o desconto fica reservado.</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <span className="h-8 w-8 rounded-2xl bg-primary/10 text-primary font-semibold flex items-center justify-center">3</span>
+                <span className="h-8 w-8 rounded-2xl bg-primary/20 text-primary font-semibold flex items-center justify-center">3</span>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Desconto aplicado</p>
-                  <p className="text-xs text-gray-500">Ambos recebem uma percentagem de desconto na próxima boleia.</p>
+                  <p className="text-sm font-semibold text-white">Desconto aplicado</p>
+                  <p className="text-xs text-white/60">Ambos recebem uma percentagem de desconto na próxima boleia.</p>
                 </div>
               </li>
             </ul>
@@ -868,8 +870,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         }
       >
         <div className="grid gap-4 text-center">
-          <h3 className="text-lg font-bold text-gray-900">Tens a certeza?</h3>
-          <p className="text-sm text-gray-600">
+          <h3 className="text-lg font-bold text-white">Tens a certeza?</h3>
+          <p className="text-sm text-white/70">
             Vais terminar a tua sessão. Podes sempre voltar e fazer login novamente.
           </p>
         </div>
@@ -893,13 +895,13 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         }
       >
         <div className="grid gap-4 text-center">
-          <h3 className="text-lg font-bold text-gray-900">Tens a certeza?</h3>
-          <p className="text-sm text-gray-600">
+          <h3 className="text-lg font-bold text-white">Tens a certeza?</h3>
+          <p className="text-sm text-white/70">
             Esta ação não pode ser desfeita. Todos os teus dados, boleias e histórico serão permanentemente removidos.
           </p>
-          <div className="text-left bg-red-50 rounded-xl p-4 border border-red-200">
-            <p className="text-sm font-semibold text-red-900 mb-2"><strong>Será apagado:</strong></p>
-            <ul className="text-sm text-red-800 space-y-1 list-disc list-inside">
+          <div className="text-left bg-red-500/20 rounded-xl p-4 border border-red-500/30">
+            <p className="text-sm font-semibold text-red-300 mb-2"><strong>Será apagado:</strong></p>
+            <ul className="text-sm text-red-200 space-y-1 list-disc list-inside">
               <li>Perfil e dados pessoais</li>
               <li>Histórico de boleias</li>
               <li>Mensagens e conversas</li>
@@ -915,14 +917,14 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         title={TERMS_TITLE}
         height="lg"
       >
-        <div id="profile-terms-sheet" className="space-y-6 text-sm text-gray-700">
+        <div id="profile-terms-sheet" className="space-y-6 text-sm text-white/80">
           {TERMS_SECTIONS.map(section => (
             <section key={section.title} className="space-y-2">
-              <h4 className="text-base font-semibold text-gray-900">{section.title}</h4>
-              <p className="leading-relaxed text-gray-600">{section.content}</p>
+              <h4 className="text-base font-semibold text-white">{section.title}</h4>
+              <p className="leading-relaxed text-white/70">{section.content}</p>
             </section>
           ))}
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-white/50">
             Estes Termos e Condições são preliminares e serão validados juridicamente antes do lançamento público.
             Última atualização: {TERMS_LAST_UPDATED}.
           </p>
@@ -1000,11 +1002,11 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
                     {vehicle.features.heater ? "Aquecimento" : "Sem aquecimento"}
                   </span>
                 </div>
-                {vehicle.id !== activeVehicleId && (
-                  <div className="mt-3">
+                <div className="mt-3 flex gap-2">
+                  {vehicle.id !== activeVehicleId && (
                     <Button 
                       size="sm" 
-                      className="w-full"
+                      className="flex-1"
                       onClick={() => {
                         setActiveVehicle(vehicle.id);
                         showSuccess("Veículo ativado", `${vehicle.brand} ${vehicle.model} está agora em uso.`);
@@ -1012,10 +1014,69 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
                     >
                       Usar este carro
                     </Button>
-                  </div>
-                )}
+                  )}
+                  <button
+                    type="button"
+                    className={cn(
+                      "h-9 px-3 text-sm font-medium rounded-xl transition border",
+                      vehicle.id === activeVehicleId ? "w-full" : "flex-1",
+                      "bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white/90 hover:border-white/20"
+                    )}
+                    onClick={() => setVehicleToDelete(vehicle)}
+                  >
+                    Remover
+                  </button>
+                </div>
               </div>
             ))
+          )}
+        </div>
+      </Sheet>
+
+      {/* Sheet: confirmação de remover veículo */}
+      <Sheet
+        open={vehicleToDelete !== null}
+        onClose={() => setVehicleToDelete(null)}
+        title="Remover veículo"
+        height="md"
+        footer={
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => setVehicleToDelete(null)}>
+              Cancelar
+            </Button>
+            <button
+              type="button"
+              className="flex-1 h-12 px-4 text-[15px] font-medium rounded-2xl transition bg-white/10 text-white border border-white/20 hover:bg-white/15 hover:border-white/30"
+              onClick={() => {
+                if (vehicleToDelete) {
+                  removeVehicle(vehicleToDelete.id);
+                  showSuccess("Veículo removido", `${vehicleToDelete.brand} ${vehicleToDelete.model} foi removido.`);
+                  setVehicleToDelete(null);
+                  if (vehicles.length === 1) {
+                    setOpenVehicleList(false);
+                  }
+                }
+              }}
+            >
+              Remover
+            </button>
+          </div>
+        }
+      >
+        <div className="grid gap-4 text-center">
+          <h3 className="text-lg font-bold text-white">Tens a certeza?</h3>
+          <p className="text-sm text-white/70">
+            {vehicleToDelete && vehicleToDelete.id === activeVehicleId && (
+              <>Este veículo está em uso. Ao removê-lo, {vehicles.length > 1 ? "outro veículo será ativado automaticamente" : "não terás nenhum veículo ativo"}.</>
+            )}
+            {vehicleToDelete && vehicleToDelete.id !== activeVehicleId && (
+              <>Vais remover <strong>{vehicleToDelete.brand} {vehicleToDelete.model}</strong> da tua lista de veículos.</>
+            )}
+          </p>
+          {vehicleToDelete && (
+            <div className="text-left bg-red-500/20 rounded-xl p-4 border border-red-500/30">
+              <p className="text-sm font-semibold text-red-300 mb-2">Esta ação não pode ser desfeita.</p>
+            </div>
           )}
         </div>
       </Sheet>
@@ -1156,9 +1217,9 @@ function Field({
 }: { label: string; htmlFor: string; hint?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-700 mb-1" htmlFor={htmlFor}>{label}</label>
+      <label className="block text-xs font-semibold text-white/80 mb-1" htmlFor={htmlFor}>{label}</label>
       {children}
-      {hint && <div className="text-xs text-gray-500 mt-1">{hint}</div>}
+      {hint && <div className="text-xs text-white/50 mt-1">{hint}</div>}
     </div>
   );
 }

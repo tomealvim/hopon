@@ -10,6 +10,7 @@ interface AuthContextValue {
   logout: () => void;
   updateProfile: (profile: UserProfile) => void;
   upsertVehicle: (vehicle: Vehicle) => void;
+  removeVehicle: (vehicleId: string) => void;
   setActiveVehicle: (vehicleId: string) => void;
   completeVerification: (channel: keyof UserVerification) => void;
   hasCompletedProfile: boolean;
@@ -134,6 +135,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser({ ...user, vehicles: nextVehicles, activeVehicleId: nextActiveVehicleId });
   };
 
+  const removeVehicle = (vehicleId: string) => {
+    if (!user) return;
+    const current = user.vehicles ?? [];
+    const nextVehicles = current.filter(v => v.id !== vehicleId);
+    let nextActiveVehicleId = user.activeVehicleId;
+    
+    // Se o veículo removido era o ativo, ativar outro ou limpar
+    if (user.activeVehicleId === vehicleId) {
+      nextActiveVehicleId = nextVehicles.length > 0 ? nextVehicles[0].id : undefined;
+    }
+    
+    setUser({ ...user, vehicles: nextVehicles, activeVehicleId: nextActiveVehicleId });
+  };
+
   const setActiveVehicle = (vehicleId: string) => {
     if (!user?.vehicles?.some(vehicle => vehicle.id === vehicleId)) {
       return;
@@ -160,6 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         updateProfile,
         upsertVehicle,
+        removeVehicle,
         setActiveVehicle,
         completeVerification,
         hasCompletedProfile,
