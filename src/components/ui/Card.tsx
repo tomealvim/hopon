@@ -9,8 +9,9 @@ export function Card({ interactive, className, ...rest }: Props) {
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-sm",
-        interactive && "hover:bg-white/10 hover:shadow-md transition-all",
+        "rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-lg shadow-black/20",
+        interactive && "hover:bg-white/12 hover:border-white/25 hover:shadow-xl hover:shadow-pink-500/10 hover:scale-[1.01] transition-all duration-300 active:scale-[0.99]",
+        "animate-fade-in-up",
         className
       )}
       {...rest}

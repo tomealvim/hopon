@@ -29,6 +29,14 @@ export interface RideOffer {
   createdAt: string;
   status: "active" | "completed" | "cancelled";
   pedidos: string[]; // IDs dos pedidos recebidos
+  vehicle: {
+    id: string;
+    brand: string;
+    model: string;
+    plate?: string;
+    color?: string;
+    imageUrl?: string;
+  };
 }
 
 // Tipos para pedidos de boleia
@@ -150,6 +158,11 @@ export function RidesProvider({ children, onCreateThread }: {
       if (!user?.id) {
         throw new Error("Utilizador não autenticado");
       }
+
+      const vehicle = user.vehicles?.find(v => v.id === values.vehicleId) ?? null;
+      if (!vehicle) {
+        throw new Error("Veículo obrigatório para oferecer boleia");
+      }
       
       const newOffer: RideOffer = {
         id: `offer_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
@@ -170,12 +183,20 @@ export function RidesProvider({ children, onCreateThread }: {
         createdAt: new Date().toISOString(),
         status: "active",
         pedidos: [],
+        vehicle: {
+          id: vehicle.id,
+          brand: vehicle.brand,
+          model: vehicle.model,
+          plate: vehicle.plate,
+          color: vehicle.color,
+          imageUrl: vehicle.imageUrl,
+        },
       };
 
       saveOffers([...offers, newOffer]);
       return newOffer;
     },
-    [offers, saveOffers, user?.id]
+    [offers, saveOffers, user?.id, user?.vehicles]
   );
 
   // Criar pedido

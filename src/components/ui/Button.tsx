@@ -18,19 +18,19 @@ const base =
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black font-semibold shadow-[0_20px_45px_rgba(255,113,154,0.35)] hover:opacity-90 focus-visible:ring-[#FF719A] ring-offset-black",
+    "bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black font-semibold shadow-[0_20px_45px_rgba(255,113,154,0.35)] hover:shadow-[0_25px_50px_rgba(255,113,154,0.45)] hover:scale-[1.02] active:shadow-[0_10px_30px_rgba(255,113,154,0.25)] focus-visible:ring-[#FF719A] ring-offset-black",
   secondary:
-    "bg-white/10 text-white border border-white/20 hover:bg-white/20 focus-visible:ring-white/50 ring-offset-black",
+    "bg-white/10 text-white border border-white/20 hover:bg-white/20 hover:border-white/30 hover:shadow-lg hover:shadow-white/10 focus-visible:ring-white/50 ring-offset-black backdrop-blur-md",
   ghost:
-    "bg-transparent text-white hover:bg-white/10 focus-visible:ring-white/50 ring-offset-black",
+    "bg-transparent text-white hover:bg-white/10 hover:backdrop-blur-sm focus-visible:ring-white/50 ring-offset-black",
   danger:
-    "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 ring-offset-black",
+    "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/30 focus-visible:ring-red-500 ring-offset-black",
 };
 
 const sizes: Record<Size, string> = {
   sm: "h-9 px-3 text-sm",
-  md: "h-11 px-4 text-[15px]",
-  lg: "h-12 px-5 text-base",
+  md: "min-h-[48px] px-4 text-[15px]",
+  lg: "min-h-[52px] px-5 text-base",
 };
 
 export function Button({

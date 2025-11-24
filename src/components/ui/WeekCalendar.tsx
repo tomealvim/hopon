@@ -16,7 +16,7 @@ export default function WeekCalendar({ schedule, onBlockClick, compact = false }
   const dayMap = new Map<DaySchedule["day"], DaySchedule>();
   safeSchedule.days.forEach(d => dayMap.set(d.day, d));
 
-  const hasAnyClasses = safeSchedule.days.some(d => d.blocks.length > 0);
+  const hasAnySchedules = safeSchedule.days.some(d => d.blocks.length > 0);
 
   // Dimensões: compacto ou normal
   const hourHeight = compact ? 32 : 48;
@@ -24,12 +24,12 @@ export default function WeekCalendar({ schedule, onBlockClick, compact = false }
   const timeColWidth = compact ? 'w-10' : 'w-12';
   const dayColWidth = compact ? 'w-14' : 'w-16';
 
-  if (!hasAnyClasses) {
+  if (!hasAnySchedules) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
         <div className="text-5xl mb-3">📅</div>
-        <div className="text-sm font-semibold text-gray-900 mb-1">Sem aulas adicionadas</div>
-        <div className="text-xs text-gray-500">Adiciona aulas para veres o teu horário aqui</div>
+        <div className="text-sm font-semibold text-gray-900 mb-1">Sem horários adicionados</div>
+        <div className="text-xs text-gray-500">Adiciona horários para veres a tua agenda aqui</div>
       </div>
     );
   }
@@ -62,7 +62,7 @@ export default function WeekCalendar({ schedule, onBlockClick, compact = false }
                   <div key={h} className="border-b border-gray-100" style={{ height: `${hourHeight}px` }} />
                 ))}
                 
-                {/* Blocos de aulas */}
+                {/* Blocos de horários */}
                 {daySchedule?.blocks.map(block => {
                   const [startH, startM] = block.start.split(":").map(Number);
                   const [endH, endM] = block.end.split(":").map(Number);

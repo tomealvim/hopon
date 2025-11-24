@@ -73,7 +73,7 @@ export default function ScheduleReviewCards({ schedule, onChange, onSkip, onConf
   return (
     <div className="grid gap-4">
       <div className="grid gap-3">
-        {flat.length === 0 && <div className="text-center text-gray-500 py-8 text-sm">Sem aulas detetadas</div>}
+        {flat.length === 0 && <div className="text-center text-gray-500 py-8 text-sm">Sem horários detetados</div>}
         {flat.map((item, idx) => (
           <div key={item.block.id} className="bg-white border border-gray-200 rounded-xl p-4">
             <div className="grid gap-3">
@@ -89,13 +89,13 @@ export default function ScheduleReviewCards({ schedule, onChange, onSkip, onConf
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Disciplina</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Destino / Descrição</label>
                 <input
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   value={item.block.title || ""}
                   onChange={(e)=>updateItem(idx, { title: e.target.value })}
-                  placeholder="Ex: PFI-T"
-                  title="Editar disciplina"
+                  placeholder="Ex: Trabalho, IST, Faculdade..."
+                  title="Editar destino"
                 />
               </div>
 
@@ -113,18 +113,18 @@ export default function ScheduleReviewCards({ schedule, onChange, onSkip, onConf
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Sala</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Local</label>
                 <input
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   value={item.block.room || ""}
                   onChange={(e)=>updateItem(idx, { room: e.target.value })}
-                  placeholder=""
-                  title="Editar sala"
+                  placeholder="Ex: Edifício A..."
+                  title="Editar local"
                 />
               </div>
 
               <div>
-                <button className="text-xs text-red-600 hover:underline" onClick={()=>removeItem(idx)}>Remover aula</button>
+                <button className="text-xs text-red-600 hover:underline" onClick={()=>removeItem(idx)}>Remover horário</button>
               </div>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function ScheduleReviewCards({ schedule, onChange, onSkip, onConf
 
       <div className="flex gap-2">
         {onSkip && <button className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition" onClick={onSkip}>Voltar</button>}
-        {onConfirm && <button className="flex-1 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition" onClick={onConfirm}>Confirmar aulas</button>}
+        {onConfirm && <button className="flex-1 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition" onClick={onConfirm}>Confirmar horários</button>}
       </div>
     </div>
   );

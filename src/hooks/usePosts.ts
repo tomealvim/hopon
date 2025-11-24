@@ -5,7 +5,7 @@ import { randItem } from "../utils/rand";
 // gerador fake para cards de condutores
 function generatePost(seed: number): Post {
   const leavesAtMin = 7 * 60 + 10 + Math.floor(Math.random() * 50); // 07:10–08:00
-  const classMin = 8 * 60 + 15; // 08:15
+  const arrivalMin = 8 * 60 + 15; // 08:15
   const buffer = randItem([5, 10, 15] as const);
   const etaPickup = 5 + Math.floor(Math.random() * 7); // 5–11
   const wait = 2 + Math.floor(Math.random() * 2); // 2–3
@@ -31,7 +31,7 @@ function generatePost(seed: number): Post {
     wait,
     etaDrop,
     walk,
-    classMin,
+    arrivalMin,
     buffer,
     detourMin,
     detourKm,

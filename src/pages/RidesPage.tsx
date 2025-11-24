@@ -1,16 +1,24 @@
 // src/pages/RidesPage.tsx
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useRides, type RideOffer, type RideRequest } from "../contexts/RidesContext";
 import EntityCard from "../components/ui/EntityCard";
-import RidesCalendar, { type DayRides } from "../components/ui/RidesCalendar";
+import RidesCalendar, { type DayRides, type CalendarRide } from "../components/ui/RidesCalendar";
 import Sheet from "../components/ui/Sheet";
 import { Button } from "../components/ui/Button";
+import BackgroundGlow from "../components/ui/BackgroundGlow";
+import { EntityCardSkeleton, RideCardSkeleton } from "../components/ui/Skeleton";
 
 export default function RidesPage() {
   const { user } = useAuth();
   const { getMyOffers, getMyRequests, requests, acceptRequest, declineRequest, cancelOffer, cancelRequest } = useRides();
   const [open, setOpen] = useState(false);
+  const [hydrating, setHydrating] = useState(true);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setHydrating(false), 300);
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Carregar ofertas e pedidos do utilizador
   const myOffers = useMemo(() => getMyOffers(user?.id || "current_user"), [getMyOffers, user?.id]);
@@ -58,9 +66,19 @@ export default function RidesPage() {
   const [selectedRide, setSelectedRide] = useState<(RideOffer | RideRequest) & { type: "offer" | "request" } | null>(null);
   const [viewingRequests, setViewingRequests] = useState(false);
 
-  const handleRideClick = (ride: any) => {
-    setSelectedRide(ride);
-    setOpen(true);
+  const handleRideClick = (ride: CalendarRide) => {
+    const matchedOffer = myOffers.find((offer) => offer.id === ride.id);
+    if (matchedOffer) {
+      setSelectedRide({ ...matchedOffer, type: "offer" });
+      setOpen(true);
+      return;
+    }
+
+    const matchedRequest = myRequests.find((request) => request.id === ride.id);
+    if (matchedRequest) {
+      setSelectedRide({ ...matchedRequest, type: "request" });
+      setOpen(true);
+    }
   };
 
   // Obter pedidos recebidos para uma oferta específica
@@ -94,18 +112,19 @@ export default function RidesPage() {
 
   return (
     <>
-      <div className="relative min-h-screen px-4 pb-28 text-white overflow-hidden">
-        {/* Blur effects coloridos */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/20 blur-[180px]" />
-          <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/20 blur-[160px]" />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/15 blur-[200px]" />
-        </div>
-        
-        <div className="relative z-10">
+      <div className="relative min-h-screen pb-32 text-white">
+        <BackgroundGlow />
+        <div className="relative z-10 px-4">
+          <div className="mx-auto max-w-mobile md:max-w-tablet lg:max-w-desktop">
         <section className="pt-4 pb-6">
           <h2 className="text-sm font-bold text-white mb-3">Próximas boleias</h2>
-          {ridesData.length === 0 ? (
+          {hydrating ? (
+            <div className="grid gap-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <RideCardSkeleton key={`calendar-skeleton-${index}`} />
+              ))}
+            </div>
+          ) : ridesData.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-sm text-white/70 mb-1">Ainda não tens boleias</p>
               <p className="text-xs text-white/50">Usa o botão + para criar uma oferta ou pedido</p>
@@ -118,7 +137,16 @@ export default function RidesPage() {
           )}
         </section>
 
-        {myOffers.length > 0 && (
+        {hydrating ? (
+          <section className="pb-6">
+            <h2 className="text-sm font-bold text-white mb-3">As minhas ofertas</h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {Array.from({ length: 2 }).map((_, index) => (
+                <EntityCardSkeleton key={`myoffers-skeleton-${index}`} />
+              ))}
+            </div>
+          </section>
+        ) : myOffers.length > 0 && (
           <section className="pb-6">
             <h2 className="text-sm font-bold text-white mb-3">As minhas ofertas</h2>
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
@@ -127,7 +155,7 @@ export default function RidesPage() {
                   key={offer.id}
                   title={`${offer.origem} → ${offer.destino}`}
                   subtitle={`${offer.data} às ${offer.hora}`}
-                  meta={`${offer.lugaresDisponiveis}/${offer.lugares} lugares  •  ${offer.pedidos.length} pedido${offer.pedidos.length !== 1 ? "s" : ""}`}
+                  meta={`${offer.lugaresDisponiveis}/${offer.lugares} lugares  •  ${offer.vehicle.brand} ${offer.vehicle.model}  •  ${offer.pedidos.length} pedido${offer.pedidos.length !== 1 ? "s" : ""}`}
                   avatar={{ initials: user?.profile?.name?.charAt(0).toUpperCase() || "U" }}
                   badges={[{ label: "Condutor", tone: "brand" }]}
                   primaryLabel={offer.pedidos.length > 0 ? "Ver pedidos" : "Detalhes"}
@@ -141,7 +169,16 @@ export default function RidesPage() {
           </section>
         )}
 
-        {myRequests.length > 0 && (
+        {hydrating ? (
+          <section className="pb-6">
+            <h2 className="text-sm font-bold text-white mb-3">Os meus pedidos</h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {Array.from({ length: 2 }).map((_, index) => (
+                <EntityCardSkeleton key={`myrequests-skeleton-${index}`} />
+              ))}
+            </div>
+          </section>
+        ) : myRequests.length > 0 && (
           <section className="pb-6">
             <h2 className="text-sm font-bold text-white mb-3">Os meus pedidos</h2>
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
@@ -168,6 +205,7 @@ export default function RidesPage() {
             </div>
           </section>
         )}
+          </div>
         </div>
       </div>
 
@@ -330,6 +368,22 @@ export default function RidesPage() {
               <div className="text-xs text-white/70">Data</div>
               <div className="text-sm font-semibold text-white">{"data" in selectedRide ? selectedRide.data : ""}</div>
             </div>
+
+            {selectedRide.type === "offer" && "vehicle" in selectedRide && (
+              <div className="grid gap-2 p-4 bg-white/5 border border-white/10 rounded-xl">
+                <div className="text-xs text-white/70">Carro associado</div>
+                <div className="text-sm font-semibold text-white">
+                  {selectedRide.vehicle.brand} {selectedRide.vehicle.model}
+                </div>
+                {(selectedRide.vehicle.plate || selectedRide.vehicle.color) && (
+                  <div className="text-xs text-white/60">
+                    {selectedRide.vehicle.plate && <span>Matrícula: {selectedRide.vehicle.plate}</span>}
+                    {selectedRide.vehicle.plate && selectedRide.vehicle.color && <span> • </span>}
+                    {selectedRide.vehicle.color && <span>Cor: {selectedRide.vehicle.color}</span>}
+                  </div>
+                )}
+              </div>
+            )}
 
             {selectedRide.type === "offer" && "lugaresDisponiveis" in selectedRide && (
               <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">

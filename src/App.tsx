@@ -30,9 +30,22 @@ function AppContent() {
   const [openOffer, setOpenOffer] = useState(false);
   const [openRequest, setOpenRequest] = useState(false);
   const [initialThreadId, setInitialThreadId] = useState<string | undefined>(undefined);
+  const [vehicleSheetTrigger, setVehicleSheetTrigger] = useState(0);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => hasCompletedOnboarding());
+  const [profileSheetsOpen, setProfileSheetsOpen] = useState(false);
+  
   // TopBar apenas em Rides e Inbox (para navegação rápida ao menu)
   const showGlobalHeader = tab === "rides" || tab === "inbox";
+  
+  // Esconder BottomNav quando há sheets/fluxos abertos
+  const hideBottomNav = openOffer || openRequest || openComposer || profileSheetsOpen;
+
+  const handleRequireVehicleSetup = () => {
+    setOpenOffer(false);
+    setOpenComposer(false);
+    setTab("profile");
+    setVehicleSheetTrigger(prev => prev + 1);
+  };
 
   // Loading state
   if (isLoading) {
@@ -93,14 +106,23 @@ function AppContent() {
           initialThreadId={initialThreadId} 
           onThreadClosed={() => setInitialThreadId(undefined)}
         />}
-        {tab === "profile" && <ProfilePage onLogout={logout} />}
+        {tab === "profile" && (
+          <ProfilePage 
+            onLogout={logout} 
+            vehicleSheetTrigger={vehicleSheetTrigger}
+            onSheetStateChange={setProfileSheetsOpen}
+          />
+        )}
       </main>
 
-      <BottomNav
-        current={tab}
-        onChange={setTab}
-        onPlus={() => setOpenComposer(true)}
-      />
+      {/* Esconder BottomNav quando há sheets/fluxos abertos */}
+      {!hideBottomNav && (
+        <BottomNav
+          current={tab}
+          onChange={setTab}
+          onPlus={() => setOpenComposer(true)}
+        />
+      )}
 
       {/* Composer do “+” */}
       <Sheet
@@ -142,6 +164,7 @@ function AppContent() {
             setOpenOffer(false);
             setTab("rides");
           }}
+          onRequireVehicleSetup={handleRequireVehicleSetup}
         />
       </Sheet>
 

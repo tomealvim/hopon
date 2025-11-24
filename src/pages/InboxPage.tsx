@@ -134,7 +134,7 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
     const thread = threads.find(t => t.id === initialThreadId);
     if (!thread) {
       return (
-        <main className="relative min-h-screen px-4 pb-28 flex items-center justify-center text-white overflow-hidden">
+        <main className="relative min-h-screen px-4 pb-32 flex items-center justify-center text-white overflow-hidden">
           {/* Blur effects coloridos */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/20 blur-[180px]" />
@@ -175,7 +175,7 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
   }
 
   return (
-    <main className="relative min-h-screen px-4 pb-28 text-white overflow-hidden" role="main" aria-label="Caixa de entrada">
+    <main className="relative min-h-screen px-4 pb-32 text-white overflow-hidden" role="main" aria-label="Caixa de entrada">
       {/* Blur effects coloridos */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/20 blur-[180px]" />

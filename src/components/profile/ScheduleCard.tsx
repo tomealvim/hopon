@@ -70,7 +70,7 @@ export default function ScheduleCard({
           <div key={d.k} className="border border-gray-200 rounded-xl p-3">
             <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
               <span>{d.label}</span>
-              <button type="button" className="text-xs font-medium text-primary hover:underline" onClick={() => addSlot(d.k)}>+ Aula</button>
+              <button type="button" className="text-xs font-medium text-primary hover:underline" onClick={() => addSlot(d.k)}>+ Horário</button>
             </div>
             {value.slots.map((s: ClassSlot, i: number) => s.day === d.k && (
               <div key={`${d.k}-${i}`} className="bg-gray-50 rounded-lg p-3 mb-2">

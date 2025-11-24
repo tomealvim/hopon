@@ -36,8 +36,6 @@ export type DiscoverFilters = {
   // Ordenação
   sort: "recommended" | "nearby" | "earliest" | "shortest" | "rating";
 
-  // Chips rápidos (só UX)
-  chips: string[];          // ex.: ["today","morning","lte20min","seats3plus"]
 };
 
 export const defaultFilters: DiscoverFilters = {
@@ -68,5 +66,4 @@ export const defaultFilters: DiscoverFilters = {
   maxPrice: undefined,
 
   sort: "recommended",
-  chips: [],
 };

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
-import type { User, UserProfile } from "../pages/types/user";
+import type { User, UserProfile, Vehicle, UserVerification } from "../pages/types/user";
 
 interface AuthContextValue {
   user: User | null;
@@ -9,6 +9,9 @@ interface AuthContextValue {
   register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateProfile: (profile: UserProfile) => void;
+  upsertVehicle: (vehicle: Vehicle) => void;
+  setActiveVehicle: (vehicleId: string) => void;
+  completeVerification: (channel: keyof UserVerification) => void;
   hasCompletedProfile: boolean;
 }
 
@@ -68,7 +71,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ]
         },
         createdAt: new Date().toISOString()
-      }
+      },
+      vehicles: [
+        {
+          id: "vehicle_default",
+          brand: "Mercedes",
+          model: "Classe C",
+          plate: "AB-12-CD",
+          color: "Preto",
+          imageUrl: undefined,
+          features: { airConditioning: true, heater: true },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+      activeVehicleId: "vehicle_default",
+      verification: {
+        email: true,
+        phone: false,
+      },
     };
     setUser(mockUser);
   };
@@ -79,6 +100,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const mockUser: User = {
       id: `user_${Date.now()}`,
       email,
+      vehicles: [],
+      activeVehicleId: undefined,
+      verification: {
+        email: false,
+        phone: false,
+      },
     };
     setUser(mockUser);
   };
@@ -92,6 +119,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser({ ...user, profile });
   };
 
+  const upsertVehicle = (vehicle: Vehicle) => {
+    if (!user) return;
+    const current = user.vehicles ?? [];
+    const exists = current.some(existing => existing.id === vehicle.id);
+    const nextVehicles = exists
+      ? current.map(existing => (existing.id === vehicle.id ? vehicle : existing))
+      : [...current, vehicle];
+    const nextActiveVehicleId = (() => {
+      if (!exists) return vehicle.id;
+      if (user.activeVehicleId) return user.activeVehicleId;
+      return vehicle.id;
+    })();
+    setUser({ ...user, vehicles: nextVehicles, activeVehicleId: nextActiveVehicleId });
+  };
+
+  const setActiveVehicle = (vehicleId: string) => {
+    if (!user?.vehicles?.some(vehicle => vehicle.id === vehicleId)) {
+      return;
+    }
+    setUser(prev => (prev ? { ...prev, activeVehicleId: vehicleId } : prev));
+  };
+
+  const completeVerification = (channel: keyof UserVerification) => {
+    if (!user) return;
+    const current = user.verification ?? { email: false, phone: false };
+    if (current[channel]) return;
+    setUser({ ...user, verification: { ...current, [channel]: true } });
+  };
+
   const hasCompletedProfile = !!(user?.profile);
 
   return (
@@ -103,6 +159,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         updateProfile,
+        upsertVehicle,
+        setActiveVehicle,
+        completeVerification,
         hasCompletedProfile,
       }}
     >

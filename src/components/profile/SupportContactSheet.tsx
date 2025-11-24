@@ -11,7 +11,7 @@ const ADDRESS = "Rua Professor Doutor Manuel Eugénio Machado Macedo, Nº 351, L
 const PHONE = "+351 210 123 456";
 const EMAIL = "support@hopon.com";
 const INPUT_CLASSES =
-  "w-full rounded-2xl border border-gray-200 bg-transparent px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "w-full rounded-2xl border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-primary focus:ring-2 focus:ring-primary/20";
 
 type FeedbackState = "idle" | "success";
 
@@ -46,9 +46,10 @@ export default function SupportContactSheet({ open, onClose }: SupportContactShe
       height="lg"
       footer={
         <Button
+          block
           type="submit"
           form="support-contact-form"
-          className="min-h-[44px] text-sm font-semibold"
+          className="min-h-[48px]"
           loading={isSending}
         >
           Enviar mensagem
@@ -56,13 +57,13 @@ export default function SupportContactSheet({ open, onClose }: SupportContactShe
       }
     >
       <div className="space-y-4 pr-1 max-h-[65svh] overflow-y-auto">
-        <div className="space-y-2 text-sm text-gray-600">
+        <div className="space-y-2 text-sm text-white/60">
           <p>
             Apoio HopOn para boleias, pagamentos e segurança. Estamos disponíveis todos os dias e respondemos em menos
             de 24h úteis.
           </p>
-          <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3 text-center text-sm text-gray-700 space-y-2">
-            <p className="font-semibold text-gray-900">{ADDRESS}</p>
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-3 text-center text-sm text-white/80 space-y-2">
+            <p className="font-semibold text-white">{ADDRESS}</p>
             <div className="flex flex-col gap-0.5">
               <span>{PHONE} (24/7)</span>
               <span>{EMAIL}</span>
@@ -97,7 +98,7 @@ export default function SupportContactSheet({ open, onClose }: SupportContactShe
 
           <Field label="Telemóvel" htmlFor="support-phone">
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-900">
+              <div className="flex items-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-3 py-2 text-sm font-semibold text-white">
                 <span role="img" aria-label="Portugal" className="text-lg">
                   🇵🇹
                 </span>
@@ -128,7 +129,7 @@ export default function SupportContactSheet({ open, onClose }: SupportContactShe
           </Field>
 
           {feedback === "success" && (
-            <p className="text-xs text-green-700 bg-green-50 border border-green-100 rounded-2xl px-3 py-2" role="status">
+            <p className="text-xs text-emerald-300 bg-emerald-500/20 border border-emerald-500/30 rounded-2xl px-3 py-2" role="status">
               Obrigado! Recebemos a tua mensagem e voltamos a contactar em breve.
             </p>
           )}
@@ -141,7 +142,7 @@ export default function SupportContactSheet({ open, onClose }: SupportContactShe
 function Field({ label, htmlFor, children }: { label: string; htmlFor: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <label htmlFor={htmlFor} className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+      <label htmlFor={htmlFor} className="text-[11px] font-semibold text-white/60 uppercase tracking-wide">
         {label}
       </label>
       {children}

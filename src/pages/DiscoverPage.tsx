@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useRides, type RideOffer, type RideRequest } from "../contexts/RidesContext";
 import { useNotifications } from "../contexts/NotificationContext";
@@ -6,9 +6,10 @@ import DiscoverTopBar, { type DiscoverTab } from "../components/ui/DiscoverTopBa
 import DiscoverFiltersSheet from "../components/ui/DiscoverFiltersSheet";
 import RequestSeatSheet from "../components/ui/RequestSeatSheet";
 import EntityCard from "../components/ui/EntityCard";
-// import { EntityCardSkeleton } from "../components/ui/Skeleton"; // Para uso futuro quando houver API
+import { EntityCardSkeleton } from "../components/ui/Skeleton";
 import Sheet from "../components/ui/Sheet";
 import { Button } from "../components/ui/Button";
+import BackgroundGlow from "../components/ui/BackgroundGlow";
 
 import type { DiscoverFilters } from "./types/discover";
 import { defaultFilters } from "./types/discover";
@@ -37,6 +38,12 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
   const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
   const [selectedRideForDetails, setSelectedRideForDetails] = useState<RideOffer | RideRequest | null>(null);
   const [openDetailsSheet, setOpenDetailsSheet] = useState(false);
+  const [hydrating, setHydrating] = useState(true);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setHydrating(false), 300);
+    return () => clearTimeout(timeout);
+  }, []);
 
   function openAdjustments() { setOpenSheet(true); }
   function applyFilters(next: DiscoverFilters) {
@@ -74,11 +81,6 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
     // Filtro de lugares mínimos
     if (filters.minSeats > 0) {
       result = result.filter(offer => offer.lugaresDisponiveis >= filters.minSeats);
-    }
-
-    // Filtro de chips
-    if (filters.chips.includes("seats3plus")) {
-      result = result.filter(offer => offer.lugaresDisponiveis >= 3);
     }
 
     // Filtro de origem (se houver)
@@ -214,29 +216,34 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
 
   return (
     <>
-      <DiscoverTopBar active={tab} onChange={setTab} onFilter={openAdjustments} />
+      <DiscoverTopBar
+        active={tab}
+        onChange={setTab}
+        onFilter={openAdjustments}
+      />
 
-      <main className="relative min-h-screen px-4 pb-28 text-white overflow-hidden">
-        {/* Blur effects coloridos */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/20 blur-[180px]" />
-          <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/20 blur-[160px]" />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/15 blur-[200px]" />
-        </div>
-        
-        <div className="relative z-10">
+      <main className="relative min-h-screen pb-32 text-white">
+        <BackgroundGlow />
+        <div className="relative z-10 px-4">
+          <div className="mx-auto max-w-mobile md:max-w-tablet lg:max-w-desktop">
         {tab === "explore" && (
           <>
-            <h2 className="text-sm font-bold text-white mt-3 mb-2">
+            <h2 className="text-sm font-bold text-white/90 mt-3 mb-2">
               Boleias disponíveis {filteredOffers.length > 0 && `(${filteredOffers.length})`}
             </h2>
-            {filteredOffers.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-sm text-white/70 mb-1">Sem boleias disponíveis</p>
-                <p className="text-xs text-white/50">
+            {hydrating ? (
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <EntityCardSkeleton key={`offer-skeleton-${index}`} />
+                ))}
+              </div>
+            ) : filteredOffers.length === 0 ? (
+              <div className="text-center py-16 px-4 animate-fade-in">
+                <p className="text-xl font-bold text-white/95 mb-2">Sem boleias disponíveis</p>
+                <p className="text-sm text-white/70 max-w-[280px] mx-auto">
                   {availableOffers.length > 0 
-                    ? "Tenta ajustar os filtros"
-                    : "Sê o primeiro a oferecer uma boleia!"}
+                    ? "Tenta ajustar os filtros para ver mais opções"
+                    : "Sê o primeiro a oferecer uma boleia e ganha popularidade!"}
                 </p>
               </div>
             ) : (
@@ -281,15 +288,25 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
             <h2 className="text-sm font-bold text-white mt-3 mb-2">
               Pedidos de boleia {matchedRequestsForMyOffers.length > 0 && `(${matchedRequestsForMyOffers.length} compatíveis)`}
             </h2>
-            {myOffers.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-sm text-white/70 mb-1">Sem pedidos disponíveis</p>
-                <p className="text-xs text-white/50">Cria uma oferta de boleia para veres pedidos compatíveis</p>
+            {hydrating ? (
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <EntityCardSkeleton key={`request-skeleton-${index}`} />
+                ))}
+              </div>
+            ) : myOffers.length === 0 ? (
+              <div className="text-center py-16 px-4 animate-fade-in">
+                <p className="text-xl font-bold text-white/95 mb-2">Sem pedidos disponíveis</p>
+                <p className="text-sm text-white/70 max-w-[280px] mx-auto">
+                  Cria uma oferta de boleia para veres pedidos compatíveis com o teu percurso
+                </p>
               </div>
             ) : matchedRequestsForMyOffers.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-sm text-white/70 mb-1">Sem pedidos compatíveis</p>
-                <p className="text-xs text-white/50">Ainda ninguém pediu boleia no teu percurso</p>
+              <div className="text-center py-16 px-4 animate-fade-in">
+                <p className="text-xl font-bold text-white/95 mb-2">Sem pedidos compatíveis</p>
+                <p className="text-sm text-white/70 max-w-[280px] mx-auto">
+                  Ainda ninguém pediu boleia no teu percurso. Volta mais tarde!
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -328,10 +345,18 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
             <h2 className="text-sm font-bold text-white mt-3 mb-2">
               Para ti {forYouOffers.length > 0 && `(${forYouOffers.length})`}
             </h2>
-            {forYouOffers.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-sm text-white/70 mb-1">Sem sugestões personalizadas</p>
-                <p className="text-xs text-white/50">Cria um pedido de boleia para veres ofertas compatíveis</p>
+            {hydrating ? (
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                {Array.from({ length: 2 }).map((_, index) => (
+                  <EntityCardSkeleton key={`foryou-skeleton-${index}`} />
+                ))}
+              </div>
+            ) : forYouOffers.length === 0 ? (
+              <div className="text-center py-16 px-4 animate-fade-in">
+                <p className="text-xl font-bold text-white/95 mb-2">Sem sugestões personalizadas</p>
+                <p className="text-sm text-white/70 max-w-[280px] mx-auto">
+                  Cria um pedido de boleia para veres ofertas compatíveis contigo
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -356,6 +381,7 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
             )}
           </>
         )}
+          </div>
         </div>
       </main>
 

@@ -32,7 +32,7 @@ const DriverCard: React.FC<Props> = ({
     etaDrop,
     walk,
     wait,
-    classMin,
+    arrivalMin: targetArrivalMin,
     buffer,
     detourMin,
     detourKm,
@@ -49,7 +49,7 @@ const DriverCard: React.FC<Props> = ({
     wait,
     etaDrop,
     walk,
-    classMin,
+    arrivalMin: targetArrivalMin,
     buffer,
   });
   const esgotado = (seatsLeft ?? 0) <= 0;
@@ -111,9 +111,9 @@ const DriverCard: React.FC<Props> = ({
               Chegada prev.: <b className="tabular-nums">{minutesToHHMM(arrivalMin)}</b>
             </div>
             <div>
-              Aula:{" "}
+              Destino:{" "}
               <b className="tabular-nums">
-                {minutesToHHMM(classMin)} (buffer {buffer}m)
+                {minutesToHHMM(targetArrivalMin)} (buffer {buffer}m)
               </b>
             </div>
           </div>

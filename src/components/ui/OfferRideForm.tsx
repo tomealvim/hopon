@@ -1,9 +1,12 @@
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import TimePicker from "./TimePicker";
 import { Button } from "./Button";
 import { cn } from "../../utils/cn";
+import { useAuth } from "../../contexts/AuthContext";
+import type { Vehicle } from "../../pages/types/user";
 
 export type OfferRideFormValues = {
+  vehicleId: string;
   origem: string;
   destino: string;
   data: string; // YYYY-MM-DD
@@ -27,11 +30,17 @@ export type OfferRideFormProps = {
   initial?: Partial<OfferRideFormValues>;
   onCancel: () => void;
   onSubmit: (values: OfferRideFormValues) => void;
+  onRequireVehicleSetup?: () => void;
 };
 
-export default function OfferRideForm({ initial, onCancel, onSubmit }: OfferRideFormProps) {
+export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVehicleSetup }: OfferRideFormProps) {
+  const { user, setActiveVehicle } = useAuth();
+  const vehicles: Vehicle[] = useMemo(() => user?.vehicles ?? [], [user?.vehicles]);
+  const hasVehicles = vehicles.length > 0;
+  const activeVehicleId = user?.activeVehicleId;
   const today = useMemo(() => new Date().toISOString().slice(0,10), []);
   const defaultValues: OfferRideFormValues = {
+    vehicleId: initial?.vehicleId ?? activeVehicleId ?? vehicles[0]?.id ?? "",
     origem: initial?.origem ?? "",
     destino: initial?.destino ?? "",
     data: initial?.data ?? today,
@@ -54,6 +63,16 @@ export default function OfferRideForm({ initial, onCancel, onSubmit }: OfferRide
   const [values, setValues] = useState<OfferRideFormValues>(defaultValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+  useEffect(() => {
+    if (!hasVehicles) return;
+    if (!values.vehicleId || !vehicles.some(vehicle => vehicle.id === values.vehicleId)) {
+      const fallbackVehicleId = activeVehicleId ?? vehicles[0]?.id ?? "";
+      if (fallbackVehicleId && fallbackVehicleId !== values.vehicleId) {
+        setValues(prev => ({ ...prev, vehicleId: fallbackVehicleId }));
+      }
+    }
+  }, [hasVehicles, vehicles, activeVehicleId, values.vehicleId]);
+
   const set = <K extends keyof OfferRideFormValues>(key: K, val: OfferRideFormValues[K]) => {
     setValues(prev => ({ ...prev, [key]: val }));
   };
@@ -66,6 +85,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit }: OfferRide
 
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
+    if (!values.vehicleId) e.vehicleId = "Seleciona um carro";
     if (!values.origem.trim()) e.origem = "Obrigatório";
     if (!values.destino.trim()) e.destino = "Obrigatório";
     if (!values.data) e.data = "Obrigatório";
@@ -79,6 +99,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit }: OfferRide
     ev.preventDefault();
     if (Object.keys(errors).length > 0) {
       setTouched({
+        vehicleId: true,
         origem: true,
         destino: true,
         data: true,
@@ -93,8 +114,86 @@ export default function OfferRideForm({ initial, onCancel, onSubmit }: OfferRide
 
   const id = useId();
 
+  if (!hasVehicles) {
+    return (
+      <div className="grid gap-4 p-4 text-center">
+        <p className="text-base font-semibold text-white">Precisas de um veículo associado</p>
+        <p className="text-sm text-white/70">
+          Adiciona um carro em Perfil &gt; Veículos para poderes publicar boleias e calcular custos.
+        </p>
+        <Button
+          type="button"
+          className="w-full"
+          onClick={() => {
+            onCancel();
+            onRequireVehicleSetup?.();
+          }}
+        >
+          Ir para Perfil
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={submit} className="grid gap-4 p-1">
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Veículo associado</p>
+            <p className="text-sm text-white/80">Escolhe o carro que vais conduzir nesta viagem.</p>
+          </div>
+          <button
+            type="button"
+            className="text-xs font-semibold text-white/70 underline-offset-2 hover:underline"
+            onClick={() => {
+              onCancel();
+              onRequireVehicleSetup?.();
+            }}
+          >
+            Gerir carros
+          </button>
+        </div>
+        <div className="grid gap-2">
+          {vehicles.map(vehicle => {
+            const isSelected = vehicle.id === values.vehicleId;
+            return (
+              <button
+                key={vehicle.id}
+                type="button"
+                className={cn(
+                  "flex items-center justify-between rounded-2xl border px-4 py-2 text-left transition",
+                  isSelected
+                    ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-50"
+                    : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
+                )}
+                aria-pressed={isSelected}
+                onClick={() => {
+                  set("vehicleId", vehicle.id);
+                  setTouchedField("vehicleId");
+                  setActiveVehicle(vehicle.id);
+                }}
+              >
+                <div>
+                  <p className="text-sm font-semibold">{vehicle.brand}</p>
+                  <p className="text-xs text-white/70">{vehicle.model}</p>
+                </div>
+                <span
+                  className={cn(
+                    "flex h-5 w-5 items-center justify-center rounded-full border text-[11px]",
+                    isSelected ? "border-emerald-300 bg-emerald-400 text-emerald-900" : "border-white/30 text-white/50"
+                  )}
+                >
+                  {isSelected ? "✓" : ""}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {touched.vehicleId && errors.vehicleId && (
+          <div className="mt-2 text-xs text-red-300">{errors.vehicleId}</div>
+        )}
+      </div>
       <div className="">
         <label htmlFor={`${id}-origem`} className="block text-xs font-semibold text-white/70 mb-1">De onde?</label>
         <input

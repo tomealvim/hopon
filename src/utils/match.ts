@@ -6,7 +6,7 @@ export function computeChegasATempo({
   wait,
   etaDrop,
   walk,
-  classMin,
+  arrivalMin: targetArrivalMin,
   buffer,
 }: {
   depMin: number;
@@ -14,11 +14,11 @@ export function computeChegasATempo({
   wait: number;
   etaDrop: number;
   walk: number;
-  classMin: number;
+  arrivalMin: number;
   buffer: number;
 }) {
   const arrival = depMin + etaPickup + wait + etaDrop + walk;
-  const latest = classMin - buffer;
+  const latest = targetArrivalMin - buffer;
   const sobra = latest - arrival; // >=0 é OK
   const ok = sobra >= 0;
   return { ok, sobra, arrivalMin: arrival };

@@ -6,7 +6,7 @@ export type DiscoverTab = "explore" | "requests" | "following" | "for-you";
 type Props = {
   active: DiscoverTab;
   onChange: (tab: DiscoverTab) => void;
-  onFilter?: () => void; // Ajustes
+  onFilter?: () => void;
 };
 
 export default function DiscoverTopBar({ active, onChange, onFilter }: Props) {
@@ -24,12 +24,15 @@ export default function DiscoverTopBar({ active, onChange, onFilter }: Props) {
     active === tab && "text-white bg-white/10 shadow-sm"
   );
 
-  return (
-    <div className="sticky top-0 z-40 bg-[#0a0611] border-b border-white/10 backdrop-blur-sm" role="region" aria-label="Navegação Explorar">
-      <div className="max-w-mobile md:max-w-tablet lg:max-w-desktop mx-auto grid grid-cols-[44px_1fr_44px] items-center h-14 px-2" onKeyDown={onKeyDown}>
-        <div className="w-10 h-10" aria-hidden />
+  const iconButton = cn(
+    "inline-flex items-center justify-center w-10 h-10 rounded-xl bg-transparent border-0 cursor-pointer text-white transition",
+    "hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-[#FF719A] focus-visible:outline-offset-2"
+  );
 
-        <div className="inline-flex gap-4 items-center justify-center w-full overflow-hidden scrollbar-none" role="radiogroup" aria-label="Feeds">
+  return (
+    <div className="sticky top-0 z-40 border-b border-white/10 bg-[#0a0611]" role="region" aria-label="Navegação Explorar">
+      <div className="mx-auto grid h-14 max-w-mobile grid-cols-[1fr_44px] items-center gap-2 px-2 md:max-w-tablet lg:max-w-desktop" onKeyDown={onKeyDown}>
+        <div className="inline-flex gap-2 items-center justify-center w-full overflow-x-auto overflow-y-hidden scrollbar-none" role="radiogroup" aria-label="Feeds">
           <button
             type="button" role="radio"
             aria-checked={active === "explore"}
@@ -54,16 +57,17 @@ export default function DiscoverTopBar({ active, onChange, onFilter }: Props) {
             onClick={() => onChange("for-you")}
           >PARA&nbsp;TI</button>
         </div>
-
-        <button 
-          type="button" 
-          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-transparent border-0 cursor-pointer hover:bg-white/10 text-white focus-visible:outline-2 focus-visible:outline-[#FF719A] focus-visible:outline-offset-2 focus-visible:rounded-2xl" 
-          aria-label="Ajustes" 
+        <button
+          type="button"
+          className={iconButton}
+          aria-label="Filtros rápidos"
           onClick={onFilter}
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 21v-7M4 10V3M12 21V12M12 9V3M20 21v-9M20 8V3"/>
-            <circle cx="4" cy="12" r="2"/><circle cx="12" cy="9" r="2"/><circle cx="20" cy="8" r="2"/>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M4 21v-7M4 10V3M12 21V12M12 9V3M20 21v-9M20 8V3" />
+            <circle cx="4" cy="12" r="2" />
+            <circle cx="12" cy="9" r="2" />
+            <circle cx="20" cy="8" r="2" />
           </svg>
         </button>
       </div>

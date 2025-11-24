@@ -27,7 +27,7 @@
 
 ## Tailwind & Estilos
 - Mobile-first; usar breakpoints para tablet (`md:` em 768px) e landscape quando necessário.
-- Garantir espaço para a bottom-nav: página com `pb-28` ou `pb-[112px]` adequado.
+- Garantir espaço para a bottom-nav: página com `pb-32` ou `pb-[128px]` adequado (evita que botões fiquem escondidos).
 - **Sheet**: usar `h-[65svh]` ou `h-[85svh]` com `env(safe-area-inset-bottom)`.
 - Classes condicionais: usar `cn()` helper.
 

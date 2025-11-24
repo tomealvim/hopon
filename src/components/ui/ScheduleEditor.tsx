@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import type { DaySchedule, TimeBlock, UserSchedule } from "../../pages/types/user";
-import AddClassSheet from "./AddClassSheet";
+import AddRideScheduleSheet from "./AddRideScheduleSheet";
 
 interface ScheduleEditorProps {
   schedule: UserSchedule;
@@ -80,7 +80,7 @@ export default function ScheduleEditor({ schedule, onChange }: ScheduleEditorPro
     setSheetOpen(true);
   };
 
-  const handleNewClass = () => {
+  const handleNewSchedule = () => {
     setEditData(undefined);
     setSheetOpen(true);
   };
@@ -90,36 +90,36 @@ export default function ScheduleEditor({ schedule, onChange }: ScheduleEditorPro
       <button 
         type="button" 
         className="w-full px-4 py-3 bg-black text-white font-semibold rounded-xl hover:bg-gray-800 transition shadow-md" 
-        onClick={handleNewClass}
+        onClick={handleNewSchedule}
       >
-        + Adicionar aula
+        + Adicionar horário
       </button>
 
       <div className="grid gap-2">
-        {flat.length === 0 && <div className="text-center text-gray-500 py-8 text-sm">Sem aulas. Clica acima para adicionar.</div>}
+        {flat.length === 0 && <div className="text-center text-white/50 py-8 text-sm">Sem horários. Clica acima para adicionar.</div>}
         {flat.map((item) => (
-          <div key={item.block.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+          <div key={item.block.id} className="border border-white/10 bg-white/5 backdrop-blur-sm rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">{DAY_LABELS[item.day]}</span>
-              <span className="text-sm font-semibold text-gray-900">{item.block.start} - {item.block.end}</span>
+              <span className="px-2 py-1 bg-primary/20 text-primary text-xs font-medium rounded">{DAY_LABELS[item.day]}</span>
+              <span className="text-sm font-semibold text-white">{item.block.start} - {item.block.end}</span>
             </div>
             {(item.block.title || item.block.room) && (
               <div className="mb-3 text-sm">
-                {item.block.title && <div className="font-medium text-gray-900">{item.block.title}</div>}
-                {item.block.room && <div className="text-gray-500">{item.block.room}</div>}
+                {item.block.title && <div className="font-medium text-white/90">{item.block.title}</div>}
+                {item.block.room && <div className="text-white/60">{item.block.room}</div>}
               </div>
             )}
             <div className="flex gap-2">
               <button
                 type="button"
-                className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm"
+                className="flex-1 px-3 py-2 border border-white/20 bg-white/5 text-white/80 rounded-lg hover:bg-white/10 transition text-sm"
                 onClick={() => handleEdit(item.day, item.block)}
               >
                 Editar
               </button>
               <button
                 type="button"
-                className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition text-sm"
+                className="flex-1 px-3 py-2 bg-red-500/20 border border-red-500/30 text-red-300 rounded-lg hover:bg-red-500/30 transition text-sm"
                 onClick={() => handleRemove(item.day, item.block.id)}
               >
                 Remover
@@ -129,7 +129,7 @@ export default function ScheduleEditor({ schedule, onChange }: ScheduleEditorPro
         ))}
       </div>
 
-      <AddClassSheet
+      <AddRideScheduleSheet
         open={sheetOpen}
         onClose={() => { setSheetOpen(false); setEditData(undefined); }}
         onAdd={handleAdd}

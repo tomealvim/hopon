@@ -19,7 +19,7 @@ export interface Post {
   wait: number;
   etaDrop: number;
   walk: number;
-  classMin: number;
+  arrivalMin: number;
   buffer: number;
   detourMin: number;
   detourKm: number;
@@ -35,7 +35,7 @@ export interface PassengerReq {
   id: string;
   userName: string;
   campusId: CampusId;
-  classMin: number;
+  arrivalMin: number;
   buffer: number;
   zoneLabel: string;
   radius: number;

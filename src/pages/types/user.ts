@@ -4,8 +4,8 @@ export interface TimeBlock {
   id: string;
   start: string; // formato "HH:mm" ex: "09:00"
   end: string;   // formato "HH:mm" ex: "11:30"
-  title?: string; // disciplina, ex.: "PF I-T"
-  room?: string;  // sala, ex.: "TA-A127"
+  title?: string; // destino/descrição, ex.: "Trabalho", "IST"
+  room?: string;  // local específico, ex.: "Edifício A, Sala 127"
 }
 
 export interface DaySchedule {
@@ -28,9 +28,34 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export interface VehicleFeatures {
+  airConditioning: boolean;
+  heater: boolean;
+}
+
+export interface Vehicle {
+  id: string;
+  brand: string;
+  model: string;
+  plate?: string;
+  color?: string;
+  imageUrl?: string;
+  features: VehicleFeatures;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserVerification {
+  email: boolean;
+  phone: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
   profile?: UserProfile;
+  vehicles?: Vehicle[];
+  activeVehicleId?: string;
+  verification?: UserVerification;
 }
 

@@ -8,7 +8,7 @@ export function Skeleton({ className }: SkeletonProps) {
   return (
     <div
       className={cn(
-        "animate-pulse bg-gray-200 rounded-xl",
+        "animate-pulse rounded-xl bg-white/10",
         className
       )}
       aria-hidden="true"
@@ -19,31 +19,31 @@ export function Skeleton({ className }: SkeletonProps) {
 // Skeleton específico para EntityCard
 export function EntityCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm" aria-hidden="true">
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4" aria-hidden="true">
       <div className="flex gap-3">
         {/* Avatar */}
         <Skeleton className="w-12 h-12 rounded-full shrink-0" />
         
         <div className="flex-1 min-w-0">
           {/* Título */}
-          <Skeleton className="h-5 w-32 mb-2" />
+          <Skeleton className="mb-2 h-5 w-32" />
           
           {/* Subtítulo */}
-          <Skeleton className="h-4 w-48 mb-2" />
+          <Skeleton className="mb-2 h-4 w-48" />
           
           {/* Meta */}
-          <Skeleton className="h-3 w-40 mb-3" />
+          <Skeleton className="mb-3 h-3 w-40" />
           
           {/* Badges */}
-          <div className="flex gap-2 mb-3">
+          <div className="mb-3 flex gap-2">
             <Skeleton className="h-6 w-16 rounded-full" />
             <Skeleton className="h-6 w-20 rounded-full" />
           </div>
           
           {/* Botões */}
           <div className="flex gap-2">
-            <Skeleton className="h-11 flex-1 rounded-2xl" />
-            <Skeleton className="h-11 w-24 rounded-2xl" />
+            <Skeleton className="h-12 flex-1 rounded-2xl" />
+            <Skeleton className="h-12 w-24 rounded-2xl" />
           </div>
         </div>
       </div>
@@ -54,7 +54,7 @@ export function EntityCardSkeleton() {
 // Skeleton para lista de inbox
 export function InboxRowSkeleton() {
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm" aria-hidden="true">
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4" aria-hidden="true">
       <div className="flex gap-3 items-center">
         {/* Avatar */}
         <Skeleton className="w-10 h-10 rounded-full shrink-0" />
@@ -77,7 +77,7 @@ export function InboxRowSkeleton() {
 // Skeleton para ride no calendário
 export function RideCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm" aria-hidden="true">
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4" aria-hidden="true">
       <div className="flex items-start gap-3">
         {/* Hora */}
         <Skeleton className="w-12 h-12 rounded-xl" />

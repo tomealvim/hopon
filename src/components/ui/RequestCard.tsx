@@ -13,7 +13,7 @@ const RequestCard: React.FC<{ req: PassengerReq }> = ({ req }) => {
             {req.userName} — procura boleia
           </div>
           <div className="text-xs text-neutral-500">
-            {campus} · Aula {minutesToHHMM(req.classMin)} · Buffer {req.buffer}m
+            {campus} · Chegada {minutesToHHMM(req.arrivalMin)} · Buffer {req.buffer}m
           </div>
         </div>
         <span className="text-[10px] uppercase tracking-wide text-neutral-400 px-2 py-1 ring-1 ring-neutral-200 rounded">

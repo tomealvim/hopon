@@ -3,25 +3,29 @@ import type { AriaAttributes } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage, type LanguageCode } from "../contexts/LanguageContext";
 import { useNotifications } from "../contexts/NotificationContext";
-import type { DaySchedule, TimeBlock, UserSchedule } from "./types/user";
+import type { UserSchedule, Vehicle } from "./types/user";
 import ScheduleEditor from "../components/ui/ScheduleEditor";
 import WeekCalendar from "../components/ui/WeekCalendar";
 import Sheet from "../components/ui/Sheet";
 import { Button } from "../components/ui/Button";
 import WalletSheet from "../components/profile/WalletSheet";
 import SupportContactSheet from "../components/profile/SupportContactSheet";
-import LanguageSettingsPage from "./LanguageSettingsPage";
+import LanguageSettingsSheet from "../components/profile/LanguageSettingsSheet";
+import VehicleFormSheet, { type VehicleFormValues } from "../components/profile/VehicleFormSheet";
+import VerificationSheet from "../components/profile/VerificationSheet";
+import RatingsSheet from "../components/profile/RatingsSheet";
 import { TERMS_LAST_UPDATED, TERMS_SECTIONS, TERMS_TITLE } from "../data/terms";
 import {
   flattenSchedule,
   getDayLabel,
   normalizeUserSchedule,
   sortEntriesByUpcoming,
-  WEEK_DAY_META,
 } from "../utils/userSchedule";
 
 interface ProfilePageProps {
   onLogout?: () => void;
+  vehicleSheetTrigger?: number;
+  onSheetStateChange?: (isOpen: boolean) => void;
 }
 
 type PasswordFeedback = {
@@ -29,16 +33,8 @@ type PasswordFeedback = {
   tone: "success" | "error";
 };
 
-type DaySummary = {
-  key: DaySchedule["day"];
-  label: string;
-  short: string;
-  count: number;
-  firstBlock?: TimeBlock;
-};
-
-export default function ProfilePage({ onLogout }: ProfilePageProps) {
-  const { user, updateProfile } = useAuth();
+export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStateChange }: ProfilePageProps) {
+  const { user, updateProfile, upsertVehicle, setActiveVehicle, completeVerification } = useAuth();
   const { language, setLanguage, getLanguageLabel } = useLanguage();
   const { showSuccess } = useNotifications();
   
@@ -46,6 +42,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [schedule, setSchedule] = useState<UserSchedule>({ days: [] });
@@ -54,11 +51,18 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
   const [openEdit, setOpenEdit] = useState(false);
   const [openSchedule, setOpenSchedule] = useState(false);
   const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
+  const [openLogoutConfirm, setOpenLogoutConfirm] = useState(false);
   const [openWallet, setOpenWallet] = useState(false);
   const [openReferral, setOpenReferral] = useState(false);
   const [openPassword, setOpenPassword] = useState(false);
   const [openSupport, setOpenSupport] = useState(false);
   const [openTerms, setOpenTerms] = useState(false);
+  const [openRatings, setOpenRatings] = useState(false);
+  const [openVehicleSheet, setOpenVehicleSheet] = useState(false);
+  const [openVehicleList, setOpenVehicleList] = useState(false);
+  const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
+  const [verificationSheetOpen, setVerificationSheetOpen] = useState(false);
+  const [verificationChannel, setVerificationChannel] = useState<"email" | "phone" | null>(null);
   const [copiedReferral, setCopiedReferral] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPasswordValue, setNewPasswordValue] = useState("");
@@ -67,31 +71,27 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordFeedback, setPasswordFeedback] = useState<PasswordFeedback | null>(null);
-  const [showLanguagePage, setShowLanguagePage] = useState(false);
+  const [openLanguageSheet, setOpenLanguageSheet] = useState(false);
   const [pendingLanguage, setPendingLanguage] = useState<LanguageCode>(language);
   const inputFileRef = useRef<HTMLInputElement | null>(null);
   const copyTimeoutRef = useRef<number | undefined>(undefined);
+  const externalVehicleTriggerRef = useRef<number>(0);
 
   const scheduleEntries = useMemo(() => flattenSchedule(schedule, true), [schedule]);
   const hasSchedule = scheduleEntries.length > 0;
-  const totalBlocks = scheduleEntries.length;
-  const totalDays = schedule.days.length;
   const upcomingEntries = useMemo(() => sortEntriesByUpcoming(scheduleEntries), [scheduleEntries]);
-  const primaryClass = upcomingEntries[0];
-  const secondaryClass = upcomingEntries[1];
-  const daySummaries = useMemo<DaySummary[]>(
-    () =>
-      WEEK_DAY_META.map(meta => {
-        const dayData = schedule.days.find(day => day.day === meta.key);
-        return {
-          key: meta.key,
-          label: meta.label,
-          short: meta.short,
-          count: dayData?.blocks.length ?? 0,
-          firstBlock: dayData?.blocks[0],
-        };
-      }),
-    [schedule],
+  const primaryRide = upcomingEntries[0];
+  const vehicles = useMemo(() => user?.vehicles ?? [], [user?.vehicles]);
+  const activeVehicleId = user?.activeVehicleId ?? null;
+  const verification = user?.verification ?? { email: false, phone: false };
+  const editingVehicle = useMemo(
+    () => vehicles.find(vehicle => vehicle.id === editingVehicleId) ?? null,
+    [vehicles, editingVehicleId]
+  );
+
+  const activeVehicle = useMemo(
+    () => vehicles.find(vehicle => vehicle.id === activeVehicleId) ?? null,
+    [vehicles, activeVehicleId]
   );
 
   const referralCode = useMemo(() => {
@@ -117,6 +117,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
     if (profile) {
       setName(profile.name || "");
       setUsername(profile.username || "");
+      setPhone(profile.phone || "");
       setContactEmail(profile.contactEmail || user?.email || "");
       setAvatarUrl(profile.avatarUrl || null);
       setSchedule(normalizeUserSchedule(profile.schedule || { days: [] }));
@@ -125,6 +126,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
 
     setName("");
     setUsername("");
+    setPhone("");
     setContactEmail(user?.email || "");
     setAvatarUrl(null);
     setSchedule({ days: [] });
@@ -143,10 +145,10 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
   }, []);
 
   useEffect(() => {
-    if (!showLanguagePage) {
+    if (!openLanguageSheet) {
       setPendingLanguage(language);
     }
-  }, [language, showLanguagePage]);
+  }, [language, openLanguageSheet]);
 
   useEffect(() => {
     if (!openReferral && copyTimeoutRef.current) {
@@ -163,6 +165,54 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
       resetPasswordForm();
     }
   }, [openPassword]);
+
+  useEffect(() => {
+    if (
+      typeof vehicleSheetTrigger === "number" &&
+      vehicleSheetTrigger > 0 &&
+      vehicleSheetTrigger !== externalVehicleTriggerRef.current
+    ) {
+      externalVehicleTriggerRef.current = vehicleSheetTrigger;
+      handleOpenVehicle(null);
+    }
+  }, [vehicleSheetTrigger]);
+
+  // Rastrear quando qualquer sheet está aberto e notificar o App
+  useEffect(() => {
+    const isAnySheetOpen = 
+      openEdit ||
+      openSchedule ||
+      openDeleteConfirm ||
+      openLogoutConfirm ||
+      openWallet ||
+      openReferral ||
+      openPassword ||
+      openSupport ||
+      openTerms ||
+      openRatings ||
+      openLanguageSheet ||
+      openVehicleSheet ||
+      openVehicleList ||
+      verificationSheetOpen;
+    
+    onSheetStateChange?.(isAnySheetOpen);
+  }, [
+    openEdit,
+    openSchedule,
+    openDeleteConfirm,
+    openLogoutConfirm,
+    openWallet,
+    openReferral,
+    openPassword,
+    openSupport,
+    openTerms,
+    openRatings,
+    openLanguageSheet,
+    openVehicleSheet,
+    openVehicleList,
+    verificationSheetOpen,
+    onSheetStateChange,
+  ]);
 
   function handlePickPhoto() {
     inputFileRef.current?.click();
@@ -193,6 +243,55 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
       avatarUrl: avatarUrl || undefined,
     });
     setOpenEdit(false);
+  }
+
+  function handleOpenVehicleManager() {
+    if (vehicles.length > 0) {
+      setOpenVehicleList(true);
+    } else {
+      handleOpenVehicle(null);
+    }
+  }
+
+  function handleOpenVehicle(vehicleId?: string | null) {
+    setEditingVehicleId(vehicleId ?? null);
+    setOpenVehicleSheet(true);
+  }
+
+  function handleCloseVehicle() {
+    setOpenVehicleSheet(false);
+    setEditingVehicleId(null);
+  }
+
+  function handleVehicleSubmit(values: VehicleFormValues) {
+    const isEditingExisting = Boolean(editingVehicle);
+    const now = new Date().toISOString();
+    const payload: Vehicle = {
+      id: editingVehicle?.id ?? `vehicle_${Date.now()}`,
+      brand: values.brand,
+      model: values.model,
+      plate: values.plate || undefined,
+      color: values.color || undefined,
+      imageUrl: values.imageUrl || undefined,
+      features: {
+        airConditioning: values.airConditioning,
+        heater: values.heater,
+      },
+      createdAt: editingVehicle?.createdAt ?? now,
+      updatedAt: now,
+    };
+
+    upsertVehicle(payload);
+    if (!isEditingExisting) {
+      setActiveVehicle(payload.id);
+    }
+    showSuccess(editingVehicle ? "Veículo atualizado" : "Veículo guardado", "Dados prontos para estimar consumos.");
+    handleCloseVehicle();
+  }
+
+  function openVerification(channel: "email" | "phone") {
+    setVerificationChannel(channel);
+    setVerificationSheetOpen(true);
   }
 
   function handleSaveSchedule() {
@@ -255,30 +354,8 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
     }
   }
 
-  if (showLanguagePage) {
-    return (
-      <LanguageSettingsPage
-        current={language}
-        selected={pendingLanguage}
-        onSelect={setPendingLanguage}
-        onBack={() => {
-          setPendingLanguage(language);
-          setShowLanguagePage(false);
-        }}
-        onSave={() => {
-          if (pendingLanguage !== language) {
-            setLanguage(pendingLanguage);
-            const newLabel = getLanguageLabel(pendingLanguage);
-            showSuccess("Idioma alterado", `A interface está agora em ${newLabel}`);
-          }
-          setShowLanguagePage(false);
-        }}
-      />
-    );
-  }
-
   return (
-    <div className="relative min-h-screen pb-28 text-white overflow-hidden">
+    <div className="relative min-h-screen pb-32 text-white overflow-hidden">
       {/* Blur effects coloridos */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/20 blur-[180px]" />
@@ -287,130 +364,102 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
       </div>
       
       <div className="relative z-10">
-      {/* Card topo - design melhorado */}
-      <section className="bg-white/5 border border-white/10 mb-4 rounded-xl mx-4 shadow-sm backdrop-blur-sm relative overflow-hidden">
-        {/* Gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#FF719A]/10 via-[#FFA99F]/5 to-transparent h-32" aria-hidden />
-        
-        <div className="relative px-4 py-4">
-          {/* Layout horizontal: foto + nome e email */}
-          <div className="flex items-center gap-4">
-            {/* Avatar */}
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden shadow-lg ring-2 ring-white/10" aria-hidden>
-              {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initials(name)}</span>}
-            </div>
+      {/* ========== HEADER COMPACTO ========== */}
+      <section className="mt-6 mb-4 mx-4">
+        <div className="flex items-center gap-4">
+          {/* Avatar */}
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden shadow-xl shadow-[#FF719A]/30 ring-2 ring-white/20" aria-hidden>
+            {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initials(name)}</span>}
+          </div>
 
-            {/* Nome e email na mesma linha */}
-            <div className="flex-1 min-w-0">
-              {name && <div className="text-base font-semibold text-white truncate">{name}</div>}
-              {visibleEmail && <div className="text-sm text-white/70 truncate">{visibleEmail}</div>}
-            </div>
+          {/* Info + badges */}
+          <div className="flex-1 min-w-0">
+            {name && <h1 className="text-lg font-bold text-white truncate drop-shadow-sm">{name}</h1>}
+            {visibleEmail && <p className="text-sm text-white/80 truncate">{visibleEmail}</p>}
+            
+            {/* Badges de verificação - só se tiver algo verificado */}
+            {(verification.email || verification.phone) && (
+              <div className="flex items-center gap-2 mt-1.5">
+                <span className="text-xs text-emerald-300 flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 ring-1 ring-emerald-500/40">
+                  ✓ Verificado
+                </span>
+                {verification.email && <span className="text-sm" aria-label="Email verificado">📧</span>}
+                {verification.phone && <span className="text-sm" aria-label="Telemóvel verificado">📱</span>}
+              </div>
+            )}
           </div>
         </div>
+        
+        {/* Aviso de verificação - SÓ se faltar verificar algo */}
+        {(!verification.email || !verification.phone) && (
+          <div className="mt-4 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3">
+            <p className="text-sm font-semibold text-amber-200 mb-2">
+              Completa a verificação para ganhar confiança
+            </p>
+            <div className="flex gap-2">
+              {!verification.email && (
+                <Button size="sm" onClick={() => openVerification("email")}>
+                  Verificar email
+                </Button>
+              )}
+              {!verification.phone && (
+                <Button size="sm" onClick={() => openVerification("phone")}>
+                  Verificar telemóvel
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </section>
 
-      {/* Horário - preview inteligente */}
-      <section className="bg-white/5 border border-white/10 px-4 py-4 mb-4 rounded-xl mx-4 shadow-sm backdrop-blur-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-white/50 font-semibold">Ritmo semanal</p>
-            <h2 className="text-base font-bold text-white">O meu horário</h2>
-          </div>
+      {/* ========== BLOCO 1: O MEU HORÁRIO ========== */}
+      <section className="glass-card-subtle px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
+        <div className="flex items-start justify-between mb-3">
+          <h2 className="text-sm font-bold text-white/80 uppercase tracking-wide">
+            O meu horário
+          </h2>
           <button
-            className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-medium hover:bg-primary/20 transition"
+            className="text-xs text-primary font-semibold hover:underline"
             onClick={() => setOpenSchedule(true)}
           >
-            {hasSchedule ? "Gerir" : "Adicionar"}
+            Gerir
           </button>
         </div>
 
         {!hasSchedule ? (
-          <div className="text-center py-8">
-            <p className="text-sm font-semibold text-white mb-1">Ainda não adicionaste aulas</p>
-            <p className="text-xs text-white/60">Define o teu horário para desbloquear sugestões automáticas.</p>
+          <div className="text-center py-8 animate-fade-in">
+            <p className="text-base font-semibold text-white/95 mb-2">Ainda sem horário</p>
+            <p className="text-sm text-white/70 mb-4 max-w-[240px] mx-auto">
+              Define os teus horários para sugestões automáticas de boleias
+            </p>
+            <Button size="sm" onClick={() => setOpenSchedule(true)}>
+              Adicionar horário
+            </Button>
           </div>
         ) : (
           <>
-            {primaryClass && (
-              <div className="mt-4 rounded-2xl bg-gray-900 text-white px-4 py-4 shadow-inner">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 font-semibold">Próxima aula</p>
-                    <p className="text-lg font-semibold leading-tight">{primaryClass.block.title ?? "Aula"}</p>
-                    <p className="text-sm text-white/70">
-                      {getDayLabel(primaryClass.day)} · {primaryClass.block.room ?? "Sala por definir"}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium">
-                      {getDayLabel(primaryClass.day, "short")}
-                    </span>
-                    <p className="mt-2 text-2xl font-black leading-none">{primaryClass.block.start}</p>
-                    <p className="text-xs text-white/70">até {primaryClass.block.end}</p>
-                  </div>
-                </div>
-                {secondaryClass && (
-                  <div className="mt-4 rounded-xl bg-white/10 px-3 py-2 text-xs flex items-center justify-between gap-3">
-                    <span className="font-semibold truncate">{secondaryClass.block.title ?? getDayLabel(secondaryClass.day)}</span>
-                    <span className="text-right">
-                      {getDayLabel(secondaryClass.day, "short")} · {secondaryClass.block.start}
-                    </span>
-                  </div>
-                )}
+            {/* Próxima boleia - card simples */}
+            {primaryRide && (
+              <div className="rounded-2xl bg-gradient-to-br from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black px-4 py-3 mb-3 shadow-xl shadow-[#FF719A]/35 ring-1 ring-white/20 animate-fade-in">
+                <p className="text-xs uppercase tracking-wide opacity-70 font-semibold">Próxima boleia</p>
+                <p className="text-base font-bold mt-0.5">{primaryRide.block.title ?? "Boleia"}</p>
+                <p className="text-sm opacity-80 mt-0.5">
+                  {getDayLabel(primaryRide.day)} · {primaryRide.block.start}–{primaryRide.block.end}
+                </p>
               </div>
             )}
-
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {daySummaries.map(day => {
-                const hasBlocks = day.count > 0;
-                return (
-                  <button
-                    key={day.key}
-                    type="button"
-                    className={`rounded-2xl border px-3 py-2 text-left transition ${
-                      hasBlocks ? "border-[#FF719A] bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black" : "border-dashed border-white/20 bg-white/5 text-white/50"
-                    }`}
-                    onClick={() => setOpenSchedule(true)}
-                  >
-                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide">
-                      <span>{day.short}</span>
-                      <span>{hasBlocks ? `${day.count}×` : "—"}</span>
-                    </div>
-                    {day.firstBlock ? (
-                      <>
-                        <p className="mt-1 text-sm font-semibold">{day.firstBlock.start}</p>
-                        <p className={`text-xs ${hasBlocks ? "text-white/70" : "text-gray-400"}`}>
-                          {day.firstBlock.title ?? "Bloco"}
-                        </p>
-                      </>
-                    ) : (
-                      <p className={`mt-1 text-xs ${hasBlocks ? "text-white/70" : "text-gray-400"}`}>Livre</p>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-3 flex items-center justify-center gap-3 text-xs text-white/60">
-              <span>
-                {totalBlocks} {totalBlocks === 1 ? "aula" : "aulas"}
-              </span>
-              <span className="text-gray-300">•</span>
-              <span>
-                {totalDays} {totalDays === 1 ? "dia" : "dias"}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              className="mt-3 w-full px-3 py-2.5 rounded-xl border border-white/20 bg-white/5 text-white text-sm font-semibold hover:bg-white/10 transition"
+            
+            <Button 
+              variant="secondary" 
+              block 
+              size="sm"
               onClick={() => setShowCalendarPreview(prev => !prev)}
             >
-              {showCalendarPreview ? "Esconder calendário semanal" : "Ver calendário semanal"}
-            </button>
+              {showCalendarPreview ? "Esconder calendário" : "Ver calendário semanal"}
+            </Button>
 
             {showCalendarPreview && (
-              <div className="mt-3 rounded-2xl border border-gray-200 bg-gray-50 p-2">
+              <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-2">
                 <WeekCalendar schedule={schedule} onBlockClick={() => setOpenSchedule(true)} compact />
               </div>
             )}
@@ -418,43 +467,121 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
         )}
       </section>
 
-      <nav className="bg-white/5 border border-white/10 rounded-xl mx-4 mb-4 overflow-hidden shadow-sm backdrop-blur-sm" aria-label="Perfil">
+      {/* ========== BLOCO 2: CARRO EM USO ========== */}
+      <section className="glass-card-subtle px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
+        <div className="flex items-start justify-between mb-3">
+          <h2 className="text-sm font-bold text-white/80 uppercase tracking-wide">
+            Carro em uso
+          </h2>
+        </div>
+
+        {!activeVehicle ? (
+          <div className="text-center py-8 animate-fade-in">
+            <p className="text-base font-semibold text-white/95 mb-2">Ainda sem veículo</p>
+            <p className="text-sm text-white/70 mb-4 max-w-[240px] mx-auto">
+              Adiciona marca e modelo para cálculo automático de custos
+            </p>
+            <Button size="sm" onClick={() => handleOpenVehicle(null)}>
+              Adicionar veículo
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-start justify-between gap-4 mb-3">
+              <div className="flex-1">
+                <p className="text-base font-semibold text-white">
+                  {activeVehicle.brand} {activeVehicle.model}
+                </p>
+                {activeVehicle.plate && (
+                  <p className="text-sm text-white/70 mt-0.5">{activeVehicle.plate}</p>
+                )}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {activeVehicle.color && (
+                    <span className="text-xs rounded-full border border-white/20 px-2 py-0.5 text-white/80">
+                      {activeVehicle.color}
+                    </span>
+                  )}
+                  {activeVehicle.features.airConditioning && (
+                    <span className="text-xs rounded-full border border-white/20 px-2 py-0.5 text-white/80">
+                      A/C
+                    </span>
+                  )}
+                  {activeVehicle.features.heater && (
+                    <span className="text-xs rounded-full border border-white/20 px-2 py-0.5 text-white/80">
+                      Aquecimento
+                    </span>
+                  )}
+                </div>
+              </div>
+              {activeVehicle.imageUrl && (
+                <img 
+                  src={activeVehicle.imageUrl} 
+                  alt="" 
+                  className="w-20 h-20 rounded-lg object-cover border border-white/10 flex-shrink-0"
+                />
+              )}
+            </div>
+            
+            <Button 
+              variant="secondary" 
+              block 
+              size="sm"
+              onClick={handleOpenVehicleManager}
+            >
+              Gerir veículos ({vehicles.length})
+            </Button>
+          </>
+        )}
+      </section>
+
+      {/* ========== CONVIDAR AMIGOS (destacado) ========== */}
+      <section 
+        className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30 px-4 py-4 mb-4 rounded-2xl mx-4 backdrop-blur-md cursor-pointer hover:from-purple-500/30 hover:to-pink-500/30 hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-500/25 hover:scale-[1.01] transition-all duration-300 active:scale-[0.98] animate-fade-in-up"
+        onClick={() => setOpenReferral(true)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setOpenReferral(true);
+          }
+        }}
+      >
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-base font-bold text-white mb-1">Convidar amigos</h3>
+            <p className="text-sm text-white/80">Partilha o teu código e recebe descontos</p>
+          </div>
+          <svg className="text-white/70 shrink-0 mt-1" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        </div>
+      </section>
+
+      {/* ========== DEFINIÇÕES & AJUDA (lista simples) ========== */}
+      <nav className="glass-card-subtle rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Conta e pagamentos">
         <div className="px-4 py-3 bg-white/5 border-b border-white/10">
-          <h3 className="text-xs font-bold text-white/70 uppercase tracking-wide">Perfil</h3>
+          <h3 className="text-xs font-bold text-white/70 uppercase tracking-wide">Conta & Pagamentos</h3>
         </div>
         <ListRow label="Editar perfil" onClick={() => setOpenEdit(true)} />
         <ListRow label="Editar palavra-passe" onClick={() => setOpenPassword(true)} />
-        <ListRow label="Veículos" caption="Adicionar/editar" onClick={() => {}} />
-        <ListRow label="Verificação" onClick={() => {}} />
-        <ListRow label="Preferências de condução" onClick={() => {}} />
         <ListRow label="Pagamentos" caption="MB Way e cartão" onClick={() => setOpenWallet(true)} />
-      </nav>
-
-      <nav className="bg-white/5 border border-white/10 rounded-xl mx-4 mb-4 overflow-hidden shadow-sm backdrop-blur-sm" aria-label="Benefícios">
-        <div className="px-4 py-3 bg-white/5 border-b border-white/10">
-          <h3 className="text-xs font-bold text-white/70 uppercase tracking-wide">Benefícios</h3>
-        </div>
-        <ListRow
-          label="Convidar amigos"
-          caption="Partilha o teu código e recebe descontos"
-          onClick={() => setOpenReferral(true)}
-        />
-      </nav>
-
-      <nav className="bg-white/5 border border-white/10 rounded-xl mx-4 mb-4 overflow-hidden shadow-sm backdrop-blur-sm" aria-label="Ajuda e qualidade">
-        <div className="px-4 py-3 bg-white/5 border-b border-white/10">
-          <h3 className="text-xs font-bold text-white/70 uppercase tracking-wide">Ajuda & Qualidade</h3>
-        </div>
         <ListRow
           label="Idioma da app"
           caption={getLanguageLabel(language)}
           onClick={() => {
             setPendingLanguage(language);
-            setShowLanguagePage(true);
+            setOpenLanguageSheet(true);
           }}
         />
-        <ListRow label="Avaliações" onClick={() => {}} />
+      </nav>
+
+      <nav className="glass-card-subtle rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Ajuda">
+        <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+          <h3 className="text-xs font-bold text-white/70 uppercase tracking-wide">Ajuda</h3>
+        </div>
         <ListRow label="Contacta-nos" onClick={() => setOpenSupport(true)} />
+        <ListRow label="Avaliações" onClick={() => setOpenRatings(true)} />
         <ListRow
           label="Termos e Condições"
           onClick={() => setOpenTerms(true)}
@@ -463,8 +590,9 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
         />
       </nav>
 
-      <div className="bg-white/5 border border-white/10 rounded-xl mx-4 mb-4 overflow-hidden shadow-sm backdrop-blur-sm">
-        <ListRow label="Terminar sessão" tone="danger" onClick={handleLogout} />
+      {/* ========== ZONA DE RISCO ========== */}
+      <div className="glass-card-subtle rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Zona de risco">
+        <ListRow label="Terminar sessão" tone="danger" onClick={() => setOpenLogoutConfirm(true)} />
         <ListRow label="Apagar conta" tone="danger" onClick={() => setOpenDeleteConfirm(true)} />
       </div>
 
@@ -475,14 +603,9 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
         title="Editar perfil"
         height="md"
         footer={
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={() => setOpenEdit(false)}>
-              Cancelar
-            </Button>
-            <Button className="flex-1" onClick={handleSaveProfile}>
-              Guardar
-            </Button>
-          </div>
+          <Button block className="min-h-[48px]" onClick={handleSaveProfile}>
+            Guardar alterações
+          </Button>
         }
       >
         <div className="grid gap-6">
@@ -571,7 +694,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
         }
       >
         <div className="space-y-6 py-1">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-white/60">
             Atualiza regularmente a tua palavra-passe para proteger a conta. Fluxo em modo demonstração.
           </p>
 
@@ -598,7 +721,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
                 onToggle={() => setShowNewPassword(prev => !prev)}
                 autoComplete="new-password"
               />
-              <p className={`text-xs ${passwordHasMinChars ? "text-green-600" : "text-gray-500"}`}>
+              <p className={`text-xs ${passwordHasMinChars ? "text-emerald-400" : "text-white/50"}`}>
                 A nova palavra-passe deve ter pelo menos 8 caracteres.
               </p>
             </div>
@@ -615,7 +738,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
                 autoComplete="new-password"
               />
               {confirmPassword.length > 0 && newPasswordValue !== confirmPassword && (
-                <p className="text-xs text-red-600">As palavras-passe não coincidem.</p>
+                <p className="text-xs text-red-400">As palavras-passe não coincidem.</p>
               )}
             </div>
           </div>
@@ -623,7 +746,7 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
           {passwordFeedback && (
             <p
               className={`text-sm ${
-                passwordFeedback.tone === "success" ? "text-green-600" : "text-red-600"
+                passwordFeedback.tone === "success" ? "text-emerald-400" : "text-red-400"
               }`}
               aria-live="polite"
             >
@@ -727,6 +850,31 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
         </div>
       </Sheet>
 
+      {/* Sheet: confirmação de terminar sessão */}
+      <Sheet
+        open={openLogoutConfirm}
+        onClose={() => setOpenLogoutConfirm(false)}
+        title="Terminar sessão"
+        height="md"
+        footer={
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => setOpenLogoutConfirm(false)}>
+              Cancelar
+            </Button>
+            <Button variant="danger" className="flex-1" onClick={handleLogout}>
+              Terminar sessão
+            </Button>
+          </div>
+        }
+      >
+        <div className="grid gap-4 text-center">
+          <h3 className="text-lg font-bold text-gray-900">Tens a certeza?</h3>
+          <p className="text-sm text-gray-600">
+            Vais terminar a tua sessão. Podes sempre voltar e fazer login novamente.
+          </p>
+        </div>
+      </Sheet>
+
       {/* Sheet: confirmação de apagar conta */}
       <Sheet
         open={openDeleteConfirm}
@@ -781,8 +929,157 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
         </div>
       </Sheet>
 
+      {/* Sheet: lista de veículos */}
+      <Sheet
+        open={openVehicleList}
+        onClose={() => setOpenVehicleList(false)}
+        title="Gerir veículos"
+        height="lg"
+        footer={
+          <Button 
+            block 
+            className="min-h-[48px]"
+            onClick={() => {
+              setOpenVehicleList(false);
+              handleOpenVehicle(null);
+            }}
+          >
+            + Adicionar veículo
+          </Button>
+        }
+      >
+        <div className="space-y-3">
+          {vehicles.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-sm font-semibold text-white mb-1">Ainda sem veículos</p>
+              <p className="text-xs text-white/50">Adiciona marca e modelo para desbloquear custos automáticos.</p>
+            </div>
+          ) : (
+            vehicles.map(vehicle => (
+              <div 
+                key={vehicle.id}
+                className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-4"
+              >
+                {vehicle.imageUrl && (
+                  <div className="mb-3 overflow-hidden rounded-xl border border-white/10">
+                    <img src={vehicle.imageUrl} alt={vehicle.brand} className="h-32 w-full object-cover" />
+                  </div>
+                )}
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <p className="text-sm font-semibold text-white">{vehicle.brand}</p>
+                    <p className="text-xs text-white/70">{vehicle.model}</p>
+                    {vehicle.id === activeVehicleId && (
+                      <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-emerald-500/50 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
+                        ✓ Em uso
+                      </span>
+                    )}
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="secondary" 
+                    onClick={() => {
+                      setOpenVehicleList(false);
+                      handleOpenVehicle(vehicle.id);
+                    }}
+                  >
+                    Editar
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 text-[11px] text-white/70">
+                  {vehicle.plate && (
+                    <span className="rounded-full border border-white/20 bg-white/5 px-2 py-1 uppercase tracking-wide">{vehicle.plate}</span>
+                  )}
+                  {vehicle.color && (
+                    <span className="rounded-full border border-white/20 bg-white/5 px-2 py-1">{vehicle.color}</span>
+                  )}
+                  <span className="rounded-full border border-white/20 bg-white/5 px-2 py-1">
+                    {vehicle.features.airConditioning ? "Ar condicionado" : "Sem A/C"}
+                  </span>
+                  <span className="rounded-full border border-white/20 bg-white/5 px-2 py-1">
+                    {vehicle.features.heater ? "Aquecimento" : "Sem aquecimento"}
+                  </span>
+                </div>
+                {vehicle.id !== activeVehicleId && (
+                  <div className="mt-3">
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => {
+                        setActiveVehicle(vehicle.id);
+                        showSuccess("Veículo ativado", `${vehicle.brand} ${vehicle.model} está agora em uso.`);
+                      }}
+                    >
+                      Usar este carro
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </Sheet>
+
+      <VehicleFormSheet
+        open={openVehicleSheet}
+        mode={editingVehicle ? "edit" : "create"}
+        initialValues={
+          editingVehicle
+            ? {
+                brand: editingVehicle.brand,
+                model: editingVehicle.model,
+                plate: editingVehicle.plate ?? "",
+                color: editingVehicle.color ?? "",
+                imageUrl: editingVehicle.imageUrl ?? "",
+                airConditioning: editingVehicle.features.airConditioning,
+                heater: editingVehicle.features.heater,
+              }
+            : undefined
+        }
+        onClose={handleCloseVehicle}
+        onSubmit={handleVehicleSubmit}
+      />
+
+      <VerificationSheet
+        open={verificationSheetOpen}
+        channel={verificationChannel}
+        value={verificationChannel === "email" ? visibleEmail : phone}
+        onClose={() => {
+          setVerificationSheetOpen(false);
+          setVerificationChannel(null);
+        }}
+        onVerified={() => {
+          if (!verificationChannel) return;
+          completeVerification(verificationChannel);
+          showSuccess(
+            "Verificação concluída",
+            `Confirmámos o teu ${verificationChannel === "email" ? "email" : "telemóvel"}.`
+          );
+        }}
+      />
+
+      <LanguageSettingsSheet
+        open={openLanguageSheet}
+        current={language}
+        selected={pendingLanguage}
+        onSelect={setPendingLanguage}
+        onClose={() => {
+          setPendingLanguage(language);
+          setOpenLanguageSheet(false);
+        }}
+        onSave={() => {
+          if (pendingLanguage !== language) {
+            setLanguage(pendingLanguage);
+            const newLabel = getLanguageLabel(pendingLanguage);
+            showSuccess("Idioma alterado", `A interface está agora em ${newLabel}`);
+          }
+          setOpenLanguageSheet(false);
+        }}
+      />
+
       <WalletSheet open={openWallet} onClose={() => setOpenWallet(false)} />
       <SupportContactSheet open={openSupport} onClose={() => setOpenSupport(false)} />
+      <RatingsSheet open={openRatings} onClose={() => setOpenRatings(false)} />
       </div>
     </div>
   );
@@ -811,14 +1108,14 @@ function PasswordField({
 }: PasswordFieldProps) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-700" htmlFor={id}>
+      <label className="block text-xs font-semibold text-white/80" htmlFor={id}>
         {label}
       </label>
       <div className="relative mt-2">
         <input
           id={id}
           type={isVisible ? "text" : "password"}
-          className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-base placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-base text-white placeholder:text-white/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
@@ -829,7 +1126,7 @@ function PasswordField({
           onClick={onToggle}
           aria-label={`${isVisible ? "Ocultar" : "Mostrar"} ${label.toLowerCase()}`}
           aria-pressed={isVisible}
-          className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 hover:text-gray-900 focus:outline-none"
+          className="absolute inset-y-0 right-0 flex items-center pr-4 text-white/60 hover:text-white focus:outline-none"
         >
           <EyeIcon crossed={!isVisible} />
         </button>

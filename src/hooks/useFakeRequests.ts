@@ -14,7 +14,7 @@ export function useFakeRequests() {
           ["Rui", "Inês", "Marta", "Gonçalo", "Bea", "Tomás", "Sofia", "Diogo", "Carla", "João"] as const
         ),
         campusId: randItem(["ciencias", "lusofona", "letras", "tecnico"] as const),
-        classMin: 8 * 60 + randItem([0, 15, 30, 45] as const),
+        arrivalMin: 8 * 60 + randItem([0, 15, 30, 45] as const),
         buffer: randItem([5, 10, 15] as const),
         zoneLabel: randItem(["Estrela", "Benfica", "Alcântara", "Oeiras", "Carnide", "Campolide"] as const),
         radius: randItem([300, 400, 500] as const),

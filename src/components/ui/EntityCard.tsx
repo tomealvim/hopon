@@ -43,9 +43,17 @@ export default function EntityCard({
         {meta && <p className="text-sm text-white/60">{meta}</p>}
       </CardContent>
       <CardFooter>
-        <div className="flex gap-2">
-          {onPrimary && <Button size="sm" onClick={onPrimary}>{primaryLabel}</Button>}
-          {onSecondary && <Button size="sm" variant="secondary" onClick={onSecondary}>{secondaryLabel}</Button>}
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {onPrimary && (
+            <Button block onClick={onPrimary}>
+              {primaryLabel}
+            </Button>
+          )}
+          {onSecondary && (
+            <Button block variant="secondary" onClick={onSecondary}>
+              {secondaryLabel}
+            </Button>
+          )}
         </div>
       </CardFooter>
     </Card>

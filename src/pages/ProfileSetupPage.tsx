@@ -195,7 +195,7 @@ export default function ProfileSetupPage() {
               <div className="text-gray-700">
                 <p className="font-semibold mb-2">Agenda semanal</p>
                 <p className="text-sm text-gray-500">
-                  Adiciona os blocos de aulas para recomendações mais certeiras.
+                  Adiciona os teus horários para recomendações mais certeiras de boleias.
                 </p>
               </div>
               <div className="bg-gray-50 rounded-2xl p-3">
