@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import Sheet from "../ui/Sheet";
 import { Button } from "../ui/Button";
 import { cn } from "../../utils/cn";
-import BackgroundGlow from "../ui/BackgroundGlow";
 
 export type VehicleFormValues = {
   brand: string;
@@ -112,9 +111,7 @@ export default function VehicleFormSheet({
         </div>
       }
     >
-      <div className="relative">
-        <BackgroundGlow className="opacity-60" />
-        <div className="relative grid gap-5 pb-6">
+      <div className="relative grid gap-5 pb-6">
           <PhotoField
             imageUrl={values.imageUrl}
             onSelect={() => fileInputRef.current?.click()}
@@ -126,6 +123,8 @@ export default function VehicleFormSheet({
           accept="image/*"
           className="hidden"
           onChange={handleImageChange}
+          aria-label="Selecionar foto do veículo"
+          title="Selecionar foto do veículo"
         />
 
         <div className="grid gap-4">
@@ -161,8 +160,8 @@ export default function VehicleFormSheet({
           />
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm font-semibold text-white/80">Extras disponíveis</p>
+        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+          <p className="text-sm font-semibold text-gray-800">Extras disponíveis</p>
           <div className="mt-3 flex flex-col gap-2">
             <FeatureToggle
               label="Ar condicionado"
@@ -177,10 +176,9 @@ export default function VehicleFormSheet({
           </div>
         </div>
 
-        <p className="text-xs text-white/60">
+        <p className="text-xs text-gray-600">
           Marca e modelo são obrigatórios para calcularmos o consumo do veículo e dividir os custos da viagem.
         </p>
-        </div>
       </div>
     </Sheet>
   );
@@ -197,7 +195,7 @@ type TextInputFieldProps = {
 
 function TextInputField({ id, label, value, placeholder, error, onChange }: TextInputFieldProps) {
   return (
-    <label htmlFor={id} className="grid gap-2 text-sm font-semibold text-white/80">
+    <label htmlFor={id} className="grid gap-2 text-sm font-semibold text-gray-700">
       <span>{label}</span>
       <input
         id={id}
@@ -207,12 +205,12 @@ function TextInputField({ id, label, value, placeholder, error, onChange }: Text
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : undefined}
         className={cn(
-          "w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
+          "w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20",
           error && "border-red-500 focus:border-red-500 focus:ring-red-400"
         )}
       />
       {error && (
-        <span id={`${id}-error`} className="text-xs text-red-400">
+        <span id={`${id}-error`} className="text-xs text-red-600">
           {error}
         </span>
       )}
@@ -232,7 +230,7 @@ function FeatureToggle({ label, checked, onChange }: FeatureToggleProps) {
       type="button"
       className={cn(
         "flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition",
-        checked ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-300" : "border-white/20 bg-white/5 text-white/70 hover:bg-white/10"
+        checked ? "border-gray-300 bg-gray-100 text-gray-800" : "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
       )}
       onClick={() => onChange(!checked)}
       aria-pressed={checked}
@@ -241,7 +239,7 @@ function FeatureToggle({ label, checked, onChange }: FeatureToggleProps) {
       <span
         className={cn(
           "flex h-5 w-5 items-center justify-center rounded-full border text-xs",
-          checked ? "border-emerald-400 bg-emerald-500 text-white" : "border-white/30 bg-white/5 text-white/50"
+          checked ? "border-gray-500 bg-gray-600 text-white" : "border-gray-300 bg-gray-100 text-transparent"
         )}
       >
         {checked ? "✓" : ""}
@@ -259,20 +257,20 @@ type PhotoFieldProps = {
 function PhotoField({ imageUrl, onSelect, onRemove }: PhotoFieldProps) {
   if (imageUrl) {
     return (
-      <div className="relative overflow-hidden rounded-3xl border border-white/10">
+      <div className="relative overflow-hidden rounded-3xl border border-gray-200">
         <img src={imageUrl} alt="Veículo" className="h-48 w-full object-cover" />
         <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/50">
           <button
             type="button"
             onClick={onSelect}
-            className="rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-white transition"
+            className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
           >
             Substituir
           </button>
           <button
             type="button"
             onClick={onRemove}
-            className="rounded-full border border-white/80 bg-white/10 backdrop-blur-sm px-4 py-2 text-sm font-semibold text-white hover:bg-white/20 transition"
+            className="rounded-full border border-white/80 bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20 transition"
           >
             Remover
           </button>
@@ -285,7 +283,7 @@ function PhotoField({ imageUrl, onSelect, onRemove }: PhotoFieldProps) {
     <button
       type="button"
       onClick={onSelect}
-      className="flex h-48 w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-white/20 bg-white/5 text-white/60 hover:bg-white/10 hover:border-white/30 transition"
+      className="flex h-48 w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-300 transition"
     >
       <span className="text-4xl">＋</span>
       <span className="mt-2 text-sm font-medium">Adicionar foto</span>

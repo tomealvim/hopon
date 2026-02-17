@@ -21,9 +21,9 @@ export function populateScreenshotData() {
   const user: User = {
     id: "user_screenshot",
     email: "maria.silva@example.com",
+    phone: "+351 912 345 678",
     profile: {
       name: "Maria Silva",
-      phone: "+351 912 345 678",
       avatarUrl: undefined, // Pode adicionar URL de imagem se necessário
       address: "Cascais, Centro",
       schedule: {

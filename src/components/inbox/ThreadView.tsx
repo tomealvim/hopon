@@ -17,19 +17,19 @@ export default function ThreadView({
   getUserName: (id: string) => string;
 }) {
   return (
-    <div className="fixed inset-0 bg-[#0a0611] z-50 flex flex-col">
-      <header className="flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#0a0611]">
-        <button className="text-2xl font-bold text-white hover:text-white/70 transition" onClick={onBack} aria-label="Voltar">
+    <div className="fixed inset-0 bg-white z-50 flex flex-col">
+      <header className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white">
+        <button className="text-2xl font-bold text-gray-900 hover:text-gray-600 transition" onClick={onBack} aria-label="Voltar">
           ←
         </button>
-        <div className="text-sm font-semibold text-white truncate">{thread.title}</div>
+        <div className="text-sm font-semibold text-gray-900 truncate">{thread.title}</div>
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-3">
         {messages.map(m => (
           <div key={m.id} className={m.type === "text" ? (m.authorId === meId ? "flex justify-end mb-3" : "flex justify-start mb-3") : "mb-3"}>
             {m.type === "text" ? (
-            <div className={m.authorId === meId ? "max-w-[75%] bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black rounded-2xl px-4 py-2.5" : "max-w-[75%] bg-white/5 border border-white/10 text-white rounded-2xl px-4 py-2.5 shadow-sm"}>
+            <div className={m.authorId === meId ? "max-w-[75%] bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 rounded-2xl px-4 py-2.5" : "max-w-[75%] bg-gray-50 border border-gray-200 text-gray-900 rounded-2xl px-4 py-2.5 shadow-sm"}>
               <div className="text-sm">{m.text}</div>
               <div className="flex items-center gap-2 mt-1 text-xs opacity-70">
                 {m.authorId && m.authorId !== meId && (
@@ -45,9 +45,9 @@ export default function ThreadView({
         ))}
       </div>
 
-      <footer className="flex items-center gap-2 px-4 py-3 border-t border-white/10 bg-[#0a0611]">
-        <input className="flex-1 px-4 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-white/50" placeholder="Escrever mensagem" title="Escrever mensagem" />
-        <button className="px-4 py-2.5 bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black font-medium rounded-xl hover:opacity-90 transition">Enviar</button>
+      <footer className="flex items-center gap-2 px-4 py-3 border-t border-gray-200 bg-white">
+        <input className="flex-1 px-4 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-400" placeholder="Escrever mensagem" title="Escrever mensagem" />
+        <button className="px-4 py-2.5 bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 font-medium rounded-xl hover:opacity-95 transition">Enviar</button>
       </footer>
     </div>
   );

@@ -1,10 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(json({ limit: '8mb' }));
+  app.use(urlencoded({ limit: '8mb', extended: true }));
+
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // Global Prefix
   app.setGlobalPrefix('api/v1');

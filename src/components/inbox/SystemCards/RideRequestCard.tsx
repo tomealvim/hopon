@@ -24,7 +24,7 @@ export default function RideRequestCard({
       
       <div className="flex gap-2">
         <button className="flex-1 px-3 py-2 border border-white/20 text-white rounded-lg hover:bg-white/10 transition" onClick={onDecline}>Recusar</button>
-        <button className="flex-1 px-3 py-2 bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black rounded-lg hover:opacity-90 transition" onClick={onAccept}>Aceitar</button>
+        <button className="flex-1 px-3 py-2 bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 rounded-lg hover:opacity-95 transition" onClick={onAccept}>Aceitar</button>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useRides, type RideOffer, type RideRequest } from "../contexts/RidesContext";
 import { useNotifications } from "../contexts/NotificationContext";
+import { apiRequest } from "../services/api";
 import DiscoverTopBar, { type DiscoverTab } from "../components/ui/DiscoverTopBar";
 import DiscoverFiltersSheet from "../components/ui/DiscoverFiltersSheet";
 import RequestSeatSheet from "../components/ui/RequestSeatSheet";
@@ -13,6 +14,7 @@ import BackgroundGlow from "../components/ui/BackgroundGlow";
 
 import type { DiscoverFilters } from "./types/discover";
 import { defaultFilters } from "./types/discover";
+import type { ApiRide } from "./types/ride-api";
 
 type DiscoverPageProps = {
   onOpenInbox?: (threadId?: string) => void;
@@ -40,10 +42,54 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
   const [openDetailsSheet, setOpenDetailsSheet] = useState(false);
   const [hydrating, setHydrating] = useState(true);
 
+  // Boleias da API (backend) – com condutor
+  const [apiRides, setApiRides] = useState<ApiRide[]>([]);
+  const [apiRidesLoading, setApiRidesLoading] = useState(false);
+  const [selectedApiRideId, setSelectedApiRideId] = useState<string | null>(null);
+  const [selectedApiRideForDetail, setSelectedApiRideForDetail] = useState<string | null>(null);
+  const [apiRideDetail, setApiRideDetail] = useState<ApiRide | null>(null);
+  const [apiRideDetailLoading, setApiRideDetailLoading] = useState(false);
+  const [apiRideDetailError, setApiRideDetailError] = useState<string | null>(null);
+
   useEffect(() => {
     const timeout = setTimeout(() => setHydrating(false), 300);
     return () => clearTimeout(timeout);
   }, []);
+
+  // Carregar boleias da API quando estás no Explore
+  useEffect(() => {
+    if (tab !== "explore") return;
+    const params = new URLSearchParams();
+    if (filters.origin?.trim()) params.set("origin", filters.origin.trim());
+    if (filters.destination?.trim()) params.set("destination", filters.destination.trim());
+    if (filters.minSeats > 0) params.set("minSeats", String(filters.minSeats));
+    setApiRidesLoading(true);
+    apiRequest<ApiRide[]>(`/rides/search?${params.toString()}`)
+      .then((data) => setApiRides(Array.isArray(data) ? data : []))
+      .catch(() => setApiRides([]))
+      .finally(() => setApiRidesLoading(false));
+  }, [tab, filters.origin, filters.destination, filters.minSeats]);
+
+  // Carregar detalhe de uma boleia da API quando abres o sheet de detalhes
+  useEffect(() => {
+    if (!openDetailsSheet || !selectedApiRideForDetail) {
+      setApiRideDetail(null);
+      setApiRideDetailError(null);
+      return;
+    }
+    setApiRideDetailLoading(true);
+    setApiRideDetailError(null);
+    apiRequest<ApiRide>(`/rides/${selectedApiRideForDetail}`)
+      .then((data) => {
+        setApiRideDetail(data);
+        setApiRideDetailError(null);
+      })
+      .catch((err: Error) => {
+        setApiRideDetail(null);
+        setApiRideDetailError(err.message || "Não foi possível carregar os detalhes.");
+      })
+      .finally(() => setApiRideDetailLoading(false));
+  }, [openDetailsSheet, selectedApiRideForDetail]);
 
   function openAdjustments() { setOpenSheet(true); }
   function applyFilters(next: DiscoverFilters) {
@@ -147,45 +193,75 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
     return availableRequests.filter(req => matchedRequests.has(req.id));
   }, [myOffers, availableRequests, getRequestsForOffer]);
 
-  // Handler: Abrir sheet para pedir lugar
+  // Handler: Abrir sheet para pedir lugar (oferta local)
   const handleOpenRequestSeat = (offerId: string) => {
     setSelectedOfferId(offerId);
+    setSelectedApiRideId(null);
     setOpenRequestSeat(true);
   };
 
-  // Handler: Confirmar pedido com mensagem
-  const handleConfirmRequestSeat = (message?: string) => {
+  // Handler: Abrir sheet para pedir lugar (boleia da API)
+  const handleOpenRequestSeatApi = (rideId: string) => {
+    setSelectedApiRideId(rideId);
+    setSelectedOfferId(null);
+    setOpenRequestSeat(true);
+  };
+
+  // Handler: Confirmar pedido com mensagem (local ou API)
+  const handleConfirmRequestSeat = async (message?: string) => {
+    if (selectedApiRideId) {
+      try {
+        await apiRequest(`/bookings/rides/${selectedApiRideId}`, {
+          method: "POST",
+          body: JSON.stringify({ seats: 1 }),
+        });
+        const ride = apiRides.find((r) => r.id === selectedApiRideId);
+        showSuccess(
+          "Reserva feita!",
+          ride ? `${ride.origin} → ${ride.destination}. O condutor pode confirmar em breve.` : "A tua reserva foi registada."
+        );
+        setOpenRequestSeat(false);
+        setSelectedApiRideId(null);
+      } catch (err) {
+        console.error("Erro ao reservar:", err);
+        showError("Erro ao reservar", err instanceof Error ? err.message : "Tenta novamente.");
+      }
+      return;
+    }
+
     if (!selectedOfferId) return;
-    
     try {
       const offer = availableOffers.find((o) => o.id === selectedOfferId);
       if (!offer) return;
 
-      // Criar pedido com mensagem personalizada
       const { threadId } = requestSeatOnOffer(selectedOfferId, message);
-      
-      // Mostrar notificação de sucesso
+
       showSuccess(
         "Pedido enviado!",
         `${offer.origem} → ${offer.destino}\n${offer.data} às ${offer.hora}\nConversa aberta na Inbox.`
       );
-      
+
       setOpenRequestSeat(false);
       setSelectedOfferId(null);
-      
-      // Aguardar um pouco para garantir que a thread foi criada no contexto
-      setTimeout(() => {
-        onOpenInbox?.(threadId);
-      }, 50);
+
+      setTimeout(() => onOpenInbox?.(threadId), 50);
     } catch (error) {
       console.error("Erro ao enviar pedido:", error);
       showError("Erro ao enviar pedido", "Tenta novamente.");
     }
   };
 
-  // Handler: Abrir detalhes da viagem
+  // Handler: Abrir detalhes da viagem (local)
   const handleOpenDetails = (ride: RideOffer | RideRequest) => {
     setSelectedRideForDetails(ride);
+    setSelectedApiRideForDetail(null);
+    setOpenDetailsSheet(true);
+  };
+
+  // Handler: Abrir detalhes da boleia da API (condutor e veículo)
+  const handleOpenDetailsApi = (rideId: string) => {
+    setSelectedApiRideForDetail(rideId);
+    setSelectedRideForDetails(null);
     setOpenDetailsSheet(true);
   };
 
@@ -222,47 +298,78 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
         onFilter={openAdjustments}
       />
 
-      <main className="relative min-h-screen pb-32 text-white">
+      <main className="relative min-h-screen pb-32 bg-white text-gray-900">
         <BackgroundGlow />
         <div className="relative z-10 px-4">
           <div className="mx-auto max-w-mobile md:max-w-tablet lg:max-w-desktop">
         {tab === "explore" && (
           <>
-            <h2 className="text-sm font-bold text-white/90 mt-3 mb-2">
-              Boleias disponíveis {filteredOffers.length > 0 && `(${filteredOffers.length})`}
+            <h2 className="text-sm font-bold text-gray-800 mt-3 mb-2">
+              Boleias disponíveis
+              {(apiRides.length > 0 || filteredOffers.length > 0) &&
+                ` (${apiRides.length + filteredOffers.length})`}
             </h2>
-            {hydrating ? (
+            {hydrating || apiRidesLoading ? (
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 {Array.from({ length: 4 }).map((_, index) => (
                   <EntityCardSkeleton key={`offer-skeleton-${index}`} />
                 ))}
               </div>
-            ) : filteredOffers.length === 0 ? (
+            ) : apiRides.length === 0 && filteredOffers.length === 0 ? (
               <div className="text-center py-16 px-4 animate-fade-in">
-                <p className="text-xl font-bold text-white/95 mb-2">Sem boleias disponíveis</p>
-                <p className="text-sm text-white/70 max-w-[280px] mx-auto">
-                  {availableOffers.length > 0 
-                    ? "Tenta ajustar os filtros para ver mais opções"
-                    : "Sê o primeiro a oferecer uma boleia e ganha popularidade!"}
+                <p className="text-xl font-bold text-gray-900 mb-2">Sem boleias disponíveis</p>
+                <p className="text-sm text-gray-600 max-w-[280px] mx-auto">
+                  Tenta ajustar os filtros ou sê o primeiro a criar uma boleia.
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                {/* TODO: Quando houver API real, adicionar loading state: {isLoading ? Array(4).fill(0).map((_, i) => <EntityCardSkeleton key={i} />) : ...} */}
+                {/* Boleias da API (backend) – com condutor */}
+                {apiRides.map((ride) => {
+                  const dep = ride.departureTime ? new Date(ride.departureTime) : null;
+                  const dateStr = dep ? dep.toLocaleDateString("pt-PT", { day: "numeric", month: "short", year: "numeric" }) : "";
+                  const timeStr = dep ? dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }) : "";
+                  const driverName = ride.driver?.profile?.name || ride.driver?.email || "Condutor";
+                  const initials = driverName.slice(0, 2).toUpperCase();
+                  const badges: Array<{ label: string; tone?: "brand" | "success" | "warning" }> = [];
+                  if (ride.remainingSeats >= 3) {
+                    badges.push({ label: `${ride.remainingSeats} lugares`, tone: "success" });
+                  } else {
+                    badges.push({ label: `${ride.remainingSeats} lugar${ride.remainingSeats !== 1 ? "es" : ""}`, tone: "warning" });
+                  }
+                  if (ride.price != null && ride.price > 0) {
+                    badges.push({ label: `€${ride.price.toFixed(0)}` });
+                  }
+                  return (
+                    <EntityCard
+                      key={ride.id}
+                      title={`${ride.origin} → ${ride.destination}`}
+                      subtitle={dateStr && timeStr ? `${dateStr}, ${timeStr}` : ""}
+                      meta={`Condutor: ${driverName}`}
+                      badges={badges}
+                      avatar={{
+                        src: ride.driver?.profile?.avatarUrl ?? undefined,
+                        initials,
+                      }}
+                      primaryLabel="Pedir lugar"
+                      secondaryLabel="Detalhes"
+                      onPrimary={() => handleOpenRequestSeatApi(ride.id)}
+                      onSecondary={() => handleOpenDetailsApi(ride.id)}
+                    />
+                  );
+                })}
+                {/* Ofertas locais (mock) */}
                 {filteredOffers.map((offer) => {
                   const initials = offer.origem.substring(0, 2).toUpperCase();
                   const badges: Array<{ label: string; tone?: "brand" | "success" | "warning" }> = [];
-                  
                   if (offer.lugaresDisponiveis >= 3) {
                     badges.push({ label: `${offer.lugaresDisponiveis} lugares`, tone: "success" });
                   } else {
                     badges.push({ label: `${offer.lugaresDisponiveis} lugar${offer.lugaresDisponiveis > 1 ? "es" : ""}`, tone: "warning" });
                   }
-                  
                   if (offer.aceitaDesvios) {
                     badges.push({ label: "Aceita desvios" });
                   }
-
                   return (
                     <EntityCard
                       key={offer.id}
@@ -285,7 +392,7 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
 
         {tab === "requests" && (
           <>
-            <h2 className="text-sm font-bold text-white mt-3 mb-2">
+            <h2 className="text-sm font-bold text-gray-900 mt-3 mb-2">
               Pedidos de boleia {matchedRequestsForMyOffers.length > 0 && `(${matchedRequestsForMyOffers.length} compatíveis)`}
             </h2>
             {hydrating ? (
@@ -296,15 +403,15 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
               </div>
             ) : myOffers.length === 0 ? (
               <div className="text-center py-16 px-4 animate-fade-in">
-                <p className="text-xl font-bold text-white/95 mb-2">Sem pedidos disponíveis</p>
-                <p className="text-sm text-white/70 max-w-[280px] mx-auto">
+                <p className="text-xl font-bold text-gray-900 mb-2">Sem pedidos disponíveis</p>
+                <p className="text-sm text-gray-600 max-w-[280px] mx-auto">
                   Cria uma oferta de boleia para veres pedidos compatíveis com o teu percurso
                 </p>
               </div>
             ) : matchedRequestsForMyOffers.length === 0 ? (
               <div className="text-center py-16 px-4 animate-fade-in">
-                <p className="text-xl font-bold text-white/95 mb-2">Sem pedidos compatíveis</p>
-                <p className="text-sm text-white/70 max-w-[280px] mx-auto">
+                <p className="text-xl font-bold text-gray-900 mb-2">Sem pedidos compatíveis</p>
+                <p className="text-sm text-gray-600 max-w-[280px] mx-auto">
                   Ainda ninguém pediu boleia no teu percurso. Volta mais tarde!
                 </p>
               </div>
@@ -342,7 +449,7 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
 
         {tab === "for-you" && (
           <>
-            <h2 className="text-sm font-bold text-white mt-3 mb-2">
+            <h2 className="text-sm font-bold text-gray-900 mt-3 mb-2">
               Para ti {forYouOffers.length > 0 && `(${forYouOffers.length})`}
             </h2>
             {hydrating ? (
@@ -353,8 +460,8 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
               </div>
             ) : forYouOffers.length === 0 ? (
               <div className="text-center py-16 px-4 animate-fade-in">
-                <p className="text-xl font-bold text-white/95 mb-2">Sem sugestões personalizadas</p>
-                <p className="text-sm text-white/70 max-w-[280px] mx-auto">
+                <p className="text-xl font-bold text-gray-900 mb-2">Sem sugestões personalizadas</p>
+                <p className="text-sm text-gray-600 max-w-[280px] mx-auto">
                   Cria um pedido de boleia para veres ofertas compatíveis contigo
                 </p>
               </div>
@@ -392,16 +499,26 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
         onApply={applyFilters}
       />
 
-      {selectedOfferId && (
+      {(selectedOfferId || selectedApiRideId) && (
         <RequestSeatSheet
           open={openRequestSeat}
           onClose={() => {
             setOpenRequestSeat(false);
             setSelectedOfferId(null);
+            setSelectedApiRideId(null);
           }}
           onConfirm={handleConfirmRequestSeat}
           offerTitle={(() => {
-            const offer = availableOffers.find(o => o.id === selectedOfferId);
+            if (selectedApiRideId) {
+              const ride = apiRides.find((r) => r.id === selectedApiRideId);
+              if (ride) {
+                const dep = ride.departureTime ? new Date(ride.departureTime) : null;
+                const t = dep ? dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }) : "";
+                return `${ride.origin} → ${ride.destination}${t ? ` (${t})` : ""}`;
+              }
+              return "";
+            }
+            const offer = availableOffers.find((o) => o.id === selectedOfferId);
             return offer ? `${offer.origem} → ${offer.destino} (${offer.data} às ${offer.hora})` : "";
           })()}
         />
@@ -412,9 +529,12 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
         onClose={() => {
           setOpenDetailsSheet(false);
           setSelectedRideForDetails(null);
+          setSelectedApiRideForDetail(null);
         }}
         title={
-          selectedRideForDetails && "hora" in selectedRideForDetails
+          selectedApiRideForDetail
+            ? "Detalhes da boleia"
+            : selectedRideForDetails && "hora" in selectedRideForDetails
             ? "Detalhes da oferta"
             : selectedRideForDetails && "horaMin" in selectedRideForDetails
             ? "Detalhes do pedido"
@@ -428,19 +548,108 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
             onClick={() => {
               setOpenDetailsSheet(false);
               setSelectedRideForDetails(null);
+              setSelectedApiRideForDetail(null);
             }}
           >
             Fechar
           </Button>
         }
       >
-        {selectedRideForDetails && (
+        {/* Detalhe de boleia da API (condutor + veículo) */}
+        {selectedApiRideForDetail && (
+          <div className="grid gap-4 p-1">
+            {apiRideDetailLoading && (
+              <p className="text-sm text-gray-600">A carregar...</p>
+            )}
+            {apiRideDetailError && !apiRideDetailLoading && (
+              <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-4">
+                {apiRideDetailError}
+              </p>
+            )}
+            {apiRideDetail && !apiRideDetailLoading && (
+              <>
+                <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📍</span>
+                    <div>
+                      <div className="text-xs text-gray-600">Origem</div>
+                      <div className="text-sm font-semibold text-gray-900">{apiRideDetail.origin}</div>
+                    </div>
+                  </div>
+                  <div className="h-px bg-gray-100 my-1" />
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🎯</span>
+                    <div>
+                      <div className="text-xs text-gray-600">Destino</div>
+                      <div className="text-sm font-semibold text-gray-900">{apiRideDetail.destination}</div>
+                    </div>
+                  </div>
+                </div>
+                {apiRideDetail.departureTime && (
+                  <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                    <div className="text-xs text-gray-600">Data e hora</div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {new Date(apiRideDetail.departureTime).toLocaleString("pt-PT", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </div>
+                  </div>
+                )}
+                {apiRideDetail.driver && (
+                  <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                    <div className="text-xs font-semibold text-gray-600 uppercase mb-1">Condutor</div>
+                    <div className="flex items-center gap-3">
+                      {apiRideDetail.driver.profile?.avatarUrl ? (
+                        <img
+                          src={apiRideDetail.driver.profile.avatarUrl}
+                          alt=""
+                          className="w-10 h-10 rounded-full bg-gray-200 object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-semibold text-gray-700">
+                          {(apiRideDetail.driver.profile?.name || apiRideDetail.driver.email || "C").slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900 truncate">
+                          {apiRideDetail.driver.profile?.name || apiRideDetail.driver.email || "Condutor"}
+                        </div>
+                        {apiRideDetail.driver.profile?.username && (
+                          <div className="text-xs text-gray-600 truncate">@{apiRideDetail.driver.profile.username}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {apiRideDetail.vehicle && (
+                  <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                    <div className="text-xs font-semibold text-gray-600 uppercase mb-1">Veículo</div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {apiRideDetail.vehicle.brand} {apiRideDetail.vehicle.model}
+                      {apiRideDetail.vehicle.color ? ` · ${apiRideDetail.vehicle.color}` : ""}
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      {apiRideDetail.vehicle.seats} lugares
+                      {apiRideDetail.price != null && apiRideDetail.price > 0 && ` · €${apiRideDetail.price.toFixed(0)}`}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {selectedRideForDetails && !selectedApiRideForDetail && (
           <div className="grid gap-4 p-1">
             <div className="grid gap-2">
-              <div className="text-xs font-semibold text-white/70 uppercase">
+              <div className="text-xs font-semibold text-gray-600 uppercase">
                 {selectedRideForDetails && "hora" in selectedRideForDetails ? "Oferta de Boleia" : "Pedido de Boleia"}
               </div>
-              <div className="text-xl font-bold text-white">
+              <div className="text-xl font-bold text-gray-900">
                 {"hora" in selectedRideForDetails
                   ? selectedRideForDetails.hora
                   : "horaMin" in selectedRideForDetails
@@ -449,31 +658,31 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
               </div>
             </div>
 
-            <div className="grid gap-2 p-4 bg-white/5 border border-white/10 rounded-xl">
+            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
               <div className="flex items-center gap-2">
                 <span className="text-lg">📍</span>
                 <div>
-                  <div className="text-xs text-white/70">Origem</div>
-                  <div className="text-sm font-semibold text-white">
+                  <div className="text-xs text-gray-600">Origem</div>
+                  <div className="text-sm font-semibold text-gray-900">
                     {"origem" in selectedRideForDetails ? selectedRideForDetails.origem : ""}
                   </div>
                 </div>
               </div>
-              <div className="h-px bg-white/10 my-1" />
+              <div className="h-px bg-gray-100 my-1" />
               <div className="flex items-center gap-2">
                 <span className="text-lg">🎯</span>
                 <div>
-                  <div className="text-xs text-white/70">Destino</div>
-                  <div className="text-sm font-semibold text-white">
+                  <div className="text-xs text-gray-600">Destino</div>
+                  <div className="text-sm font-semibold text-gray-900">
                     {"destino" in selectedRideForDetails ? selectedRideForDetails.destino : ""}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-2 p-4 bg-white/5 border border-white/10 rounded-xl">
-              <div className="text-xs text-white/70">Data</div>
-              <div className="text-sm font-semibold text-white">
+            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+              <div className="text-xs text-gray-600">Data</div>
+              <div className="text-sm font-semibold text-gray-900">
                 {"data" in selectedRideForDetails ? selectedRideForDetails.data : ""}
               </div>
             </div>
@@ -488,31 +697,31 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
                   </div>
                 </div>
 
-                <div className="grid gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
-                  <div className="text-xs font-semibold text-white/70 uppercase mb-1">Características</div>
+                <div className="grid gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                  <div className="text-xs font-semibold text-gray-600 uppercase mb-1">Características</div>
                   <div className="grid gap-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-white/60">Aceita desvios:</span>
-                      <span className="font-semibold text-white">
+                      <span className="text-gray-500">Aceita desvios:</span>
+                      <span className="font-semibold text-gray-900">
                         {selectedRideForDetails.aceitaDesvios ? "Sim" : "Não"}
                       </span>
                     </div>
                     {selectedRideForDetails.aceitaDesvios && (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-white/60">Desvio máximo:</span>
-                        <span className="font-semibold text-white">{selectedRideForDetails.desvioMaxMin} min</span>
+                        <span className="text-gray-500">Desvio máximo:</span>
+                        <span className="font-semibold text-gray-900">{selectedRideForDetails.desvioMaxMin} min</span>
                       </div>
                     )}
                     {selectedRideForDetails.pontoEncontro && (
                       <div className="flex items-start gap-2 text-sm">
-                        <span className="text-white/60">Ponto de encontro:</span>
-                        <span className="font-semibold text-white">{selectedRideForDetails.pontoEncontro}</span>
+                        <span className="text-gray-500">Ponto de encontro:</span>
+                        <span className="font-semibold text-gray-900">{selectedRideForDetails.pontoEncontro}</span>
                       </div>
                     )}
                     {selectedRideForDetails.recorrente && (
                       <div className="flex items-start gap-2 text-sm">
-                        <span className="text-white/60">Recorrente:</span>
-                        <span className="font-semibold text-white">
+                        <span className="text-gray-500">Recorrente:</span>
+                        <span className="font-semibold text-gray-900">
                           {selectedRideForDetails.diasSemana.map((d) => {
                             const dias: Record<string, string> = {
                               seg: "Seg",
@@ -529,26 +738,26 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
                   </div>
                 </div>
 
-                <div className="grid gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
-                  <div className="text-xs font-semibold text-white/70 uppercase mb-1">Preferências</div>
+                <div className="grid gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                  <div className="text-xs font-semibold text-gray-600 uppercase mb-1">Preferências</div>
                   <div className="grid grid-cols-2 gap-2">
                     {selectedRideForDetails.preferencias.musica && (
-                      <div className="text-xs text-white/70">🎵 Música</div>
+                      <div className="text-xs text-gray-600">🎵 Música</div>
                     )}
                     {selectedRideForDetails.preferencias.falar && (
-                      <div className="text-xs text-white/70">💬 Conversa</div>
+                      <div className="text-xs text-gray-600">💬 Conversa</div>
                     )}
                     {selectedRideForDetails.preferencias.bagagem && (
-                      <div className="text-xs text-white/70">🧳 Bagagem</div>
+                      <div className="text-xs text-gray-600">🧳 Bagagem</div>
                     )}
                     {selectedRideForDetails.preferencias.animais && (
-                      <div className="text-xs text-white/70">🐕 Animais</div>
+                      <div className="text-xs text-gray-600">🐕 Animais</div>
                     )}
                     {!selectedRideForDetails.preferencias.musica &&
                       !selectedRideForDetails.preferencias.falar &&
                       !selectedRideForDetails.preferencias.bagagem &&
                       !selectedRideForDetails.preferencias.animais && (
-                        <div className="text-xs text-white/50 col-span-2">Sem preferências especiais</div>
+                        <div className="text-xs text-gray-400 col-span-2">Sem preferências especiais</div>
                       )}
                   </div>
                 </div>
@@ -563,62 +772,62 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
                   </div>
                 </div>
 
-                <div className="grid gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
-                  <div className="text-xs font-semibold text-white/70 uppercase mb-1">Características</div>
+                <div className="grid gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                  <div className="text-xs font-semibold text-gray-600 uppercase mb-1">Características</div>
                   <div className="grid gap-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-white/60">Aceita desvios:</span>
-                      <span className="font-semibold text-white">
+                      <span className="text-gray-500">Aceita desvios:</span>
+                      <span className="font-semibold text-gray-900">
                         {selectedRideForDetails.aceitaDesvios ? "Sim" : "Não"}
                       </span>
                     </div>
                     {selectedRideForDetails.aceitaDesvios && (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-white/60">Desvio máximo:</span>
-                        <span className="font-semibold text-white">{selectedRideForDetails.desvioMaxMin} min</span>
+                        <span className="text-gray-500">Desvio máximo:</span>
+                        <span className="font-semibold text-gray-900">{selectedRideForDetails.desvioMaxMin} min</span>
                       </div>
                     )}
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-white/60">Urgência:</span>
-                      <span className="font-semibold text-white capitalize">{selectedRideForDetails.urgencia}</span>
+                      <span className="text-gray-500">Urgência:</span>
+                      <span className="font-semibold text-gray-900 capitalize">{selectedRideForDetails.urgencia}</span>
                     </div>
                     {selectedRideForDetails.orcamentoMax && (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-white/60">Orçamento máximo:</span>
-                        <span className="font-semibold text-white">{selectedRideForDetails.orcamentoMax}€</span>
+                        <span className="text-gray-500">Orçamento máximo:</span>
+                        <span className="font-semibold text-gray-900">{selectedRideForDetails.orcamentoMax}€</span>
                       </div>
                     )}
                     <div className="flex items-start gap-2 text-sm">
-                      <span className="text-white/60">Contacto:</span>
-                      <span className="font-semibold text-white">{selectedRideForDetails.contacto}</span>
+                      <span className="text-gray-500">Contacto:</span>
+                      <span className="font-semibold text-gray-900">{selectedRideForDetails.contacto}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
-                  <div className="text-xs font-semibold text-white/70 uppercase mb-1">Preferências</div>
+                <div className="grid gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                  <div className="text-xs font-semibold text-gray-600 uppercase mb-1">Preferências</div>
                   <div className="grid grid-cols-2 gap-2">
                     {selectedRideForDetails.preferencias.musica && (
-                      <div className="text-xs text-white/70">🎵 Música</div>
+                      <div className="text-xs text-gray-600">🎵 Música</div>
                     )}
                     {selectedRideForDetails.preferencias.falar && (
-                      <div className="text-xs text-white/70">💬 Conversa</div>
+                      <div className="text-xs text-gray-600">💬 Conversa</div>
                     )}
                     {selectedRideForDetails.preferencias.bagagem && (
-                      <div className="text-xs text-white/70">🧳 Bagagem</div>
+                      <div className="text-xs text-gray-600">🧳 Bagagem</div>
                     )}
                     {selectedRideForDetails.preferencias.animais && (
-                      <div className="text-xs text-white/70">🐕 Animais</div>
+                      <div className="text-xs text-gray-600">🐕 Animais</div>
                     )}
                     {selectedRideForDetails.preferencias.fumador && (
-                      <div className="text-xs text-white/70">🚬 Fumador</div>
+                      <div className="text-xs text-gray-600">🚬 Fumador</div>
                     )}
                     {!selectedRideForDetails.preferencias.musica &&
                       !selectedRideForDetails.preferencias.falar &&
                       !selectedRideForDetails.preferencias.bagagem &&
                       !selectedRideForDetails.preferencias.animais &&
                       !selectedRideForDetails.preferencias.fumador && (
-                        <div className="text-xs text-white/50 col-span-2">Sem preferências especiais</div>
+                        <div className="text-xs text-gray-400 col-span-2">Sem preferências especiais</div>
                       )}
                   </div>
                 </div>
@@ -627,8 +836,8 @@ export default function DiscoverPage({ onOpenInbox }: DiscoverPageProps) {
 
             {"observacoes" in selectedRideForDetails && selectedRideForDetails.observacoes && (
               <div className="grid gap-2">
-                <div className="text-xs font-semibold text-white/70">Observações</div>
-                <div className="text-sm text-white/80 p-3 bg-white/5 border border-white/10 rounded-lg">
+                <div className="text-xs font-semibold text-gray-600">Observações</div>
+                <div className="text-sm text-gray-700 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                   {selectedRideForDetails.observacoes}
                 </div>
               </div>

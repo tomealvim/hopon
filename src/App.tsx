@@ -69,11 +69,11 @@ function AppContent() {
 
   // Authenticated and profile complete
   return (
-          <div className="min-h-[100svh] overflow-x-hidden bg-[#0a0611]">
+          <div className="min-h-[100svh] overflow-x-hidden bg-white">
       {showGlobalHeader && (
-        <header className="sticky top-0 z-30 bg-[#0a0611] border-b border-white/10 backdrop-blur-sm">
+        <header className="sticky top-0 z-30 bg-white border-b border-gray-200 backdrop-blur-sm">
           <div className="w-full max-w-mobile md:max-w-tablet lg:max-w-desktop mx-auto px-4 h-14 flex items-center justify-between">
-            <h1 className="text-base font-bold text-white">
+            <h1 className="text-base font-bold text-gray-900">
               <AppName />
             </h1>
             
@@ -83,12 +83,12 @@ function AppContent() {
               aria-label="Ir para perfil"
             >
               <div className="text-right hidden sm:block">
-                <div className="text-xs font-semibold text-white">
+                <div className="text-xs font-semibold text-gray-900">
                   {user?.profile?.name || "Perfil"}
                 </div>
-                <div className="text-[10px] text-white/60">Ver perfil</div>
+                <div className="text-[10px] text-gray-500">Ver perfil</div>
               </div>
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-white/10">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gradient-start via-gradient-mid to-gradient-end text-gray-900 flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-gray-200">
                 {user?.profile?.name?.charAt(0).toUpperCase() || "U"}
               </div>
             </button>
@@ -141,7 +141,7 @@ function AppContent() {
           <Button onClick={()=>{ setOpenComposer(false); setOpenOffer(true); }}>
             Oferecer boleia
           </Button>
-          <Button variant="secondary" onClick={()=>{ setOpenComposer(false); setOpenRequest(true); }}>
+          <Button onClick={()=>{ setOpenComposer(false); setOpenRequest(true); }}>
             Pedir boleia
           </Button>
           {/* Opcional: */}

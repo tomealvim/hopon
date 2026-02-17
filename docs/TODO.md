@@ -43,16 +43,38 @@
 ## MVP — Produto & Backend
 
 ### 1. Autenticação e Utilizadores
-- [ ] Modelo `User` em PostgreSQL (id, email, phone, countryCode, passwordHash, authProvider, createdAt, etc.).
-- [ ] JWT access/refresh + endpoints `POST /auth/refresh`, `POST /auth/logout`.
-- [ ] Middleware/guard que valida JWT e injeta `req.user` nas rotas privadas.
+- [x] Modelo `User` em PostgreSQL (id, email, phone, passwordHash, authProvider, createdAt, etc.) — schema criado.
+- [x] JWT access token — implementado e funcional.
+- [x] JWT refresh token + endpoints `POST /auth/refresh`, `POST /auth/logout` — implementado e testado.
+- [x] Middleware/guard que valida JWT e injeta `req.user` nas rotas privadas — `JwtAuthGuard` implementado.
 
-#### 1.1 OTP real (email/SMS)
-- [ ] Definir fornecedor (Firebase Auth, Twilio Verify, Supabase, Clerk, ...).
-- [ ] `POST /auth/otp/send` para email/telefone com limites (ex.: 5 min / 5 tentativas).
-- [ ] `POST /auth/otp/verify` devolvendo sessão ou confirmando contacto.
-- [ ] Persistir OTPs (BD ou Redis) com TTL e contador de tentativas.
-- [ ] Atualizar `AuthPage` para usar os endpoints reais (mock → real).
+#### 1.1 OTP real (email/SMS) — Validação de Contactos
+- [x] Definir fornecedor (Resend para email; em dev telefone recebe código por email).
+- [x] `POST /auth/otp/send` para email/telefone com limites (5 envios / 15 min, código válido 5 min).
+- [x] `POST /auth/otp/verify` devolvendo perfil atualizado e marcando contacto como verificado.
+- [x] Persistir OTPs na BD (modelo `OtpCode`) com TTL e contador de tentativas.
+- [x] Atualizar `VerificationSheet` para usar os endpoints reais (mock → real).
+- [x] **Validação de telefone via OTP**: Após utilizador adicionar telefone no perfil, enviar OTP (por email em dev).
+  - Verificação via `POST /auth/otp/verify` com `purpose: 'phone'`.
+  - Marcar `phoneVerifiedAt` no `User` após verificação bem-sucedida.
+  - Perfil mostra estado de verificação; `user.verification.phone` no frontend.
+  - Bloquear criar boleia, pedir boleia e ver detalhes de boleia até email e telefone verificados (`VerifiedUserGuard`).
+- [x] **Validação de email via OTP**: `POST /auth/otp/send` e `POST /auth/otp/verify` com `purpose: 'email'`.
+  - Marcar `emailVerifiedAt` no `User` após verificação.
+- [x] **Resend (email):** `RESEND_API_KEY` e `RESEND_FROM` em `backend/.env`; sem key o código é logado na consola. Template de referência em `backend/resend-email-example.js` (igual ao `AuthService`).
+- [x] **VerifiedUserGuard:** atualmente só exige **email verificado** para criar/pedir boleia e ver detalhes; verificação de telefone fica para quando estiver ativa.
+- [x] **Perfil (ProfilePage):** botão "Verificar email" visível quando email não verificado; quando verificado apenas badge "✓ Verificado" (sem emojis); opção "Verificar telemóvel" **desligada no menu por agora**.
+- [ ] **Reativar verificação de telemóvel:** quando SMS/telefone estiver implementado, voltar a mostrar o botão "Verificar telemóvel" no perfil e exigir `phoneVerifiedAt` no `VerifiedUserGuard` (ver `backend/src/common/guards/verified-user.guard.ts`).
+- [ ] **Validação de email alternativo** (contactEmail): opcional; atualmente verifica-se o email da conta.
+- [ ] **Frontend — Seletor de país para telefone** (melhoria UX):
+  - Instalar `react-phone-number-input` para seletor elegante de código de país.
+  - Substituir inputs simples de telefone em `ProfilePage`, `ProfileSetupPage`, `SupportContactSheet`.
+  - Validação em tempo real enquanto utilizador digita.
+  - Formatação automática baseada no país selecionado.
+- [ ] **Imagens de veículo (F1.5)**:
+  - Guardar apenas URL otimizada (upload para storage/API própria) em vez de data URI completos na BD.
+  - Limitar tamanho (ex.: 1 MB) e validar no backend.
+  - Otimizar/normalizar dimensões antes de guardar (thumb 512px).
 
 #### 1.2 Sign-in com Google e Apple
 - [ ] Escolher estratégia (SDK nativo, Firebase/Auth0/Clerk, etc.) e mapear requisitos.
@@ -68,19 +90,22 @@
 - [ ] Após validação, permitir definir nova password e atualizar backend.
 
 ### 2. Perfis e Veículos
-- [ ] Modelo `Profile` (nome, foto, escola, etc.) separado de `User`.
-- [ ] Modelo `Vehicle` (userId, brand, model, plate hash, seats, ...).
-- [ ] Endpoints `GET/PATCH /me`.
-- [ ] CRUD de veículos (`GET /vehicles`, `POST`, `PATCH`, `DELETE /vehicles/:id`).
+- [x] Modelo `Profile` (nome, foto, escola, etc.) separado de `User`.
+- [x] Modelo `Vehicle` (userId, brand, model, plate hash, seats, ...) — schema criado.
+- [x] Endpoints `GET/PATCH /auth/me` — implementados e testados.
+- [x] Validação de telefone internacional com `libphonenumber-js` — decorator customizado `@IsValidPhoneNumber()`.
+- [x] Campo `contactEmail` no `Profile` — adicionado e funcional.
+- [x] CRUD de veículos (`GET /vehicles`, `POST`, `PATCH`, `DELETE /vehicles/:id`) — implementado e testado.
 - [ ] Integrar API ViaMichelin para estimar consumo/custos automaticamente (depende da definição final de viagens).
 
 ### 3. Schedules, Rides & Bookings
 - [ ] Modelo `ScheduleTemplate` (horários recorrentes).
-- [ ] Modelo `Ride` (instância de viagem) + `Booking` (reserva de lugar).
+- [x] Modelo `Ride` (instância de viagem) + `Booking` (reserva de lugar) — schema criado e implementado.
 - [ ] Endpoints MVP: `POST /schedules`, `GET /schedules/my`, `POST /rides/from-template/:templateId`.
-- [ ] Exploração `GET /rides/search` (matching básico).
-- [ ] Fluxo de reservas: `POST /rides/:id/book`, `POST /bookings/:id/cancel`.
-- [ ] Garantir integridade de lugares (transactions na BD).
+- [x] Exploração `GET /rides/search` (matching básico) — implementado e público (sem auth).
+- [x] Fluxo de reservas: `POST /bookings/rides/:rideId`, `POST /bookings/:id/cancel` — implementado e testado.
+- [x] Garantir integridade de lugares (transactions na BD) — implementado com validações e transações.
+- [x] **Discover ligada à API:** no separador Explore, boleias carregadas de `GET /rides/search`; cards com condutor (nome, avatar), data/hora, lugares; "Pedir lugar" → `POST /bookings/rides/:rideId`; "Detalhes" → `GET /rides/:id` (condutor + veículo). Ofertas locais (mock) ainda listadas abaixo.
 
 ### 4. Wallet / Hopon Cash
 - [ ] Definir provider de top-ups (Stripe, Revolut Business, MB Way, etc.) e custos.
@@ -133,16 +158,34 @@
   - [ ] Script `npm run dev:all` para arrancar tudo.
   - [ ] Script de seed/reset de BD.
 - [ ] **Documentação de API:**
-  - [ ] Ativar Swagger/OpenAPI no NestJS.
-  - [ ] Documentar endpoints principais (/auth, /rides, etc.).
-  - [ ] DTOs anotados para contrato claro com frontend.
+  - [x] Ativar Swagger/OpenAPI no NestJS — `/api/docs` funcional.
+  - [x] Documentar endpoints principais (/auth, /me) — DTOs anotados.
+  - [ ] Documentar endpoints de rides/wallet quando implementados.
 
 ### 9. Notificações & Comunicação
-- [ ] **Notification Service (módulo NestJS):**
-  - [ ] Canais: Email (transacional), (F2) Push.
-  - [ ] Modelo `NotificationPreference` por user.
-- [ ] **Gatilhos MVP:**
-  - [ ] Nova reserva / Confirmação / Cancelamento.
+- [~] **Notification Service (módulo NestJS):**
+  - [x] Estrutura básica criada (`NotificationsService`, `NotificationsModule`).
+  - [x] Notificação quando boleia é cancelada/apagada (identifica utilizadores afetados).
+  - [ ] **Push Notifications (FCM/OneSignal):**
+    - [ ] Configurar Firebase Cloud Messaging (FCM) no backend.
+    - [ ] Modelo `DeviceToken` na BD (userId, token, platform, createdAt).
+    - [ ] Endpoint `POST /notifications/register-token` para guardar FCM token do dispositivo.
+    - [ ] Integrar envio de push via FCM quando boleia é cancelada.
+    - [ ] Service Worker no frontend para receber notificações em background.
+    - [ ] Pedir permissão de notificações ao utilizador (quando fizer login).
+    - [ ] Enviar token para backend após login/registo.
+  - [ ] **Notificações In-App:**
+    - [ ] Modelo `Notification` na BD (userId, type, title, message, read, metadata, createdAt).
+    - [ ] Endpoint `GET /notifications/my` para listar notificações do utilizador.
+    - [ ] Endpoint `PATCH /notifications/:id/read` para marcar como lida.
+    - [ ] Frontend: componente de lista de notificações (badge com contador).
+    - [ ] Mostrar notificações in-app quando app está aberta (usar `NotificationContext` existente).
+  - [ ] Canais: Email (transacional), SMS (opcional).
+  - [ ] Modelo `NotificationPreference` por user (preferências de canais).
+- [~] **Gatilhos MVP:**
+  - [x] Cancelamento de boleia (estrutura pronta, falta enviar push/in-app).
+  - [ ] Nova reserva (notificar condutor).
+  - [ ] Confirmação de reserva (notificar passageiro).
   - [ ] Top-up wallet (sucesso/falha).
   - [ ] Reclamações.
 

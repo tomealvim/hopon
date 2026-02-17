@@ -1,5 +1,6 @@
-import { IsEmail, IsString, MinLength, IsOptional, IsPhoneNumber } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsValidPhoneNumber } from '../../../common/decorators/is-valid-phone-number.decorator';
 
 export class RegisterDto {
   @ApiProperty({ example: 'user@example.com' })
@@ -17,7 +18,7 @@ export class RegisterDto {
 
   @ApiProperty({ example: '+351912345678', required: false })
   @IsOptional()
-  @IsPhoneNumber(null) // null allows region auto-detection or full international format
+  @IsValidPhoneNumber()
   phone?: string;
 }
 

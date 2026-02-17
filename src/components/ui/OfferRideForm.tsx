@@ -117,8 +117,8 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
   if (!hasVehicles) {
     return (
       <div className="grid gap-4 p-4 text-center">
-        <p className="text-base font-semibold text-white">Precisas de um veículo associado</p>
-        <p className="text-sm text-white/70">
+        <p className="text-base font-semibold text-gray-900">Precisas de um veículo associado</p>
+        <p className="text-sm text-gray-600">
           Adiciona um carro em Perfil &gt; Veículos para poderes publicar boleias e calcular custos.
         </p>
         <Button
@@ -137,15 +137,15 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
 
   return (
     <form onSubmit={submit} className="grid gap-4 p-1">
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3">
         <div className="flex items-center justify-between gap-3 mb-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Veículo associado</p>
-            <p className="text-sm text-white/80">Escolhe o carro que vais conduzir nesta viagem.</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Veículo associado</p>
+            <p className="text-sm text-gray-700">Escolhe o carro que vais conduzir nesta viagem.</p>
           </div>
           <button
             type="button"
-            className="text-xs font-semibold text-white/70 underline-offset-2 hover:underline"
+            className="text-xs font-semibold text-gray-600 underline-offset-2 hover:underline"
             onClick={() => {
               onCancel();
               onRequireVehicleSetup?.();
@@ -165,7 +165,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
                   "flex items-center justify-between rounded-2xl border px-4 py-2 text-left transition",
                   isSelected
                     ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-50"
-                    : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
+                    : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
                 )}
                 aria-pressed={isSelected}
                 onClick={() => {
@@ -176,12 +176,12 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
               >
                 <div>
                   <p className="text-sm font-semibold">{vehicle.brand}</p>
-                  <p className="text-xs text-white/70">{vehicle.model}</p>
+                  <p className="text-xs text-gray-600">{vehicle.model}</p>
                 </div>
                 <span
                   className={cn(
                     "flex h-5 w-5 items-center justify-center rounded-full border text-[11px]",
-                    isSelected ? "border-emerald-300 bg-emerald-400 text-emerald-900" : "border-white/30 text-white/50"
+                    isSelected ? "border-emerald-300 bg-emerald-400 text-emerald-900" : "border-gray-300 text-gray-500"
                   )}
                 >
                   {isSelected ? "✓" : ""}
@@ -195,10 +195,10 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
         )}
       </div>
       <div className="">
-        <label htmlFor={`${id}-origem`} className="block text-xs font-semibold text-white/70 mb-1">De onde?</label>
+        <label htmlFor={`${id}-origem`} className="block text-xs font-semibold text-gray-600 mb-1">De onde?</label>
         <input
           id={`${id}-origem`}
-          className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-white/40"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-900/40"
           placeholder="Ex.: Estoril, estação, rua…"
           value={values.origem}
           onChange={e=>set("origem", e.target.value)}
@@ -209,10 +209,10 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
       </div>
 
       <div className="">
-        <label htmlFor={`${id}-destino`} className="block text-xs font-semibold text-white/70 mb-1">Para onde?</label>
+        <label htmlFor={`${id}-destino`} className="block text-xs font-semibold text-gray-600 mb-1">Para onde?</label>
         <input
           id={`${id}-destino`}
-          className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-white/40"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-900/40"
           placeholder="Ex.: ULisboa Ciências, campus, morada…"
           value={values.destino}
           onChange={e=>set("destino", e.target.value)}
@@ -224,10 +224,10 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
 
       <div className="grid grid-cols-2 gap-3">
         <div className="">
-          <label htmlFor={`${id}-data`} className="block text-xs font-semibold text-white/70 mb-1">Dia</label>
+          <label htmlFor={`${id}-data`} className="block text-xs font-semibold text-gray-600 mb-1">Dia</label>
           <input
             id={`${id}-data`}
-            className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
             type="date"
             value={values.data}
             onChange={e=>set("data", e.target.value)}
@@ -252,10 +252,10 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
 
       <div className="grid grid-cols-2 gap-3">
         <div className="">
-          <label htmlFor={`${id}-lugares`} className="block text-xs font-semibold text-white/70 mb-1">Lugares</label>
+          <label htmlFor={`${id}-lugares`} className="block text-xs font-semibold text-gray-600 mb-1">Lugares</label>
           <input
             id={`${id}-lugares`}
-            className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
             type="number"
             min={1}
             max={6}
@@ -268,7 +268,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
         </div>
 
         <div className="">
-          <label className="block text-xs font-semibold text-white/70 mb-1">Aceita desvios?</label>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">Aceita desvios?</label>
           <div className="flex items-center gap-2 mb-2">
             <input
               id={`${id}-aceita`}
@@ -277,7 +277,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
               checked={values.aceitaDesvios}
               onChange={e=>set("aceitaDesvios", e.target.checked)}
             />
-            <label htmlFor={`${id}-aceita`} className="text-sm font-medium text-white" aria-live="polite">
+            <label htmlFor={`${id}-aceita`} className="text-sm font-medium text-gray-900" aria-live="polite">
               {values.aceitaDesvios ? "Sim" : "Não"}
             </label>
           </div>
@@ -286,10 +286,10 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
 
       {values.aceitaDesvios && (
         <div className="">
-          <label htmlFor={`${id}-desvio`} className="block text-xs font-semibold text-white/70 mb-1">Desvio máx. (min)</label>
+          <label htmlFor={`${id}-desvio`} className="block text-xs font-semibold text-gray-600 mb-1">Desvio máx. (min)</label>
           <input
             id={`${id}-desvio`}
-            className="w-full px-3 py-2.5 border border-white/20 bg-white/5 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
             type="range"
             min={0}
             max={60}
@@ -301,16 +301,16 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
             aria-valuemax={60}
             aria-valuenow={values.desvioMaxMin}
           />
-          <div className="text-xs text-white/60 mt-1">{values.desvioMaxMin} min</div>
+          <div className="text-xs text-gray-500 mt-1">{values.desvioMaxMin} min</div>
           {touched.desvioMaxMin && errors.desvioMaxMin && <div className="text-xs text-red-600 mt-1">{errors.desvioMaxMin}</div>}
         </div>
       )}
 
       <div className="">
-        <label htmlFor={`${id}-ponto`} className="block text-xs font-semibold text-white/70 mb-1">Ponto de encontro</label>
+        <label htmlFor={`${id}-ponto`} className="block text-xs font-semibold text-gray-600 mb-1">Ponto de encontro</label>
         <input
           id={`${id}-ponto`}
-          className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-white/40"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-900/40"
           placeholder="Ex.: estação de Cascais, portaria, etc."
           value={values.pontoEncontro}
           onChange={e=>set("pontoEncontro", e.target.value)}
@@ -318,7 +318,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
       </div>
 
       <div className="">
-        <label className="block text-xs font-semibold text-white/70 mb-1">Recorrente</label>
+        <label className="block text-xs font-semibold text-gray-600 mb-1">Recorrente</label>
         <div className="flex items-center gap-2 mb-2">
           <input
             id={`${id}-recorrente`}
@@ -327,7 +327,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
             checked={values.recorrente}
             onChange={e=>set("recorrente", e.target.checked)}
           />
-          <label htmlFor={`${id}-recorrente`} className="text-sm font-medium text-white" aria-live="polite">
+          <label htmlFor={`${id}-recorrente`} className="text-sm font-medium text-gray-900" aria-live="polite">
             {values.recorrente ? "Sim" : "Não"}
           </label>
         </div>
@@ -342,8 +342,8 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
                   className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
                     checked
-                      ? "bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black border-transparent"
-                      : "bg-white/5 text-white border-white/20 hover:bg-white/10"
+                      ? "bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 border-transparent"
+                      : "bg-white/5 text-gray-900 border-gray-200 hover:bg-white/10"
                   )}
                   aria-pressed={checked}
                   onClick={() => {
@@ -363,10 +363,10 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
       </div>
 
       <div className="">
-        <label htmlFor={`${id}-obs`} className="block text-xs font-semibold text-white/70 mb-1">Observações</label>
+        <label htmlFor={`${id}-obs`} className="block text-xs font-semibold text-gray-600 mb-1">Observações</label>
         <textarea
           id={`${id}-obs`}
-          className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 resize-none placeholder:text-white/40"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 resize-none placeholder:text-gray-900/40"
           rows={3}
           placeholder="Ex.: trago mochila grande, prefiro silêncio, etc."
           value={values.observacoes}
@@ -375,20 +375,20 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
       </div>
 
       <fieldset className="" aria-label="Preferências">
-        <legend className="block text-xs font-semibold text-white/70 mb-1">Preferências</legend>
-        <label className="flex items-center gap-2 text-sm text-white">
+        <legend className="block text-xs font-semibold text-gray-600 mb-1">Preferências</legend>
+        <label className="flex items-center gap-2 text-sm text-gray-900">
           <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white/5" checked={values.preferencias.musica} onChange={e=>setPref("musica", e.target.checked)} />
           Música
         </label>
-        <label className="flex items-center gap-2 text-sm text-white">
+        <label className="flex items-center gap-2 text-sm text-gray-900">
           <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white/5" checked={values.preferencias.falar} onChange={e=>setPref("falar", e.target.checked)} />
           Conversa
         </label>
-        <label className="flex items-center gap-2 text-sm text-white">
+        <label className="flex items-center gap-2 text-sm text-gray-900">
           <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white/5" checked={values.preferencias.bagagem} onChange={e=>setPref("bagagem", e.target.checked)} />
           Espaço para bagagem
         </label>
-        <label className="flex items-center gap-2 text-sm text-white">
+        <label className="flex items-center gap-2 text-sm text-gray-900">
           <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white/5" checked={values.preferencias.animais} onChange={e=>setPref("animais", e.target.checked)} />
           Aceita animais
         </label>

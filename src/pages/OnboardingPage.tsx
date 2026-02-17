@@ -17,7 +17,7 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const isFinalScreen = currentScreen === 4;
-  const isDark = true;
+  const isDark = false;
 
   const handleNext = () => {
     if (currentScreen < 4) {
@@ -37,8 +37,8 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
   return (
     <div
       className={cn(
-        "min-h-[100svh] flex flex-col px-6 pt-6 pb-6 transition-colors duration-300 text-white",
-        "bg-gradient-to-b from-[#0a0611] via-[#1b0b24] to-[#050308]"
+        "min-h-[100svh] flex flex-col px-6 pt-6 pb-6 transition-colors duration-300 text-gray-900",
+        "bg-white"
       )}
     >
       {/* Header */}
@@ -107,7 +107,7 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
           disabled={isFinalScreen && !agreedToTerms}
           className={cn(
             "flex items-center justify-center font-semibold text-white transition shadow-[0_25px_40px_rgba(224,113,165,0.45)]",
-            "bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A]",
+            "bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end",
             isFinalScreen ? "px-8 h-14 rounded-full text-sm uppercase tracking-[0.15em]" : "w-16 h-16 rounded-full",
             "active:scale-95",
             "disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100",
@@ -154,11 +154,11 @@ function Screen1() {
   return (
     <div className="w-full max-w-sm mx-auto space-y-7 text-left">
       <div className="space-y-2.5">
-        <p className="text-[11px] uppercase tracking-[0.55em] text-white/60">Ready to</p>
-        <h1 className="text-[32px] leading-tight font-bold text-white">
+        <p className="text-[11px] uppercase tracking-[0.55em] text-gray-500">Ready to</p>
+        <h1 className="text-[32px] leading-tight font-bold text-gray-900">
           <AppName className="tracking-[0.08em]" />
         </h1>
-        <p className="text-[15px] text-white/80">
+        <p className="text-[15px] text-gray-600">
           Vamos viajar juntos e tornar cada boleia mais simples, segura e económica.
         </p>
       </div>
@@ -187,9 +187,9 @@ function Screen2() {
         </div>
       </div>
       <div className="space-y-3.5">
-        <p className="text-[11px] uppercase tracking-[0.55em] text-white/60">Explorar</p>
-        <h1 className="text-[28px] font-semibold text-white leading-tight">Encontrar uma boleia</h1>
-        <p className="text-[14px] text-white/80">
+        <p className="text-[11px] uppercase tracking-[0.55em] text-gray-500">Explorar</p>
+        <h1 className="text-[28px] font-semibold text-gray-900 leading-tight">Encontrar uma boleia</h1>
+        <p className="text-[14px] text-gray-600">
           Solicita uma boleia e sê recolhido no mesmo percurso pelo condutor. Sabe quem te leva e quando.
         </p>
       </div>
@@ -212,9 +212,9 @@ function Screen3() {
         </div>
       </div>
       <div className="space-y-3.5">
-        <p className="text-[11px] uppercase tracking-[0.55em] text-white/60">Partilhar</p>
-        <h1 className="text-[28px] font-semibold text-white leading-tight">Publicar uma boleia</h1>
-        <p className="text-[14px] text-white/80">
+        <p className="text-[11px] uppercase tracking-[0.55em] text-gray-500">Partilhar</p>
+        <h1 className="text-[28px] font-semibold text-gray-900 leading-tight">Publicar uma boleia</h1>
+        <p className="text-[14px] text-gray-600">
           Publica uma boleia e recolhe passageiros pelo caminho. Decide o percurso e mantém o carro cheio.
         </p>
       </div>
@@ -237,32 +237,32 @@ function Screen4({
   return (
     <div className="w-full text-center space-y-10">
       <div className="space-y-2">
-        <AppName className="text-4xl md:text-5xl font-bold text-white" />
-        <p className="text-sm tracking-[0.4em] uppercase text-white/60">Vamos viajar juntos</p>
+        <AppName className="text-4xl md:text-5xl font-bold text-gray-900" />
+        <p className="text-sm tracking-[0.4em] uppercase text-gray-500">Vamos viajar juntos</p>
       </div>
-      <p className="text-base text-white/90 leading-relaxed px-2">
+      <p className="text-base text-gray-700 leading-relaxed px-2">
         Para começares a usar a partilha de boleias, por favor concorda primeiro com os nossos{" "}
         <button
           type="button"
           onClick={onOpenTerms}
           aria-haspopup="dialog"
           aria-controls="onboarding-terms-sheet"
-          className="underline font-semibold hover:text-white transition"
+          className="underline font-semibold hover:text-gray-900 transition"
         >
           {termsTitle}
         </button>
       </p>
-      <label className="flex items-start gap-4 bg-white/5 border border-white/10 rounded-3xl p-5 cursor-pointer hover:bg-white/10 transition text-left">
+      <label className="flex items-start gap-4 bg-gray-50 border border-gray-200 rounded-3xl p-5 cursor-pointer hover:bg-gray-100 transition text-left">
         <input
           type="checkbox"
           checked={agreedToTerms}
           onChange={(e) => onAgreeChange(e.target.checked)}
           className="sr-only peer"
         />
-        <span className="mt-1 w-6 h-6 rounded-lg border border-white/30 flex items-center justify-center text-xs font-black text-transparent peer-checked:bg-white peer-checked:text-black transition">
+        <span className="mt-1 w-6 h-6 rounded-lg border border-gray-300 flex items-center justify-center text-xs font-black text-transparent peer-checked:bg-gray-900 peer-checked:text-white transition">
           ✓
         </span>
-        <span className="text-sm text-white/90 leading-relaxed">
+        <span className="text-sm text-gray-700 leading-relaxed">
           Concordo com os termos e condições da partilha de boleias e confirmo que os li com atenção.
         </span>
       </label>
@@ -273,11 +273,11 @@ function Screen4({
 // Componente auxiliar para os benefícios
 function BenefitItem({ text }: { text: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-full bg-white/5 border border-white/10 px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
-      <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-semibold bg-gradient-to-r from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black shadow-[0_6px_16px_rgba(255,113,154,0.35)]">
+    <div className="flex items-center gap-3 rounded-full bg-gray-50 border border-gray-200 px-4 py-3 shadow-sm">
+      <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-semibold bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 shadow-md">
         ✓
       </div>
-      <span className="text-base text-white font-medium">{text}</span>
+      <span className="text-base text-gray-900 font-medium">{text}</span>
     </div>
   );
 }

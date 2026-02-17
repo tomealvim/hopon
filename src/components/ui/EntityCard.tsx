@@ -28,19 +28,19 @@ export default function EntityCard({
           <Avatar size="md" src={avatar?.src} initials={avatar?.initials} />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="font-semibold truncate text-white">{title}</h4>
+              <h4 className="font-semibold truncate text-gray-900">{title}</h4>
               <div className="flex gap-1">
                 {badges?.map((b, i) => (
                   <Badge key={i} tone={b.tone || "neutral"}>{b.label}</Badge>
                 ))}
               </div>
             </div>
-            {subtitle && <p className="text-sm text-white/70 truncate">{subtitle}</p>}
+            {subtitle && <p className="text-sm text-gray-600 truncate">{subtitle}</p>}
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        {meta && <p className="text-sm text-white/60">{meta}</p>}
+        {meta && <p className="text-sm text-gray-500">{meta}</p>}
       </CardContent>
       <CardFooter>
         <div className="flex flex-col gap-2 sm:flex-row">

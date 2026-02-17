@@ -35,9 +35,9 @@ type PasswordFeedback = {
 };
 
 export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStateChange }: ProfilePageProps) {
-  const { user, updateProfile, upsertVehicle, removeVehicle, setActiveVehicle, completeVerification } = useAuth();
+  const { user, updateProfile, upsertVehicle, removeVehicle, setActiveVehicle } = useAuth();
   const { language, setLanguage, getLanguageLabel } = useLanguage();
-  const { showSuccess } = useNotifications();
+  const { showSuccess, showError } = useNotifications();
   
   // Dados do utilizador - sempre com valores definidos
   const [name, setName] = useState("");
@@ -114,13 +114,16 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
   // Sincronizar com o user quando muda
   useEffect(() => {
     const profile = user?.profile;
-    setEmail(user?.email || "");
+    const accountEmail = user?.email || "";
+    const accountPhone = user?.phone || "";
+
+    setEmail(accountEmail);
+    setPhone(accountPhone);
 
     if (profile) {
       setName(profile.name || "");
       setUsername(profile.username || "");
-      setPhone(profile.phone || "");
-      setContactEmail(profile.contactEmail || user?.email || "");
+      setContactEmail(profile.contactEmail || accountEmail);
       setAvatarUrl(profile.avatarUrl || null);
       setSchedule(normalizeUserSchedule(profile.schedule || { days: [] }));
       return;
@@ -128,8 +131,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
 
     setName("");
     setUsername("");
-    setPhone("");
-    setContactEmail(user?.email || "");
+    setContactEmail(accountEmail);
     setAvatarUrl(null);
     setSchedule({ days: [] });
   }, [user]);
@@ -236,15 +238,22 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
     onLogout?.();
   }
 
-  function handleSaveProfile() {
+  async function handleSaveProfile() {
     if (!user?.profile) return;
-    updateProfile({
-      ...user.profile,
-      username: username.trim() || undefined,
-      contactEmail: contactEmail.trim() || undefined,
-      avatarUrl: avatarUrl || undefined,
-    });
-    setOpenEdit(false);
+    try {
+      await updateProfile({
+        name: name.trim() || user.profile.name,
+        username: username.trim() || undefined,
+        phone: phone.trim() || user.phone,
+        contactEmail: contactEmail.trim() || undefined,
+        avatarUrl: avatarUrl || undefined,
+      });
+      setOpenEdit(false);
+      showSuccess("Perfil atualizado", "As alterações foram guardadas com sucesso.");
+    } catch (err) {
+      console.error("Erro ao guardar perfil:", err);
+      // O erro já é mostrado pelo updateProfile, mas podemos adicionar notificação aqui se necessário
+    }
   }
 
   function handleOpenVehicleManager() {
@@ -265,30 +274,36 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
     setEditingVehicleId(null);
   }
 
-  function handleVehicleSubmit(values: VehicleFormValues) {
+  async function handleVehicleSubmit(values: VehicleFormValues) {
     const isEditingExisting = Boolean(editingVehicle);
-    const now = new Date().toISOString();
-    const payload: Vehicle = {
-      id: editingVehicle?.id ?? `vehicle_${Date.now()}`,
-      brand: values.brand,
-      model: values.model,
-      plate: values.plate || undefined,
-      color: values.color || undefined,
-      imageUrl: values.imageUrl || undefined,
-      features: {
-        airConditioning: values.airConditioning,
-        heater: values.heater,
-      },
-      createdAt: editingVehicle?.createdAt ?? now,
-      updatedAt: now,
-    };
+    try {
+      const savedVehicle = await upsertVehicle({
+        id: editingVehicle?.id,
+        brand: values.brand.trim(),
+        model: values.model.trim(),
+        plate: values.plate.trim() || undefined,
+        color: values.color.trim() || undefined,
+        imageUrl: values.imageUrl || undefined,
+        seats: editingVehicle?.seats,
+        features: {
+          airConditioning: values.airConditioning,
+          heater: values.heater,
+        },
+      });
 
-    upsertVehicle(payload);
-    if (!isEditingExisting) {
-      setActiveVehicle(payload.id);
+      if (!isEditingExisting && savedVehicle) {
+        setActiveVehicle(savedVehicle.id);
+      }
+
+      showSuccess(
+        editingVehicle ? "Veículo atualizado" : "Veículo guardado",
+        "Dados prontos para estimar consumos.",
+      );
+      handleCloseVehicle();
+    } catch (error) {
+      console.error("Erro ao guardar veículo:", error);
+      showError("Erro", "Não foi possível guardar o veículo. Tenta novamente.");
     }
-    showSuccess(editingVehicle ? "Veículo atualizado" : "Veículo guardado", "Dados prontos para estimar consumos.");
-    handleCloseVehicle();
   }
 
   function openVerification(channel: "email" | "phone") {
@@ -357,12 +372,12 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
   }
 
   return (
-    <div className="relative min-h-screen pb-32 text-white overflow-hidden">
+    <div className="relative min-h-screen pb-32 bg-white text-gray-900 overflow-hidden">
       {/* Blur effects coloridos */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-pink-500/8 blur-[180px]" />
-        <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/8 blur-[160px]" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/6 blur-[200px]" />
+        <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-gray-300/5 blur-[180px]" />
+        <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-gray-300/5 blur-[160px]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-gray-200/5 blur-[200px]" />
       </div>
       
       <div className="relative z-10">
@@ -370,54 +385,49 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
       <section className="mt-6 mb-4 mx-4">
         <div className="flex items-center gap-4">
           {/* Avatar */}
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden shadow-xl shadow-[#FF719A]/30 ring-2 ring-white/20" aria-hidden>
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gradient-start via-gradient-mid to-gradient-end text-gray-900 flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden shadow-md ring-2 ring-gray-200" aria-hidden>
             {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initials(name)}</span>}
           </div>
 
           {/* Info + badges */}
           <div className="flex-1 min-w-0">
-            {name && <h1 className="text-lg font-bold text-white truncate drop-shadow-sm">{name}</h1>}
-            {visibleEmail && <p className="text-sm text-white/80 truncate">{visibleEmail}</p>}
+            {name && <h1 className="text-lg font-bold text-gray-900 truncate drop-shadow-sm">{name}</h1>}
+            {visibleEmail && <p className="text-sm text-gray-700 truncate">{visibleEmail}</p>}
             
-            {/* Badges de verificação - só se tiver algo verificado */}
+            {/* Badge de verificação - só texto "Verificado", sem emojis */}
             {(verification.email || verification.phone) && (
               <div className="flex items-center gap-2 mt-1.5">
-                <span className="text-xs text-emerald-300 flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 ring-1 ring-emerald-500/40">
+                <span className="text-xs text-emerald-700 flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 ring-1 ring-emerald-500/40">
                   ✓ Verificado
                 </span>
-                {verification.email && <span className="text-sm" aria-label="Email verificado">📧</span>}
-                {verification.phone && <span className="text-sm" aria-label="Telemóvel verificado">📱</span>}
               </div>
             )}
           </div>
         </div>
         
-        {/* Aviso de verificação - SÓ se faltar verificar algo */}
-        {(!verification.email || !verification.phone) && (
-          <div className="mt-4 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3">
-            <p className="text-sm font-semibold text-amber-200 mb-2">
+        {/* Aviso de verificação - botão "Verificar email" (telemóvel fica off por agora) */}
+        {!verification.email && (
+          <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+            <p className="text-sm font-semibold text-amber-900 mb-2 break-words">
               Completa a verificação para ganhar confiança
             </p>
-            <div className="flex gap-2">
-              {!verification.email && (
-                <Button size="sm" onClick={() => openVerification("email")}>
-                  Verificar email
-                </Button>
-              )}
-              {!verification.phone && (
-                <Button size="sm" onClick={() => openVerification("phone")}>
-                  Verificar telemóvel
-                </Button>
-              )}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => openVerification("email")}
+                className="h-9 px-3 text-sm font-medium rounded-xl border border-amber-300 bg-white text-amber-900 hover:bg-amber-50 transition"
+              >
+                Verificar email
+              </button>
             </div>
           </div>
         )}
       </section>
 
       {/* ========== BLOCO 1: O MEU HORÁRIO ========== */}
-      <section className="glass-card-subtle px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
+      <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
         <div className="flex items-start justify-between mb-3">
-          <h2 className="text-sm font-bold text-white/80 uppercase tracking-wide">
+          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
             O meu horário
           </h2>
           <button
@@ -430,8 +440,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
 
         {!hasSchedule ? (
           <div className="text-center py-8 animate-fade-in">
-            <p className="text-base font-semibold text-white/95 mb-2">Ainda sem horário</p>
-            <p className="text-sm text-white/70 mb-4 max-w-[240px] mx-auto">
+            <p className="text-base font-semibold text-gray-900/95 mb-2">Ainda sem horário</p>
+            <p className="text-sm text-gray-900/70 mb-4 max-w-[240px] mx-auto">
               Define os teus horários para sugestões automáticas de boleias
             </p>
             <Button size="sm" onClick={() => setOpenSchedule(true)}>
@@ -442,10 +452,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
           <>
             {/* Próxima boleia - card simples */}
             {primaryRide && (
-              <div className="rounded-2xl bg-gradient-to-br from-[#FFE29F] via-[#FFA99F] to-[#FF719A] text-black px-4 py-3 mb-3 shadow-xl shadow-[#FF719A]/35 ring-1 ring-white/20 animate-fade-in">
-                <p className="text-xs uppercase tracking-wide opacity-70 font-semibold">Próxima boleia</p>
+              <div className="rounded-2xl bg-gradient-to-br from-gradient-start via-gradient-mid to-gradient-end text-gray-900 px-4 py-3 mb-3 shadow-md ring-1 ring-black/5 animate-fade-in">
+                <p className="text-xs uppercase tracking-wide text-gray-700 font-semibold">Próxima boleia</p>
                 <p className="text-base font-bold mt-0.5">{primaryRide.block.title ?? "Boleia"}</p>
-                <p className="text-sm opacity-80 mt-0.5">
+                <p className="text-sm text-gray-800 mt-0.5">
                   {getDayLabel(primaryRide.day)} · {primaryRide.block.start}–{primaryRide.block.end}
                 </p>
               </div>
@@ -461,7 +471,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
             </Button>
 
             {showCalendarPreview && (
-              <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-2">
+              <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-2">
                 <WeekCalendar schedule={schedule} onBlockClick={() => setOpenSchedule(true)} compact />
               </div>
             )}
@@ -470,17 +480,17 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
       </section>
 
       {/* ========== BLOCO 2: CARRO EM USO ========== */}
-      <section className="glass-card-subtle px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
+      <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
         <div className="flex items-start justify-between mb-3">
-          <h2 className="text-sm font-bold text-white/80 uppercase tracking-wide">
+          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
             Carro em uso
           </h2>
         </div>
 
         {!activeVehicle ? (
           <div className="text-center py-8 animate-fade-in">
-            <p className="text-base font-semibold text-white/95 mb-2">Ainda sem veículo</p>
-            <p className="text-sm text-white/70 mb-4 max-w-[240px] mx-auto">
+            <p className="text-base font-semibold text-gray-900/95 mb-2">Ainda sem veículo</p>
+            <p className="text-sm text-gray-900/70 mb-4 max-w-[240px] mx-auto">
               Adiciona marca e modelo para cálculo automático de custos
             </p>
             <Button size="sm" onClick={() => handleOpenVehicle(null)}>
@@ -491,25 +501,25 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
           <>
             <div className="flex items-start justify-between gap-4 mb-3">
               <div className="flex-1">
-                <p className="text-base font-semibold text-white">
+                <p className="text-base font-semibold text-gray-900">
                   {activeVehicle.brand} {activeVehicle.model}
                 </p>
                 {activeVehicle.plate && (
-                  <p className="text-sm text-white/70 mt-0.5">{activeVehicle.plate}</p>
+                  <p className="text-sm text-gray-900/70 mt-0.5">{activeVehicle.plate}</p>
                 )}
                 <div className="flex flex-wrap gap-2 mt-2">
                   {activeVehicle.color && (
-                    <span className="text-xs rounded-full border border-white/20 px-2 py-0.5 text-white/80">
+                    <span className="text-xs rounded-full border border-gray-200 px-2 py-0.5 text-gray-700">
                       {activeVehicle.color}
                     </span>
                   )}
                   {activeVehicle.features.airConditioning && (
-                    <span className="text-xs rounded-full border border-white/20 px-2 py-0.5 text-white/80">
+                    <span className="text-xs rounded-full border border-gray-200 px-2 py-0.5 text-gray-700">
                       A/C
                     </span>
                   )}
                   {activeVehicle.features.heater && (
-                    <span className="text-xs rounded-full border border-white/20 px-2 py-0.5 text-white/80">
+                    <span className="text-xs rounded-full border border-gray-200 px-2 py-0.5 text-gray-700">
                       Aquecimento
                     </span>
                   )}
@@ -519,7 +529,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
                 <img 
                   src={activeVehicle.imageUrl} 
                   alt="" 
-                  className="w-20 h-20 rounded-lg object-cover border border-white/10 flex-shrink-0"
+                  className="w-20 h-20 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                 />
               )}
             </div>
@@ -538,7 +548,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
 
       {/* ========== CONVIDAR AMIGOS (destacado) ========== */}
       <section 
-        className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30 px-4 py-4 mb-4 rounded-2xl mx-4 backdrop-blur-md cursor-pointer hover:from-purple-500/30 hover:to-pink-500/30 hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-500/25 hover:scale-[1.01] transition-all duration-300 active:scale-[0.98] animate-fade-in-up"
+        className="bg-gray-100 border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 cursor-pointer hover:bg-gray-200/80 hover:border-gray-300 transition-all duration-200 active:scale-[0.99] animate-fade-in-up"
         onClick={() => setOpenReferral(true)}
         role="button"
         tabIndex={0}
@@ -551,19 +561,19 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
       >
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-base font-bold text-white mb-1">Convidar amigos</h3>
-            <p className="text-sm text-white/80">Partilha o teu código e recebe descontos</p>
+            <h3 className="text-base font-bold text-gray-900 mb-1">Convidar amigos</h3>
+            <p className="text-sm text-gray-700">Partilha o teu código e recebe descontos</p>
           </div>
-          <svg className="text-white/70 shrink-0 mt-1" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <svg className="text-gray-900/70 shrink-0 mt-1" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
           </svg>
         </div>
       </section>
 
       {/* ========== DEFINIÇÕES & AJUDA (lista simples) ========== */}
-      <nav className="glass-card-subtle rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Conta e pagamentos">
-        <div className="px-4 py-3 bg-white/5 border-b border-white/10">
-          <h3 className="text-xs font-bold text-white/70 uppercase tracking-wide">Conta & Pagamentos</h3>
+      <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Conta e pagamentos">
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide">Conta & Pagamentos</h3>
         </div>
         <ListRow label="Editar perfil" onClick={() => setOpenEdit(true)} />
         <ListRow label="Editar palavra-passe" onClick={() => setOpenPassword(true)} />
@@ -578,9 +588,9 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         />
       </nav>
 
-      <nav className="glass-card-subtle rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Ajuda">
-        <div className="px-4 py-3 bg-white/5 border-b border-white/10">
-          <h3 className="text-xs font-bold text-white/70 uppercase tracking-wide">Ajuda</h3>
+      <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Ajuda">
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide">Ajuda</h3>
         </div>
         <ListRow label="Contacta-nos" onClick={() => setOpenSupport(true)} />
         <ListRow label="Avaliações" onClick={() => setOpenRatings(true)} />
@@ -593,7 +603,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
       </nav>
 
       {/* ========== ZONA DE RISCO ========== */}
-      <div className="glass-card-subtle rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Zona de risco">
+      <div className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Zona de risco">
         <ListRow label="Terminar sessão" tone="danger" onClick={() => setOpenLogoutConfirm(true)} />
         <ListRow label="Apagar conta" tone="danger" onClick={() => setOpenDeleteConfirm(true)} />
       </div>
@@ -612,8 +622,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
       >
         <div className="grid gap-6">
           {/* Foto */}
-          <div className="flex flex-col items-center gap-3 pb-6 border-b border-white/10">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center text-3xl font-bold overflow-hidden shadow-lg ring-4 ring-primary/10" aria-label="Foto de perfil">
+          <div className="flex flex-col items-center gap-3 pb-6 border-b border-gray-200">
+            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-gradient-start via-gradient-mid to-gradient-end text-gray-900 flex items-center justify-center text-3xl font-bold overflow-hidden shadow-lg ring-4 ring-primary/10" aria-label="Foto de perfil">
               {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initials(name)}</span>}
             </div>
             <div className="flex flex-col items-center gap-2">
@@ -639,14 +649,27 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
 
           {/* Informação pessoal */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-white/60 uppercase tracking-wide">
+            <h3 className="text-xs font-bold text-gray-900/60 uppercase tracking-wide">
               Informação pessoal
             </h3>
+
+            <Field label="Nome completo" htmlFor="pf-name" hint="O teu nome completo como aparece no perfil.">
+              <input
+                id="pf-name"
+                className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none placeholder:text-gray-900/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Ex: João Silva"
+                title="Editar nome"
+                autoComplete="name"
+                required
+              />
+            </Field>
 
             <Field label="Username / apelido público" htmlFor="pf-username" hint="Opcional. Usa um @apelido curto para partilhar o perfil.">
               <input
                 id="pf-username"
-                className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none placeholder:text-white/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none placeholder:text-gray-900/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 placeholder="Ex: joaosilva"
@@ -658,15 +681,28 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
 
           {/* Contactos */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-white/60 uppercase tracking-wide">
+            <h3 className="text-xs font-bold text-gray-900/60 uppercase tracking-wide">
               Contactos
             </h3>
+
+            <Field label="Telemóvel" htmlFor="pf-phone" hint="Opcional. Usado para notificações e verificação.">
+              <input
+                id="pf-phone"
+                type="tel"
+                className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none placeholder:text-gray-900/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="Ex: +351912345678"
+                title="Editar telemóvel"
+                autoComplete="tel"
+              />
+            </Field>
 
             <Field label="Email preferencial" htmlFor="pf-contact-email" hint="Opcional para recibos, suporte e alertas.">
               <input
                 id="pf-contact-email"
                 type="email"
-                className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none placeholder:text-white/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none placeholder:text-gray-900/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 value={contactEmail}
                 onChange={e => setContactEmail(e.target.value)}
                 placeholder="Ex: joao@exemplo.com"
@@ -696,7 +732,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         }
       >
         <div className="space-y-6 py-1">
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-gray-900/60">
             Atualiza regularmente a tua palavra-passe para proteger a conta. Fluxo em modo demonstração.
           </p>
 
@@ -723,7 +759,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
                 onToggle={() => setShowNewPassword(prev => !prev)}
                 autoComplete="new-password"
               />
-              <p className={`text-xs ${passwordHasMinChars ? "text-emerald-400" : "text-white/50"}`}>
+              <p className={`text-xs ${passwordHasMinChars ? "text-emerald-400" : "text-gray-900/50"}`}>
                 A nova palavra-passe deve ter pelo menos 8 caracteres.
               </p>
             </div>
@@ -792,20 +828,20 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
       >
         <div className="space-y-6 py-2">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-white">Ganha descontos a cada convite</p>
-            <p className="text-sm text-white/60">
+            <p className="text-base font-semibold text-gray-900">Ganha descontos a cada convite</p>
+            <p className="text-sm text-gray-900/60">
               Em breve, quando um amigo usar o teu código, ambos recebem uma percentagem de desconto na próxima viagem.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-            <div className="text-xs font-semibold text-white/60 uppercase tracking-wide mb-3">O teu código</div>
+          <div className="rounded-3xl border border-gray-200 bg-gray-50 p-4">
+            <div className="text-xs font-semibold text-gray-900/60 uppercase tracking-wide mb-3">O teu código</div>
             <div className="flex items-center justify-between gap-3">
-              <span className="font-mono text-lg tracking-[0.35em] text-white">{referralCode}</span>
+              <span className="font-mono text-lg tracking-[0.35em] text-gray-900">{referralCode}</span>
               <button
                 type="button"
                 onClick={handleCopyReferralCode}
-                className="p-3 rounded-2xl bg-white/10 border border-white/20 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-white"
+                className="p-3 rounded-2xl bg-gray-100 border border-gray-200 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-900"
                 aria-label="Copiar código de convite"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -814,33 +850,33 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
                 </svg>
               </button>
             </div>
-            <p className="text-xs text-white/50 mt-3 min-h-[16px]" aria-live="polite">
+            <p className="text-xs text-gray-900/50 mt-3 min-h-[16px]" aria-live="polite">
               {copiedReferral ? "Código copiado! Cola em qualquer app de mensagens." : "Toca para copiar e partilha com colegas."}
             </p>
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-white/60 uppercase tracking-wide">Como vai funcionar</h4>
+            <h4 className="text-xs font-bold text-gray-900/60 uppercase tracking-wide">Como vai funcionar</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <span className="h-8 w-8 rounded-2xl bg-primary/20 text-primary font-semibold flex items-center justify-center">1</span>
                 <div>
-                  <p className="text-sm font-semibold text-white">Partilha o teu código</p>
-                  <p className="text-xs text-white/60">Copia e envia pelo WhatsApp, Instagram ou onde preferires.</p>
+                  <p className="text-sm font-semibold text-gray-900">Partilha o teu código</p>
+                  <p className="text-xs text-gray-900/60">Copia e envia pelo WhatsApp, Instagram ou onde preferires.</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="h-8 w-8 rounded-2xl bg-primary/20 text-primary font-semibold flex items-center justify-center">2</span>
                 <div>
-                  <p className="text-sm font-semibold text-white">O amigo usa o convite</p>
-                  <p className="text-xs text-white/60">Assim que ele confirmar a conta, o desconto fica reservado.</p>
+                  <p className="text-sm font-semibold text-gray-900">O amigo usa o convite</p>
+                  <p className="text-xs text-gray-900/60">Assim que ele confirmar a conta, o desconto fica reservado.</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="h-8 w-8 rounded-2xl bg-primary/20 text-primary font-semibold flex items-center justify-center">3</span>
                 <div>
-                  <p className="text-sm font-semibold text-white">Desconto aplicado</p>
-                  <p className="text-xs text-white/60">Ambos recebem uma percentagem de desconto na próxima boleia.</p>
+                  <p className="text-sm font-semibold text-gray-900">Desconto aplicado</p>
+                  <p className="text-xs text-gray-900/60">Ambos recebem uma percentagem de desconto na próxima boleia.</p>
                 </div>
               </li>
             </ul>
@@ -870,8 +906,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         }
       >
         <div className="grid gap-4 text-center">
-          <h3 className="text-lg font-bold text-white">Tens a certeza?</h3>
-          <p className="text-sm text-white/70">
+          <h3 className="text-lg font-bold text-gray-900">Tens a certeza?</h3>
+          <p className="text-sm text-gray-900/70">
             Vais terminar a tua sessão. Podes sempre voltar e fazer login novamente.
           </p>
         </div>
@@ -895,12 +931,12 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         }
       >
         <div className="grid gap-4 text-center">
-          <h3 className="text-lg font-bold text-white">Tens a certeza?</h3>
-          <p className="text-sm text-white/70">
+          <h3 className="text-lg font-bold text-gray-900">Tens a certeza?</h3>
+          <p className="text-sm text-gray-900/70">
             Esta ação não pode ser desfeita. Todos os teus dados, boleias e histórico serão permanentemente removidos.
           </p>
           <div className="text-left bg-red-500/20 rounded-xl p-4 border border-red-500/30">
-            <p className="text-sm font-semibold text-red-300 mb-2"><strong>Será apagado:</strong></p>
+            <p className="text-sm font-semibold text-red-700 mb-2"><strong>Será apagado:</strong></p>
             <ul className="text-sm text-red-200 space-y-1 list-disc list-inside">
               <li>Perfil e dados pessoais</li>
               <li>Histórico de boleias</li>
@@ -917,14 +953,14 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         title={TERMS_TITLE}
         height="lg"
       >
-        <div id="profile-terms-sheet" className="space-y-6 text-sm text-white/80">
+        <div id="profile-terms-sheet" className="space-y-6 text-sm text-gray-700">
           {TERMS_SECTIONS.map(section => (
             <section key={section.title} className="space-y-2">
-              <h4 className="text-base font-semibold text-white">{section.title}</h4>
-              <p className="leading-relaxed text-white/70">{section.content}</p>
+              <h4 className="text-base font-semibold text-gray-900">{section.title}</h4>
+              <p className="leading-relaxed text-gray-900/70">{section.content}</p>
             </section>
           ))}
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-gray-900/50">
             Estes Termos e Condições são preliminares e serão validados juridicamente antes do lançamento público.
             Última atualização: {TERMS_LAST_UPDATED}.
           </p>
@@ -953,26 +989,26 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         <div className="space-y-3">
           {vehicles.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-sm font-semibold text-white mb-1">Ainda sem veículos</p>
-              <p className="text-xs text-white/50">Adiciona marca e modelo para desbloquear custos automáticos.</p>
+              <p className="text-sm font-semibold text-gray-900 mb-1">Ainda sem veículos</p>
+              <p className="text-xs text-gray-900/50">Adiciona marca e modelo para desbloquear custos automáticos.</p>
             </div>
           ) : (
             vehicles.map(vehicle => (
               <div 
                 key={vehicle.id}
-                className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-4"
+                className="rounded-2xl border border-gray-200 bg-gray-50 backdrop-blur-sm p-4"
               >
                 {vehicle.imageUrl && (
-                  <div className="mb-3 overflow-hidden rounded-xl border border-white/10">
+                  <div className="mb-3 overflow-hidden rounded-xl border border-gray-200">
                     <img src={vehicle.imageUrl} alt={vehicle.brand} className="h-32 w-full object-cover" />
                   </div>
                 )}
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
-                    <p className="text-sm font-semibold text-white">{vehicle.brand}</p>
-                    <p className="text-xs text-white/70">{vehicle.model}</p>
+                    <p className="text-sm font-semibold text-gray-900">{vehicle.brand}</p>
+                    <p className="text-xs text-gray-900/70">{vehicle.model}</p>
                     {vehicle.id === activeVehicleId && (
-                      <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-emerald-500/50 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
+                      <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-emerald-500/50 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
                         ✓ Em uso
                       </span>
                     )}
@@ -988,17 +1024,17 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
                     Editar
                   </Button>
                 </div>
-                <div className="flex flex-wrap gap-2 text-[11px] text-white/70">
+                <div className="flex flex-wrap gap-2 text-[11px] text-gray-900/70">
                   {vehicle.plate && (
-                    <span className="rounded-full border border-white/20 bg-white/5 px-2 py-1 uppercase tracking-wide">{vehicle.plate}</span>
+                    <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-1 uppercase tracking-wide">{vehicle.plate}</span>
                   )}
                   {vehicle.color && (
-                    <span className="rounded-full border border-white/20 bg-white/5 px-2 py-1">{vehicle.color}</span>
+                    <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-1">{vehicle.color}</span>
                   )}
-                  <span className="rounded-full border border-white/20 bg-white/5 px-2 py-1">
+                  <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-1">
                     {vehicle.features.airConditioning ? "Ar condicionado" : "Sem A/C"}
                   </span>
-                  <span className="rounded-full border border-white/20 bg-white/5 px-2 py-1">
+                  <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-1">
                     {vehicle.features.heater ? "Aquecimento" : "Sem aquecimento"}
                   </span>
                 </div>
@@ -1020,7 +1056,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
                     className={cn(
                       "h-9 px-3 text-sm font-medium rounded-xl transition border",
                       vehicle.id === activeVehicleId ? "w-full" : "flex-1",
-                      "bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white/90 hover:border-white/20"
+                      "bg-gray-50 text-gray-900/70 border-gray-200 hover:bg-gray-100 hover:text-gray-900/90 hover:border-gray-200"
                     )}
                     onClick={() => setVehicleToDelete(vehicle)}
                   >
@@ -1046,15 +1082,22 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
             </Button>
             <button
               type="button"
-              className="flex-1 h-12 px-4 text-[15px] font-medium rounded-2xl transition bg-white/10 text-white border border-white/20 hover:bg-white/15 hover:border-white/30"
-              onClick={() => {
-                if (vehicleToDelete) {
-                  removeVehicle(vehicleToDelete.id);
-                  showSuccess("Veículo removido", `${vehicleToDelete.brand} ${vehicleToDelete.model} foi removido.`);
+              className="flex-1 h-12 px-4 text-[15px] font-medium rounded-2xl transition bg-gray-100 text-gray-900 border border-gray-200 hover:bg-gray-200 hover:border-gray-300"
+              onClick={async () => {
+                if (!vehicleToDelete) return;
+                try {
+                  await removeVehicle(vehicleToDelete.id);
+                  showSuccess(
+                    "Veículo removido",
+                    `${vehicleToDelete.brand} ${vehicleToDelete.model} foi removido.`,
+                  );
                   setVehicleToDelete(null);
                   if (vehicles.length === 1) {
                     setOpenVehicleList(false);
                   }
+                } catch (error) {
+                  console.error("Erro ao remover veículo:", error);
+                  showError("Erro", "Não foi possível remover o veículo. Tenta novamente.");
                 }
               }}
             >
@@ -1064,8 +1107,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         }
       >
         <div className="grid gap-4 text-center">
-          <h3 className="text-lg font-bold text-white">Tens a certeza?</h3>
-          <p className="text-sm text-white/70">
+          <h3 className="text-lg font-bold text-gray-900">Tens a certeza?</h3>
+          <p className="text-sm text-gray-900/70">
             {vehicleToDelete && vehicleToDelete.id === activeVehicleId && (
               <>Este veículo está em uso. Ao removê-lo, {vehicles.length > 1 ? "outro veículo será ativado automaticamente" : "não terás nenhum veículo ativo"}.</>
             )}
@@ -1075,7 +1118,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
           </p>
           {vehicleToDelete && (
             <div className="text-left bg-red-500/20 rounded-xl p-4 border border-red-500/30">
-              <p className="text-sm font-semibold text-red-300 mb-2">Esta ação não pode ser desfeita.</p>
+              <p className="text-sm font-semibold text-red-700 mb-2">Esta ação não pode ser desfeita.</p>
             </div>
           )}
         </div>
@@ -1104,14 +1147,14 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
       <VerificationSheet
         open={verificationSheetOpen}
         channel={verificationChannel}
-        value={verificationChannel === "email" ? visibleEmail : phone}
+        value={verificationChannel === "email" ? (user?.email || visibleEmail) : phone}
         onClose={() => {
           setVerificationSheetOpen(false);
           setVerificationChannel(null);
         }}
         onVerified={() => {
           if (!verificationChannel) return;
-          completeVerification(verificationChannel);
+          // O verifyOtp já atualizou o user com a resposta da API (email + verification); não sobrescrever
           showSuccess(
             "Verificação concluída",
             `Confirmámos o teu ${verificationChannel === "email" ? "email" : "telemóvel"}.`
@@ -1169,14 +1212,14 @@ function PasswordField({
 }: PasswordFieldProps) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-white/80" htmlFor={id}>
+      <label className="block text-xs font-semibold text-gray-700" htmlFor={id}>
         {label}
       </label>
       <div className="relative mt-2">
         <input
           id={id}
           type={isVisible ? "text" : "password"}
-          className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-base text-white placeholder:text-white/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-base text-gray-900 placeholder:text-gray-900/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
@@ -1187,7 +1230,7 @@ function PasswordField({
           onClick={onToggle}
           aria-label={`${isVisible ? "Ocultar" : "Mostrar"} ${label.toLowerCase()}`}
           aria-pressed={isVisible}
-          className="absolute inset-y-0 right-0 flex items-center pr-4 text-white/60 hover:text-white focus:outline-none"
+          className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-900/60 hover:text-gray-900 focus:outline-none"
         >
           <EyeIcon crossed={!isVisible} />
         </button>
@@ -1217,9 +1260,9 @@ function Field({
 }: { label: string; htmlFor: string; hint?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-white/80 mb-1" htmlFor={htmlFor}>{label}</label>
+      <label className="block text-xs font-semibold text-gray-700 mb-1" htmlFor={htmlFor}>{label}</label>
       {children}
-      {hint && <div className="text-xs text-white/50 mt-1">{hint}</div>}
+      {hint && <div className="text-xs text-gray-900/50 mt-1">{hint}</div>}
     </div>
   );
 }
@@ -1245,7 +1288,7 @@ function ListRow({
 }: ListRowProps) {
   return (
     <button 
-      className={`w-full flex items-center justify-between px-4 py-3.5 border-b border-white/10 last:border-b-0 hover:bg-white/10 transition ${tone === "danger" ? "text-red-300" : "text-white"}`} 
+      className={`w-full flex items-center justify-between px-4 py-3.5 border-b border-gray-200 last:border-b-0 hover:bg-gray-100 transition ${tone === "danger" ? "text-red-700" : "text-gray-900"}`} 
       onClick={onClick}
       aria-haspopup={ariaHasPopup}
       aria-controls={ariaControls}
@@ -1254,10 +1297,10 @@ function ListRow({
         {icon && <span className="text-xl" aria-hidden>{icon}</span>}
         <div>
           <div className="text-sm font-medium">{label}</div>
-          {caption && <div className="text-xs text-white/60 mt-0.5">{caption}</div>}
+          {caption && <div className="text-xs text-gray-900/60 mt-0.5">{caption}</div>}
         </div>
       </div>
-      <svg className={tone === "danger" ? "text-red-300" : "text-white/50"} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <svg className={tone === "danger" ? "text-red-700" : "text-gray-900/50"} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
         <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
       </svg>
     </button>

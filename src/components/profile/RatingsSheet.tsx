@@ -67,7 +67,7 @@ export default function RatingsSheet({ open, onClose }: RatingsSheetProps) {
         <div className="space-y-6">
           {/* Star Rating */}
           <div>
-            <label className="block text-sm font-semibold text-white/80 mb-3">
+            <label className="block text-sm font-semibold text-gray-800 mb-3">
               Como avalias a tua experiência?
             </label>
             <div className="flex items-center justify-center gap-3 py-4">
@@ -86,7 +86,7 @@ export default function RatingsSheet({ open, onClose }: RatingsSheetProps) {
                     height="48"
                     viewBox="0 0 24 24"
                     fill={star <= displayRating ? "#FFB800" : "none"}
-                    stroke={star <= displayRating ? "#FFB800" : "rgba(255,255,255,0.3)"}
+                    stroke={star <= displayRating ? "#FFB800" : "rgba(0,0,0,0.2)"}
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -98,7 +98,7 @@ export default function RatingsSheet({ open, onClose }: RatingsSheetProps) {
               ))}
             </div>
             {rating > 0 && (
-              <p className="text-center text-sm font-semibold text-white mt-2">
+              <p className="text-center text-sm font-semibold text-gray-900 mt-2">
                 {rating === 1 && "Muito insatisfeito"}
                 {rating === 2 && "Insatisfeito"}
                 {rating === 3 && "Neutro"}
@@ -110,7 +110,7 @@ export default function RatingsSheet({ open, onClose }: RatingsSheetProps) {
 
           {/* Message Textarea */}
           <div>
-            <label className="block text-sm font-semibold text-white/80 mb-2" htmlFor="rating-message">
+            <label className="block text-sm font-semibold text-gray-800 mb-2" htmlFor="rating-message">
               Comentário adicional (opcional)
             </label>
             <textarea
@@ -118,17 +118,17 @@ export default function RatingsSheet({ open, onClose }: RatingsSheetProps) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Partilha a tua experiência..."
-              className="w-full h-32 px-4 py-3 bg-white/5 border border-white/20 rounded-2xl text-white placeholder:text-white/40 resize-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder:text-gray-400 resize-none focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20"
               maxLength={300}
             />
-            <p className="text-xs text-white/50 mt-2">
+            <p className="text-xs text-gray-500 mt-2">
               {message.length}/300 caracteres
             </p>
           </div>
 
           {/* Info */}
-          <div className="rounded-2xl bg-blue-500/20 border border-blue-500/30 px-4 py-3">
-            <p className="text-sm text-blue-200">
+          <div className="rounded-2xl bg-blue-50 border border-blue-200 px-4 py-3">
+            <p className="text-sm text-blue-900">
               <strong>Obrigado pelo feedback!</strong> As tuas avaliações ajudam-nos a melhorar a experiência para todos.
             </p>
           </div>
@@ -160,10 +160,10 @@ export default function RatingsSheet({ open, onClose }: RatingsSheetProps) {
           </div>
 
           {/* Success Message */}
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Avaliação enviada
           </h2>
-          <p className="text-base text-white/70 mb-8">
+          <p className="text-base text-gray-600 mb-8">
             Obrigado por partilhares a tua opinião!
           </p>
 

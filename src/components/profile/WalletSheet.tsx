@@ -49,15 +49,15 @@ const PROVIDER_META: Record<PaymentProvider, { label: string; badge: string }> =
   },
   mbway: {
     label: "MB Way",
-    badge: "bg-black text-white",
+    badge: "bg-gray-700 text-white",
   },
   cash: {
     label: "Dinheiro",
-    badge: "bg-gray-800 text-white",
+    badge: "bg-gray-700 text-white",
   },
   applepay: {
     label: "Apple Pay",
-    badge: "bg-black text-white",
+    badge: "bg-gray-700 text-white",
   },
 };
 
@@ -229,20 +229,20 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
       <div className="space-y-6">
         {view === "list" && (
           <>
-            <section className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm p-5">
-              <p className="text-sm text-white/60">Hopon Cash</p>
-              <p className="text-3xl font-bold text-white">€0,00</p>
+            <section className="rounded-3xl border border-gray-200 bg-gray-50 p-5">
+              <p className="text-sm text-gray-600">Hopon Cash</p>
+              <p className="text-3xl font-bold text-gray-900">€0,00</p>
             </section>
 
             <div className="space-y-2">
               <label
                 htmlFor="wallet-amount"
-                className="text-xs font-semibold uppercase text-white/60"
+                className="text-xs font-semibold uppercase text-gray-600"
               >
                 Valor a carregar
               </label>
               <div className="relative">
-                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-white/60">
+                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500">
                   €
                 </span>
                 <input
@@ -253,13 +253,13 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                   onChange={(event) =>
                     setAmount(event.target.value.replace(/[^\d.,]/g, ""))
                   }
-                  className="w-full rounded-2xl border border-white/20 bg-white/5 px-10 py-3 text-lg font-semibold text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-white/40"
+                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-10 py-3 text-lg font-semibold text-gray-900 outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 placeholder:text-gray-400"
                 />
               </div>
             </div>
 
             <section>
-              <p className="mb-3 text-sm font-semibold text-white/80">
+              <p className="mb-3 text-sm font-semibold text-gray-800">
                 Seleciona o método
               </p>
               <div className="space-y-3">
@@ -272,8 +272,8 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                     className={cn(
                       "flex w-full items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition",
                       selectedMethodId === method.id
-                        ? "border-primary bg-primary/20 shadow-lg shadow-primary/20"
-                        : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10",
+                        ? "border-gray-800 bg-gray-100 shadow-md"
+                        : "border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100",
                     )}
                   >
                     <div
@@ -287,18 +287,18 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                     </div>
 
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-white">
+                      <p className="text-sm font-semibold text-gray-900">
                         {PROVIDER_META[method.provider].label}
                       </p>
-                      <p className="text-sm text-white/70">{method.masked}</p>
+                      <p className="text-sm text-gray-600">{method.masked}</p>
                       {method.description && (
-                        <p className="text-xs text-white/50">
+                        <p className="text-xs text-gray-500">
                           {method.description}
                         </p>
                       )}
                     </div>
 
-                    <div className="text-xs text-white/60">
+                    <div className="text-xs text-gray-500">
                       {method.expires ? `Expira ${method.expires}` : "Ativo"}
                     </div>
                   </button>
@@ -308,7 +308,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
               <button
                 type="button"
                 onClick={openAddForm}
-                className="mt-4 w-full rounded-2xl border border-dashed border-white/20 bg-white/5 px-4 py-3 text-sm font-semibold text-white/70 hover:border-white/30 hover:bg-white/10 transition"
+                className="mt-4 w-full rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-100 transition"
               >
                 Adicionar método
               </button>
@@ -319,7 +319,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
         {view === "add" && (
           <form id="wallet-add-method-form" className="space-y-5" onSubmit={handleSaveMethod}>
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase text-white/60">
+              <p className="text-xs font-semibold uppercase text-gray-600">
                 Tipo de método
               </p>
               <div className="grid grid-cols-3 gap-2">
@@ -343,8 +343,8 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                     className={cn(
                       "rounded-2xl border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition",
                       addMode === mode
-                        ? "border-primary bg-primary text-white"
-                        : "border-white/20 bg-white/5 text-white/70 hover:border-white/30 hover:bg-white/10",
+                        ? "border-gray-800 bg-gray-800 text-white"
+                        : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100",
                     )}
                   >
                     {mode === "credit"
@@ -359,7 +359,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
 
             {addMode !== "paypal" && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase text-white/60">
+                <p className="text-xs font-semibold uppercase text-gray-600">
                   Bandeira do cartão
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -373,8 +373,8 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                       className={cn(
                         "rounded-2xl border px-4 py-3 text-sm font-semibold transition",
                         newMethod.provider === brand
-                          ? "border-primary bg-primary/20 text-white"
-                          : "border-white/20 bg-white/5 text-white/70 hover:border-white/30 hover:bg-white/10",
+                          ? "border-gray-800 bg-gray-100 text-gray-900"
+                          : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100",
                       )}
                     >
                       {PROVIDER_META[brand].label}
@@ -387,7 +387,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
             <div className="space-y-2">
               <label
                 htmlFor="wallet-holder"
-                className="text-xs font-semibold uppercase text-white/60"
+                className="text-xs font-semibold uppercase text-gray-600"
               >
                 Titular
               </label>
@@ -398,7 +398,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                   setNewMethod((prev) => ({ ...prev, holder: event.target.value }))
                 }
                 placeholder="Nome completo"
-                className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20"
               />
             </div>
 
@@ -407,7 +407,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                 <div className="space-y-2">
                   <label
                     htmlFor="wallet-account"
-                    className="text-xs font-semibold uppercase text-white/60"
+                    className="text-xs font-semibold uppercase text-gray-600"
                   >
                     Número do cartão
                   </label>
@@ -422,13 +422,13 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                       }))
                     }
                     placeholder="0000 0000 0000 0000"
-                    className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20"
                   />
                 </div>
                 <div className="space-y-2">
                   <label
                     htmlFor="wallet-expiry"
-                    className="text-xs font-semibold uppercase text-white/60"
+                    className="text-xs font-semibold uppercase text-gray-600"
                   >
                     Validade (MM/AA)
                   </label>
@@ -442,7 +442,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                       }))
                     }
                     placeholder="12/26"
-                    className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20"
                   />
                 </div>
               </>
@@ -452,7 +452,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
               <div className="space-y-2">
                 <label
                   htmlFor="wallet-email"
-                  className="text-xs font-semibold uppercase text-white/60"
+                  className="text-xs font-semibold uppercase text-gray-600"
                 >
                   E-mail / Telemóvel
                 </label>
@@ -466,7 +466,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                     }))
                   }
                   placeholder="exemplo@mail.com"
-                  className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20"
                 />
               </div>
             )}
@@ -495,13 +495,13 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </div>
-              <p className="mt-4 text-lg font-semibold text-white">
+              <p className="mt-4 text-lg font-semibold text-gray-900">
                 Hopon Cash atualizado
               </p>
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-gray-600">
                 O saldo ficará disponível em instantes.
               </p>
-              <p className="mt-4 text-3xl font-bold text-white">
+              <p className="mt-4 text-3xl font-bold text-gray-900">
                 {formattedAmount()}
               </p>
             </div>

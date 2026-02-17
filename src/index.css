@@ -9,7 +9,7 @@
 
 html, body, #root { 
   height: 100%; 
-  background: linear-gradient(180deg, #0a0611 0%, #0e0818 50%, #0a0611 100%);
+  background: #ffffff;
   background-attachment: fixed;
 }
 
@@ -19,7 +19,7 @@ html {
 }
 
 body { 
-  background: linear-gradient(180deg, #0a0611 0%, #0e0818 50%, #0a0611 100%);
+  background: #ffffff;
   background-attachment: fixed;
   -webkit-tap-highlight-color: transparent; 
   overflow-x: hidden;
@@ -44,7 +44,7 @@ body {
 .sheet-backdrop { 
   position: absolute; 
   inset: 0; 
-  background: rgba(0,0,0,.4); 
+  background: rgba(0,0,0,.25); 
   transition: opacity .2s; 
 }
 
@@ -63,10 +63,10 @@ body {
   bottom: 0; 
   width: 100%; 
   max-width: 440px;
-  background: #0a0611; 
+  background: #ffffff; 
   border-top-left-radius: 24px; 
   border-top-right-radius: 24px;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(0,0,0,0.08);
   box-shadow: var(--shadow-md); 
   transition: transform .2s;
   display: flex; 
@@ -96,7 +96,7 @@ body {
 .sheet-handle { 
   width: 44px; 
   height: 4px; 
-  background: rgba(255,255,255,0.3); 
+  background: rgba(0,0,0,0.15); 
   border-radius: 999px; 
   margin: 8px auto 4px; 
   flex-shrink: 0; 
@@ -113,7 +113,7 @@ body {
 .sheet-title { 
   font-size: 15px; 
   font-weight: 600; 
-  color: white;
+  color: #111827;
 }
 
 .sheet-body { 
@@ -126,8 +126,8 @@ body {
 .sheet-foot { 
   padding: 12px 20px; 
   padding-bottom: calc(20px + env(safe-area-inset-bottom)); 
-  border-top: 1px solid rgba(255,255,255,0.1); 
-  background: #0a0611; 
+  border-top: 1px solid rgba(0,0,0,0.08); 
+  background: #ffffff; 
   flex-shrink: 0; 
 }
 
@@ -154,20 +154,20 @@ body {
 .glass-card {
   background: linear-gradient(
     135deg, 
-    rgba(255, 255, 255, 0.12) 0%, 
-    rgba(255, 255, 255, 0.06) 100%
+    rgba(255, 255, 255, 0.9) 0%, 
+    rgba(255, 255, 255, 0.7) 100%
   );
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
 }
 
 .glass-card-subtle {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* ===== animações ===== */
@@ -225,9 +225,9 @@ html {
   animation: shimmer 2s infinite linear;
   background: linear-gradient(
     to right,
-    rgba(255, 255, 255, 0.05) 0%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(255, 255, 255, 0.05) 100%
+    rgba(0, 0, 0, 0.04) 0%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.04) 100%
   );
   background-size: 1000px 100%;
 }

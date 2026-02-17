@@ -18,19 +18,19 @@ export default function DiscoverTopBar({ active, onChange, onFilter }: Props) {
   };
 
   const pillClass = (tab: DiscoverTab) => cn(
-    "h-9 px-2 text-xs font-bold tracking-wide text-white/70 bg-transparent border-0 cursor-pointer inline-flex items-center rounded-lg transition-all",
-    "hover:text-white hover:bg-white/10",
+    "h-9 px-2 text-xs font-bold tracking-wide text-gray-600 bg-transparent border-0 cursor-pointer inline-flex items-center rounded-lg transition-all",
+    "hover:text-gray-900 hover:bg-gray-100",
     "focus-visible:outline-2 focus-visible:outline-[#FF719A] focus-visible:outline-offset-2 focus-visible:rounded-lg",
-    active === tab && "text-white bg-white/10 shadow-sm"
+    active === tab && "text-gray-900 bg-gray-100 shadow-sm"
   );
 
   const iconButton = cn(
-    "inline-flex items-center justify-center w-10 h-10 rounded-xl bg-transparent border-0 cursor-pointer text-white transition",
-    "hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-[#FF719A] focus-visible:outline-offset-2"
+    "inline-flex items-center justify-center w-10 h-10 rounded-xl bg-transparent border-0 cursor-pointer text-gray-700 transition",
+    "hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-[#FF719A] focus-visible:outline-offset-2"
   );
 
   return (
-    <div className="sticky top-0 z-40 border-b border-white/10 bg-[#0a0611]" role="region" aria-label="Navegação Explorar">
+    <div className="sticky top-0 z-40 border-b border-gray-200 bg-white" role="region" aria-label="Navegação Explorar">
       <div className="mx-auto grid h-14 max-w-mobile grid-cols-[1fr_44px] items-center gap-2 px-2 md:max-w-tablet lg:max-w-desktop" onKeyDown={onKeyDown}>
         <div className="inline-flex gap-2 items-center justify-center w-full overflow-x-auto overflow-y-hidden scrollbar-none" role="radiogroup" aria-label="Feeds">
           <button

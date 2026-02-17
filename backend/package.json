@@ -18,6 +18,12 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:api": "node tests/test-auth-flow.js",
+    "test:api:basic": "node tests/test-auth-basic.js && node tests/test-profile-basic.js",
+    "test:api:vehicles": "node tests/test-vehicles-advanced.js",
+    "test:api:rides": "node tests/test-rides-bookings-advanced.js",
+    "test:api:refresh": "node tests/test-refresh-token.js",
+    "test:api:all": "node tests/test-runner-all.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
   },
@@ -34,13 +40,15 @@
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "libphonenumber-js": "^1.12.29",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.0",
+    "resend": "^6.9.2",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@nestjs/cli": "^10.0.0",
+    "@nestjs/cli": "^10.4.9",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",
     "@types/bcrypt": "^5.0.2",
@@ -83,4 +91,3 @@
     "testEnvironment": "node"
   }
 }
-

@@ -39,7 +39,7 @@ export default function LanguageSettingsSheet({
       }
     >
       <div className="space-y-4">
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-gray-600">
           Escolhe o idioma principal da interface. Por agora, só suportamos as opções abaixo.
         </p>
 
@@ -53,8 +53,8 @@ export default function LanguageSettingsSheet({
                 type="button"
                 onClick={() => onSelect(option.id)}
                 aria-pressed={isActive}
-                className={`w-full rounded-3xl border-2 bg-white/5 backdrop-blur-sm px-4 py-4 flex items-center justify-between gap-3 text-left transition ${
-                  isActive ? "border-primary shadow-lg shadow-primary/20 bg-white/10" : "border-white/10 hover:border-white/20 hover:bg-white/10"
+                className={`w-full rounded-3xl border-2 bg-gray-50 px-4 py-4 flex items-center justify-between gap-3 text-left transition ${
+                  isActive ? "border-gradient-end shadow-md bg-gray-100" : "border-gray-200 hover:border-gray-300 hover:bg-gray-100"
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -62,15 +62,15 @@ export default function LanguageSettingsSheet({
                     {option.flag}
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-white">{option.label}</p>
-                    <p className="text-xs text-white/60">{option.nativeLabel}</p>
+                    <p className="text-sm font-semibold text-gray-900">{option.label}</p>
+                    <p className="text-xs text-gray-600">{option.nativeLabel}</p>
                   </div>
                 </div>
 
                 <span
                   aria-hidden
                   className={`w-6 h-6 rounded-full border flex items-center justify-center ${
-                    isActive ? "bg-primary border-primary text-white" : "border-white/30 text-transparent"
+                    isActive ? "bg-gradient-end border-gradient-end text-white" : "border-gray-300 text-transparent"
                   }`}
                 >
                   <CheckIcon />

@@ -8,12 +8,14 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  phone        String?  @unique
-  passwordHash String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String    @id @default(uuid())
+  email           String    @unique
+  phone           String?   @unique
+  passwordHash    String?
+  emailVerifiedAt DateTime?
+  phoneVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   profile      Profile?
   vehicles     Vehicle[]
@@ -24,8 +26,27 @@ model User {
   
   // Bookings as passenger
   bookings     Booking[]
+  
+  // Refresh tokens
+  refreshTokens RefreshToken[]
+  
+  otpCodes     OtpCode[]
 
   @@map("users")
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel   String   // 'email' | 'phone'
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("otp_codes")
+  @@index([userId, channel])
 }
 
 model Profile {
@@ -36,10 +57,12 @@ model Profile {
   username     String?  @unique
   avatarUrl    String?
   bio          String?
-  
+  contactEmail String?
+
   // JSONB for schedule flexibility (SQLite: String)
-  schedule     String?    
-  
+  schedule       String?
+  setupCompleted Boolean  @default(false)
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -55,6 +78,7 @@ model Vehicle {
   model     String
   plate     String?  // Hashed ideally, or encrypted
   color     String?
+  imageUrl  String?
   seats     Int      @default(4)
   
   features  String?    // { airConditioning: true, etc } (SQLite: String)
@@ -118,4 +142,22 @@ model Wallet {
   updatedAt DateTime @updatedAt
 
   @@map("wallets")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique // Hash do token (não guardar token em plain text)
+  tokenId   String   @unique // JTI do token para lookup rápido
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  userAgent String?
+  ip        String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("refresh_tokens")
+  @@index([userId])
+  @@index([tokenHash])
 }

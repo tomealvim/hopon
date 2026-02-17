@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Sheet from "../ui/Sheet";
 import { Button } from "../ui/Button";
+import { useAuth } from "../../contexts/AuthContext";
 
 type VerificationChannel = "email" | "phone";
 
@@ -12,6 +13,8 @@ type VerificationSheetProps = {
   onVerified: () => void;
 };
 
+const COOLDOWN_SECONDS = 60;
+
 export default function VerificationSheet({
   open,
   channel,
@@ -19,9 +22,11 @@ export default function VerificationSheet({
   onClose,
   onVerified,
 }: VerificationSheetProps) {
+  const { sendOtp, verifyOtp } = useAuth();
   const [code, setCode] = useState("");
-  const [sentCode, setSentCode] = useState<string | null>(null);
+  const [codeSent, setCodeSent] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [attemptError, setAttemptError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
@@ -38,37 +43,51 @@ export default function VerificationSheet({
   useEffect(() => {
     if (!open) {
       setCode("");
-      setSentCode(null);
+      setCodeSent(false);
       setAttemptError(null);
       setCooldown(0);
       setIsSending(false);
+      setIsVerifying(false);
     }
   }, [open]);
 
   const channelLabel = useMemo(() => (channel === "phone" ? "telemóvel" : "email"), [channel]);
 
   const handleSendCode = async () => {
-    if (!value || !channel) return;
+    if (!channel) return;
     setIsSending(true);
     setAttemptError(null);
-    await new Promise(resolve => setTimeout(resolve, 600));
-    const generated = Math.random().toString(36).slice(-6).toUpperCase();
-    setSentCode(generated);
-    setCooldown(30);
-    setIsSending(false);
+    try {
+      await sendOtp(channel);
+      setCodeSent(true);
+      setCooldown(COOLDOWN_SECONDS);
+    } catch (err: unknown) {
+      const message = err && typeof err === "object" && "message" in err ? String((err as { message: string }).message) : "Erro ao enviar código.";
+      setAttemptError(message);
+    } finally {
+      setIsSending(false);
+    }
   };
 
-  const handleVerify = () => {
-    if (!sentCode) {
-      setAttemptError("Envia primeiro o código.");
+  const handleVerify = async () => {
+    if (!channel) return;
+    const trimmed = code.trim();
+    if (trimmed.length !== 6) {
+      setAttemptError("Introduz o código de 6 dígitos.");
       return;
     }
-    if (code.trim().toUpperCase() !== sentCode) {
-      setAttemptError("Código incorreto. Tenta novamente.");
-      return;
+    setIsVerifying(true);
+    setAttemptError(null);
+    try {
+      await verifyOtp(channel, trimmed);
+      onVerified();
+      onClose();
+    } catch (err: unknown) {
+      const message = err && typeof err === "object" && "message" in err ? String((err as { message: string }).message) : "Código incorreto. Tenta novamente.";
+      setAttemptError(message);
+    } finally {
+      setIsVerifying(false);
     }
-    onVerified();
-    onClose();
   };
 
   return (
@@ -78,20 +97,20 @@ export default function VerificationSheet({
       title={channel ? `Verificar ${channel === "phone" ? "telemóvel" : "email"}` : "Verificação"}
       height="md"
       footer={
-        <Button block className="min-h-[48px]" onClick={handleVerify} disabled={!code}>
-          Confirmar verificação
+        <Button block className="min-h-[48px]" onClick={handleVerify} disabled={!code.trim() || isVerifying}>
+          {isVerifying ? "A verificar…" : "Confirmar verificação"}
         </Button>
       }
     >
       {!channel ? (
-        <p className="text-sm text-white/60">Seleciona um contacto para verificar.</p>
+        <p className="text-sm text-gray-600">Seleciona um contacto para verificar.</p>
       ) : (
         <div className="grid gap-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Contacto</p>
-            <p className="text-base font-semibold text-white">{value}</p>
-            <p className="text-xs text-white/60 mt-1">
-              Vamos enviar um código para este {channelLabel}. Introduz o código para concluir a verificação.
+          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Contacto</p>
+            <p className="text-base font-semibold text-gray-900 break-all">{value}</p>
+            <p className="text-xs text-gray-600 mt-1">
+              Vamos enviar um código para este {channelLabel}. Introduz o código abaixo para concluir a verificação.
             </p>
           </div>
 
@@ -102,17 +121,17 @@ export default function VerificationSheet({
               disabled={isSending || cooldown > 0 || !value}
               onClick={handleSendCode}
             >
-              {cooldown > 0 ? `Reenviar em ${cooldown}s` : sentCode ? "Reenviar código" : "Enviar código"}
+              {cooldown > 0 ? `Reenviar em ${cooldown}s` : codeSent ? "Reenviar código" : "Enviar código"}
             </Button>
-            {sentCode && (
-              <p className="text-xs text-white/60 text-center">
-                Código enviado (demo): <span className="font-mono text-white">{sentCode}</span>
+            {codeSent && (
+              <p className="text-xs text-gray-600 text-center">
+                Código enviado. Verifica o teu {channelLabel}.
               </p>
             )}
           </div>
 
           <div className="grid gap-2">
-            <label htmlFor="verification-code" className="text-xs font-semibold text-white/80 uppercase tracking-wide">
+            <label htmlFor="verification-code" className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
               Código de 6 caracteres
             </label>
             <input
@@ -120,13 +139,13 @@ export default function VerificationSheet({
               maxLength={6}
               value={code}
               onChange={event => {
-                setCode(event.target.value.toUpperCase());
+                setCode(event.target.value.replace(/\D/g, "").slice(0, 6));
                 setAttemptError(null);
               }}
-              className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-center text-lg font-mono tracking-[0.5em] text-white placeholder:text-white/30 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-center text-lg font-mono tracking-[0.5em] text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
               placeholder="••••••"
             />
-            {attemptError && <p className="text-xs text-red-400">{attemptError}</p>}
+            {attemptError && <p className="text-xs text-red-600">{attemptError}</p>}
           </div>
         </div>
       )}

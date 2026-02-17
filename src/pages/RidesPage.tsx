@@ -112,12 +112,12 @@ export default function RidesPage() {
 
   return (
     <>
-      <div className="relative min-h-screen pb-32 text-white">
+      <div className="relative min-h-screen pb-32 bg-white text-gray-900">
         <BackgroundGlow />
         <div className="relative z-10 px-4">
           <div className="mx-auto max-w-mobile md:max-w-tablet lg:max-w-desktop">
         <section className="pt-4 pb-6">
-          <h2 className="text-sm font-bold text-white mb-3">Próximas boleias</h2>
+          <h2 className="text-sm font-bold text-gray-900 mb-3">Próximas boleias</h2>
           {hydrating ? (
             <div className="grid gap-3">
               {Array.from({ length: 3 }).map((_, index) => (
@@ -126,8 +126,8 @@ export default function RidesPage() {
             </div>
           ) : ridesData.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-sm text-white/70 mb-1">Ainda não tens boleias</p>
-              <p className="text-xs text-white/50">Usa o botão + para criar uma oferta ou pedido</p>
+              <p className="text-sm text-gray-600 mb-1">Ainda não tens boleias</p>
+              <p className="text-xs text-gray-500">Usa o botão + para criar uma oferta ou pedido</p>
             </div>
           ) : (
             <>
@@ -139,7 +139,7 @@ export default function RidesPage() {
 
         {hydrating ? (
           <section className="pb-6">
-            <h2 className="text-sm font-bold text-white mb-3">As minhas ofertas</h2>
+            <h2 className="text-sm font-bold text-gray-900 mb-3">As minhas ofertas</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {Array.from({ length: 2 }).map((_, index) => (
                 <EntityCardSkeleton key={`myoffers-skeleton-${index}`} />
@@ -148,7 +148,7 @@ export default function RidesPage() {
           </section>
         ) : myOffers.length > 0 && (
           <section className="pb-6">
-            <h2 className="text-sm font-bold text-white mb-3">As minhas ofertas</h2>
+            <h2 className="text-sm font-bold text-gray-900 mb-3">As minhas ofertas</h2>
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
               {myOffers.map((offer) => (
                 <EntityCard
@@ -171,7 +171,7 @@ export default function RidesPage() {
 
         {hydrating ? (
           <section className="pb-6">
-            <h2 className="text-sm font-bold text-white mb-3">Os meus pedidos</h2>
+            <h2 className="text-sm font-bold text-gray-900 mb-3">Os meus pedidos</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {Array.from({ length: 2 }).map((_, index) => (
                 <EntityCardSkeleton key={`myrequests-skeleton-${index}`} />
@@ -180,7 +180,7 @@ export default function RidesPage() {
           </section>
         ) : myRequests.length > 0 && (
           <section className="pb-6">
-            <h2 className="text-sm font-bold text-white mb-3">Os meus pedidos</h2>
+            <h2 className="text-sm font-bold text-gray-900 mb-3">Os meus pedidos</h2>
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
               {myRequests.map((request) => (
                 <EntityCard
@@ -271,17 +271,17 @@ export default function RidesPage() {
           <div className="grid gap-3 p-1">
             {getRequestsForOffer(selectedRide.id).length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-sm text-white/70">Sem pedidos ainda</p>
+                <p className="text-sm text-gray-600">Sem pedidos ainda</p>
               </div>
             ) : (
               getRequestsForOffer(selectedRide.id).map((request) => (
-                <div key={request.id} className="p-4 border border-white/10 bg-white/5 rounded-xl">
+                <div key={request.id} className="p-4 border border-gray-200 bg-gray-50 rounded-xl">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <div className="text-sm font-semibold text-white">
+                      <div className="text-sm font-semibold text-gray-900">
                         {request.origem} → {request.destino}
                       </div>
-                      <div className="text-xs text-white/70 mt-1">
+                      <div className="text-xs text-gray-600 mt-1">
                         {request.data} • {request.horaMin}-{request.horaMax}
                       </div>
                     </div>
@@ -295,15 +295,15 @@ export default function RidesPage() {
                   </div>
 
                   <div className="grid gap-2 mb-3">
-                    <div className="text-xs text-white/70">
+                    <div className="text-xs text-gray-600">
                       <strong>Passageiros:</strong> {request.passageiros}
                     </div>
                     {request.observacoes && (
-                      <div className="text-xs text-white/70">
+                      <div className="text-xs text-gray-600">
                         <strong>Observações:</strong> {request.observacoes}
                       </div>
                     )}
-                    <div className="text-xs text-white/70">
+                    <div className="text-xs text-gray-600">
                       <strong>Contacto:</strong> {request.contacto}
                     </div>
                     {request.requestMessage && (
@@ -338,7 +338,7 @@ export default function RidesPage() {
         ) : selectedRide && (
           <div className="grid gap-4 p-1">
             <div className="grid gap-2">
-              <div className="text-xs font-semibold text-white/70 uppercase">
+              <div className="text-xs font-semibold text-gray-600 uppercase">
                 {selectedRide.type === "request" ? "Pedido de Boleia" : "Oferta de Boleia"}
               </div>
               <div className="text-xl font-bold text-white">
@@ -346,37 +346,37 @@ export default function RidesPage() {
               </div>
             </div>
 
-            <div className="grid gap-2 p-4 bg-white/5 border border-white/10 rounded-xl">
+            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
               <div className="flex items-center gap-2">
                 <span className="text-lg">📍</span>
                 <div>
-                  <div className="text-xs text-white/70">Origem</div>
-                  <div className="text-sm font-semibold text-white">{"origem" in selectedRide ? selectedRide.origem : ""}</div>
+                  <div className="text-xs text-gray-600">Origem</div>
+                  <div className="text-sm font-semibold text-gray-900">{"origem" in selectedRide ? selectedRide.origem : ""}</div>
                 </div>
               </div>
-              <div className="h-px bg-white/10 my-1" />
+              <div className="h-px bg-gray-100 my-1" />
               <div className="flex items-center gap-2">
                 <span className="text-lg">🎯</span>
                 <div>
-                  <div className="text-xs text-white/70">Destino</div>
-                  <div className="text-sm font-semibold text-white">{"destino" in selectedRide ? selectedRide.destino : ""}</div>
+                  <div className="text-xs text-gray-600">Destino</div>
+                  <div className="text-sm font-semibold text-gray-900">{"destino" in selectedRide ? selectedRide.destino : ""}</div>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-2 p-4 bg-white/5 border border-white/10 rounded-xl">
-              <div className="text-xs text-white/70">Data</div>
-              <div className="text-sm font-semibold text-white">{"data" in selectedRide ? selectedRide.data : ""}</div>
+            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+              <div className="text-xs text-gray-600">Data</div>
+              <div className="text-sm font-semibold text-gray-900">{"data" in selectedRide ? selectedRide.data : ""}</div>
             </div>
 
             {selectedRide.type === "offer" && "vehicle" in selectedRide && (
-              <div className="grid gap-2 p-4 bg-white/5 border border-white/10 rounded-xl">
-                <div className="text-xs text-white/70">Carro associado</div>
-                <div className="text-sm font-semibold text-white">
+              <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                <div className="text-xs text-gray-600">Carro associado</div>
+                <div className="text-sm font-semibold text-gray-900">
                   {selectedRide.vehicle.brand} {selectedRide.vehicle.model}
                 </div>
                 {(selectedRide.vehicle.plate || selectedRide.vehicle.color) && (
-                  <div className="text-xs text-white/60">
+                  <div className="text-xs text-gray-500">
                     {selectedRide.vehicle.plate && <span>Matrícula: {selectedRide.vehicle.plate}</span>}
                     {selectedRide.vehicle.plate && selectedRide.vehicle.color && <span> • </span>}
                     {selectedRide.vehicle.color && <span>Cor: {selectedRide.vehicle.color}</span>}
@@ -409,8 +409,8 @@ export default function RidesPage() {
 
             {"observacoes" in selectedRide && selectedRide.observacoes && (
               <div className="grid gap-2">
-                <div className="text-xs font-semibold text-white/70">Observações</div>
-                <div className="text-sm text-white/80">{selectedRide.observacoes}</div>
+                <div className="text-xs font-semibold text-gray-600">Observações</div>
+                <div className="text-sm text-gray-700">{selectedRide.observacoes}</div>
               </div>
             )}
           </div>

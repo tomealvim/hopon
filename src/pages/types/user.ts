@@ -20,12 +20,12 @@ export interface UserSchedule {
 export interface UserProfile {
   name: string;
   username?: string;
-  phone: string;
   contactEmail?: string;
   avatarUrl?: string;
   address: string; // morada/zona de partida ou "Casa"
   schedule: UserSchedule;
   createdAt: string;
+  setupCompleted?: boolean;
 }
 
 export interface VehicleFeatures {
@@ -40,6 +40,7 @@ export interface Vehicle {
   plate?: string;
   color?: string;
   imageUrl?: string;
+  seats?: number;
   features: VehicleFeatures;
   createdAt: string;
   updatedAt: string;
@@ -53,6 +54,7 @@ export interface UserVerification {
 export interface User {
   id: string;
   email: string;
+  phone?: string;
   profile?: UserProfile;
   vehicles?: Vehicle[];
   activeVehicleId?: string;

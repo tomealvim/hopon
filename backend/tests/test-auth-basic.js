@@ -2,11 +2,24 @@ const http = require('http');
 
 const BASE_URL = 'http://localhost:3000/api/v1';
 
+// Função helper para gerar números de telefone válidos de diferentes países
+function generateUniquePhone() {
+  const countries = [
+    { code: '+351', pattern: () => `+3519${Math.floor(10000000 + Math.random() * 90000000)}` }, // Portugal
+    { code: '+34', pattern: () => `+346${Math.floor(10000000 + Math.random() * 90000000)}` }, // Espanha
+    { code: '+33', pattern: () => `+336${Math.floor(10000000 + Math.random() * 90000000)}` }, // França
+    { code: '+44', pattern: () => `+447${Math.floor(100000000 + Math.random() * 900000000)}` }, // Reino Unido
+    { code: '+55', pattern: () => `+5511${Math.floor(900000000 + Math.random() * 100000000)}` }, // Brasil
+  ];
+  const country = countries[Math.floor(Math.random() * countries.length)];
+  return country.pattern();
+}
+
 const user = {
   email: `test_${Date.now()}@example.com`,
   password: 'password123',
   name: 'Test User',
-  phone: `+35191${Math.floor(1000000 + Math.random() * 9000000)}`
+  phone: generateUniquePhone()
 };
 
 function request(method, path, body = null, token = null) {
