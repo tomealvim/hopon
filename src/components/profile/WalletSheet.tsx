@@ -196,6 +196,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
         view === "list" ? (
           <Button
             block
+            variant="outline"
             className="min-h-[48px]"
             disabled={!canConfirm}
             onClick={handleConfirm}
@@ -206,7 +207,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
           <div className="flex gap-3">
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               className="flex-1"
               onClick={() => {
                 setView("list");
@@ -215,12 +216,12 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
             >
               Cancelar
             </Button>
-            <Button type="submit" form="wallet-add-method-form" className="flex-1">
+            <Button type="submit" form="wallet-add-method-form" variant="outline" className="flex-1">
               Guardar método
             </Button>
           </div>
         ) : view === "success" ? (
-          <Button className="min-h-[48px] w-full" onClick={handleSuccessClose}>
+          <Button variant="outline" className="min-h-[48px] w-full" onClick={handleSuccessClose}>
             Voltar ao perfil
           </Button>
         ) : undefined

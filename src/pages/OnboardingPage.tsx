@@ -106,22 +106,22 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
           onClick={handleNext}
           disabled={isFinalScreen && !agreedToTerms}
           className={cn(
-            "flex items-center justify-center font-semibold text-white transition shadow-[0_25px_40px_rgba(224,113,165,0.45)]",
+            "flex items-center justify-center font-semibold text-gray-900 transition shadow-md",
             "bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end",
-            isFinalScreen ? "px-8 h-14 rounded-full text-sm uppercase tracking-[0.15em]" : "w-16 h-16 rounded-full",
+            isFinalScreen ? "px-8 h-14 rounded-full text-sm uppercase tracking-[0.15em]" : "px-6 h-14 rounded-full text-[15px]",
             "active:scale-95",
             "disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#FF719A] focus-visible:ring-offset-black"
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gradient-end focus-visible:ring-offset-white"
           )}
           aria-label={isFinalScreen ? "Começar" : "Seguinte"}
         >
           {isFinalScreen ? (
             <span className="flex items-center gap-2">
               Começar
-              <span className="text-2xl leading-none">→</span>
+              <span className="text-xl leading-none">→</span>
             </span>
           ) : (
-            <span className="text-2xl font-bold leading-none">→</span>
+            <span>Seguinte →</span>
           )}
         </button>
       </div>
@@ -175,17 +175,7 @@ function Screen1() {
 // Ecrã 2: "Encontrar uma boleia"
 function Screen2() {
   return (
-    <div className="w-full max-w-sm mx-auto text-center space-y-10">
-      <div className="flex justify-center">
-        <div className="relative">
-          <div className="w-40 h-40 rounded-[32px] bg-gradient-to-br from-[#dbeafe] via-[#e5e7ff] to-[#fce7f3] flex items-center justify-center shadow-2xl">
-            <span className="text-[44px]">🚗</span>
-          </div>
-          <div className="absolute -bottom-4 -right-4 w-16 h-16 rounded-2xl bg-white shadow-xl flex items-center justify-center border border-white/70">
-            <span className="text-xl">🔍</span>
-          </div>
-        </div>
-      </div>
+    <div className="w-full max-w-sm mx-auto text-center space-y-6">
       <div className="space-y-3.5">
         <p className="text-[11px] uppercase tracking-[0.55em] text-gray-500">Explorar</p>
         <h1 className="text-[28px] font-semibold text-gray-900 leading-tight">Encontrar uma boleia</h1>
@@ -200,17 +190,7 @@ function Screen2() {
 // Ecrã 3: "Publicar uma boleia"
 function Screen3() {
   return (
-    <div className="w-full max-w-sm mx-auto text-center space-y-10">
-      <div className="flex justify-center">
-        <div className="relative">
-          <div className="w-40 h-40 rounded-[32px] bg-gradient-to-br from-[#fef3c7] via-[#fde68a] to-[#fed7aa] flex items-center justify-center shadow-2xl">
-            <span className="text-[44px]">🚘</span>
-          </div>
-          <div className="absolute -top-4 -left-4 w-16 h-16 rounded-2xl bg-white shadow-xl flex items-center justify-center border border-white/70">
-            <span className="text-xl">📄</span>
-          </div>
-        </div>
-      </div>
+    <div className="w-full max-w-sm mx-auto text-center space-y-6">
       <div className="space-y-3.5">
         <p className="text-[11px] uppercase tracking-[0.55em] text-gray-500">Partilhar</p>
         <h1 className="text-[28px] font-semibold text-gray-900 leading-tight">Publicar uma boleia</h1>

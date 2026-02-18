@@ -444,7 +444,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
             <p className="text-sm text-gray-900/70 mb-4 max-w-[240px] mx-auto">
               Define os teus horários para sugestões automáticas de boleias
             </p>
-            <Button size="sm" onClick={() => setOpenSchedule(true)}>
+            <Button variant="outline" size="sm" onClick={() => setOpenSchedule(true)}>
               Adicionar horário
             </Button>
           </div>
@@ -462,7 +462,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
             )}
             
             <Button 
-              variant="secondary" 
+              variant="outline" 
               block 
               size="sm"
               onClick={() => setShowCalendarPreview(prev => !prev)}
@@ -493,7 +493,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
             <p className="text-sm text-gray-900/70 mb-4 max-w-[240px] mx-auto">
               Adiciona marca e modelo para cálculo automático de custos
             </p>
-            <Button size="sm" onClick={() => handleOpenVehicle(null)}>
+            <Button variant="outline" size="sm" onClick={() => handleOpenVehicle(null)}>
               Adicionar veículo
             </Button>
           </div>
@@ -535,7 +535,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
             </div>
             
             <Button 
-              variant="secondary" 
+              variant="outline" 
               block 
               size="sm"
               onClick={handleOpenVehicleManager}
@@ -615,7 +615,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         title="Editar perfil"
         height="md"
         footer={
-          <Button block className="min-h-[48px]" onClick={handleSaveProfile}>
+          <Button block variant="outline" className="min-h-[48px]" onClick={handleSaveProfile}>
             Guardar alterações
           </Button>
         }
@@ -636,7 +636,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
                 aria-hidden="true"
                 onChange={onFileChange}
               />
-              <Button variant="secondary" onClick={handlePickPhoto}>
+              <Button variant="outline" onClick={handlePickPhoto}>
                 Alterar foto
               </Button>
               {avatarUrl && (
@@ -723,6 +723,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         footer={
           <Button
             block
+            variant="outline"
             className="min-h-[48px]"
             onClick={handleSavePassword}
             disabled={!canSavePassword}
@@ -802,10 +803,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         height="lg"
         footer={
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={() => setOpenSchedule(false)}>
+            <Button variant="outline" className="flex-1" onClick={() => setOpenSchedule(false)}>
               Cancelar
             </Button>
-            <Button className="flex-1" onClick={handleSaveSchedule}>
+            <Button variant="outline" className="flex-1" onClick={handleSaveSchedule}>
               Guardar alterações
             </Button>
           </div>
@@ -821,7 +822,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         title="Convidar amigos"
         height="md"
         footer={
-          <Button block className="min-h-[48px]" disabled>
+          <Button block variant="outline" className="min-h-[48px]" disabled>
             Partilhar convite (brevemente)
           </Button>
         }
@@ -896,7 +897,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         height="md"
         footer={
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={() => setOpenLogoutConfirm(false)}>
+            <Button variant="outline" className="flex-1" onClick={() => setOpenLogoutConfirm(false)}>
               Cancelar
             </Button>
             <Button variant="danger" className="flex-1" onClick={handleLogout}>
@@ -921,7 +922,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         height="md"
         footer={
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={() => setOpenDeleteConfirm(false)}>
+            <Button variant="outline" className="flex-1" onClick={() => setOpenDeleteConfirm(false)}>
               Cancelar
             </Button>
             <Button variant="danger" className="flex-1" onClick={handleDeleteAccount}>
@@ -976,6 +977,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         footer={
           <Button 
             block 
+            variant="outline"
             className="min-h-[48px]"
             onClick={() => {
               setOpenVehicleList(false);
@@ -1015,7 +1017,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
                   </div>
                   <Button 
                     size="sm" 
-                    variant="secondary" 
+                    variant="outline" 
                     onClick={() => {
                       setOpenVehicleList(false);
                       handleOpenVehicle(vehicle.id);
@@ -1042,6 +1044,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
                   {vehicle.id !== activeVehicleId && (
                     <Button 
                       size="sm" 
+                      variant="outline"
                       className="flex-1"
                       onClick={() => {
                         setActiveVehicle(vehicle.id);
@@ -1077,12 +1080,12 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
         height="md"
         footer={
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={() => setVehicleToDelete(null)}>
+            <Button variant="outline" className="flex-1" onClick={() => setVehicleToDelete(null)}>
               Cancelar
             </Button>
-            <button
-              type="button"
-              className="flex-1 h-12 px-4 text-[15px] font-medium rounded-2xl transition bg-gray-100 text-gray-900 border border-gray-200 hover:bg-gray-200 hover:border-gray-300"
+            <Button
+              variant="outline"
+              className="flex-1"
               onClick={async () => {
                 if (!vehicleToDelete) return;
                 try {
@@ -1102,7 +1105,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
               }}
             >
               Remover
-            </button>
+            </Button>
           </div>
         }
       >

@@ -4,7 +4,6 @@ import type { DaySchedule, TimeBlock } from "../../pages/types/user";
 import Sheet from "./Sheet";
 import { Button } from "./Button";
 import TimePicker from "./TimePicker";
-import BackgroundGlow from "./BackgroundGlow";
 
 const DAY_OPTIONS: Array<{ value: DaySchedule["day"]; label: string }> = [
   { value: "segunda", label: "Segunda" },
@@ -91,38 +90,36 @@ export default function AddRideScheduleSheet({ open, onClose, onAdd, editBlock }
       title={editBlock ? "Editar horário" : "Adicionar horário"}
       height="lg"
       footer={
-        <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>
+        <div className="flex gap-2 flex-shrink-0">
+          <Button variant="outline" className="flex-1" onClick={onClose}>
             Cancelar
           </Button>
-          <Button className="flex-1" onClick={handleSave}>
+          <Button variant="outline" className="flex-1" onClick={handleSave}>
             {editBlock ? "Guardar" : "Adicionar"}
           </Button>
         </div>
       }
     >
-      <div className="relative">
-        <BackgroundGlow className="opacity-60" />
-        <div className="relative grid gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-white/80 mb-1">Dia da semana</label>
-            <select
-              className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              value={day}
-              onChange={(e) => setDay(e.target.value as DaySchedule["day"])}
-            >
-              {DAY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-[#0a0611] text-white">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+      <div className="grid gap-4 pb-2">
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 mb-1">Dia da semana</label>
+          <select
+            className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20"
+            value={day}
+            onChange={(e) => setDay(e.target.value as DaySchedule["day"])}
+          >
+            {DAY_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div>
-          <label className="block text-xs font-semibold text-white/80 mb-1">Destino / Descrição (opcional)</label>
+          <label className="block text-xs font-semibold text-gray-700 mb-1">Destino / Descrição (opcional)</label>
           <input
-            className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-white/40"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 placeholder:text-gray-400"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Ex: Trabalho, IST, Faculdade..."
@@ -145,15 +142,14 @@ export default function AddRideScheduleSheet({ open, onClose, onAdd, editBlock }
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-white/80 mb-1">Local (opcional)</label>
+          <label className="block text-xs font-semibold text-gray-700 mb-1">Local (opcional)</label>
           <input
-            className="w-full px-3 py-2.5 border border-white/20 bg-white/5 text-white rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-white/40"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 placeholder:text-gray-400"
             value={room}
             onChange={(e) => setRoom(e.target.value)}
             placeholder="Ex: Edifício A, Piso 2..."
             title="Local específico"
           />
-        </div>
         </div>
       </div>
     </Sheet>

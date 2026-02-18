@@ -102,10 +102,10 @@ export default function VehicleFormSheet({
       height="lg"
       footer={
         <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>
+          <Button variant="outline" className="flex-1" onClick={onClose}>
             Cancelar
           </Button>
-          <Button className="flex-1" onClick={handleSubmit}>
+          <Button variant="outline" className="flex-1" onClick={handleSubmit}>
             {mode === "edit" ? "Atualizar" : "Guardar"}
           </Button>
         </div>

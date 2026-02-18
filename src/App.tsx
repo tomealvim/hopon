@@ -132,16 +132,16 @@ function AppContent() {
         height="md"
         footer={
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={()=>setOpenComposer(false)}>Cancelar</Button>
-            <Button className="flex-1" onClick={()=>setOpenComposer(false)}>Continuar</Button>
+            <Button variant="outline" className="flex-1" onClick={()=>setOpenComposer(false)}>Cancelar</Button>
+            <Button variant="outline" className="flex-1" onClick={()=>setOpenComposer(false)}>Continuar</Button>
           </div>
         }
       >
         <div className="grid gap-3">
-          <Button onClick={()=>{ setOpenComposer(false); setOpenOffer(true); }}>
+          <Button variant="outline" onClick={()=>{ setOpenComposer(false); setOpenOffer(true); }}>
             Oferecer boleia
           </Button>
-          <Button onClick={()=>{ setOpenComposer(false); setOpenRequest(true); }}>
+          <Button variant="outline" onClick={()=>{ setOpenComposer(false); setOpenRequest(true); }}>
             Pedir boleia
           </Button>
           {/* Opcional: */}

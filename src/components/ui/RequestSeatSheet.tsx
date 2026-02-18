@@ -30,10 +30,10 @@ export default function RequestSeatSheet({ open, onClose, onConfirm, offerTitle 
       height="md"
       footer={
         <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={handleClose}>
+          <Button variant="outline" className="flex-1" onClick={handleClose}>
             Cancelar
           </Button>
-          <Button className="flex-1" onClick={handleSubmit}>
+          <Button variant="outline" className="flex-1" onClick={handleSubmit}>
             Enviar pedido
           </Button>
         </div>

@@ -102,7 +102,7 @@ export default function TimePicker({ value, onChange, label, minTime }: TimePick
               <div className="text-sm font-semibold text-gray-900">{label || "Escolher hora"}</div>
               <button
                 type="button"
-                className="text-sm text-white font-medium hover:text-gray-900/80"
+                className="text-sm text-gray-900 font-semibold hover:text-gray-700"
                 onClick={() => setIsOpen(false)}
               >
                 OK

@@ -123,6 +123,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
         </p>
         <Button
           type="button"
+          variant="outline"
           className="w-full"
           onClick={() => {
             onCancel();
@@ -395,8 +396,8 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
       </fieldset>
 
       <div className="flex gap-2 pt-2">
-        <Button variant="secondary" className="flex-1" type="button" onClick={onCancel}>Cancelar</Button>
-        <Button className="flex-1" type="submit">Publicar</Button>
+        <Button variant="outline" className="flex-1" type="button" onClick={onCancel}>Cancelar</Button>
+        <Button variant="outline" className="flex-1" type="submit">Publicar</Button>
       </div>
     </form>
   );

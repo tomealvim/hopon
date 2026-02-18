@@ -43,8 +43,8 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply }
       title="Ajustes"
       footer={
         <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={clearAll}>Limpar</Button>
-          <Button className="flex-1" onClick={() => onApply(f)}>
+          <Button variant="outline" className="flex-1" onClick={clearAll}>Limpar</Button>
+          <Button variant="outline" className="flex-1" onClick={() => onApply(f)}>
             Ver resultados
           </Button>
         </div>

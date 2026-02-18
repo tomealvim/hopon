@@ -91,10 +91,10 @@ export default function AddRideScheduleSheet({ open, onClose, onAdd, editBlock }
       height="lg"
       footer={
         <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>
+          <Button variant="outline" className="flex-1" onClick={onClose}>
             Cancelar
           </Button>
-          <Button className="flex-1" onClick={handleSave}>
+          <Button variant="outline" className="flex-1" onClick={handleSave}>
             {editBlock ? "Guardar" : "Adicionar"}
           </Button>
         </div>

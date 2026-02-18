@@ -28,14 +28,15 @@ export default function LanguageSettingsSheet({
       title="Idioma da app"
       height="md"
       footer={
-        <Button
-          block
-          className="min-h-[48px]"
-          disabled={!canSave}
-          onClick={onSave}
-        >
-          Guardar idioma
-        </Button>
+<Button
+        block
+        variant="outline"
+        className="min-h-[48px]"
+        disabled={!canSave}
+        onClick={onSave}
+      >
+        Guardar idioma
+      </Button>
       }
     >
       <div className="space-y-4">

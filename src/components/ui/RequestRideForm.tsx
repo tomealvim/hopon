@@ -340,8 +340,8 @@ export default function RequestRideForm({ initial, onCancel, onSubmit }: Request
       </div>
 
       <div className="flex gap-2 pt-2">
-        <Button variant="secondary" className="flex-1" type="button" onClick={onCancel}>Cancelar</Button>
-        <Button className="flex-1" type="submit">Procurar boleia</Button>
+        <Button variant="outline" className="flex-1" type="button" onClick={onCancel}>Cancelar</Button>
+        <Button variant="outline" className="flex-1" type="submit">Procurar boleia</Button>
       </div>
     </form>
   );

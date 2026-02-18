@@ -47,6 +47,7 @@ export default function SupportContactSheet({ open, onClose }: SupportContactShe
       footer={
         <Button
           block
+          variant="outline"
           type="submit"
           form="support-contact-form"
           className="min-h-[48px]"

@@ -56,6 +56,7 @@ export default function RatingsSheet({ open, onClose }: RatingsSheetProps) {
         footer={
           <Button
             block
+            variant="outline"
             className="min-h-[48px]"
             onClick={handleSubmit}
             disabled={!canSubmit}
@@ -170,6 +171,7 @@ export default function RatingsSheet({ open, onClose }: RatingsSheetProps) {
           {/* Back Home Button */}
           <Button
             block
+            variant="outline"
             className="min-h-[48px]"
             onClick={handleBackHome}
           >

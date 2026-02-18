@@ -97,7 +97,7 @@ export default function VerificationSheet({
       title={channel ? `Verificar ${channel === "phone" ? "telemóvel" : "email"}` : "Verificação"}
       height="md"
       footer={
-        <Button block className="min-h-[48px]" onClick={handleVerify} disabled={!code.trim() || isVerifying}>
+        <Button block variant="outline" className="min-h-[48px]" onClick={handleVerify} disabled={!code.trim() || isVerifying}>
           {isVerifying ? "A verificar…" : "Confirmar verificação"}
         </Button>
       }
@@ -116,7 +116,7 @@ export default function VerificationSheet({
 
           <div className="grid gap-2">
             <Button
-              variant="secondary"
+              variant="outline"
               type="button"
               disabled={isSending || cooldown > 0 || !value}
               onClick={handleSendCode}
