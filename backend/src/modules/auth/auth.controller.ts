@@ -97,4 +97,12 @@ export class AuthController {
   verifyOtp(@Request() req, @Body() dto: OtpVerifyDto) {
     return this.authService.verifyOtp(req.user.id, dto.purpose, dto.code);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('test/verify-email')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '[Só testes] Marcar email como verificado (ALLOW_TEST_VERIFY=1)' })
+  verifyEmailForTest(@Request() req) {
+    return this.authService.verifyEmailForTest(req.user.id);
+  }
 }

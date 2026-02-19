@@ -99,9 +99,9 @@
 - [ ] Integrar API ViaMichelin para estimar consumo/custos automaticamente (depende da definição final de viagens).
 
 ### 3. Schedules, Rides & Bookings
-- [ ] Modelo `ScheduleTemplate` (horários recorrentes).
+- [x] Modelo `ScheduleTemplate` (horários recorrentes) — schema criado com campos: origin, destination, time (HH:mm), daysOfWeek (JSON), vehicleId, availableSeats, price, active.
 - [x] Modelo `Ride` (instância de viagem) + `Booking` (reserva de lugar) — schema criado e implementado.
-- [ ] Endpoints MVP: `POST /schedules`, `GET /schedules/my`, `POST /rides/from-template/:templateId`.
+- [x] Endpoints MVP: `POST /schedules`, `GET /schedules/my`, `GET /schedules/:id`, `PATCH /schedules/:id`, `DELETE /schedules/:id`, `POST /schedules/:id/create-ride` (criar Ride a partir de template).
 - [x] Exploração `GET /rides/search` (matching básico) — implementado e público (sem auth).
 - [x] Fluxo de reservas: `POST /bookings/rides/:rideId`, `POST /bookings/:id/cancel` — implementado e testado.
 - [x] Garantir integridade de lugares (transactions na BD) — implementado com validações e transações.

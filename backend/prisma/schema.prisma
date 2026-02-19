@@ -31,6 +31,8 @@ model User {
   refreshTokens RefreshToken[]
   
   otpCodes     OtpCode[]
+  
+  scheduleTemplates ScheduleTemplate[]
 
   @@map("users")
 }
@@ -87,6 +89,7 @@ model Vehicle {
   updatedAt DateTime @updatedAt
 
   rides     Ride[]
+  scheduleTemplates ScheduleTemplate[]
 
   @@map("vehicles")
 }
@@ -107,12 +110,48 @@ model Ride {
   
   status         String    @default("SCHEDULED") // (SQLite: String)
   
+  scheduleTemplateId String? // Template que originou esta boleia (opcional)
+  scheduleTemplate   ScheduleTemplate? @relation(fields: [scheduleTemplateId], references: [id], onDelete: SetNull)
+  
   bookings       Booking[]
   
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
   @@map("rides")
+}
+
+model ScheduleTemplate {
+  id             String    @id @default(uuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleId      String
+  vehicle        Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  origin         String
+  destination    String
+  time           String    // Hora de partida em formato "HH:mm" (ex: "08:00")
+  daysOfWeek     String    // JSON array: ["segunda","terca",...]
+  
+  availableSeats Int       @default(3)
+  price          Float?    // (SQLite: Float)
+  
+  acceptDetours  Boolean   @default(true)
+  detourMaxMin   Int       @default(10)
+  meetingPoint   String?
+  notes          String?
+  preferences    String?   // JSON: { musica, falar, bagagem, animais }
+  
+  active         Boolean   @default(true)
+  
+  rides          Ride[]    // Boleias criadas a partir deste template
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("schedule_templates")
+  @@index([userId])
+  @@index([active])
 }
 
 model Booking {

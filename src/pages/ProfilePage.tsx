@@ -26,6 +26,7 @@ import {
 interface ProfilePageProps {
   onLogout?: () => void;
   vehicleSheetTrigger?: number;
+  onVehicleSheetTriggerConsumed?: () => void;
   onSheetStateChange?: (isOpen: boolean) => void;
 }
 
@@ -34,7 +35,7 @@ type PasswordFeedback = {
   tone: "success" | "error";
 };
 
-export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStateChange }: ProfilePageProps) {
+export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSheetTriggerConsumed, onSheetStateChange }: ProfilePageProps) {
   const { user, updateProfile, upsertVehicle, removeVehicle, setActiveVehicle } = useAuth();
   const { language, setLanguage, getLanguageLabel } = useLanguage();
   const { showSuccess, showError } = useNotifications();
@@ -178,8 +179,9 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onSheetStat
     ) {
       externalVehicleTriggerRef.current = vehicleSheetTrigger;
       handleOpenVehicle(null);
+      onVehicleSheetTriggerConsumed?.();
     }
-  }, [vehicleSheetTrigger]);
+  }, [vehicleSheetTrigger, onVehicleSheetTriggerConsumed]);
 
   // Rastrear quando qualquer sheet está aberto e notificar o App
   useEffect(() => {

@@ -1,4 +1,17 @@
 // backend/tests/test-runner-all.js
+/**
+ * Executa toda a suite de testes da API (backend deve estar a correr em localhost:3000).
+ *
+ * Testes incluídos:
+ * 1. Auth Flow (completo) – registo, login, /auth/me, perfil, veículos
+ * 2. Auth Básico – registo + login + perfil
+ * 3. Profile Básico – atualização de perfil e persistência
+ * 4. Vehicles Avançado – CRUD veículos, permissões, validações
+ * 5. Rides/Bookings Avançado – boleias e reservas (requer ALLOW_TEST_VERIFY=1 no .env)
+ * 6. Refresh Token – refresh JWT, rotação, logout, revogação
+ *
+ * Uso: npm run test:api:all (na pasta backend)
+ */
 const { spawn } = require('child_process');
 const path = require('path');
 
@@ -8,6 +21,7 @@ const tests = [
   { name: 'Profile Básico', file: 'test-profile-basic.js' },
   { name: 'Vehicles Avançado', file: 'test-vehicles-advanced.js' },
   { name: 'Rides/Bookings Avançado', file: 'test-rides-bookings-advanced.js' },
+  { name: 'Refresh Token', file: 'test-refresh-token.js' },
 ];
 
 const results = [];

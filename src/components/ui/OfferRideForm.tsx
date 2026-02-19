@@ -138,63 +138,51 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
 
   return (
     <form onSubmit={submit} className="grid gap-4 p-1">
-      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3">
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Veículo associado</p>
-            <p className="text-sm text-gray-700">Escolhe o carro que vais conduzir nesta viagem.</p>
-          </div>
-          <button
-            type="button"
-            className="text-xs font-semibold text-gray-600 underline-offset-2 hover:underline"
-            onClick={() => {
-              onCancel();
-              onRequireVehicleSetup?.();
-            }}
-          >
-            Gerir carros
-          </button>
-        </div>
-        <div className="grid gap-2">
-          {vehicles.map(vehicle => {
-            const isSelected = vehicle.id === values.vehicleId;
-            return (
-              <button
-                key={vehicle.id}
-                type="button"
-                className={cn(
-                  "flex items-center justify-between rounded-2xl border px-4 py-2 text-left transition",
-                  isSelected
-                    ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-50"
-                    : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
-                )}
-                aria-pressed={isSelected}
-                onClick={() => {
-                  set("vehicleId", vehicle.id);
-                  setTouchedField("vehicleId");
-                  setActiveVehicle(vehicle.id);
-                }}
-              >
-                <div>
-                  <p className="text-sm font-semibold">{vehicle.brand}</p>
-                  <p className="text-xs text-gray-600">{vehicle.model}</p>
-                </div>
-                <span
+      {/* Veículo: só mostrar seletor quando há mais de 1 carro; com 1 carro usa-se automaticamente */}
+      {vehicles.length > 1 && (
+        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Selecionar veículo</p>
+          <div className="grid gap-2">
+            {vehicles.map(vehicle => {
+              const isSelected = vehicle.id === values.vehicleId;
+              return (
+                <button
+                  key={vehicle.id}
+                  type="button"
                   className={cn(
-                    "flex h-5 w-5 items-center justify-center rounded-full border text-[11px]",
-                    isSelected ? "border-emerald-300 bg-emerald-400 text-emerald-900" : "border-gray-300 text-gray-500"
+                    "flex items-center justify-between rounded-2xl border px-4 py-2 text-left transition",
+                    isSelected
+                      ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-50"
+                      : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
                   )}
+                  aria-pressed={isSelected}
+                  onClick={() => {
+                    set("vehicleId", vehicle.id);
+                    setTouchedField("vehicleId");
+                    setActiveVehicle(vehicle.id);
+                  }}
                 >
-                  {isSelected ? "✓" : ""}
-                </span>
-              </button>
-            );
-          })}
+                  <div>
+                    <p className="text-sm font-semibold">{vehicle.brand}</p>
+                    <p className="text-xs text-gray-600">{vehicle.model}</p>
+                  </div>
+                  <span
+                    className={cn(
+                      "flex h-5 w-5 items-center justify-center rounded-full border text-[11px]",
+                      isSelected ? "border-emerald-300 bg-emerald-400 text-emerald-900" : "border-gray-300 text-gray-500"
+                    )}
+                  >
+                    {isSelected ? "✓" : ""}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {touched.vehicleId && errors.vehicleId && (
+            <div className="mt-2 text-xs text-red-300">{errors.vehicleId}</div>
+          )}
         </div>
-        {touched.vehicleId && errors.vehicleId && (
-          <div className="mt-2 text-xs text-red-300">{errors.vehicleId}</div>
-        )}
-      </div>
+      )}
       <div className="">
         <label htmlFor={`${id}-origem`} className="block text-xs font-semibold text-gray-600 mb-1">De onde?</label>
         <input

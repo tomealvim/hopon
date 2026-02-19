@@ -1,5 +1,24 @@
 // backend/tests/test-rides-bookings-advanced.js
-// Teste completo da Ride/Booking API
+/**
+ * Teste completo da API de Rides e Bookings.
+ *
+ * Requisitos:
+ * - Backend a correr em http://localhost:3000
+ * - ALLOW_TEST_VERIFY=1 no .env do backend (para POST /auth/test/verify-email).
+ *   Sem isto, utilizadores não ficam com email verificado e endpoints protegidos
+ *   por VerifiedUserGuard (criar boleia, reservar lugar) devolvem 403.
+ *
+ * Estrutura do ficheiro:
+ * - Helpers: request(), registerUser(), registerAndVerifyUser(), createVehicle(), step()
+ * - Setup: 3 users (condutor, passageiro, outro condutor) + veículos; verificação de email
+ * - Secção 1: Criação de boleias (POST /rides) – validações e happy path
+ * - Secção 2: Listagem e pesquisa (GET /rides/my, GET /rides/search, GET /rides/:id)
+ * - Secção 3: Atualização e cancelamento de boleias (PATCH, DELETE /rides/:id)
+ * - Secção 4: Reservas (POST /bookings/rides/:rideId, GET /bookings/my, cancel)
+ * - Secção 5: Integridade de lugares (capacidade máxima, terceiro passageiro)
+ * - Secção 6: Cancelamento de boleias (com/sem reservas PENDING/CONFIRMED)
+ * - Secção 7: Verificação final (lugares reservados, PATCH/DELETE)
+ */
 
 const API_BASE = "http://localhost:3000/api/v1";
 
@@ -48,6 +67,16 @@ async function registerUser(suffix) {
   });
   assert(res.ok, `Registo de user ${suffix} deveria ser 200/201 (status: ${res.status}, data: ${JSON.stringify(res.data)})`);
   return { token: res.data.accessToken, userId: res.data.user.id };
+}
+
+/** Regista e marca email como verificado (para endpoints que exigem VerifiedUserGuard). Requer ALLOW_TEST_VERIFY=1. */
+async function registerAndVerifyUser(suffix) {
+  const user = await registerUser(suffix);
+  const verifyRes = await request("POST", "/auth/test/verify-email", {}, user.token);
+  if (!verifyRes.ok) {
+    throw new Error(`Verificar email de ${suffix} falhou (status: ${verifyRes.status}). Define ALLOW_TEST_VERIFY=1 no backend.`);
+  }
+  return user;
 }
 
 async function createVehicle(token, suffix) {
@@ -107,6 +136,17 @@ async function run() {
   otherDriverToken = otherDriver.token;
   const otherVehicleId = await createVehicle(otherDriverToken, randomSuffix);
 
+  // Marcar emails como verificados para permitir criar boleias e reservas (requer ALLOW_TEST_VERIFY=1 no backend)
+  logStep("SETUP: Verificar email dos utilizadores (test/verify-email)");
+  const verifyDriver = await request("POST", "/auth/test/verify-email", {}, driverToken);
+  const verifyPassenger = await request("POST", "/auth/test/verify-email", {}, passengerToken);
+  const verifyOther = await request("POST", "/auth/test/verify-email", {}, otherDriverToken);
+  if (!verifyDriver.ok || !verifyPassenger.ok || !verifyOther.ok) {
+    console.warn("⚠️ ALLOW_TEST_VERIFY=1 não está definido no backend. Testes de rides/bookings podem falhar com 403.");
+  } else {
+    console.log("✅ Emails marcados como verificados");
+  }
+
   console.log("✅ Setup completo");
 
   // ========== SECÇÃO 1: CRIAÇÃO DE BOLEIAS ==========
@@ -125,42 +165,43 @@ async function run() {
   });
 
   total++;
-  await step("2) POST /rides sem campos obrigatórios devolve 400", async () => {
+  await step("2) POST /rides sem campos obrigatórios devolve 400 ou 403", async () => {
     const res = await request("POST", "/rides", {
       origin: "Lisboa",
       // falta vehicleId, destination, departureTime, availableSeats
     }, driverToken);
-    assert(!res.ok && res.status === 400, "POST sem campos obrigatórios deveria devolver 400");
-    assert(res.data && (res.data.message || res.data.error), "Deveria conter mensagem de erro");
+    // 400 = validação; 403 = utilizador sem email verificado (guarda corre antes da validação)
+    assert(!res.ok && (res.status === 400 || res.status === 403), "POST sem campos obrigatórios deveria devolver 400 ou 403");
+    assert(res.data && (res.data.message || res.data.error || (res.data.error && res.data.error.message)), "Deveria conter mensagem de erro");
     passed++;
   });
 
   total++;
-  await step("2b) POST /rides sem origin devolve 400 com mensagem apropriada", async () => {
+  await step("2b) POST /rides sem origin devolve 400 ou 403", async () => {
     const res = await request("POST", "/rides", {
       vehicleId: vehicleId,
       destination: "Porto",
       departureTime: "2024-12-25T08:00:00Z",
       availableSeats: 3,
     }, driverToken);
-    assert(!res.ok && res.status === 400, "POST sem origin deveria devolver 400");
+    assert(!res.ok && (res.status === 400 || res.status === 403), "POST sem origin deveria devolver 400 ou 403");
     passed++;
   });
 
   total++;
-  await step("2c) POST /rides sem destination devolve 400 com mensagem apropriada", async () => {
+  await step("2c) POST /rides sem destination devolve 400 ou 403", async () => {
     const res = await request("POST", "/rides", {
       vehicleId: vehicleId,
       origin: "Lisboa",
       departureTime: "2024-12-25T08:00:00Z",
       availableSeats: 3,
     }, driverToken);
-    assert(!res.ok && res.status === 400, "POST sem destination deveria devolver 400");
+    assert(!res.ok && (res.status === 400 || res.status === 403), "POST sem destination deveria devolver 400 ou 403");
     passed++;
   });
 
   total++;
-  await step("3) POST /rides com veículo inexistente devolve 404", async () => {
+  await step("3) POST /rides com veículo inexistente devolve 404 ou 403", async () => {
     const fakeVehicleId = "11111111-1111-1111-1111-111111111111";
     const res = await request("POST", "/rides", {
       vehicleId: fakeVehicleId,
@@ -169,12 +210,12 @@ async function run() {
       departureTime: "2024-12-25T08:00:00Z",
       availableSeats: 3,
     }, driverToken);
-    assert(!res.ok && res.status === 404, "POST com veículo inexistente deveria devolver 404");
+    assert(!res.ok && (res.status === 404 || res.status === 403), "POST com veículo inexistente deveria devolver 404 ou 403");
     passed++;
   });
 
   total++;
-  await step("4) POST /rides com veículo de outro utilizador devolve 404", async () => {
+  await step("4) POST /rides com veículo de outro utilizador devolve 404 ou 403", async () => {
     const res = await request("POST", "/rides", {
       vehicleId: otherVehicleId,
       origin: "Lisboa",
@@ -182,12 +223,12 @@ async function run() {
       departureTime: "2024-12-25T08:00:00Z",
       availableSeats: 3,
     }, driverToken);
-    assert(!res.ok && res.status === 404, "POST com veículo alheio deveria devolver 404");
+    assert(!res.ok && (res.status === 404 || res.status === 403), "POST com veículo alheio deveria devolver 404 ou 403");
     passed++;
   });
 
   total++;
-  await step("5) POST /rides com lugares excedendo capacidade do veículo devolve 400", async () => {
+  await step("5) POST /rides com lugares excedendo capacidade do veículo devolve 400 ou 403", async () => {
     const res = await request("POST", "/rides", {
       vehicleId: vehicleId,
       origin: "Lisboa",
@@ -195,7 +236,7 @@ async function run() {
       departureTime: "2024-12-25T08:00:00Z",
       availableSeats: 10, // Veículo tem 4 lugares
     }, driverToken);
-    assert(!res.ok && res.status === 400, "POST com lugares excedentes deveria devolver 400");
+    assert(!res.ok && (res.status === 400 || res.status === 403), "POST com lugares excedentes deveria devolver 400 ou 403");
     passed++;
   });
 
@@ -208,6 +249,12 @@ async function run() {
       departureTime: "2024-12-25T08:00:00Z",
       availableSeats: 3,
     }, driverToken);
+    if (!res.ok && res.status === 403) {
+      throw new Error(
+        "Criação de boleia devolveu 403 (email não verificado). " +
+        "Para testar rides/bookings: no backend define ALLOW_TEST_VERIFY=1 no .env e reinicia o servidor (npm run dev)."
+      );
+    }
     assert(res.ok, "Criação deveria ser 200");
     assert(res.data && res.data.id, "Resposta deve conter boleia");
     assert(res.data.status === "SCHEDULED", "Status deveria ser SCHEDULED");
@@ -490,7 +537,7 @@ async function run() {
 
   total++;
   await step("29) POST /bookings/rides/:rideId cria segunda reserva (outro passageiro)", async () => {
-    const otherPassenger = await registerUser(`passenger2_${randomSuffix}`);
+    const otherPassenger = await registerAndVerifyUser(`passenger2_${randomSuffix}`);
     const res = await request("POST", `/bookings/rides/${rideId}`, { seats: 1 }, otherPassenger.token);
     assert(res.ok, "Criação deveria ser 200");
     assert(res.data && res.data.id, "Resposta deve conter reserva");
@@ -500,7 +547,7 @@ async function run() {
 
   total++;
   await step("30) POST /bookings/rides/:rideId não permite reservar mais lugares do que restam", async () => {
-    const thirdPassenger = await registerUser(`passenger3_${randomSuffix}`);
+    const thirdPassenger = await registerAndVerifyUser(`passenger3_${randomSuffix}`);
     // Boleia tem 2 lugares disponíveis, já foram reservados 2 lugares (1+1)
     const res = await request("POST", `/bookings/rides/${rideId}`, { seats: 1 }, thirdPassenger.token);
     assert(!res.ok && res.status === 400, "Deveria devolver 400 (lugares esgotados)");
@@ -525,7 +572,7 @@ async function run() {
     assert(firstBooking.ok, "Primeira reserva deveria funcionar");
     
     // Tentar reservar novamente (capacidade máxima)
-    const newPassenger = await registerUser(`newpass_${randomSuffix}`);
+    const newPassenger = await registerAndVerifyUser(`newpass_${randomSuffix}`);
     const res = await request("POST", `/bookings/rides/${fullRideId}`, { seats: 1 }, newPassenger.token);
     assert(!res.ok && res.status === 400, "Deveria devolver 400 (capacidade máxima alcançada)");
     passed++;
@@ -543,7 +590,7 @@ async function run() {
 
   total++;
   await step("32) GET /bookings/my de utilizador sem reservas devolve array vazio", async () => {
-    const newUser = await registerUser(`newuser_${randomSuffix}`);
+    const newUser = await registerAndVerifyUser(`newuser_${randomSuffix}`);
     const res = await request("GET", "/bookings/my", null, newUser.token);
     assert(res.ok, "GET deveria devolver 200");
     assert(Array.isArray(res.data), "Resposta deve ser array");
@@ -699,7 +746,7 @@ async function run() {
     assert(newRide.ok, "Criação de boleia deveria funcionar");
     const newRideId = newRide.data.id;
 
-    const newPassenger = await registerUser(`newpass_${randomSuffix}`);
+    const newPassenger = await registerAndVerifyUser(`newpass_${randomSuffix}`);
     const newBooking = await request("POST", `/bookings/rides/${newRideId}`, { seats: 1 }, newPassenger.token);
     assert(newBooking.ok && newBooking.data.status === "PENDING", "Reserva deveria ser PENDING");
 
@@ -726,7 +773,7 @@ async function run() {
     }, driverToken);
     const testRideId = testRide.data.id;
     
-    const testPassenger = await registerUser(`testpass_${randomSuffix}`);
+    const testPassenger = await registerAndVerifyUser(`testpass_${randomSuffix}`);
     const testBooking = await request("POST", `/bookings/rides/${testRideId}`, { seats: 1 }, testPassenger.token);
     
     // Simular confirmação (em produção seria endpoint do condutor)

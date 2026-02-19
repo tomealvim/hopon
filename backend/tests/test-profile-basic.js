@@ -1,3 +1,8 @@
+// backend/tests/test-profile-basic.js
+/**
+ * Teste básico de Perfil: registo, PATCH /auth/me (nome, telefone, contactEmail, username) e GET /auth/me.
+ * Requer backend em http://localhost:3000.
+ */
 const http = require('http');
 
 // Função helper para gerar números de telefone válidos de diferentes países

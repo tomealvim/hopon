@@ -1,5 +1,8 @@
 // backend/tests/test-vehicles-advanced.js
-// Node 18+ recommended (fetch global). For Node 16, install node-fetch and import.
+/**
+ * Testes da API de Veículos (CRUD, permissões, validações).
+ * Requer backend em http://localhost:3000. Node 18+ (fetch global).
+ */
 
 const API_BASE = "http://localhost:3000/api/v1";
 

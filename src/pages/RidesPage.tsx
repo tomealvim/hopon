@@ -1,19 +1,45 @@
 // src/pages/RidesPage.tsx
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useRides, type RideOffer, type RideRequest } from "../contexts/RidesContext";
+import { apiRequest } from "../services/api";
 import EntityCard from "../components/ui/EntityCard";
 import RidesCalendar, { type DayRides, type CalendarRide } from "../components/ui/RidesCalendar";
 import Sheet from "../components/ui/Sheet";
 import { Button } from "../components/ui/Button";
 import BackgroundGlow from "../components/ui/BackgroundGlow";
 import { EntityCardSkeleton, RideCardSkeleton } from "../components/ui/Skeleton";
+import CreateScheduleSheet from "../components/rides/CreateScheduleSheet";
+import CreateRideFromTemplateSheet from "../components/rides/CreateRideFromTemplateSheet";
+import type { ApiSchedule } from "./types/schedule-api";
 
 export default function RidesPage() {
   const { user } = useAuth();
   const { getMyOffers, getMyRequests, requests, acceptRequest, declineRequest, cancelOffer, cancelRequest } = useRides();
   const [open, setOpen] = useState(false);
   const [hydrating, setHydrating] = useState(true);
+
+  const [schedules, setSchedules] = useState<ApiSchedule[]>([]);
+  const [schedulesLoading, setSchedulesLoading] = useState(false);
+  const [openScheduleSheet, setOpenScheduleSheet] = useState(false);
+  const [openCreateRideSheet, setOpenCreateRideSheet] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<ApiSchedule | null>(null);
+
+  const fetchSchedules = useCallback(async () => {
+    try {
+      setSchedulesLoading(true);
+      const data = await apiRequest<ApiSchedule[]>("/schedules/my");
+      setSchedules(Array.isArray(data) ? data : []);
+    } catch {
+      setSchedules([]);
+    } finally {
+      setSchedulesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) fetchSchedules();
+  }, [user, fetchSchedules]);
 
   useEffect(() => {
     const timeout = setTimeout(() => setHydrating(false), 300);
@@ -134,6 +160,58 @@ export default function RidesPage() {
               {/* TODO: Quando houver API real, adicionar loading state antes do RidesCalendar */}
               <RidesCalendar rides={ridesData} onRideClick={handleRideClick} />
             </>
+          )}
+        </section>
+
+        {/* Templates de viagem (recorrentes) */}
+        <section className="pb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold text-gray-900">Templates de viagem</h2>
+            <Button
+              variant="secondary"
+              className="text-xs"
+              onClick={() => setOpenScheduleSheet(true)}
+            >
+              Novo template
+            </Button>
+          </div>
+          {schedulesLoading ? (
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <EntityCardSkeleton key={`schedule-skel-${i}`} />
+              ))}
+            </div>
+          ) : schedules.length === 0 ? (
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-center">
+              <p className="text-sm text-gray-600">Ainda não tens templates.</p>
+              <p className="text-xs text-gray-500 mt-1">Cria um para publicar boleias recorrentes (ex.: Seg–Sex às 08:00).</p>
+              <Button variant="secondary" className="mt-3" onClick={() => setOpenScheduleSheet(true)}>
+                Criar template
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+              {schedules.map((schedule) => (
+                <EntityCard
+                  key={schedule.id}
+                  title={`${schedule.origin} → ${schedule.destination}`}
+                  subtitle={`${schedule.time} · ${schedule.daysOfWeek.join(", ")}`}
+                  meta={`${schedule.availableSeats} lugares${schedule.price != null && schedule.price > 0 ? ` · €${schedule.price.toFixed(0)}` : ""}`}
+                  badges={schedule.active ? [{ label: "Ativo", tone: "success" }] : [{ label: "Inativo", tone: "neutral" }]}
+                  avatar={{ initials: schedule.vehicle ? `${schedule.vehicle.brand[0]}${schedule.vehicle.model[0]}` : "?" }}
+                  primaryLabel="Criar boleia"
+                  secondaryLabel="Detalhes"
+                  onPrimary={() => {
+                    setSelectedSchedule(schedule);
+                    setOpenCreateRideSheet(true);
+                  }}
+                  onSecondary={() => {
+                    setSelectedSchedule(schedule);
+                    setOpenCreateRideSheet(true);
+                  }}
+                />
+              ))}
+            </div>
           )}
         </section>
 
@@ -416,6 +494,21 @@ export default function RidesPage() {
           </div>
         )}
       </Sheet>
+
+      <CreateScheduleSheet
+        open={openScheduleSheet}
+        onClose={() => setOpenScheduleSheet(false)}
+        onSuccess={() => fetchSchedules()}
+      />
+      <CreateRideFromTemplateSheet
+        open={openCreateRideSheet}
+        schedule={selectedSchedule}
+        onClose={() => {
+          setOpenCreateRideSheet(false);
+          setSelectedSchedule(null);
+        }}
+        onSuccess={() => fetchSchedules()}
+      />
     </>
   );
 }

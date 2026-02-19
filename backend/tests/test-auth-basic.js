@@ -1,3 +1,8 @@
+// backend/tests/test-auth-basic.js
+/**
+ * Teste básico de Auth: registo, login e GET /auth/me.
+ * Requer backend em http://localhost:3000.
+ */
 const http = require('http');
 
 const BASE_URL = 'http://localhost:3000/api/v1';

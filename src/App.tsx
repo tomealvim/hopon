@@ -110,6 +110,7 @@ function AppContent() {
           <ProfilePage 
             onLogout={logout} 
             vehicleSheetTrigger={vehicleSheetTrigger}
+            onVehicleSheetTriggerConsumed={() => setVehicleSheetTrigger(0)}
             onSheetStateChange={setProfileSheetsOpen}
           />
         )}
@@ -141,11 +142,12 @@ function AppContent() {
           <Button variant="outline" onClick={()=>{ setOpenComposer(false); setOpenOffer(true); }}>
             Oferecer boleia
           </Button>
+          <Button variant="outline" onClick={()=>{ setOpenComposer(false); setTab("rides"); }}>
+            Template de viagem (recorrente)
+          </Button>
           <Button variant="outline" onClick={()=>{ setOpenComposer(false); setOpenRequest(true); }}>
             Pedir boleia
           </Button>
-          {/* Opcional: */}
-          {/* <Button variant="ghost">Guardar pesquisa</Button> */}
         </div>
       </Sheet>
 

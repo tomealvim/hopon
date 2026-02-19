@@ -1,5 +1,9 @@
 // backend/tests/test-refresh-token.js
-// Testes para JWT Refresh Token
+/**
+ * Testes do fluxo JWT Refresh Token: renovar access token, rotação de refresh token,
+ * logout (revogação), e validação de token inválido/ausente/revogado.
+ * Requer backend em http://localhost:3000.
+ */
 
 const API_BASE = "http://localhost:3000/api/v1";
 

@@ -399,6 +399,23 @@ export class AuthService {
     return this.getMe(userId);
   }
 
+  /**
+   * Apenas para testes da API: marca o email do utilizador como verificado.
+   * Só ativo quando ALLOW_TEST_VERIFY=1 (usado por test-rides-bookings-advanced.js).
+   */
+  async verifyEmailForTest(userId: string) {
+    const v = this.configService.get<string>('ALLOW_TEST_VERIFY');
+    const enabled = v === '1' || String(v).trim() === '1' || v === 'true';
+    if (!enabled) {
+      throw new BadRequestException('Endpoint apenas disponível em ambiente de testes (ALLOW_TEST_VERIFY=1)');
+    }
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { emailVerifiedAt: new Date() },
+    });
+    return this.getMe(userId);
+  }
+
   private async generateTokens(user: any, userAgent?: string, ip?: string) {
     try {
       const basePayload = { sub: user.id, email: user.email };
