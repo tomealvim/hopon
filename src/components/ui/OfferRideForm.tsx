@@ -3,12 +3,17 @@ import TimePicker from "./TimePicker";
 import { Button } from "./Button";
 import { cn } from "../../utils/cn";
 import { useAuth } from "../../contexts/AuthContext";
+import { LocationInput } from "./LocationInput";
 import type { Vehicle } from "../../pages/types/user";
 
 export type OfferRideFormValues = {
   vehicleId: string;
   origem: string;
+  origemLat?: number;
+  origemLng?: number;
   destino: string;
+  destinoLat?: number;
+  destinoLng?: number;
   data: string; // YYYY-MM-DD
   hora: string; // HH:MM
   lugares: number;
@@ -185,13 +190,16 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
       )}
       <div className="">
         <label htmlFor={`${id}-origem`} className="block text-xs font-semibold text-gray-600 mb-1">De onde?</label>
-        <input
+        <LocationInput
           id={`${id}-origem`}
           className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-900/40"
           placeholder="Ex.: Estoril, estação, rua…"
           value={values.origem}
-          onChange={e=>set("origem", e.target.value)}
-          onBlur={()=>setTouchedField("origem")}
+          lat={values.origemLat}
+          lng={values.origemLng}
+          onLabelChange={(label) => setValues(prev => ({ ...prev, origem: label, origemLat: undefined, origemLng: undefined }))}
+          onLocationSelect={(loc) => setValues(prev => ({ ...prev, origem: loc.label, origemLat: loc.lat, origemLng: loc.lng }))}
+          onBlur={() => setTouchedField("origem")}
           aria-invalid={!!errors.origem}
         />
         {touched.origem && errors.origem && <div className="text-xs text-red-300 mt-1">{errors.origem}</div>}
@@ -199,13 +207,16 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
 
       <div className="">
         <label htmlFor={`${id}-destino`} className="block text-xs font-semibold text-gray-600 mb-1">Para onde?</label>
-        <input
+        <LocationInput
           id={`${id}-destino`}
           className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-900/40"
           placeholder="Ex.: ULisboa Ciências, campus, morada…"
           value={values.destino}
-          onChange={e=>set("destino", e.target.value)}
-          onBlur={()=>setTouchedField("destino")}
+          lat={values.destinoLat}
+          lng={values.destinoLng}
+          onLabelChange={(label) => setValues(prev => ({ ...prev, destino: label, destinoLat: undefined, destinoLng: undefined }))}
+          onLocationSelect={(loc) => setValues(prev => ({ ...prev, destino: loc.label, destinoLat: loc.lat, destinoLng: loc.lng }))}
+          onBlur={() => setTouchedField("destino")}
           aria-invalid={!!errors.destino}
         />
         {touched.destino && errors.destino && <div className="text-xs text-red-600 mt-1">{errors.destino}</div>}

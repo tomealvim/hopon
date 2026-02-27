@@ -99,25 +99,46 @@ model Vehicle {
   @@map("vehicles")
 }
 
+model Location {
+  id      String  @id @default(uuid())
+  label   String
+  lat     Float?
+  lng     Float?
+  placeId String? // Google Places ID (para integração futura)
+  city    String?
+  campus  String?
+
+  ridesAsOrigin      Ride[] @relation("OriginLocation")
+  ridesAsDestination Ride[] @relation("DestinationLocation")
+
+  @@map("locations")
+}
+
 model Ride {
   id             String    @id @default(uuid())
   driverId       String
   driver         User      @relation("DriverRides", fields: [driverId], references: [id])
   vehicleId      String
   vehicle        Vehicle   @relation(fields: [vehicleId], references: [id])
-  
+
   origin         String
   destination    String
   departureTime  DateTime
-  
+
+  // Geodata estruturada (opcional — preenchida quando há coordenadas)
+  originLocationId      String?
+  destinationLocationId String?
+  originLocation        Location? @relation("OriginLocation", fields: [originLocationId], references: [id], onDelete: SetNull)
+  destinationLocation   Location? @relation("DestinationLocation", fields: [destinationLocationId], references: [id], onDelete: SetNull)
+
   availableSeats Int
-  price          Float?    // (SQLite: Float)
-  
-  status         String    @default("SCHEDULED") // (SQLite: String)
-  
-  scheduleTemplateId String? // Template que originou esta boleia (opcional)
+  price          Float?
+
+  status         String    @default("SCHEDULED")
+
+  scheduleTemplateId String?
   scheduleTemplate   ScheduleTemplate? @relation(fields: [scheduleTemplateId], references: [id], onDelete: SetNull)
-  
+
   bookings       Booking[]
   conversations Conversation[]
 

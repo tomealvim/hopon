@@ -10,9 +10,39 @@ export class CreateRideDto {
   @IsString()
   origin: string;
 
+  @ApiPropertyOptional({ example: 38.7071 })
+  @IsOptional()
+  @IsNumber()
+  originLat?: number;
+
+  @ApiPropertyOptional({ example: -9.1366 })
+  @IsOptional()
+  @IsNumber()
+  originLng?: number;
+
   @ApiProperty({ example: 'Porto, Estação de Campanhã' })
   @IsString()
   destination: string;
+
+  @ApiPropertyOptional({ example: 41.1496 })
+  @IsOptional()
+  @IsNumber()
+  destinationLat?: number;
+
+  @ApiPropertyOptional({ example: -8.5815 })
+  @IsOptional()
+  @IsNumber()
+  destinationLng?: number;
+
+  @ApiPropertyOptional({ example: 'Lisboa' })
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @ApiPropertyOptional({ example: 'ULisboa' })
+  @IsOptional()
+  @IsString()
+  campus?: string;
 
   @ApiProperty({ example: '2024-03-15T08:00:00Z' })
   @IsDateString()

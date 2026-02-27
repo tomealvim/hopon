@@ -1,5 +1,14 @@
 // Resposta da API GET /rides/search e GET /rides/:id
 
+export interface ApiLocation {
+  id: string;
+  label: string;
+  lat?: number | null;
+  lng?: number | null;
+  city?: string | null;
+  campus?: string | null;
+}
+
 export interface ApiRideDriver {
   id: string;
   email?: string;
@@ -27,6 +36,8 @@ export interface ApiRide {
   vehicleId: string;
   origin: string;
   destination: string;
+  originLocation?: ApiLocation | null;
+  destinationLocation?: ApiLocation | null;
   departureTime: string;
   availableSeats: number;
   bookedSeats: number;

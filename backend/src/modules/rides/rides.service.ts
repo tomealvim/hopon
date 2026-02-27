@@ -27,6 +27,24 @@ export class RidesService {
       throw new BadRequestException(`Número de lugares disponíveis (${dto.availableSeats}) excede os lugares do veículo (${vehicle.seats})`);
     }
 
+    // Criar registos de Location se houver coordenadas
+    let originLocationId: string | null = null;
+    let destinationLocationId: string | null = null;
+
+    if (dto.originLat != null && dto.originLng != null) {
+      const loc = await this.prisma.location.create({
+        data: { label: dto.origin, lat: dto.originLat, lng: dto.originLng, city: dto.city ?? null, campus: dto.campus ?? null },
+      });
+      originLocationId = loc.id;
+    }
+
+    if (dto.destinationLat != null && dto.destinationLng != null) {
+      const loc = await this.prisma.location.create({
+        data: { label: dto.destination, lat: dto.destinationLat, lng: dto.destinationLng },
+      });
+      destinationLocationId = loc.id;
+    }
+
     const ride = await this.prisma.ride.create({
       data: {
         driverId: userId,
@@ -37,6 +55,8 @@ export class RidesService {
         availableSeats: dto.availableSeats,
         price: dto.price ?? null,
         status: 'SCHEDULED',
+        ...(originLocationId && { originLocationId }),
+        ...(destinationLocationId && { destinationLocationId }),
       },
       include: {
         vehicle: {
@@ -54,6 +74,8 @@ export class RidesService {
           },
         },
         bookings: true,
+        originLocation: true,
+        destinationLocation: true,
       },
     });
 
@@ -66,6 +88,8 @@ export class RidesService {
       include: {
         vehicle: true,
         bookings: true,
+        originLocation: true,
+        destinationLocation: true,
       },
       orderBy: { departureTime: 'asc' },
     });
@@ -100,6 +124,8 @@ export class RidesService {
             },
           },
         },
+        originLocation: true,
+        destinationLocation: true,
       },
     });
 
@@ -137,6 +163,27 @@ export class RidesService {
       where.availableSeats = { gte: dto.minSeats };
     }
 
+    // Pesquisa por proximidade: filtrar por IDs de rides cujo origin está dentro do raio
+    if (dto.lat != null && dto.lng != null) {
+      const radiusKm = dto.radius ?? 10;
+      // Haversine em SQL — filtra locations de origem dentro do raio
+      const nearbyOrigins = await this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM locations
+        WHERE lat IS NOT NULL AND lng IS NOT NULL
+          AND (
+            6371 * acos(
+              GREATEST(-1, LEAST(1,
+                cos(radians(${dto.lat})) * cos(radians(lat)) *
+                cos(radians(lng) - radians(${dto.lng})) +
+                sin(radians(${dto.lat})) * sin(radians(lat))
+              ))
+            )
+          ) <= ${radiusKm}
+      `;
+      const nearbyIds = nearbyOrigins.map((r) => r.id);
+      where.originLocationId = { in: nearbyIds };
+    }
+
     const rides = await this.prisma.ride.findMany({
       where,
       include: {
@@ -155,6 +202,8 @@ export class RidesService {
           },
         },
         bookings: true,
+        originLocation: true,
+        destinationLocation: true,
       },
       orderBy: { departureTime: 'asc' },
     });
@@ -210,6 +259,8 @@ export class RidesService {
       include: {
         vehicle: true,
         bookings: true,
+        originLocation: true,
+        destinationLocation: true,
       },
     });
 
@@ -296,6 +347,12 @@ export class RidesService {
       vehicleId: ride.vehicleId,
       origin: ride.origin,
       destination: ride.destination,
+      originLocation: ride.originLocation
+        ? { id: ride.originLocation.id, label: ride.originLocation.label, lat: ride.originLocation.lat, lng: ride.originLocation.lng, city: ride.originLocation.city, campus: ride.originLocation.campus }
+        : null,
+      destinationLocation: ride.destinationLocation
+        ? { id: ride.destinationLocation.id, label: ride.destinationLocation.label, lat: ride.destinationLocation.lat, lng: ride.destinationLocation.lng, city: ride.destinationLocation.city, campus: ride.destinationLocation.campus }
+        : null,
       departureTime: ride.departureTime,
       availableSeats: ride.availableSeats,
       bookedSeats,

@@ -189,9 +189,12 @@ model Location {
 }
 ```
 
-- [ ] Migrar `Ride.origin` e `Ride.destination` para `originId`/`destinationId` (FK → Location)
-- [ ] Integrar Google Places Autocomplete no frontend
-- [ ] Implementar pesquisa por proximidade (PostGIS ou cálculo Haversine em query)
+- [x] Adicionar modelo `Location` ao schema (label, lat?, lng?, placeId?, city?, campus?)
+- [x] Adicionar `originLocationId`/`destinationLocationId` opcionais à `Ride` (FK → Location)
+- [x] Backend cria registos `Location` quando lat/lng são fornecidos no CreateRideDto
+- [x] Pesquisa por proximidade com Haversine em SQL (lat/lng/radius no SearchRidesDto)
+- [x] Componente `LocationInput` no frontend — pronto para integrar Google Places Autocomplete
+- [ ] Integrar Google Places Autocomplete no frontend (requer API key)
 
 ---
 
@@ -275,9 +278,9 @@ model WalletTransaction {
 |---|---|---|---|
 | 1.1 | PostgreSQL | ✅ Concluído | docker compose + prisma migrate init-postgres |
 | 1.2 | Transações bookings | ✅ Concluído | SELECT FOR UPDATE + cancel atómico |
-| 1.3 | Inbox no backend | ⬜ Pendente | — |
-| 1.4 | Ratings | ⬜ Pendente | — |
-| 2.1 | Geodata | ⬜ Pendente | — |
+| 1.3 | Inbox no backend | ✅ Concluído | Conversation/Message/Participant + InboxModule + polling frontend |
+| 1.4 | Ratings | ✅ Concluído | POST /ratings + GET /ratings/users/:id + RatingsSheet view/submit |
+| 2.1 | Geodata | ✅ Concluído | Location model + lat/lng opcional em Ride + Haversine search + LocationInput component |
 | 2.2 | Realtime SSE | ⬜ Pendente | — |
 | 2.3 | Ledger pagamentos | ⬜ Pendente | — |
 | 2.4 | Trust & Safety | ⬜ Pendente | — |

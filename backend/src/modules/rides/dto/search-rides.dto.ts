@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsDateString, IsInt, Min } from 'class-validator';
+import { IsOptional, IsString, IsDateString, IsInt, IsNumber, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SearchRidesDto {
@@ -29,5 +29,25 @@ export class SearchRidesDto {
   @IsInt()
   @Min(1)
   minSeats?: number;
+
+  // Pesquisa por proximidade geográfica
+  @ApiPropertyOptional({ example: 38.7071, description: 'Latitude do ponto de origem (requer lng e radius)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  lat?: number;
+
+  @ApiPropertyOptional({ example: -9.1366, description: 'Longitude do ponto de origem (requer lat e radius)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  lng?: number;
+
+  @ApiPropertyOptional({ example: 10, description: 'Raio de pesquisa em km (padrão: 10km)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  radius?: number;
 }
 
