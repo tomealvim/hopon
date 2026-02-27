@@ -7,103 +7,54 @@ export class BookingsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, rideId: string, dto: CreateBookingDto) {
-    // Verificar se a boleia existe e está disponível
-    const ride = await this.prisma.ride.findUnique({
-      where: { id: rideId },
-      include: {
-        bookings: true,
-        vehicle: true,
-      },
-    });
-
-    if (!ride) {
-      throw new NotFoundException('Boleia não encontrada');
-    }
-
-    if (ride.status !== 'SCHEDULED') {
-      throw new BadRequestException('A boleia não está disponível para reservas');
-    }
-
-    // Verificar se o utilizador não é o condutor
-    if (ride.driverId === userId) {
-      throw new BadRequestException('Não podes reservar lugar na tua própria boleia');
-    }
-
-    // Verificar se já tem uma reserva nesta boleia
-    const existingBooking = await this.prisma.booking.findFirst({
-      where: {
-        rideId,
-        userId,
-        status: { in: ['PENDING', 'CONFIRMED'] },
-      },
-    });
-
-    if (existingBooking) {
-      throw new BadRequestException('Já tens uma reserva ativa nesta boleia');
-    }
-
-    // Calcular lugares já reservados
-    const bookedSeats = ride.bookings
-      .filter((b) => b.status === 'CONFIRMED' || b.status === 'PENDING')
-      .reduce((sum, b) => sum + b.seats, 0);
-
-    // Verificar se há lugares suficientes
-    const remainingSeats = ride.availableSeats - bookedSeats;
-
-    if (dto.seats > remainingSeats) {
-      throw new BadRequestException(
-        `Não há lugares suficientes. Restam ${remainingSeats} lugares disponíveis.`,
-      );
-    }
-
-    // Criar reserva dentro de uma transação
     const booking = await this.prisma.$transaction(async (tx) => {
-      // Verificar novamente lugares disponíveis (double-check dentro da transação)
-      const currentRide = await tx.ride.findUnique({
+      // Bloquear a linha da boleia — garante que reservas concorrentes ficam em fila
+      // e não conseguem criar overbooking por race condition
+      await tx.$queryRaw`SELECT id FROM rides WHERE id = ${rideId} FOR UPDATE`;
+
+      const ride = await tx.ride.findUnique({
         where: { id: rideId },
-        include: { bookings: true },
+        include: {
+          bookings: {
+            where: { status: { in: ['PENDING', 'CONFIRMED'] } },
+          },
+        },
       });
 
-      if (!currentRide) {
-        throw new NotFoundException('Boleia não encontrada');
+      if (!ride) throw new NotFoundException('Boleia não encontrada');
+
+      if (ride.status !== 'SCHEDULED') {
+        throw new BadRequestException('A boleia não está disponível para reservas');
       }
 
-      const currentBookedSeats = currentRide.bookings
-        .filter((b) => b.status === 'CONFIRMED' || b.status === 'PENDING')
-        .reduce((sum, b) => sum + b.seats, 0);
+      if (ride.driverId === userId) {
+        throw new BadRequestException('Não podes reservar lugar na tua própria boleia');
+      }
 
-      const currentRemainingSeats = currentRide.availableSeats - currentBookedSeats;
+      const alreadyBooked = ride.bookings.some((b) => b.userId === userId);
+      if (alreadyBooked) {
+        throw new BadRequestException('Já tens uma reserva ativa nesta boleia');
+      }
 
-      if (dto.seats > currentRemainingSeats) {
+      const bookedSeats = ride.bookings.reduce((sum, b) => sum + b.seats, 0);
+      const remainingSeats = ride.availableSeats - bookedSeats;
+
+      if (dto.seats > remainingSeats) {
         throw new BadRequestException(
-          `Não há lugares suficientes. Restam ${currentRemainingSeats} lugares disponíveis.`,
+          `Não há lugares suficientes. Restam ${remainingSeats} lugares disponíveis.`,
         );
       }
 
-      // Criar a reserva
-      return await tx.booking.create({
-        data: {
-          rideId,
-          userId,
-          seats: dto.seats,
-          status: 'PENDING',
-        },
+      return tx.booking.create({
+        data: { rideId, userId, seats: dto.seats, status: 'PENDING' },
         include: {
           ride: {
             include: {
               vehicle: true,
-              driver: {
-                include: {
-                  profile: true,
-                },
-              },
+              driver: { include: { profile: true } },
             },
           },
-          user: {
-            include: {
-              profile: true,
-            },
-          },
+          user: { include: { profile: true } },
         },
       });
     });
@@ -133,48 +84,36 @@ export class BookingsService {
   }
 
   async cancel(userId: string, bookingId: string) {
+    // Verificar existência e ownership antes de tentar cancelar
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
-      include: {
-        ride: true,
-      },
     });
 
-    if (!booking) {
-      throw new NotFoundException('Reserva não encontrada');
-    }
+    if (!booking) throw new NotFoundException('Reserva não encontrada');
+    if (booking.userId !== userId) throw new ForbiddenException('Não tens permissão para cancelar esta reserva');
+    if (booking.status === 'COMPLETED') throw new BadRequestException('Não é possível cancelar uma reserva já completada');
 
-    if (booking.userId !== userId) {
-      throw new ForbiddenException('Não tens permissão para cancelar esta reserva');
-    }
+    // Update condicional atómico — só cancela se ainda estiver em estado cancelável
+    // Previne que dois pedidos simultâneos cancelem a mesma reserva duas vezes
+    const result = await this.prisma.booking.updateMany({
+      where: { id: bookingId, status: { notIn: ['CANCELLED', 'COMPLETED'] } },
+      data: { status: 'CANCELLED' },
+    });
 
-    if (booking.status === 'CANCELLED') {
+    if (result.count === 0) {
       throw new BadRequestException('A reserva já foi cancelada');
     }
 
-    if (booking.status === 'COMPLETED') {
-      throw new BadRequestException('Não é possível cancelar uma reserva já completada');
-    }
-
-    const updatedBooking = await this.prisma.booking.update({
+    const updatedBooking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
-      data: { status: 'CANCELLED' },
       include: {
         ride: {
           include: {
             vehicle: true,
-            driver: {
-              include: {
-                profile: true,
-              },
-            },
+            driver: { include: { profile: true } },
           },
         },
-        user: {
-          include: {
-            profile: true,
-          },
-        },
+        user: { include: { profile: true } },
       },
     });
 
