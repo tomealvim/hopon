@@ -116,13 +116,11 @@ export class RidesService {
     };
 
     if (dto.origin) {
-      // SQLite não suporta mode: 'insensitive', usar contains simples
-      where.origin = { contains: dto.origin };
+      where.origin = { contains: dto.origin, mode: 'insensitive' };
     }
 
     if (dto.destination) {
-      // SQLite não suporta mode: 'insensitive', usar contains simples
-      where.destination = { contains: dto.destination };
+      where.destination = { contains: dto.destination, mode: 'insensitive' };
     }
 
     if (dto.departureTimeFrom || dto.departureTimeTo) {
@@ -312,7 +310,7 @@ export class RidesService {
             color: ride.vehicle.color,
             imageUrl: ride.vehicle.imageUrl,
             seats: ride.vehicle.seats,
-            features: ride.vehicle.features ? JSON.parse(ride.vehicle.features) : null,
+            features: ride.vehicle.features ?? null,
           }
         : null,
       driver: ride.driver

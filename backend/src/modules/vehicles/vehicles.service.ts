@@ -37,7 +37,7 @@ export class VehiclesService {
         color: dto.color,
         imageUrl: dto.imageUrl,
         seats: dto.seats ?? 4,
-        features: JSON.stringify(this.normalizeFeatures(dto.features)),
+        features: this.normalizeFeatures(dto.features),
       },
     });
     return this.toResponse(vehicle);
@@ -56,7 +56,7 @@ export class VehiclesService {
         seats: dto.seats,
         features:
           dto.features !== undefined
-            ? JSON.stringify(this.normalizeFeatures(dto.features))
+            ? this.normalizeFeatures(dto.features)
             : undefined,
       },
     });
@@ -93,17 +93,8 @@ export class VehiclesService {
   private toResponse(vehicle: VehicleModel) {
     return {
       ...vehicle,
-      features: this.safeParseJson(vehicle.features) ?? this.DEFAULT_FEATURES,
+      features: (vehicle.features as VehicleFeatures) ?? this.DEFAULT_FEATURES,
     };
-  }
-
-  private safeParseJson(value?: string | null) {
-    if (!value) return null;
-    try {
-      return JSON.parse(value);
-    } catch {
-      return null;
-    }
   }
 }
 

@@ -35,10 +35,9 @@ export class UpdateProfileDto {
   @IsEmail()
   contactEmail?: string;
 
-  @ApiPropertyOptional({ description: 'JSON string of weekly schedule' })
+  @ApiPropertyOptional({ description: 'Weekly schedule object' })
   @IsOptional()
-  @IsString()
-  schedule?: string;
+  schedule?: Record<string, any>;
 
   @ApiPropertyOptional({ description: 'True when user has finished the 3-step profile setup' })
   @IsOptional()

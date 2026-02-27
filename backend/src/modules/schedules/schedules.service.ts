@@ -37,14 +37,14 @@ export class SchedulesService {
         origin: dto.origin,
         destination: dto.destination,
         time: dto.time,
-        daysOfWeek: JSON.stringify(dto.daysOfWeek),
+        daysOfWeek: dto.daysOfWeek,
         availableSeats: dto.availableSeats,
         price: dto.price ?? null,
         acceptDetours: dto.acceptDetours ?? true,
         detourMaxMin: dto.detourMaxMin ?? 10,
         meetingPoint: dto.meetingPoint ?? null,
         notes: dto.notes ?? null,
-        preferences: dto.preferences ? JSON.stringify(dto.preferences) : null,
+        preferences: dto.preferences ?? null,
         active: true,
       },
       include: {
@@ -94,7 +94,7 @@ export class SchedulesService {
       }
       updateData.time = dto.time;
     }
-    if (dto.daysOfWeek !== undefined) updateData.daysOfWeek = JSON.stringify(dto.daysOfWeek);
+    if (dto.daysOfWeek !== undefined) updateData.daysOfWeek = dto.daysOfWeek;
     if (dto.availableSeats !== undefined) updateData.availableSeats = dto.availableSeats;
     if (dto.price !== undefined) updateData.price = dto.price;
     if (dto.active !== undefined) updateData.active = dto.active;
@@ -102,7 +102,7 @@ export class SchedulesService {
     if (dto.detourMaxMin !== undefined) updateData.detourMaxMin = dto.detourMaxMin;
     if (dto.meetingPoint !== undefined) updateData.meetingPoint = dto.meetingPoint;
     if (dto.notes !== undefined) updateData.notes = dto.notes;
-    if (dto.preferences !== undefined) updateData.preferences = JSON.stringify(dto.preferences);
+    if (dto.preferences !== undefined) updateData.preferences = dto.preferences ?? null;
 
     // Se estiver a atualizar lugares, verificar veículo
     if (dto.availableSeats !== undefined) {
@@ -198,20 +198,8 @@ export class SchedulesService {
   }
 
   private toResponse(schedule: any) {
-    let daysOfWeek: string[] = [];
-    try {
-      daysOfWeek = JSON.parse(schedule.daysOfWeek || '[]');
-    } catch {
-      // Se não for JSON válido, tentar split por vírgula (fallback)
-      daysOfWeek = schedule.daysOfWeek ? schedule.daysOfWeek.split(',') : [];
-    }
-
-    let preferences: Record<string, boolean> | null = null;
-    try {
-      if (schedule.preferences) preferences = JSON.parse(schedule.preferences);
-    } catch {
-      // ignore
-    }
+    const daysOfWeek = (schedule.daysOfWeek as string[]) ?? [];
+    const preferences = (schedule.preferences as Record<string, boolean>) ?? null;
 
     return {
       id: schedule.id,

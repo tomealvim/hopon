@@ -491,7 +491,7 @@ export class AuthService {
     if (profile) {
       profile = {
         ...profile,
-        schedule: this.safeParseJson(profile.schedule),
+        schedule: profile.schedule,
       };
     }
 
@@ -514,21 +514,11 @@ export class AuthService {
     if (!vehicle) return vehicle;
     return {
       ...vehicle,
-      features:
-        this.safeParseJson(vehicle.features) ?? {
-          airConditioning: true,
-          heater: true,
-        },
+      features: vehicle.features ?? {
+        airConditioning: true,
+        heater: true,
+      },
     };
-  }
-
-  private safeParseJson(value?: string | null) {
-    if (!value) return null;
-    try {
-      return JSON.parse(value);
-    } catch {
-      return null;
-    }
   }
 
   /**

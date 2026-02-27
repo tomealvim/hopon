@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -61,8 +61,7 @@ model Profile {
   bio          String?
   contactEmail String?
 
-  // JSONB for schedule flexibility (SQLite: String)
-  schedule       String?
+  schedule       Json?
   setupCompleted Boolean  @default(false)
 
   createdAt    DateTime @default(now())
@@ -83,7 +82,7 @@ model Vehicle {
   imageUrl  String?
   seats     Int      @default(4)
   
-  features  String?    // { airConditioning: true, etc } (SQLite: String)
+  features  Json?
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -131,7 +130,7 @@ model ScheduleTemplate {
   origin         String
   destination    String
   time           String    // Hora de partida em formato "HH:mm" (ex: "08:00")
-  daysOfWeek     String    // JSON array: ["segunda","terca",...]
+  daysOfWeek     Json      // array: ["segunda","terca",...]
   
   availableSeats Int       @default(3)
   price          Float?    // (SQLite: Float)
@@ -140,7 +139,7 @@ model ScheduleTemplate {
   detourMaxMin   Int       @default(10)
   meetingPoint   String?
   notes          String?
-  preferences    String?   // JSON: { musica, falar, bagagem, animais }
+  preferences    Json?     // { musica, falar, bagagem, animais }
   
   active         Boolean   @default(true)
   
