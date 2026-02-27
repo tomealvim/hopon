@@ -9,6 +9,7 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
 import { RidesModule } from './modules/rides/rides.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { SchedulesModule } from './modules/schedules/schedules.module';
+import { InboxModule } from './modules/inbox/inbox.module';
 
 // Garantir que o .env seja sempre o da pasta backend (mesmo ao correr a partir da raiz do repo)
 const backendEnv = join(__dirname, '..', '.env');
@@ -27,6 +28,7 @@ const backendEnv = join(__dirname, '..', '.env');
     RidesModule,
     BookingsModule,
     SchedulesModule,
+    InboxModule,
   ],
 })
 export class AppModule {}

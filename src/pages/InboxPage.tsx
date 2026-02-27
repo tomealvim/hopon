@@ -1,44 +1,39 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import { useInbox } from "../contexts/InboxContext";
+import { useAuth } from "../contexts/AuthContext";
 import type { Thread, Message, SystemEvent } from "./types/inbox";
 import ThreadView from "../components/inbox/ThreadView";
 import InboxRow from "../components/inbox/InboxRow";
 
-// --- MOCK DATA --------------------------------------------------------------
-const me = { id: "u_me", name: "Tu" };
-const tomas = { id: "u_tomas", name: "Tomás Silva" };
-const mafalda = { id: "u_mafalda", name: "Mafalda R." };
-
-// --- PAGE -------------------------------------------------------------------
 type InboxPageProps = {
   initialThreadId?: string;
   onThreadClosed?: () => void;
 };
 
 export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPageProps = {}) {
-  const { threads, messagesByThread, markThreadAsRead, addMessage } = useInbox();
+  const { threads, messagesByThread, markThreadAsRead, addMessage, loadMessages, sendMessage, isLoading } = useInbox();
+  const { user } = useAuth();
+  const meId = user?.id ?? "";
   const [openThreadId, setOpenThreadId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const hasOpenedInitialThread = useRef(false);
-  
-  // Resetar flag quando initialThreadId muda
+
   useEffect(() => {
     hasOpenedInitialThread.current = false;
   }, [initialThreadId]);
 
-  // Abrir thread inicial assim que aparecer no array de threads
   useEffect(() => {
     if (initialThreadId && !hasOpenedInitialThread.current) {
       const thread = threads.find(t => t.id === initialThreadId);
       if (thread) {
         setOpenThreadId(initialThreadId);
         markThreadAsRead(initialThreadId);
+        loadMessages(initialThreadId);
         hasOpenedInitialThread.current = true;
-        // Limpar após abrir
         onThreadClosed?.();
       }
     }
-  }, [initialThreadId, threads, markThreadAsRead, onThreadClosed]);
+  }, [initialThreadId, threads, markThreadAsRead, loadMessages, onThreadClosed]);
 
   const sections = useMemo(() => {
     const pedidos = threads.filter(
@@ -56,13 +51,13 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
       setError(null);
       setOpenThreadId(tid);
       markThreadAsRead(tid);
+      loadMessages(tid);
     } catch (err) {
       setError("Erro ao abrir conversa");
       console.error("Error opening thread:", err);
     }
-  }, [markThreadAsRead]);
+  }, [markThreadAsRead, loadMessages]);
 
-  // Handlers de ações de sistema (mock: só atualizam estado local)
   const handleSystemAction = useCallback((
     tid: string,
     action: "accept_request" | "decline_request" | "confirm_change" | "pay_now",
@@ -70,72 +65,27 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
   ) => {
     try {
       setError(null);
-      
-      const createSystemMessage = (system: SystemEvent): Message => ({
-        id: nid(),
-        threadId: tid,
-        type: "system",
-        ts: Date.now(),
-        system,
-      });
-
-      const updateThreads = (msg: Message) => {
-        if (msg.type === "system") {
-          addMessage(tid, { type: "system", system: msg.system } as Omit<Message, "id" | "threadId" | "ts">);
-        } else {
-          addMessage(tid, { type: "text", text: msg.text, authorId: msg.authorId } as Omit<Message, "id" | "threadId" | "ts">);
-        }
+      const systemMap: Record<string, SystemEvent> = {
+        accept_request: { kind: "request_accepted", byUser: meId, seats: payload?.seats ?? 1 },
+        decline_request: { kind: "request_declined", byUser: meId },
+        confirm_change: { kind: "change_confirmed", byUser: meId },
+        pay_now: { kind: "payment_paid", amount: payload?.amount ?? 2.0, method: "MB Way" },
       };
-
-      switch (action) {
-        case "accept_request": {
-          const msg = createSystemMessage({ 
-            kind: "request_accepted", 
-            byUser: me.id, 
-            seats: payload?.seats ?? 1 
-          });
-          updateThreads(msg);
-          break;
-        }
-        case "decline_request": {
-          const msg = createSystemMessage({ 
-            kind: "request_declined", 
-            byUser: me.id 
-          });
-          updateThreads(msg);
-          break;
-        }
-        case "confirm_change": {
-          const msg = createSystemMessage({ 
-            kind: "change_confirmed", 
-            byUser: me.id 
-          });
-          updateThreads(msg);
-          break;
-        }
-        case "pay_now": {
-          const msg = createSystemMessage({ 
-            kind: "payment_paid", 
-            amount: payload?.amount ?? 2.0, 
-            method: "MB Way" 
-          });
-          updateThreads(msg);
-          break;
-        }
+      const system = systemMap[action];
+      if (system) {
+        addMessage(tid, { type: "system", system } as Omit<Message, "id" | "threadId" | "ts">);
       }
     } catch (err) {
       setError("Erro ao processar ação");
       console.error("Error handling system action:", err);
     }
-  }, [openThreadId]);
+  }, [meId, addMessage]);
 
-  // Se temos initialThreadId mas ainda não encontramos a thread, mostrar loading
   if (initialThreadId && !hasOpenedInitialThread.current && !openThreadId) {
     const thread = threads.find(t => t.id === initialThreadId);
     if (!thread) {
       return (
         <main className="relative min-h-screen px-4 pb-32 flex items-center justify-center bg-white text-gray-900 overflow-hidden">
-          {/* Blur effects coloridos */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-gray-300/8 blur-[180px]" />
             <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/20 blur-[160px]" />
@@ -152,23 +102,21 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
   if (openThreadId) {
     const thread = threads.find(t => t.id === openThreadId);
     if (!thread) {
-      // Thread foi removida ou não existe
       setError("Conversa não encontrada");
       setOpenThreadId(null);
       return null;
     }
     return (
       <ThreadView
-        meId={me.id}
+        meId={meId}
         thread={thread}
         messages={messagesByThread[openThreadId] || []}
         onBack={() => setOpenThreadId(null)}
         onSystemAction={(action, payload) => handleSystemAction(openThreadId, action, payload)}
+        onSendMessage={(text) => sendMessage(openThreadId, text)}
         getUserName={(id) => {
-          if (id === me.id) return me.name;
-          if (id === tomas.id) return tomas.name;
-          if (id === mafalda.id) return mafalda.name;
-          return "Desconhecido";
+          if (id === meId) return "Tu";
+          return "Utilizador";
         }}
       />
     );
@@ -176,80 +124,66 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
 
   return (
     <main className="relative min-h-screen px-4 pb-32 bg-white text-gray-900 overflow-hidden" role="main" aria-label="Caixa de entrada">
-      {/* Blur effects coloridos */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-gray-300/5 blur-[180px]" />
         <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/8 blur-[160px]" />
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/6 blur-[200px]" />
       </div>
-      
+
       <div className="relative z-10">
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-700 px-4 py-3 rounded mb-4" role="alert" aria-live="polite">
-          {error}
-        </div>
-      )}
-      
-      {/* Pedidos */}
-      <Section title="Pedidos" ariaLabel={`${sections.pedidos.length} pedidos de boleia`}>
-        {sections.pedidos.length === 0 && <Empty label="Sem pedidos" />}
-        {/* TODO: Quando houver API real, adicionar loading state: {isLoading ? Array(3).fill(0).map((_, i) => <InboxRowSkeleton key={i} />) : ...} */}
-        {sections.pedidos.map(t => (
-          <InboxRow
-            key={t.id}
-            title={t.title}
-            subtitle={summaryLast(t.lastEvent)}
-            unread={t.unreadCount}
-            cta={ctaFor(t.lastEvent)}
-            onClick={() => openThread(t.id)}
-          />
-        ))}
-      </Section>
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-700 px-4 py-3 rounded mb-4" role="alert" aria-live="polite">
+            {error}
+          </div>
+        )}
 
-      {/* Viagens */}
-      <Section title="Viagens" ariaLabel={`${sections.viagens.length} conversas de viagem`}>
-        {sections.viagens.length === 0 && <Empty label="Sem conversas de viagem" />}
-        {/* TODO: Quando houver API real, adicionar loading state */}
-        {sections.viagens.map(t => (
-          <InboxRow
-            key={t.id}
-            title={t.title}
-            subtitle={summaryLast(t.lastEvent)}
-            unread={t.unreadCount}
-            onClick={() => openThread(t.id)}
-          />
-        ))}
-      </Section>
+        <Section title="Pedidos" ariaLabel={`${sections.pedidos.length} pedidos de boleia`}>
+          {isLoading && sections.pedidos.length === 0 && <LoadingRows />}
+          {!isLoading && sections.pedidos.length === 0 && <Empty label="Sem pedidos" />}
+          {sections.pedidos.map(t => (
+            <InboxRow
+              key={t.id}
+              title={t.title}
+              subtitle={summaryLast(t.lastEvent)}
+              unread={t.unreadCount}
+              cta={ctaFor(t.lastEvent)}
+              onClick={() => openThread(t.id)}
+            />
+          ))}
+        </Section>
 
-      {/* Pessoas */}
-      <Section title="Pessoas" ariaLabel={`${sections.pessoas.length} conversas privadas`}>
-        {sections.pessoas.length === 0 && <Empty label="Sem DMs" />}
-        {/* TODO: Quando houver API real, adicionar loading state */}
-        {sections.pessoas.map(t => (
-          <InboxRow
-            key={t.id}
-            title={t.title}
-            subtitle={summaryLast(t.lastEvent)}
-            unread={t.unreadCount}
-            onClick={() => openThread(t.id)}
-          />
-        ))}
-      </Section>
+        <Section title="Viagens" ariaLabel={`${sections.viagens.length} conversas de viagem`}>
+          {isLoading && sections.viagens.length === 0 && <LoadingRows />}
+          {!isLoading && sections.viagens.length === 0 && <Empty label="Sem conversas de viagem" />}
+          {sections.viagens.map(t => (
+            <InboxRow
+              key={t.id}
+              title={t.title}
+              subtitle={summaryLast(t.lastEvent)}
+              unread={t.unreadCount}
+              onClick={() => openThread(t.id)}
+            />
+          ))}
+        </Section>
+
+        <Section title="Pessoas" ariaLabel={`${sections.pessoas.length} conversas privadas`}>
+          {!isLoading && sections.pessoas.length === 0 && <Empty label="Sem DMs" />}
+          {sections.pessoas.map(t => (
+            <InboxRow
+              key={t.id}
+              title={t.title}
+              subtitle={summaryLast(t.lastEvent)}
+              unread={t.unreadCount}
+              onClick={() => openThread(t.id)}
+            />
+          ))}
+        </Section>
       </div>
     </main>
   );
 }
 
-// --- UI bits ----------------------------------------------------------------
-function Section({ 
-  title, 
-  children, 
-  ariaLabel 
-}: { 
-  title: string; 
-  children: React.ReactNode; 
-  ariaLabel?: string;
-}) {
+function Section({ title, children, ariaLabel }: { title: string; children: React.ReactNode; ariaLabel?: string }) {
   return (
     <section className="pt-4 pb-6" aria-label={ariaLabel}>
       <h2 className="text-sm font-bold text-gray-900 mb-3">{title}</h2>
@@ -264,10 +198,14 @@ function Empty({ label }: { label: string }) {
   return <div className="text-center text-gray-500 py-8 text-sm">{label}</div>;
 }
 
-
-// --- Helpers ----------------------------------------------------------------
-function nid() {
-  return Math.random().toString(36).slice(2, 10);
+function LoadingRows() {
+  return (
+    <>
+      {[1, 2].map(i => (
+        <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+      ))}
+    </>
+  );
 }
 
 function summaryLast(last?: Thread["lastEvent"]) {

@@ -3,9 +3,10 @@ import { BookingsService } from './bookings.service';
 import { BookingsController } from './bookings.controller';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { VerifiedUserGuard } from '../../common/guards/verified-user.guard';
+import { InboxModule } from '../inbox/inbox.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, InboxModule],
   controllers: [BookingsController],
   providers: [BookingsService, VerifiedUserGuard],
 })

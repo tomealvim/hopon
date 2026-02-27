@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { InboxService } from '../inbox/inbox.service';
 
 @Injectable()
 export class BookingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly inboxService: InboxService,
+  ) {}
 
   async create(userId: string, rideId: string, dto: CreateBookingDto) {
     const booking = await this.prisma.$transaction(async (tx) => {
@@ -59,7 +63,21 @@ export class BookingsService {
       });
     });
 
-    return this.toResponse(booking);
+    // Criar conversa entre condutor e passageiro
+    let conversationId: string | null = null;
+    try {
+      const conv = await this.inboxService.createConversationForBooking(
+        booking.id,
+        rideId,
+        booking.ride.driver.id,
+        userId,
+      );
+      conversationId = conv.id;
+    } catch (error) {
+      console.error('[BookingsService] Erro ao criar conversa:', error);
+    }
+
+    return this.toResponse(booking, conversationId);
   }
 
   async findMyBookings(userId: string) {
@@ -120,7 +138,7 @@ export class BookingsService {
     return this.toResponse(updatedBooking);
   }
 
-  private toResponse(booking: any) {
+  private toResponse(booking: any, conversationId?: string | null) {
     return {
       id: booking.id,
       rideId: booking.rideId,
@@ -177,6 +195,7 @@ export class BookingsService {
         : null,
       createdAt: booking.createdAt,
       updatedAt: booking.updatedAt,
+      conversationId: conversationId ?? null,
     };
   }
 }

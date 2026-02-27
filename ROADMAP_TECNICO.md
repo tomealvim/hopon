@@ -274,7 +274,7 @@ model WalletTransaction {
 | # | Item | Estado | PR/Commit |
 |---|---|---|---|
 | 1.1 | PostgreSQL | ✅ Concluído | docker compose + prisma migrate init-postgres |
-| 1.2 | Transações bookings | ⬜ Pendente | — |
+| 1.2 | Transações bookings | ✅ Concluído | SELECT FOR UPDATE + cancel atómico |
 | 1.3 | Inbox no backend | ⬜ Pendente | — |
 | 1.4 | Ratings | ⬜ Pendente | — |
 | 2.1 | Geodata | ⬜ Pendente | — |

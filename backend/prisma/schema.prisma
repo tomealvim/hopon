@@ -34,6 +34,9 @@ model User {
   
   scheduleTemplates ScheduleTemplate[]
 
+  conversations ConversationParticipant[]
+  sentMessages  Message[]
+
   @@map("users")
 }
 
@@ -113,7 +116,8 @@ model Ride {
   scheduleTemplate   ScheduleTemplate? @relation(fields: [scheduleTemplateId], references: [id], onDelete: SetNull)
   
   bookings       Booking[]
-  
+  conversations Conversation[]
+
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
@@ -162,11 +166,60 @@ model Booking {
   
   seats     Int           @default(1)
   status    String        @default("PENDING") // (SQLite: String)
-  
+
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
+  conversation  Conversation?
+
   @@map("bookings")
+}
+
+model Conversation {
+  id           String    @id @default(uuid())
+  rideId       String?
+  bookingId    String?   @unique
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  ride         Ride?                    @relation(fields: [rideId], references: [id], onDelete: SetNull)
+  booking      Booking?                 @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime?
+  joinedAt       DateTime     @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+  @@index([userId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  senderId       String
+  body           String
+  type           String       @default("text")
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  deletedAt      DateTime?
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id])
+
+  @@map("messages")
+  @@index([conversationId, createdAt])
 }
 
 model Wallet {

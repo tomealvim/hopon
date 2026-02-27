@@ -1,140 +1,219 @@
-import { createContext, useContext, useState, useCallback, useMemo } from "react";
+import { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import type { Thread, Message, SystemEvent } from "../pages/types/inbox";
+import { apiRequest } from "../services/api";
+import { useAuth } from "./AuthContext";
 
-export type { SystemEvent };
+interface ApiParticipant {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  lastReadAt: string | null;
+}
 
-interface InboxContextValue {
+interface ApiMessage {
+  id: string;
+  conversationId: string;
+  type: string;
+  body: string;
+  metadata: SystemEvent | null;
+  sender: { id: string; name: string; avatarUrl: string | null };
+  createdAt: string;
+}
+
+interface ApiConversation {
+  id: string;
+  rideId: string | null;
+  bookingId: string | null;
+  ride: { id: string; origin: string; destination: string; departureTime: string } | null;
+  participants: ApiParticipant[];
+  lastMessage: ApiMessage | null;
+  hasUnread: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function apiConversationToThread(conv: ApiConversation): Thread {
+  const lastMsg = conv.lastMessage;
+  let lastEvent: Thread["lastEvent"] | undefined;
+  if (lastMsg) {
+    if (lastMsg.type === "system" && lastMsg.metadata) {
+      lastEvent = { type: "system", system: lastMsg.metadata };
+    } else {
+      lastEvent = { type: "text", text: lastMsg.body };
+    }
+  }
+  return {
+    id: conv.id,
+    kind: "ride",
+    title: conv.ride
+      ? `${conv.ride.origin} → ${conv.ride.destination}`
+      : "Conversa",
+    participants: conv.participants.map((p) => p.userId),
+    unreadCount: conv.hasUnread ? 1 : 0,
+    lastEvent,
+    meta: conv.ride
+      ? { date: new Date(conv.ride.departureTime).toLocaleDateString("pt-PT") }
+      : undefined,
+  };
+}
+
+function apiMessageToMessage(msg: ApiMessage): Message {
+  if (msg.type === "system" && msg.metadata) {
+    return {
+      id: msg.id,
+      threadId: msg.conversationId,
+      type: "system",
+      ts: new Date(msg.createdAt).getTime(),
+      system: msg.metadata,
+    };
+  }
+  return {
+    id: msg.id,
+    threadId: msg.conversationId,
+    type: "text",
+    authorId: msg.sender.id,
+    text: msg.body,
+    ts: new Date(msg.createdAt).getTime(),
+  };
+}
+
+export interface InboxContextValue {
   threads: Thread[];
   messagesByThread: Record<string, Message[]>;
-  createThread: (thread: Omit<Thread, "id">) => Thread;
-  addMessage: (threadId: string, message: Omit<Message, "id" | "threadId" | "ts">) => void;
+  isLoading: boolean;
+  sendMessage: (threadId: string, text: string) => Promise<void>;
   markThreadAsRead: (threadId: string) => void;
   getThread: (threadId: string) => Thread | undefined;
   getMessages: (threadId: string) => Message[];
+  loadMessages: (threadId: string) => Promise<void>;
+  refresh: () => Promise<void>;
+  addMessage: (threadId: string, message: Omit<Message, "id" | "threadId" | "ts">) => void;
 }
 
 const InboxContext = createContext<InboxContextValue | undefined>(undefined);
 
-const STORAGE_KEY_THREADS = "hopon_threads";
-const STORAGE_KEY_MESSAGES = "hopon_messages";
+const POLL_INTERVAL = 10_000;
 
 export function InboxProvider({ children }: { children: ReactNode }) {
-  // Carregar threads do localStorage
-  const [threads, setThreads] = useState<Thread[]>(() => {
+  const { user } = useAuth();
+  const [threads, setThreads] = useState<Thread[]>([]);
+  const [messagesByThread, setMessagesByThread] = useState<Record<string, Message[]>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const fetchConversations = useCallback(async () => {
+    if (!user) return;
     try {
-      const stored = localStorage.getItem(STORAGE_KEY_THREADS);
-      return stored ? JSON.parse(stored) : [];
+      const data = await apiRequest<ApiConversation[]>("/inbox/conversations");
+      setThreads(data.map(apiConversationToThread));
     } catch {
-      return [];
+      // ignore silently for background poll
     }
-  });
+  }, [user]);
 
-  // Carregar mensagens do localStorage
-  const [messagesByThread, setMessagesByThread] = useState<Record<string, Message[]>>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_MESSAGES);
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
+  useEffect(() => {
+    if (!user) {
+      setThreads([]);
+      setMessagesByThread({});
+      return;
     }
-  });
-
-  // Guardar threads no localStorage
-  const saveThreads = useCallback((newThreads: Thread[]) => {
-    setThreads(newThreads);
-    localStorage.setItem(STORAGE_KEY_THREADS, JSON.stringify(newThreads));
-  }, []);
-
-  // Guardar mensagens no localStorage
-  const saveMessages = useCallback((newMessages: Record<string, Message[]>) => {
-    setMessagesByThread(newMessages);
-    localStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(newMessages));
-  }, []);
-
-  // Criar nova thread
-  const createThread = useCallback((thread: Omit<Thread, "id">): Thread => {
-    const newThread: Thread = {
-      ...thread,
-      id: `thread_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+    setIsLoading(true);
+    fetchConversations().finally(() => setIsLoading(false));
+    pollRef.current = setInterval(fetchConversations, POLL_INTERVAL);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
     };
+  }, [user, fetchConversations]);
 
-    saveThreads([...threads, newThread]);
-    return newThread;
-  }, [threads, saveThreads]);
+  const loadMessages = useCallback(async (threadId: string) => {
+    if (!user) return;
+    try {
+      const data = await apiRequest<ApiMessage[]>(`/inbox/conversations/${threadId}/messages`);
+      setMessagesByThread((prev) => ({
+        ...prev,
+        [threadId]: data.map(apiMessageToMessage),
+      }));
+      setThreads((prev) =>
+        prev.map((t) => (t.id === threadId ? { ...t, unreadCount: 0 } : t))
+      );
+    } catch (error) {
+      console.error("Failed to load messages:", error);
+    }
+  }, [user]);
 
-  // Adicionar mensagem a uma thread
-  const addMessage = useCallback((threadId: string, message: Omit<Message, "id" | "threadId" | "ts">) => {
-    const newMessage: Message = {
-      ...message,
-      id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-      threadId,
-      ts: Date.now(),
-    } as Message;
-
-    const currentMessages = messagesByThread[threadId] || [];
-    const updatedMessages = { ...messagesByThread, [threadId]: [...currentMessages, newMessage] };
-    
-    saveMessages(updatedMessages);
-
-    // Atualizar lastEvent da thread
-    const updatedThreads = threads.map(t => {
-      if (t.id !== threadId) return t;
-      
-      const lastEvent = message.type === "system" 
-        ? { type: "system" as const, system: (message as { type: "system"; system: SystemEvent }).system }
-        : { type: "text" as const, text: (message as { type: "text"; text: string }).text };
-      
-      return {
-        ...t,
-        lastEvent,
-        unreadCount: t.unreadCount + 1
-      };
+  const sendMessage = useCallback(async (threadId: string, text: string) => {
+    if (!user || !text.trim()) return;
+    const msg = await apiRequest<ApiMessage>(`/inbox/conversations/${threadId}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ body: text.trim() }),
     });
-    saveThreads(updatedThreads);
-  }, [threads, messagesByThread, saveMessages, saveThreads]);
-
-  // Marcar thread como lida
-  const markThreadAsRead = useCallback((threadId: string) => {
-    const updatedThreads = threads.map(t => 
-      t.id === threadId ? { ...t, unreadCount: 0 } : t
+    const newMessage = apiMessageToMessage(msg);
+    setMessagesByThread((prev) => ({
+      ...prev,
+      [threadId]: [...(prev[threadId] ?? []), newMessage],
+    }));
+    setThreads((prev) =>
+      prev.map((t) =>
+        t.id === threadId ? { ...t, lastEvent: { type: "text", text: text.trim() } } : t
+      )
     );
-    saveThreads(updatedThreads);
-  }, [threads, saveThreads]);
+  }, [user]);
 
-  // Obter thread por ID
-  const getThread = useCallback((threadId: string) => {
-    return threads.find(t => t.id === threadId);
-  }, [threads]);
+  const markThreadAsRead = useCallback((threadId: string) => {
+    setThreads((prev) =>
+      prev.map((t) => (t.id === threadId ? { ...t, unreadCount: 0 } : t))
+    );
+    apiRequest(`/inbox/conversations/${threadId}/read`, { method: "POST" }).catch(() => {});
+  }, []);
 
-  // Obter mensagens por thread ID
-  const getMessages = useCallback((threadId: string) => {
-    return messagesByThread[threadId] || [];
-  }, [messagesByThread]);
-
-  const value = useMemo(() => ({
-    threads,
-    messagesByThread,
-    createThread,
-    addMessage,
-    markThreadAsRead,
-    getThread,
-    getMessages,
-  }), [
-    threads,
-    messagesByThread,
-    createThread,
-    addMessage,
-    markThreadAsRead,
-    getThread,
-    getMessages,
-  ]);
-
-  return (
-    <InboxContext.Provider value={value}>
-      {children}
-    </InboxContext.Provider>
+  const getThread = useCallback(
+    (threadId: string) => threads.find((t) => t.id === threadId),
+    [threads]
   );
+
+  const getMessages = useCallback(
+    (threadId: string) => messagesByThread[threadId] ?? [],
+    [messagesByThread]
+  );
+
+  const addMessage = useCallback(
+    (threadId: string, message: Omit<Message, "id" | "threadId" | "ts">) => {
+      const newMessage: Message = {
+        ...message,
+        id: `local_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        threadId,
+        ts: Date.now(),
+      } as Message;
+      setMessagesByThread((prev) => ({
+        ...prev,
+        [threadId]: [...(prev[threadId] ?? []), newMessage],
+      }));
+    },
+    []
+  );
+
+  const refresh = useCallback(async () => {
+    await fetchConversations();
+  }, [fetchConversations]);
+
+  const value = useMemo(
+    () => ({
+      threads,
+      messagesByThread,
+      isLoading,
+      sendMessage,
+      markThreadAsRead,
+      getThread,
+      getMessages,
+      loadMessages,
+      refresh,
+      addMessage,
+    }),
+    [threads, messagesByThread, isLoading, sendMessage, markThreadAsRead, getThread, getMessages, loadMessages, refresh, addMessage]
+  );
+
+  return <InboxContext.Provider value={value}>{children}</InboxContext.Provider>;
 }
 
 export function useInbox() {
@@ -144,4 +223,3 @@ export function useInbox() {
   }
   return context;
 }
-
