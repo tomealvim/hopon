@@ -193,8 +193,17 @@ model Location {
 - [x] Adicionar `originLocationId`/`destinationLocationId` opcionais à `Ride` (FK → Location)
 - [x] Backend cria registos `Location` quando lat/lng são fornecidos no CreateRideDto
 - [x] Pesquisa por proximidade com Haversine em SQL (lat/lng/radius no SearchRidesDto)
-- [x] Componente `LocationInput` no frontend — pronto para integrar Google Places Autocomplete
-- [ ] Integrar Google Places Autocomplete no frontend (requer API key)
+- [x] Componente `LocationInput` com autocomplete **Mapbox Geocoding API** + fallback texto
+- [x] `VITE_MAPBOX_TOKEN` em `.env` do frontend
+
+> **⚠️ Nota — Mapbox vs Google Places**
+>
+> Implementámos com **Mapbox** (50k pedidos/mês grátis, sem cartão obrigatório).
+> Se escalar ou precisar de melhor cobertura de POIs portugueses, considerar migrar para
+> **Google Places API** ($200 crédito/mês, mas exige cartão de crédito).
+> A migração é simples: substituir `fetchSuggestions()` em `LocationInput.tsx` —
+> o resto do componente (`LocationValue`, `onLocationSelect`) mantém-se igual.
+> Avaliar quando `VITE_MAPBOX_TOKEN` atingir o limite gratuito.
 
 ---
 

@@ -4,5 +4,6 @@ dist/
 .DS_Store
 .env
 .env.*
+!.env.example
 .claude/
 backend/prisma/dev.db
