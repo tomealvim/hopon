@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "./contexts/AuthContext";
 import { useRides } from "./contexts/RidesContext";
+import { useSSE } from "./contexts/SSEContext";
+import { useNotifications } from "./contexts/NotificationContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { InboxProvider } from "./contexts/InboxContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { SSEProvider } from "./contexts/SSEContext";
 import RidesInboxConnector from "./contexts/RidesInboxConnector";
 import BottomNav from "./components/ui/BottomNav";
 import AuthPage from "./pages/AuthPage";
@@ -25,7 +28,22 @@ export type Tab = "discover" | "rides" | "inbox" | "profile";
 function AppContent() {
   const { user, isLoading, hasCompletedProfile, logout } = useAuth();
   const { createOffer, createRequest } = useRides();
+  const { subscribe } = useSSE();
+  const { showSuccess } = useNotifications();
   const [tab, setTab] = useState<Tab>("discover");
+
+  // Notificar o driver quando chega uma nova reserva
+  useEffect(() => {
+    return subscribe("booking.new", (data) => {
+      const passengerName = (data.passengerName as string) ?? "Passageiro";
+      const origin = (data.origin as string) ?? "";
+      const destination = (data.destination as string) ?? "";
+      showSuccess(
+        "Nova reserva!",
+        `${passengerName} reservou um lugar em ${origin} → ${destination}`,
+      );
+    });
+  }, [subscribe, showSuccess]);
   const [openComposer, setOpenComposer] = useState(false);
   const [openOffer, setOpenOffer] = useState(false);
   const [openRequest, setOpenRequest] = useState(false);
@@ -195,11 +213,13 @@ export default function App() {
   return (
     <LanguageProvider>
       <NotificationProvider>
-        <InboxProvider>
-          <RidesInboxConnector>
-            <AppContent />
-          </RidesInboxConnector>
-        </InboxProvider>
+        <SSEProvider>
+          <InboxProvider>
+            <RidesInboxConnector>
+              <AppContent />
+            </RidesInboxConnector>
+          </InboxProvider>
+        </SSEProvider>
       </NotificationProvider>
     </LanguageProvider>
   );

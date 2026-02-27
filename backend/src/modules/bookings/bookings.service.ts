@@ -2,12 +2,14 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { InboxService } from '../inbox/inbox.service';
+import { EventsService } from '../events/events.service';
 
 @Injectable()
 export class BookingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly inboxService: InboxService,
+    private readonly eventsService: EventsService,
   ) {}
 
   async create(userId: string, rideId: string, dto: CreateBookingDto) {
@@ -76,6 +78,17 @@ export class BookingsService {
     } catch (error) {
       console.error('[BookingsService] Erro ao criar conversa:', error);
     }
+
+    // Notificar o driver via SSE que tem uma nova reserva
+    this.eventsService.emit(booking.ride.driverId, 'booking.new', {
+      bookingId: booking.id,
+      rideId,
+      passengerId: userId,
+      passengerName: booking.user?.profile?.name ?? booking.user?.email ?? 'Passageiro',
+      seats: booking.seats,
+      origin: booking.ride.origin,
+      destination: booking.ride.destination,
+    });
 
     return this.toResponse(booking, conversationId);
   }

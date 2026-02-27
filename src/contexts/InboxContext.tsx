@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { Thread, Message, SystemEvent } from "../pages/types/inbox";
 import { apiRequest } from "../services/api";
 import { useAuth } from "./AuthContext";
+import { useSSE } from "./SSEContext";
 
 interface ApiParticipant {
   userId: string;
@@ -93,10 +94,12 @@ export interface InboxContextValue {
 
 const InboxContext = createContext<InboxContextValue | undefined>(undefined);
 
-const POLL_INTERVAL = 10_000;
+// SSE fornece updates instantâneos; polling é apenas fallback de segurança
+const POLL_INTERVAL = 60_000;
 
 export function InboxProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { subscribe } = useSSE();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [messagesByThread, setMessagesByThread] = useState<Record<string, Message[]>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -108,10 +111,11 @@ export function InboxProvider({ children }: { children: ReactNode }) {
       const data = await apiRequest<ApiConversation[]>("/inbox/conversations");
       setThreads(data.map(apiConversationToThread));
     } catch {
-      // ignore silently for background poll
+      // ignorar silenciosamente no poll de background
     }
   }, [user]);
 
+  // Polling de fallback (60s) — SSE é o canal principal
   useEffect(() => {
     if (!user) {
       setThreads([]);
@@ -125,6 +129,39 @@ export function InboxProvider({ children }: { children: ReactNode }) {
       if (pollRef.current) clearInterval(pollRef.current);
     };
   }, [user, fetchConversations]);
+
+  // SSE — nova mensagem recebida em tempo real
+  useEffect(() => {
+    return subscribe("message.new", (data) => {
+      const conversationId = data.conversationId as string;
+      const msg = data.message as ApiMessage;
+      if (!conversationId || !msg) return;
+
+      const newMessage = apiMessageToMessage(msg);
+
+      // Adicionar mensagem à conversa se já estiver carregada
+      setMessagesByThread((prev) => {
+        if (!prev[conversationId]) return prev; // conversa não aberta, ignorar
+        // Deduplicar — pode ter chegado via POST + SSE
+        const existing = prev[conversationId];
+        if (existing.some((m) => m.id === newMessage.id)) return prev;
+        return { ...prev, [conversationId]: [...existing, newMessage] };
+      });
+
+      // Atualizar lastEvent e marcar como não lido na lista de conversas
+      setThreads((prev) =>
+        prev.map((t) =>
+          t.id === conversationId
+            ? {
+                ...t,
+                unreadCount: (t.unreadCount ?? 0) + 1,
+                lastEvent: { type: "text", text: msg.body },
+              }
+            : t,
+        ),
+      );
+    });
+  }, [subscribe]);
 
   const loadMessages = useCallback(async (threadId: string) => {
     if (!user) return;

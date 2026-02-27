@@ -1,9 +1,13 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EventsService } from '../events/events.service';
 
 @Injectable()
 export class InboxService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventsService: EventsService,
+  ) {}
 
   async getConversations(userId: string) {
     const participations = await this.prisma.conversationParticipant.findMany({
@@ -53,6 +57,11 @@ export class InboxService {
   async sendMessage(userId: string, conversationId: string, body: string) {
     const participation = await this.prisma.conversationParticipant.findUnique({
       where: { conversationId_userId: { conversationId, userId } },
+      include: {
+        conversation: {
+          include: { participants: true },
+        },
+      },
     });
 
     if (!participation) throw new ForbiddenException('Acesso negado');
@@ -67,7 +76,19 @@ export class InboxService {
       data: { updatedAt: new Date() },
     });
 
-    return this.toMessageResponse(message);
+    const response = this.toMessageResponse(message);
+
+    // Emitir SSE para todos os participantes excepto o remetente
+    const otherParticipants = participation.conversation.participants
+      .filter((p) => p.userId !== userId)
+      .map((p) => p.userId);
+
+    this.eventsService.emitToMany(otherParticipants, 'message.new', {
+      conversationId,
+      message: response,
+    });
+
+    return response;
   }
 
   async markAsRead(userId: string, conversationId: string) {

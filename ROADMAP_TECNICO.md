@@ -215,10 +215,14 @@ model Location {
 - Migrar para WebSockets só se precisarmos de comunicação bidirecional com baixa latência
 
 **Passos:**
-- [ ] Implementar SSE endpoint no NestJS (`/events/stream`)
-- [ ] Emitir eventos para: nova mensagem, booking aceite/recusado, nova solicitação de booking
-- [ ] Conectar frontend via `EventSource`
-- [ ] Fallback: polling simples a cada 30s para browsers que não suportam SSE
+- [x] `EventsModule` no NestJS — `EventsService` com Subject por utilizador + reference counting
+- [x] Endpoint `GET /events/stream?token=<jwt>` — JWT via query param (EventSource não suporta headers)
+- [x] Keep-alive ping a cada 30s para manter a ligação viva
+- [x] Emit `message.new` em `InboxService.sendMessage` → todos os participantes excepto remetente
+- [x] Emit `booking.new` em `BookingsService.create` → driver notificado em tempo real
+- [x] `SSEContext` no frontend — ligação única partilhada, reconnect automático a cada 5s
+- [x] `InboxContext` usa SSE para updates instantâneos; polling reduzido a 60s (fallback)
+- [x] Toast de notificação no frontend quando driver recebe nova reserva
 
 ---
 
@@ -290,6 +294,6 @@ model WalletTransaction {
 | 1.3 | Inbox no backend | ✅ Concluído | Conversation/Message/Participant + InboxModule + polling frontend |
 | 1.4 | Ratings | ✅ Concluído | POST /ratings + GET /ratings/users/:id + RatingsSheet view/submit |
 | 2.1 | Geodata | ✅ Concluído | Location model + lat/lng opcional em Ride + Haversine search + LocationInput component |
-| 2.2 | Realtime SSE | ⬜ Pendente | — |
+| 2.2 | Realtime SSE | ✅ Concluído | EventsModule + SSEContext + message.new + booking.new |
 | 2.3 | Ledger pagamentos | ⬜ Pendente | — |
 | 2.4 | Trust & Safety | ⬜ Pendente | — |
