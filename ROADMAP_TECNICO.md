@@ -187,40 +187,41 @@ Para o modelo de partilha de custos funcionar, o preço tem de ser transparente 
 
 ---
 
-### 2.7 — Fluxo de pagamento real
+### 2.7 — Fluxo de pagamento real ✅ CONCLUÍDA
 
-Ligar wallet ao ciclo de vida de uma reserva.
-
-**Passos:**
-- [ ] Quando passageiro faz booking: debitar `price × seats` da sua wallet (DEBIT, reference=bookingId)
-- [ ] Quando viagem é concluída (status COMPLETED): creditar condutor (CREDIT, reference=rideId)
-- [ ] Se booking cancelado: reembolsar passageiro (REFUND, reference=bookingId)
-- [ ] Verificar saldo antes de confirmar booking — lançar erro se insuficiente
-- [ ] UI: mostrar custo na RequestSeatSheet antes de confirmar
-
-**Ficheiros a tocar:**
-- `backend/src/modules/bookings/bookings.service.ts`
-- `backend/src/modules/wallet/wallet.service.ts`
-- `src/components/ui/RequestSeatSheet.tsx`
+- [x] Quando passageiro faz booking: debitar `price × seats` da sua wallet (DEBIT, reference=bookingId)
+- [x] Quando viagem é concluída (status COMPLETED): creditar condutor (CREDIT, reference=rideId)
+- [x] Se booking cancelado: reembolsar passageiro (REFUND, reference=bookingId)
+- [x] Verificar saldo antes de confirmar booking — lançar erro se insuficiente
+- [x] UI: mostrar custo na RequestSeatSheet antes de confirmar
 
 ---
 
-### 2.8 — Trust & Safety (adaptado ao novo conceito)
+### 2.8 — Trust & Safety ✅ CONCLUÍDA
 
-- [ ] `isIdentityVerified` no User (verificação de identidade, não estudante)
-- [ ] Modelo `Report` — denúncias entre utilizadores (userId, targetId, reason, details)
-- [ ] Endpoint `POST /reports`
-- [ ] Badge "Verificado" nos perfis e nos cards de condutor
-- [ ] Admin: listar reports e suspender utilizadores (suspendedAt, suspensionReason)
+- [x] `isIdentityVerified` no User
+- [x] Modelo `Report` — denúncias entre utilizadores (userId, targetId, reason, details)
+- [x] Endpoint `POST /reports`
+- [x] Badge "Verificado" nos perfis e nos cards de condutor
+- [x] Admin: listar reports e suspender utilizadores (suspendedAt, suspensionReason)
 
-> ~~`isStudentVerified`~~ — removido do plano; não relevante para carpooling geral.
+---
+
+### 2.9 — BullMQ — emails assíncronos ✅ CONCLUÍDA
+
+- [x] `@nestjs/bullmq` + `bullmq` instalados
+- [x] `BullModule.forRootAsync` global em AppModule (REDIS_URL)
+- [x] `NotificationsProcessor` — `@Processor('email')` com switch por job name
+- [x] Jobs: `email.otp`, `email.booking-created`, `email.booking-confirmed`, `email.booking-declined`, `email.booking-cancelled`, `email.ride-cancelled`
+- [x] `NotificationsService` despacha jobs; AuthService e BookingsService usam-no
+- [x] Fallback `logger.log` quando `RESEND_API_KEY` não está definida
 
 ---
 
 ## Fase 3 — Scale & Operação
 
 - [ ] Cache no NestJS (`CacheModule`) para `/rides/search` e `/rides/for-you`
-- [ ] Job queue (BullMQ) para emails/notificações assíncronos (reserva confirmada, etc.)
+- [x] Job queue (BullMQ) para emails/notificações assíncronos → 2.9 CONCLUÍDA
 - [ ] Object storage (S3-compatible) para avatars
 - [ ] Observabilidade: structured logging, Sentry
 - [ ] Rate limiting afinado por utilizador
