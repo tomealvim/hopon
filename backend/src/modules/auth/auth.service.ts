@@ -15,7 +15,7 @@ import { RefreshDto } from './dto/refresh.dto';
 import { LogoutDto } from './dto/logout.dto';
 import * as bcrypt from 'bcrypt';
 import { randomUUID, randomInt } from 'crypto';
-import { Resend } from 'resend';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +23,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async register(dto: RegisterDto, userAgent?: string, ip?: string) {
@@ -311,38 +312,12 @@ export class AuthService {
       },
     });
 
-    const toEmail = user.email;
-    const resendKey = this.configService.get<string>('RESEND_API_KEY');
-    const fromEmail = this.configService.get<string>('RESEND_FROM') || 'onboarding@resend.dev';
-
-    if (purpose === 'email') {
-      if (resendKey) {
-        const resend = new Resend(resendKey);
-        await resend.emails.send({
-          from: fromEmail,
-          to: toEmail,
-          subject: 'Código de verificação Hopon',
-          html: `<p>O teu código de verificação é: <strong>${code}</strong></p><p>Válido por ${AuthService.OTP_EXPIRY_MINUTES} minutos.</p>`,
-        });
-      } else {
-        // eslint-disable-next-line no-console
-        console.log('[AuthService] OTP (email) - sem RESEND_API_KEY. Código para', toEmail, ':', code);
-      }
-    } else {
-      // phone: em dev enviamos o código por email (sem custo SMS)
-      if (resendKey) {
-        const resend = new Resend(resendKey);
-        await resend.emails.send({
-          from: fromEmail,
-          to: toEmail,
-          subject: 'Código de verificação de telefone Hopon',
-          html: `<p>O teu código de verificação de telefone é: <strong>${code}</strong></p><p>Válido por ${AuthService.OTP_EXPIRY_MINUTES} minutos.</p>`,
-        });
-      } else {
-        // eslint-disable-next-line no-console
-        console.log('[AuthService] OTP (phone) - sem RESEND_API_KEY. Código para', toEmail, ':', code);
-      }
-    }
+    await this.notificationsService.queueOtpEmail(
+      user.email,
+      code,
+      purpose,
+      AuthService.OTP_EXPIRY_MINUTES,
+    );
 
     return { message: 'Código enviado. Verifica o teu email.' };
   }

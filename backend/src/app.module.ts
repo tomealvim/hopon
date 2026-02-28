@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { BullModule } from '@nestjs/bullmq';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AuthModule } from './modules/auth/auth.module';
@@ -25,6 +26,13 @@ const backendEnv = join(__dirname, '..', '.env');
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: [backendEnv, '.env'],
+    }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        connection: { url: config.get('REDIS_URL', 'redis://localhost:6379') },
+      }),
+      inject: [ConfigService],
     }),
     PrismaModule,
     AuthModule,

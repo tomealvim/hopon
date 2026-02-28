@@ -4,6 +4,7 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { InboxService } from '../inbox/inbox.service';
 import { EventsService } from '../events/events.service';
 import { WalletService } from '../wallet/wallet.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class BookingsService {
@@ -12,6 +13,7 @@ export class BookingsService {
     private readonly inboxService: InboxService,
     private readonly eventsService: EventsService,
     private readonly walletService: WalletService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(userId: string, rideId: string, dto: CreateBookingDto) {
@@ -122,6 +124,17 @@ export class BookingsService {
       destination: booking.ride.destination,
     });
 
+    // Notificar driver por email (assíncrono via queue)
+    void this.notificationsService.queueBookingCreatedEmail(
+      booking.ride.driver.email,
+      booking.ride.driver.profile?.name ?? booking.ride.driver.email,
+      booking.user?.profile?.name ?? booking.user?.email ?? 'Passageiro',
+      booking.ride.origin,
+      booking.ride.destination,
+      booking.ride.departureTime.toISOString(),
+      booking.seats,
+    );
+
     return this.toResponse(booking, conversationId);
   }
 
@@ -192,6 +205,16 @@ export class BookingsService {
       destination: booking.ride.destination,
     });
 
+    // Notificar passageiro por email (assíncrono via queue)
+    void this.notificationsService.queueBookingStatusEmail(
+      updated.user.email,
+      updated.user.profile?.name ?? updated.user.email,
+      booking.ride.origin,
+      booking.ride.destination,
+      booking.ride.departureTime.toISOString(),
+      status,
+    );
+
     return this.toResponse(updated);
   }
 
@@ -239,6 +262,18 @@ export class BookingsService {
         user: { include: { profile: true } },
       },
     });
+
+    // Notificar condutor por email (assíncrono via queue)
+    if (updatedBooking) {
+      void this.notificationsService.queueBookingCancelledEmail(
+        updatedBooking.ride.driver.email,
+        updatedBooking.ride.driver.profile?.name ?? updatedBooking.ride.driver.email,
+        updatedBooking.user?.profile?.name ?? updatedBooking.user?.email ?? 'Passageiro',
+        updatedBooking.ride.origin,
+        updatedBooking.ride.destination,
+        updatedBooking.ride.departureTime.toISOString(),
+      );
+    }
 
     return this.toResponse(updatedBooking);
   }

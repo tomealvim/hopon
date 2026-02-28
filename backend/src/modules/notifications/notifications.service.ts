@@ -1,20 +1,89 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  OtpEmailPayload,
+  BookingCreatedEmailPayload,
+  BookingStatusEmailPayload,
+  BookingCancelledEmailPayload,
+  RideCancelledEmailPayload,
+} from './email-jobs.types';
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectQueue('email') private readonly queue: Queue,
+  ) {}
 
-  /**
-   * Notifica utilizadores quando uma boleia é cancelada/apagada
-   * @param rideId ID da boleia que foi cancelada
-   * @param rideOrigin Origem da boleia
-   * @param rideDestination Destino da boleia
-   * @param rideDepartureTime Data/hora de partida
-   * @param affectedUserIds IDs dos utilizadores que tinham reservas nesta boleia
-   */
+  async queueOtpEmail(to: string, code: string, purpose: 'email' | 'phone', expiryMinutes: number) {
+    const payload: OtpEmailPayload = { to, code, purpose, expiryMinutes };
+    await this.queue.add('email.otp', payload);
+  }
+
+  async queueBookingCreatedEmail(
+    driverEmail: string,
+    driverName: string,
+    passengerName: string,
+    origin: string,
+    destination: string,
+    departureTime: string,
+    seats: number,
+  ) {
+    const payload: BookingCreatedEmailPayload = {
+      driverEmail,
+      driverName,
+      passengerName,
+      origin,
+      destination,
+      departureTime,
+      seats,
+    };
+    await this.queue.add('email.booking-created', payload);
+  }
+
+  async queueBookingStatusEmail(
+    passengerEmail: string,
+    passengerName: string,
+    origin: string,
+    destination: string,
+    departureTime: string,
+    status: 'CONFIRMED' | 'DECLINED',
+  ) {
+    const payload: BookingStatusEmailPayload = {
+      passengerEmail,
+      passengerName,
+      origin,
+      destination,
+      departureTime,
+      status,
+    };
+    const jobName = status === 'CONFIRMED' ? 'email.booking-confirmed' : 'email.booking-declined';
+    await this.queue.add(jobName, payload);
+  }
+
+  async queueBookingCancelledEmail(
+    driverEmail: string,
+    driverName: string,
+    passengerName: string,
+    origin: string,
+    destination: string,
+    departureTime: string,
+  ) {
+    const payload: BookingCancelledEmailPayload = {
+      driverEmail,
+      driverName,
+      passengerName,
+      origin,
+      destination,
+      departureTime,
+    };
+    await this.queue.add('email.booking-cancelled', payload);
+  }
+
   async notifyRideCancelled(
     rideId: string,
     rideOrigin: string,
@@ -26,39 +95,30 @@ export class NotificationsService {
       return;
     }
 
-    // Buscar informações dos utilizadores para notificação
     const users = await this.prisma.user.findMany({
       where: { id: { in: affectedUserIds } },
       include: { profile: true },
     });
 
-    // Por agora, apenas logamos (no futuro: email, SMS, push notifications)
     this.logger.log(
       `Boleia cancelada: ${rideOrigin} → ${rideDestination} (${rideDepartureTime.toISOString()})`,
     );
     this.logger.log(`Notificando ${users.length} utilizador(es) afetado(s):`);
 
+    const departureTime = rideDepartureTime.toISOString();
+
     for (const user of users) {
       const userName = user.profile?.name || user.email;
       this.logger.log(`  - ${userName} (${user.email})`);
 
-      // TODO: Implementar envio real de notificações
-      // - Email transacional (SendGrid, Resend, etc.)
-      // - SMS (Twilio, etc.)
-      // - Push notifications (Firebase, OneSignal, etc.)
-      // - In-app notifications (criar tabela Notification)
+      const payload: RideCancelledEmailPayload = {
+        userEmail: user.email,
+        userName,
+        origin: rideOrigin,
+        destination: rideDestination,
+        departureTime,
+      };
+      await this.queue.add('email.ride-cancelled', payload);
     }
-
-    // TODO: Criar registos de notificação na BD quando tivermos modelo Notification
-    // await this.prisma.notification.createMany({
-    //   data: users.map(user => ({
-    //     userId: user.id,
-    //     type: 'RIDE_CANCELLED',
-    //     title: 'Boleia cancelada',
-    //     message: `A boleia de ${rideOrigin} para ${rideDestination} foi cancelada.`,
-    //     metadata: { rideId },
-    //   })),
-    // });
   }
 }
-
