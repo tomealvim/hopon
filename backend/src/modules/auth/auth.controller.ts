@@ -1,5 +1,10 @@
-import { Controller, Post, Body, Get, UseGuards, Request, Patch, Headers } from '@nestjs/common';
-import { Throttle, SkipThrottle } from '@nestjs/throttler';
+import {
+  Controller, Post, Body, Get, UseGuards, Request, Patch, Headers,
+  UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -100,6 +105,26 @@ export class AuthController {
   @ApiOperation({ summary: 'Verificar código OTP e marcar email/telefone como verificado' })
   verifyOtp(@Request() req, @Body() dto: OtpVerifyDto) {
     return this.authService.verifyOtp(req.user.id, dto.purpose, dto.code);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('me/avatar')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Upload de avatar (JPEG/PNG/WebP, máx 5MB)' })
+  @UseInterceptors(FileInterceptor('avatar', { storage: memoryStorage() }))
+  uploadAvatar(
+    @Request() req,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+          new FileTypeValidator({ fileType: /image\/(jpeg|png|webp)/ }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.authService.uploadAvatar(req.user.id, file);
   }
 
   @UseGuards(JwtAuthGuard)

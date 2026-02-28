@@ -16,6 +16,7 @@ import { LogoutDto } from './dto/logout.dto';
 import * as bcrypt from 'bcrypt';
 import { randomUUID, randomInt } from 'crypto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private notificationsService: NotificationsService,
+    private storageService: StorageService,
   ) {}
 
   async register(dto: RegisterDto, userAgent?: string, ip?: string) {
@@ -389,6 +391,18 @@ export class AuthService {
       data: { emailVerifiedAt: new Date() },
     });
     return this.getMe(userId);
+  }
+
+  async uploadAvatar(userId: string, file: Express.Multer.File) {
+    const avatarUrl = await this.storageService.uploadAvatar(userId, file.buffer, file.mimetype);
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { profile: { update: { avatarUrl } } },
+      include: { profile: true, vehicles: true },
+    });
+
+    return this.buildUserResponse(user);
   }
 
   private async generateTokens(user: any, userAgent?: string, ip?: string) {
