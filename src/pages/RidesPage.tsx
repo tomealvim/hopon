@@ -510,8 +510,15 @@ export default function RidesPage() {
             {selectedBooking.ride.driver && (
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
                 <div className="text-xs text-gray-500 mb-1">Condutor</div>
-                <div className="font-semibold text-sm text-gray-900">
-                  {selectedBooking.ride.driver.profile?.name ?? selectedBooking.ride.driver.email}
+                <div className="flex items-center gap-2">
+                  <div className="font-semibold text-sm text-gray-900">
+                    {selectedBooking.ride.driver.profile?.name ?? selectedBooking.ride.driver.email}
+                  </div>
+                  {selectedBooking.ride.driver.isIdentityVerified && (
+                    <span className="text-xs bg-green-100 text-green-700 border border-green-200 rounded-full px-2 py-0.5">
+                      Verificado
+                    </span>
+                  )}
                 </div>
               </div>
             )}

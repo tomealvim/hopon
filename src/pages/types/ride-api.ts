@@ -13,6 +13,7 @@ export interface ApiRideDriver {
   id: string;
   email?: string;
   phone?: string;
+  isIdentityVerified?: boolean;
   profile?: {
     name: string;
     username?: string;

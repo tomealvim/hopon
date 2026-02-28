@@ -14,6 +14,11 @@ model User {
   passwordHash    String?
   emailVerifiedAt DateTime?
   phoneVerifiedAt DateTime?
+  isIdentityVerified Boolean   @default(false)
+  isAdmin            Boolean   @default(false)
+  suspendedAt        DateTime?
+  suspensionReason   String?
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -39,6 +44,9 @@ model User {
 
   ratingsGiven    Rating[] @relation("ReviewsGiven")
   ratingsReceived Rating[] @relation("ReviewsReceived")
+
+  reportsGiven    Report[] @relation("ReportsGiven")
+  reportsReceived Report[] @relation("ReportsReceived")
 
   @@map("users")
 }
@@ -311,4 +319,23 @@ model Rating {
   @@unique([bookingId, reviewerId])
   @@map("ratings")
   @@index([revieweeId])
+}
+
+model Report {
+  id       String   @id @default(uuid())
+  userId   String
+  targetId String
+  reason   String   // INAPPROPRIATE_BEHAVIOR | NO_SHOW | FRAUD | HARASSMENT | OTHER
+  details  String?
+  status   String   @default("PENDING") // PENDING | REVIEWED | DISMISSED
+
+  reporter User @relation("ReportsGiven", fields: [userId], references: [id], onDelete: Cascade)
+  target   User @relation("ReportsReceived", fields: [targetId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("reports")
+  @@index([targetId])
+  @@index([status])
 }

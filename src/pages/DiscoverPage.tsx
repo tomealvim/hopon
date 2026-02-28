@@ -10,6 +10,7 @@ import { EntityCardSkeleton } from "../components/ui/Skeleton";
 import Sheet from "../components/ui/Sheet";
 import { Button } from "../components/ui/Button";
 import BackgroundGlow from "../components/ui/BackgroundGlow";
+import ReportSheet from "../components/ui/ReportSheet";
 
 import type { DiscoverFilters } from "./types/discover";
 import { defaultFilters } from "./types/discover";
@@ -38,6 +39,10 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   const [detailRide, setDetailRide] = useState<ApiRide | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
+
+  // Report sheet
+  const [openReport, setOpenReport] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ id: string; name: string } | null>(null);
 
   // "Para Ti" — boleias que batem com os templates do utilizador
   const [forYouRides, setForYouRides] = useState<ApiRide[]>([]);
@@ -158,6 +163,9 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                                 label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`,
                                 tone: seatsLeft >= 3 ? "success" : "warning",
                               },
+                              ...(ride.driver?.isIdentityVerified
+                                ? [{ label: "Verificado", tone: "success" as const }]
+                                : []),
                               ...(ride.price != null && ride.price > 0
                                 ? [{ label: `€${ride.price.toFixed(0)}/lugar` }]
                                 : []),
@@ -217,6 +225,9 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                               label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`,
                               tone: seatsLeft >= 3 ? "success" : "warning",
                             },
+                            ...(ride.driver?.isIdentityVerified
+                              ? [{ label: "Verificado", tone: "success" as const }]
+                              : []),
                             ...(ride.price != null && ride.price > 0
                               ? [{ label: `€${ride.price.toFixed(0)}/lugar` }]
                               : []),
@@ -263,6 +274,15 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
           />
         );
       })()}
+
+      {reportTarget && (
+        <ReportSheet
+          open={openReport}
+          onClose={() => { setOpenReport(false); setReportTarget(null); }}
+          targetId={reportTarget.id}
+          targetName={reportTarget.name}
+        />
+      )}
 
       {/* Detail sheet */}
       <Sheet
@@ -342,14 +362,34 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                     </div>
                   )}
                   <div>
-                    <div className="font-semibold text-sm text-gray-900">
-                      {detailRide.driver.profile?.name ?? detailRide.driver.email}
+                    <div className="flex items-center gap-2">
+                      <div className="font-semibold text-sm text-gray-900">
+                        {detailRide.driver.profile?.name ?? detailRide.driver.email}
+                      </div>
+                      {detailRide.driver.isIdentityVerified && (
+                        <span className="text-xs bg-green-100 text-green-700 border border-green-200 rounded-full px-2 py-0.5">
+                          Verificado
+                        </span>
+                      )}
                     </div>
                     {detailRide.driver.profile?.username && (
                       <div className="text-xs text-gray-500">@{detailRide.driver.profile.username}</div>
                     )}
                   </div>
                 </div>
+                {detailRide.driverId !== user?.id && (
+                  <button
+                    className="text-xs text-gray-400 hover:text-red-500 transition-colors text-left mt-1"
+                    onClick={() => {
+                      const name = detailRide.driver?.profile?.name ?? detailRide.driver?.email ?? "Condutor";
+                      setReportTarget({ id: detailRide.driverId, name });
+                      setOpenDetail(false);
+                      setOpenReport(true);
+                    }}
+                  >
+                    Denunciar condutor
+                  </button>
+                )}
               </div>
             )}
             {detailRide.vehicle && (

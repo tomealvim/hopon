@@ -541,6 +541,7 @@ export class RidesService {
             id: ride.driver.id,
             email: ride.driver.email,
             phone: ride.driver.phone,
+            isIdentityVerified: ride.driver.isIdentityVerified ?? false,
             profile: ride.driver.profile
               ? {
                   name: ride.driver.profile.name,

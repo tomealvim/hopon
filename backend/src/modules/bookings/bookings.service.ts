@@ -273,6 +273,7 @@ export class BookingsService {
                   id: booking.ride.driver.id,
                   email: booking.ride.driver.email,
                   phone: booking.ride.driver.phone,
+                  isIdentityVerified: booking.ride.driver.isIdentityVerified ?? false,
                   profile: booking.ride.driver.profile
                     ? {
                         name: booking.ride.driver.profile.name,

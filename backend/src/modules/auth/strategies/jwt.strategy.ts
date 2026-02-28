@@ -27,6 +27,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('Utilizador não encontrado');
     }
 
+    if (user.suspendedAt) {
+      throw new UnauthorizedException('A tua conta foi suspensa. Contacta o suporte para mais informações.');
+    }
+
     // Remover passwordHash do objeto user retornado no request
     const { passwordHash, ...result } = user;
     return result;
