@@ -169,7 +169,7 @@ model ScheduleTemplate {
   daysOfWeek     Json      // array: ["segunda","terca",...]
   
   availableSeats Int       @default(3)
-  price          Float?    // (SQLite: Float)
+  price          Float?
   
   acceptDetours  Boolean   @default(true)
   detourMaxMin   Int       @default(10)
@@ -197,7 +197,7 @@ model Booking {
   user      User          @relation(fields: [userId], references: [id])
   
   seats     Int           @default(1)
-  status    String        @default("PENDING") // (SQLite: String)
+  status    String        @default("PENDING")
 
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
