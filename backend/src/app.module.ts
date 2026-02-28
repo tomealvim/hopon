@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
+import { CacheModule } from '@nestjs/cache-manager';
+import { createKeyv } from '@keyv/redis';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AuthModule } from './modules/auth/auth.module';
@@ -31,6 +33,16 @@ const backendEnv = join(__dirname, '..', '.env');
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
         connection: { url: config.get('REDIS_URL', 'redis://localhost:6379') },
+      }),
+      inject: [ConfigService],
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        stores: [
+          createKeyv(config.get('REDIS_URL', 'redis://localhost:6379')),
+        ],
       }),
       inject: [ConfigService],
     }),

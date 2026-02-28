@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
@@ -6,12 +8,16 @@ import { SearchRidesDto } from './dto/search-rides.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { WalletService } from '../wallet/wallet.service';
 
+const SEARCH_TTL_MS = 30_000;  // 30s
+const FOR_YOU_TTL_MS = 60_000; // 60s
+
 @Injectable()
 export class RidesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly walletService: WalletService,
+    @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
   async create(userId: string, dto: CreateRideDto) {
@@ -143,12 +149,19 @@ export class RidesService {
   }
 
   async findForUser(userId: string) {
+    const cacheKey = `rides:for-you:${userId}`;
+    const cached = await this.cache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
     // Obter templates ativos do utilizador
     const templates = await this.prisma.scheduleTemplate.findMany({
       where: { userId, active: true },
     });
 
-    if (templates.length === 0) return [];
+    if (templates.length === 0) {
+      await this.cache.set(cacheKey, [], FOR_YOU_TTL_MS);
+      return [];
+    }
 
     // Boleias futuras SCHEDULED que não são do próprio utilizador
     const now = new Date();
@@ -208,13 +221,15 @@ export class RidesService {
       }
     }
 
-    return Array.from(scores.values())
+    const result = Array.from(scores.values())
       .sort(
         (a, b) =>
           b.score - a.score ||
           a.ride.departureTime.getTime() - b.ride.departureTime.getTime(),
       )
       .map(({ ride, score }) => ({ ...this.toResponse(ride), matchScore: score }));
+    await this.cache.set(cacheKey, result, FOR_YOU_TTL_MS);
+    return result;
   }
 
   private textOverlap(a: string, b: string): boolean {
@@ -230,6 +245,12 @@ export class RidesService {
   }
 
   async search(dto: SearchRidesDto) {
+    const cacheKey = `rides:search:${JSON.stringify(
+      Object.fromEntries(Object.entries(dto).sort(([a], [b]) => a.localeCompare(b))),
+    )}`;
+    const cached = await this.cache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
     const where: any = {
       status: 'SCHEDULED',
     };
@@ -301,7 +322,9 @@ export class RidesService {
       orderBy: { departureTime: 'asc' },
     });
 
-    return rides.map((ride) => this.toResponse(ride));
+    const result = rides.map((ride) => this.toResponse(ride));
+    await this.cache.set(cacheKey, result, SEARCH_TTL_MS);
+    return result;
   }
 
   async update(userId: string, rideId: string, dto: UpdateRideDto) {
