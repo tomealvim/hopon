@@ -218,14 +218,14 @@ Para o modelo de partilha de custos funcionar, o preço tem de ser transparente 
 
 ---
 
-## Fase 3 — Scale & Operação
+## Fase 3 — Scale & Operação ✅ CONCLUÍDA
 
-- [ ] Cache no NestJS (`CacheModule`) para `/rides/search` e `/rides/for-you`
-- [x] Job queue (BullMQ) para emails/notificações assíncronos → 2.9 CONCLUÍDA
-- [ ] Object storage (S3-compatible) para avatars
-- [ ] Observabilidade: structured logging, Sentry
-- [ ] Rate limiting afinado por utilizador
-- [ ] CI/CD com testes automatizados
+- [x] Cache Redis (`CacheModule`) para `/rides/search` e `/rides/for-you` — TTL 30s/60s
+- [x] Job queue (BullMQ) para emails/notificações assíncronos
+- [x] Object storage MinIO/S3 para avatars — `POST /auth/me/avatar`
+- [x] Observabilidade: pino structured logging + Sentry (SENTRY_DSN)
+- [x] Rate limiting por IP — global 60/min, auth 5/15min, OTP 3/15min
+- [x] CI/CD GitHub Actions — backend build+test + frontend build em cada push
 
 ---
 
