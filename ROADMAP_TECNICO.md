@@ -168,7 +168,7 @@ O algoritmo de matching que define o produto.
 
 ---
 
-### 2.6 — Calculadora de custo por viagem
+### 2.6 — Calculadora de custo por viagem ✅ CONCLUÍDA
 
 Para o modelo de partilha de custos funcionar, o preço tem de ser transparente e justo.
 

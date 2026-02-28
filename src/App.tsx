@@ -76,6 +76,7 @@ function AppContent() {
           destination: vals.destino,
           departureTime,
           availableSeats: vals.lugares,
+          price: vals.price ?? null,
           originLat: vals.origemLat,
           originLng: vals.origemLng,
           destinationLat: vals.destinoLat,
