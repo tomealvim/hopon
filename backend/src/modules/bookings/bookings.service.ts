@@ -113,22 +113,33 @@ export class BookingsService {
       console.error('[BookingsService] Erro ao criar conversa:', error);
     }
 
+    const passengerName = booking.user?.profile?.name ?? booking.user?.email ?? 'Passageiro';
+
     // Notificar o driver via SSE que tem uma nova reserva
     this.eventsService.emit(booking.ride.driverId, 'booking.new', {
       bookingId: booking.id,
       rideId,
       passengerId: userId,
-      passengerName: booking.user?.profile?.name ?? booking.user?.email ?? 'Passageiro',
+      passengerName,
       seats: booking.seats,
       origin: booking.ride.origin,
       destination: booking.ride.destination,
     });
 
+    // Notificação in-app para o driver
+    void this.notificationsService.createNotification(
+      booking.ride.driverId,
+      'booking.new',
+      'Nova reserva',
+      `${passengerName} reservou ${booking.seats} lugar(es) em ${booking.ride.origin} → ${booking.ride.destination}`,
+      { bookingId: booking.id, rideId },
+    );
+
     // Notificar driver por email (assíncrono via queue)
     void this.notificationsService.queueBookingCreatedEmail(
       booking.ride.driver.email,
       booking.ride.driver.profile?.name ?? booking.ride.driver.email,
-      booking.user?.profile?.name ?? booking.user?.email ?? 'Passageiro',
+      passengerName,
       booking.ride.origin,
       booking.ride.destination,
       booking.ride.departureTime.toISOString(),
@@ -197,6 +208,8 @@ export class BookingsService {
       return upd;
     });
 
+    const statusLabel = status === 'CONFIRMED' ? 'confirmada' : 'recusada';
+
     // Notificar passageiro via SSE
     this.eventsService.emit(booking.userId, 'booking.status', {
       bookingId,
@@ -204,6 +217,15 @@ export class BookingsService {
       origin: booking.ride.origin,
       destination: booking.ride.destination,
     });
+
+    // Notificação in-app para o passageiro
+    void this.notificationsService.createNotification(
+      booking.userId,
+      `booking.${status.toLowerCase()}`,
+      `Reserva ${statusLabel}`,
+      `A tua reserva de ${booking.ride.origin} → ${booking.ride.destination} foi ${statusLabel}.`,
+      { bookingId, rideId: booking.rideId },
+    );
 
     // Notificar passageiro por email (assíncrono via queue)
     void this.notificationsService.queueBookingStatusEmail(

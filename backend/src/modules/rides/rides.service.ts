@@ -509,6 +509,53 @@ export class RidesService {
     return { message: 'Boleia cancelada com sucesso' };
   }
 
+  async findHistory(userId: string) {
+    // Boleias como condutor (COMPLETED | CANCELLED)
+    const asDriver = await this.prisma.ride.findMany({
+      where: { driverId: userId, status: { in: ['COMPLETED', 'CANCELLED'] } },
+      include: {
+        vehicle: true,
+        driver: { include: { profile: true } },
+        bookings: { include: { user: { include: { profile: true } } } },
+        originLocation: true,
+        destinationLocation: true,
+      },
+      orderBy: { departureTime: 'desc' },
+    });
+
+    // Boleias como passageiro (reserva COMPLETED | CANCELLED)
+    const asPassenger = await this.prisma.booking.findMany({
+      where: { userId, status: { in: ['COMPLETED', 'CANCELLED'] } },
+      include: {
+        ride: {
+          include: {
+            vehicle: true,
+            driver: { include: { profile: true } },
+            bookings: { include: { user: { include: { profile: true } } } },
+            originLocation: true,
+            destinationLocation: true,
+          },
+        },
+      },
+      orderBy: { ride: { departureTime: 'desc' } },
+    });
+
+    // Deduplicate (se for driver e passenger ao mesmo tempo — improvável mas seguro)
+    const driverRideIds = new Set(asDriver.map((r) => r.id));
+    const passengerRides = asPassenger
+      .filter((b) => !driverRideIds.has(b.rideId))
+      .map((b) => b.ride);
+
+    const allRides = [...asDriver, ...passengerRides].sort(
+      (a, b) => new Date(b.departureTime).getTime() - new Date(a.departureTime).getTime(),
+    );
+
+    return allRides.map((ride) => ({
+      ...this.toResponse(ride),
+      role: ride.driverId === userId ? 'driver' : 'passenger',
+    }));
+  }
+
   private async ensureRideOwnership(userId: string, rideId: string) {
     const ride = await this.prisma.ride.findUnique({
       where: { id: rideId },

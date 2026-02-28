@@ -15,6 +15,8 @@ import LanguageSettingsSheet from "../components/profile/LanguageSettingsSheet";
 import VehicleFormSheet, { type VehicleFormValues } from "../components/profile/VehicleFormSheet";
 import VerificationSheet from "../components/profile/VerificationSheet";
 import RatingsSheet from "../components/profile/RatingsSheet";
+import HistorySheet from "../components/profile/HistorySheet";
+import { usePushNotifications } from "../hooks/usePushNotifications";
 import { TERMS_LAST_UPDATED, TERMS_SECTIONS, TERMS_TITLE } from "../data/terms";
 import {
   flattenSchedule,
@@ -60,6 +62,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
   const [openSupport, setOpenSupport] = useState(false);
   const [openTerms, setOpenTerms] = useState(false);
   const [openRatings, setOpenRatings] = useState(false);
+  const [openHistory, setOpenHistory] = useState(false);
   const [openVehicleSheet, setOpenVehicleSheet] = useState(false);
   const [openVehicleList, setOpenVehicleList] = useState(false);
   const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
@@ -96,6 +99,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
     () => vehicles.find(vehicle => vehicle.id === activeVehicleId) ?? null,
     [vehicles, activeVehicleId]
   );
+
+  const { isSupported: pushSupported, subscribed: pushSubscribed, subscribe: subscribePush, unsubscribe: unsubscribePush } = usePushNotifications();
 
   const referralCode = useMemo(() => {
     if (!user) return "HOPON10";
@@ -196,11 +201,12 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       openSupport ||
       openTerms ||
       openRatings ||
+      openHistory ||
       openLanguageSheet ||
       openVehicleSheet ||
       openVehicleList ||
       verificationSheetOpen;
-    
+
     onSheetStateChange?.(isAnySheetOpen);
   }, [
     openEdit,
@@ -213,6 +219,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
     openSupport,
     openTerms,
     openRatings,
+    openHistory,
     openLanguageSheet,
     openVehicleSheet,
     openVehicleList,
@@ -588,12 +595,20 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             setOpenLanguageSheet(true);
           }}
         />
+        {pushSupported && (
+          <ListRow
+            label="Notificações push"
+            caption={pushSubscribed ? "Ativas" : "Desativadas"}
+            onClick={() => pushSubscribed ? unsubscribePush() : subscribePush()}
+          />
+        )}
       </nav>
 
       <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Ajuda">
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
           <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide">Ajuda</h3>
         </div>
+        <ListRow label="Histórico de boleias" onClick={() => setOpenHistory(true)} />
         <ListRow label="Contacta-nos" onClick={() => setOpenSupport(true)} />
         <ListRow label="Avaliações" onClick={() => setOpenRatings(true)} />
         <ListRow
@@ -1189,6 +1204,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       <WalletSheet open={openWallet} onClose={() => setOpenWallet(false)} />
       <SupportContactSheet open={openSupport} onClose={() => setOpenSupport(false)} />
       <RatingsSheet open={openRatings} onClose={() => setOpenRatings(false)} />
+      <HistorySheet open={openHistory} onClose={() => setOpenHistory(false)} />
       </div>
     </div>
   );

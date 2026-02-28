@@ -1,7 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EventsService } from '../events/events.service';
+import { PushService } from './push.service';
 import {
   OtpEmailPayload,
   BookingCreatedEmailPayload,
@@ -16,8 +18,77 @@ export class NotificationsService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly eventsService: EventsService,
+    private readonly pushService: PushService,
     @InjectQueue('email') private readonly queue: Queue,
   ) {}
+
+  // ─── In-app notifications ────────────────────────────────────────────────────
+
+  async createNotification(
+    userId: string,
+    type: string,
+    title: string,
+    body: string,
+    metadata?: Record<string, unknown>,
+  ) {
+    const notification = await this.prisma.notification.create({
+      data: {
+        userId,
+        type,
+        title,
+        body,
+        metadata: metadata as any,
+      },
+    });
+
+    // Push via SSE para o utilizador se estiver ligado
+    this.eventsService.emit(userId, 'notification.new', {
+      id: notification.id,
+      type: notification.type,
+      title: notification.title,
+      body: notification.body,
+      metadata: notification.metadata,
+      createdAt: notification.createdAt,
+    });
+
+    // Push notification (web push) para dispositivos não abertos
+    void this.pushService.sendToUser(userId, title, body, metadata);
+
+    return notification;
+  }
+
+  async findForUser(userId: string) {
+    return this.prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
+
+  async markRead(userId: string, notificationId: string) {
+    const notification = await this.prisma.notification.findUnique({
+      where: { id: notificationId },
+    });
+    if (!notification) throw new NotFoundException('Notificação não encontrada');
+    if (notification.userId !== userId) throw new ForbiddenException();
+
+    return this.prisma.notification.update({
+      where: { id: notificationId },
+      data: { read: true },
+    });
+  }
+
+  async markAllRead(userId: string) {
+    await this.prisma.notification.updateMany({
+      where: { userId, read: false },
+      data: { read: true },
+    });
+  }
+
+  async countUnread(userId: string) {
+    return this.prisma.notification.count({ where: { userId, read: false } });
+  }
 
   async queueOtpEmail(to: string, code: string, purpose: 'email' | 'phone', expiryMinutes: number) {
     const payload: OtpEmailPayload = { to, code, purpose, expiryMinutes };

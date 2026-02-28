@@ -15,6 +15,7 @@ import ReportSheet from "../components/ui/ReportSheet";
 import type { DiscoverFilters } from "./types/discover";
 import { defaultFilters } from "./types/discover";
 import type { ApiRide } from "./types/ride-api";
+import PublicProfileSheet from "../components/ui/PublicProfileSheet";
 
 type DiscoverPageProps = {
   onOpenInbox?: (threadId?: string) => void;
@@ -43,6 +44,10 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   // Report sheet
   const [openReport, setOpenReport] = useState(false);
   const [reportTarget, setReportTarget] = useState<{ id: string; name: string } | null>(null);
+
+  // Public profile sheet
+  const [openProfile, setOpenProfile] = useState(false);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
   // "Para Ti" — boleias que batem com os templates do utilizador
   const [forYouRides, setForYouRides] = useState<ApiRide[]>([]);
@@ -284,6 +289,12 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         />
       )}
 
+      <PublicProfileSheet
+        userId={profileUserId}
+        open={openProfile}
+        onClose={() => { setOpenProfile(false); setProfileUserId(null); }}
+      />
+
       {/* Detail sheet */}
       <Sheet
         open={openDetail}
@@ -353,7 +364,10 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
             {detailRide.driver && (
               <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
                 <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Condutor</div>
-                <div className="flex items-center gap-3">
+                <button
+                  className="flex items-center gap-3 hover:opacity-80 transition text-left w-full"
+                  onClick={() => { setProfileUserId(detailRide.driverId); setOpenProfile(true); }}
+                >
                   {detailRide.driver.profile?.avatarUrl ? (
                     <img src={detailRide.driver.profile.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
                   ) : (
@@ -375,8 +389,9 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                     {detailRide.driver.profile?.username && (
                       <div className="text-xs text-gray-500">@{detailRide.driver.profile.username}</div>
                     )}
+                    <div className="text-[10px] text-blue-500 mt-0.5">Ver perfil →</div>
                   </div>
-                </div>
+                </button>
                 {detailRide.driverId !== user?.id && (
                   <button
                     className="text-xs text-gray-400 hover:text-red-500 transition-colors text-left mt-1"

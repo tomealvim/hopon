@@ -42,6 +42,14 @@ export class RidesController {
     return this.ridesService.findForUser(req.user.id);
   }
 
+  @Get('history')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Histórico de boleias (como condutor e passageiro)' })
+  findHistory(@Request() req) {
+    return this.ridesService.findHistory(req.user.id);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()

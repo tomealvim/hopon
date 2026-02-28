@@ -1,12 +1,14 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EventsService } from '../events/events.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class InboxService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventsService: EventsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async getConversations(userId: string) {
@@ -78,6 +80,8 @@ export class InboxService {
 
     const response = this.toMessageResponse(message);
 
+    const senderName = message.sender?.profile?.name ?? message.sender?.email ?? 'Alguém';
+
     // Emitir SSE para todos os participantes excepto o remetente
     const otherParticipants = participation.conversation.participants
       .filter((p) => p.userId !== userId)
@@ -87,6 +91,17 @@ export class InboxService {
       conversationId,
       message: response,
     });
+
+    // Notificação in-app para os outros participantes
+    for (const recipientId of otherParticipants) {
+      void this.notificationsService.createNotification(
+        recipientId,
+        'message.new',
+        'Nova mensagem',
+        `${senderName}: ${body.length > 60 ? body.slice(0, 60) + '…' : body}`,
+        { conversationId },
+      );
+    }
 
     return response;
   }

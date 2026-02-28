@@ -48,6 +48,9 @@ model User {
   reportsGiven    Report[] @relation("ReportsGiven")
   reportsReceived Report[] @relation("ReportsReceived")
 
+  notifications     Notification[]
+  pushSubscriptions PushSubscription[]
+
   @@map("users")
 }
 
@@ -338,4 +341,33 @@ model Report {
   @@map("reports")
   @@index([targetId])
   @@index([status])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // booking.new | booking.confirmed | booking.declined | booking.cancelled | message.new | ride.cancelled
+  title     String
+  body      String
+  metadata  Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+  @@index([userId, createdAt])
+  @@index([userId, read])
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@map("push_subscriptions")
+  @@index([userId])
 }

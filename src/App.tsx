@@ -3,10 +3,12 @@ import { useAuth } from "./contexts/AuthContext";
 import { useSSE } from "./contexts/SSEContext";
 import { useNotifications } from "./contexts/NotificationContext";
 import { useInbox } from "./contexts/InboxContext";
+import { useAppNotifications } from "./contexts/AppNotificationsContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { InboxProvider } from "./contexts/InboxContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { SSEProvider } from "./contexts/SSEContext";
+import { AppNotificationsProvider } from "./contexts/AppNotificationsContext";
 import { apiRequest } from "./services/api";
 import BottomNav from "./components/ui/BottomNav";
 import AuthPage from "./pages/AuthPage";
@@ -21,6 +23,7 @@ import { Button } from "./components/ui/Button";
 import { Loading } from "./components/ui/Skeleton";
 import OfferRideForm, { type OfferRideFormValues } from "./components/ui/OfferRideForm";
 import AppName from "./components/ui/AppName";
+import NotificationsSheet from "./components/ui/NotificationsSheet";
 
 export type Tab = "discover" | "rides" | "inbox" | "profile";
 
@@ -29,7 +32,9 @@ function AppContent() {
   const { subscribe } = useSSE();
   const { showSuccess, showError } = useNotifications();
   const { refresh: refreshInbox } = useInbox();
+  const { unreadCount: notifUnread } = useAppNotifications();
   const [tab, setTab] = useState<Tab>("discover");
+  const [notifOpen, setNotifOpen] = useState(false);
 
   // Notificar o driver quando chega uma nova reserva
   useEffect(() => {
@@ -52,7 +57,6 @@ function AppContent() {
   const [vehicleSheetTrigger, setVehicleSheetTrigger] = useState(0);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => hasCompletedOnboarding());
   const [profileSheetsOpen, setProfileSheetsOpen] = useState(false);
-  const [offerSubmitting, setOfferSubmitting] = useState(false);
 
   const showGlobalHeader = tab === "rides" || tab === "inbox";
   const hideBottomNav = openOffer || openComposer || profileSheetsOpen;
@@ -65,7 +69,6 @@ function AppContent() {
   };
 
   async function handleSubmitOffer(vals: OfferRideFormValues) {
-    setOfferSubmitting(true);
     try {
       const departureTime = new Date(`${vals.data}T${vals.hora}:00`).toISOString();
       await apiRequest("/rides", {
@@ -88,8 +91,6 @@ function AppContent() {
       setTab("rides");
     } catch (err) {
       showError("Erro ao criar boleia", err instanceof Error ? err.message : "Tenta novamente.");
-    } finally {
-      setOfferSubmitting(false);
     }
   }
 
@@ -104,19 +105,36 @@ function AppContent() {
         <header className="sticky top-0 z-30 bg-white border-b border-gray-200 backdrop-blur-sm">
           <div className="w-full max-w-mobile md:max-w-tablet lg:max-w-desktop mx-auto px-4 h-14 flex items-center justify-between">
             <h1 className="text-base font-bold text-gray-900"><AppName /></h1>
-            <button
-              className="flex items-center gap-2 hover:opacity-70 transition"
-              onClick={() => setTab("profile")}
-              aria-label="Ir para perfil"
-            >
-              <div className="text-right hidden sm:block">
-                <div className="text-xs font-semibold text-gray-900">{user?.profile?.name || "Perfil"}</div>
-                <div className="text-[10px] text-gray-500">Ver perfil</div>
-              </div>
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gradient-start via-gradient-mid to-gradient-end text-gray-900 flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-gray-200">
-                {user?.profile?.name?.charAt(0).toUpperCase() || "U"}
-              </div>
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Bell icon */}
+              <button
+                className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition"
+                onClick={() => setNotifOpen(true)}
+                aria-label="Notificações"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {notifUnread > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                    {notifUnread > 9 ? "9+" : notifUnread}
+                  </span>
+                )}
+              </button>
+              <button
+                className="flex items-center gap-2 hover:opacity-70 transition"
+                onClick={() => setTab("profile")}
+                aria-label="Ir para perfil"
+              >
+                <div className="text-right hidden sm:block">
+                  <div className="text-xs font-semibold text-gray-900">{user?.profile?.name || "Perfil"}</div>
+                  <div className="text-[10px] text-gray-500">Ver perfil</div>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gradient-start via-gradient-mid to-gradient-end text-gray-900 flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-gray-200">
+                  {user?.profile?.name?.charAt(0).toUpperCase() || "U"}
+                </div>
+              </button>
+            </div>
           </div>
         </header>
       )}
@@ -177,6 +195,9 @@ function AppContent() {
           onRequireVehicleSetup={handleRequireVehicleSetup}
         />
       </Sheet>
+
+      {/* Painel de notificações */}
+      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
     </div>
   );
 }
@@ -186,9 +207,11 @@ export default function App() {
     <LanguageProvider>
       <NotificationProvider>
         <SSEProvider>
-          <InboxProvider>
-            <AppContent />
-          </InboxProvider>
+          <AppNotificationsProvider>
+            <InboxProvider>
+              <AppContent />
+            </InboxProvider>
+          </AppNotificationsProvider>
         </SSEProvider>
       </NotificationProvider>
     </LanguageProvider>
