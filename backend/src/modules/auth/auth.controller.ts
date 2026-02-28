@@ -1,4 +1,5 @@
 import { Controller, Post, Body, Get, UseGuards, Request, Patch, Headers } from '@nestjs/common';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -16,6 +17,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Throttle({ default: { ttl: 900_000, limit: 5 } }) // 5 registos / 15 min por IP
   @ApiOperation({ summary: 'Registar novo utilizador com email/password' })
   async register(
     @Body() dto: RegisterDto,
@@ -32,6 +34,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Throttle({ default: { ttl: 900_000, limit: 5 } }) // 5 tentativas / 15 min por IP
   @ApiOperation({ summary: 'Login com email/password' })
   async login(
     @Body() dto: LoginDto,
@@ -84,6 +87,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('otp/send')
+  @Throttle({ default: { ttl: 900_000, limit: 3 } }) // 3 envios / 15 min por IP
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Enviar código OTP para verificar email ou telefone' })
   sendOtp(@Request() req, @Body() dto: OtpSendDto) {

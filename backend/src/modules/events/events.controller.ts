@@ -1,4 +1,5 @@
 import { Controller, Query, Sse, UnauthorizedException } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Observable, interval, merge } from 'rxjs';
@@ -22,6 +23,7 @@ export class EventsController {
   ) {}
 
   @Sse('stream')
+  @SkipThrottle() // ligação SSE persistente — não contar como pedidos HTTP normais
   async stream(@Query('token') token: string): Promise<Observable<SseEvent>> {
     if (!token) {
       throw new UnauthorizedException('Token em falta');

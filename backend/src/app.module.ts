@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { createKeyv } from '@keyv/redis';
 import { join } from 'path';
 import { AppController } from './app.controller';
@@ -24,6 +26,12 @@ const backendEnv = join(__dirname, '..', '.env');
 
 @Module({
   controllers: [AppController],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
@@ -46,6 +54,13 @@ const backendEnv = join(__dirname, '..', '.env');
       }),
       inject: [ConfigService],
     }),
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60_000,  // janela de 1 minuto
+        limit: 60,    // 60 pedidos por minuto por IP (todos os endpoints)
+      },
+    ]),
     PrismaModule,
     AuthModule,
     UsersModule,
