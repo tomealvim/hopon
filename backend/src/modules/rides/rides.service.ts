@@ -87,7 +87,11 @@ export class RidesService {
       where: { driverId: userId },
       include: {
         vehicle: true,
-        bookings: true,
+        bookings: {
+          include: {
+            user: { include: { profile: true } },
+          },
+        },
         originLocation: true,
         destinationLocation: true,
       },

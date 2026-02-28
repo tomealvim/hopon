@@ -30,6 +30,19 @@ export interface ApiRideVehicle {
   features?: Record<string, unknown> | null;
 }
 
+export interface ApiRideBooking {
+  id: string;
+  userId: string;
+  seats: number;
+  status: string;
+  createdAt: string;
+  user?: {
+    id: string;
+    email: string;
+    profile?: { name: string; username?: string; avatarUrl?: string } | null;
+  } | null;
+}
+
 export interface ApiRide {
   id: string;
   driverId: string;
@@ -46,6 +59,7 @@ export interface ApiRide {
   status: string;
   vehicle: ApiRideVehicle | null;
   driver: ApiRideDriver | null;
+  bookings?: ApiRideBooking[];
   createdAt?: string;
   updatedAt?: string;
 }

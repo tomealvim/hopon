@@ -1,7 +1,7 @@
 import { cn } from "../../utils/cn";
 import type { KeyboardEvent } from "react";
 
-export type DiscoverTab = "explore" | "requests" | "following" | "for-you";
+export type DiscoverTab = "explore" | "for-you";
 
 type Props = {
   active: DiscoverTab;
@@ -10,7 +10,7 @@ type Props = {
 };
 
 export default function DiscoverTopBar({ active, onChange, onFilter }: Props) {
-  const order: DiscoverTab[] = ["explore", "requests", "for-you"];
+  const order: DiscoverTab[] = ["explore", "for-you"];
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const i = order.indexOf(active);
     if (e.key === "ArrowRight") { e.preventDefault(); onChange(order[Math.min(i + 1, order.length - 1)]); }
@@ -40,14 +40,6 @@ export default function DiscoverTopBar({ active, onChange, onFilter }: Props) {
             className={pillClass("explore")}
             onClick={() => onChange("explore")}
           >OFERTAS</button>
-
-          <button
-            type="button" role="radio"
-            aria-checked={active === "requests"}
-            tabIndex={active === "requests" ? 0 : -1}
-            className={pillClass("requests")}
-            onClick={() => onChange("requests")}
-          >PEDIDOS</button>
 
           <button
             type="button" role="radio"

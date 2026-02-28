@@ -1,33 +1,105 @@
-// src/pages/RidesPage.tsx
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { useRides, type RideOffer, type RideRequest } from "../contexts/RidesContext";
 import { apiRequest } from "../services/api";
+import { useNotifications } from "../contexts/NotificationContext";
 import EntityCard from "../components/ui/EntityCard";
-import RidesCalendar, { type DayRides, type CalendarRide } from "../components/ui/RidesCalendar";
+import RidesCalendar, { type DayRides } from "../components/ui/RidesCalendar";
 import Sheet from "../components/ui/Sheet";
 import { Button } from "../components/ui/Button";
 import BackgroundGlow from "../components/ui/BackgroundGlow";
 import { EntityCardSkeleton, RideCardSkeleton } from "../components/ui/Skeleton";
 import CreateScheduleSheet from "../components/rides/CreateScheduleSheet";
 import CreateRideFromTemplateSheet from "../components/rides/CreateRideFromTemplateSheet";
+import type { ApiRide, ApiRideBooking } from "./types/ride-api";
+import type { ApiBooking } from "./types/booking-api";
 import type { ApiSchedule } from "./types/schedule-api";
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString("pt-PT", {
+    day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+  });
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  PENDING: "Pendente",
+  CONFIRMED: "Confirmada",
+  DECLINED: "Recusada",
+  CANCELLED: "Cancelada",
+  COMPLETED: "Concluída",
+  SCHEDULED: "Agendada",
+};
+
+const STATUS_TONE: Record<string, "success" | "warning" | "brand" | undefined> = {
+  PENDING: "warning",
+  CONFIRMED: "success",
+  DECLINED: undefined,
+  CANCELLED: undefined,
+  COMPLETED: "brand",
+};
 
 export default function RidesPage() {
   const { user } = useAuth();
-  const { getMyOffers, getMyRequests, requests, acceptRequest, declineRequest, cancelOffer, cancelRequest } = useRides();
-  const [open, setOpen] = useState(false);
-  const [hydrating, setHydrating] = useState(true);
+  const { showSuccess, showError } = useNotifications();
 
+  // --- Driver rides ---
+  const [myRides, setMyRides] = useState<ApiRide[]>([]);
+  const [ridesLoading, setRidesLoading] = useState(false);
+
+  // --- Passenger bookings ---
+  const [myBookings, setMyBookings] = useState<ApiBooking[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+
+  // --- Schedules ---
   const [schedules, setSchedules] = useState<ApiSchedule[]>([]);
   const [schedulesLoading, setSchedulesLoading] = useState(false);
   const [openScheduleSheet, setOpenScheduleSheet] = useState(false);
   const [openCreateRideSheet, setOpenCreateRideSheet] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<ApiSchedule | null>(null);
 
-  const fetchSchedules = useCallback(async () => {
+  // --- Detail sheet ---
+  const [selectedRide, setSelectedRide] = useState<ApiRide | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<ApiBooking | null>(null);
+  const [openSheet, setOpenSheet] = useState(false);
+  const [sheetView, setSheetView] = useState<"ride" | "booking" | "passengers">("ride");
+
+  const [hydrating, setHydrating] = useState(true);
+
+  const fetchMyRides = useCallback(async () => {
+    setRidesLoading(true);
     try {
-      setSchedulesLoading(true);
+      const data = await apiRequest<ApiRide[]>("/rides/my");
+      setMyRides(Array.isArray(data) ? data : []);
+    } catch {
+      setMyRides([]);
+    } finally {
+      setRidesLoading(false);
+    }
+  }, []);
+
+  const fetchMyBookings = useCallback(async () => {
+    setBookingsLoading(true);
+    try {
+      const data = await apiRequest<ApiBooking[]>("/bookings/my");
+      setMyBookings(Array.isArray(data) ? data : []);
+    } catch {
+      setMyBookings([]);
+    } finally {
+      setBookingsLoading(false);
+    }
+  }, []);
+
+  const fetchSchedules = useCallback(async () => {
+    setSchedulesLoading(true);
+    try {
       const data = await apiRequest<ApiSchedule[]>("/schedules/my");
       setSchedules(Array.isArray(data) ? data : []);
     } catch {
@@ -38,103 +110,121 @@ export default function RidesPage() {
   }, []);
 
   useEffect(() => {
-    if (user) fetchSchedules();
-  }, [user, fetchSchedules]);
+    if (user) {
+      fetchMyRides();
+      fetchMyBookings();
+      fetchSchedules();
+    }
+  }, [user, fetchMyRides, fetchMyBookings, fetchSchedules]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setHydrating(false), 300);
-    return () => clearTimeout(timeout);
+    const t = setTimeout(() => setHydrating(false), 300);
+    return () => clearTimeout(t);
   }, []);
 
-  // Carregar ofertas e pedidos do utilizador
-  const myOffers = useMemo(() => getMyOffers(user?.id || "current_user"), [getMyOffers, user?.id]);
-  const myRequests = useMemo(() => getMyRequests(user?.id || "current_user"), [getMyRequests, user?.id]);
-
-  // Converter para formato do calendário
+  // --- Calendar data ---
   const ridesData: DayRides[] = useMemo(() => {
-    const ridesMap: Record<string, DayRides["rides"]> = {};
+    const map: Record<string, DayRides["rides"]> = {};
 
-    // Adicionar ofertas
-    myOffers.forEach((offer) => {
-      if (!ridesMap[offer.data]) {
-        ridesMap[offer.data] = [];
-      }
-      ridesMap[offer.data].push({
-        id: offer.id,
-        type: "offer",
-        time: offer.hora,
-        origin: offer.origem,
-        destination: offer.destino,
-        seats: offer.lugaresDisponiveis,
+    // Rides where I'm the driver
+    myRides.forEach((ride) => {
+      if (ride.status === "CANCELLED") return;
+      const date = formatDate(ride.departureTime);
+      if (!map[date]) map[date] = [];
+      const hasConfirmed = (ride.bookings ?? []).some((b) => b.status === "CONFIRMED");
+      map[date].push({
+        id: ride.id,
+        type: hasConfirmed ? "confirmed" : "offer",
+        time: formatTime(ride.departureTime),
+        origin: ride.origin,
+        destination: ride.destination,
+        seats: ride.remainingSeats,
       });
     });
 
-    // Adicionar pedidos
-    myRequests.forEach((request) => {
-      if (!ridesMap[request.data]) {
-        ridesMap[request.data] = [];
-      }
-      ridesMap[request.data].push({
-        id: request.id,
-        type: request.status === "matched" ? "confirmed" : "request",
-        time: request.horaMin,
-        origin: request.origem,
-        destination: request.destino,
+    // Bookings where I'm the passenger
+    myBookings.forEach((booking) => {
+      if (!booking.ride || booking.status === "CANCELLED" || booking.status === "DECLINED") return;
+      const date = formatDate(booking.ride.departureTime);
+      if (!map[date]) map[date] = [];
+      map[date].push({
+        id: booking.id,
+        type: booking.status === "CONFIRMED" ? "confirmed" : "request",
+        time: formatTime(booking.ride.departureTime),
+        origin: booking.ride.origin,
+        destination: booking.ride.destination,
       });
     });
 
-    // Converter para array e ordenar por data
-    return Object.entries(ridesMap)
+    return Object.entries(map)
       .map(([date, rides]) => ({ date, rides }))
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [myOffers, myRequests]);
+  }, [myRides, myBookings]);
 
-  const [selectedRide, setSelectedRide] = useState<(RideOffer | RideRequest) & { type: "offer" | "request" } | null>(null);
-  const [viewingRequests, setViewingRequests] = useState(false);
-
-  const handleRideClick = (ride: CalendarRide) => {
-    const matchedOffer = myOffers.find((offer) => offer.id === ride.id);
-    if (matchedOffer) {
-      setSelectedRide({ ...matchedOffer, type: "offer" });
-      setOpen(true);
+  // --- Calendar click ---
+  function handleCalendarClick(calRide: { id: string }) {
+    const ride = myRides.find((r) => r.id === calRide.id);
+    if (ride) {
+      setSelectedRide(ride);
+      setSelectedBooking(null);
+      setSheetView("ride");
+      setOpenSheet(true);
       return;
     }
-
-    const matchedRequest = myRequests.find((request) => request.id === ride.id);
-    if (matchedRequest) {
-      setSelectedRide({ ...matchedRequest, type: "request" });
-      setOpen(true);
+    const booking = myBookings.find((b) => b.id === calRide.id);
+    if (booking) {
+      setSelectedBooking(booking);
+      setSelectedRide(null);
+      setSheetView("booking");
+      setOpenSheet(true);
     }
-  };
+  }
 
-  // Obter pedidos recebidos para uma oferta específica
-  const getRequestsForOffer = (offerId: string) => {
-    const offer = myOffers.find((o) => o.id === offerId);
-    if (!offer) return [];
-    return offer.pedidos.map((reqId) => requests.find((r) => r.id === reqId)).filter(Boolean) as RideRequest[];
-  };
+  // --- Booking actions (driver) ---
+  async function handleBookingStatus(bookingId: string, status: "CONFIRMED" | "DECLINED") {
+    try {
+      await apiRequest(`/bookings/${bookingId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      });
+      showSuccess(
+        status === "CONFIRMED" ? "Reserva confirmada!" : "Reserva recusada",
+        status === "CONFIRMED" ? "O passageiro foi notificado." : "O passageiro foi notificado."
+      );
+      await fetchMyRides();
+      setOpenSheet(false);
+    } catch (err) {
+      showError("Erro", err instanceof Error ? err.message : "Tenta novamente.");
+    }
+  }
 
-  const handleAcceptRequest = (offerId: string, requestId: string) => {
-    acceptRequest(offerId, requestId);
-    setOpen(false);
-    setSelectedRide(null);
-  };
+  // --- Cancel booking (passenger) ---
+  async function handleCancelBooking(bookingId: string) {
+    try {
+      await apiRequest(`/bookings/${bookingId}/cancel`, { method: "POST" });
+      showSuccess("Reserva cancelada", "");
+      await fetchMyBookings();
+      setOpenSheet(false);
+    } catch (err) {
+      showError("Erro ao cancelar", err instanceof Error ? err.message : "Tenta novamente.");
+    }
+  }
 
-  const handleDeclineRequest = (offerId: string, requestId: string) => {
-    declineRequest(offerId, requestId);
-  };
+  // --- Cancel ride (driver) ---
+  async function handleCancelRide(rideId: string) {
+    try {
+      await apiRequest(`/rides/${rideId}`, { method: "DELETE" });
+      showSuccess("Boleia cancelada", "");
+      await fetchMyRides();
+      setOpenSheet(false);
+    } catch (err) {
+      showError("Erro ao cancelar boleia", err instanceof Error ? err.message : "Tenta novamente.");
+    }
+  }
 
-  const handleCancelOffer = (offerId: string) => {
-    cancelOffer(offerId);
-    setOpen(false);
-    setSelectedRide(null);
-  };
-
-  const handleCancelRequest = (requestId: string) => {
-    cancelRequest(requestId);
-    setOpen(false);
-    setSelectedRide(null);
-  };
+  const isLoading = hydrating || ridesLoading || bookingsLoading;
+  const pendingBookingsForRide = (ride: ApiRide) =>
+    (ride.bookings ?? []).filter((b) => b.status === "PENDING");
 
   return (
     <>
@@ -142,353 +232,279 @@ export default function RidesPage() {
         <BackgroundGlow />
         <div className="relative z-10 px-4">
           <div className="mx-auto max-w-mobile md:max-w-tablet lg:max-w-desktop">
-        <section className="pt-4 pb-6">
-          <h2 className="text-sm font-bold text-gray-900 mb-3">Próximas boleias</h2>
-          {hydrating ? (
-            <div className="grid gap-3">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <RideCardSkeleton key={`calendar-skeleton-${index}`} />
-              ))}
-            </div>
-          ) : ridesData.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-sm text-gray-600 mb-1">Ainda não tens boleias</p>
-              <p className="text-xs text-gray-500">Usa o botão + para criar uma oferta ou pedido</p>
-            </div>
-          ) : (
-            <>
-              {/* TODO: Quando houver API real, adicionar loading state antes do RidesCalendar */}
-              <RidesCalendar rides={ridesData} onRideClick={handleRideClick} />
-            </>
-          )}
-        </section>
 
-        {/* Templates de viagem (recorrentes) */}
-        <section className="pb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-gray-900">Templates de viagem</h2>
-            <Button
-              variant="secondary"
-              className="text-xs"
-              onClick={() => setOpenScheduleSheet(true)}
-            >
-              Novo template
-            </Button>
-          </div>
-          {schedulesLoading ? (
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <EntityCardSkeleton key={`schedule-skel-${i}`} />
-              ))}
-            </div>
-          ) : schedules.length === 0 ? (
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-center">
-              <p className="text-sm text-gray-600">Ainda não tens templates.</p>
-              <p className="text-xs text-gray-500 mt-1">Cria um para publicar boleias recorrentes (ex.: Seg–Sex às 08:00).</p>
-              <Button variant="secondary" className="mt-3" onClick={() => setOpenScheduleSheet(true)}>
-                Criar template
-              </Button>
-            </div>
-          ) : (
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-              {schedules.map((schedule) => (
-                <EntityCard
-                  key={schedule.id}
-                  title={`${schedule.origin} → ${schedule.destination}`}
-                  subtitle={`${schedule.time} · ${schedule.daysOfWeek.join(", ")}`}
-                  meta={`${schedule.availableSeats} lugares${schedule.price != null && schedule.price > 0 ? ` · €${schedule.price.toFixed(0)}` : ""}`}
-                  badges={schedule.active ? [{ label: "Ativo", tone: "success" }] : [{ label: "Inativo", tone: "neutral" }]}
-                  avatar={{ initials: schedule.vehicle ? `${schedule.vehicle.brand[0]}${schedule.vehicle.model[0]}` : "?" }}
-                  primaryLabel="Criar boleia"
-                  secondaryLabel="Detalhes"
-                  onPrimary={() => {
-                    setSelectedSchedule(schedule);
-                    setOpenCreateRideSheet(true);
-                  }}
-                  onSecondary={() => {
-                    setSelectedSchedule(schedule);
-                    setOpenCreateRideSheet(true);
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+            {/* Calendário */}
+            <section className="pt-4 pb-6">
+              <h2 className="text-sm font-bold text-gray-900 mb-3">Próximas boleias</h2>
+              {isLoading ? (
+                <div className="grid gap-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <RideCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : ridesData.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-sm text-gray-600 mb-1">Ainda não tens boleias</p>
+                  <p className="text-xs text-gray-500">Usa o botão + para criar uma boleia ou um template</p>
+                </div>
+              ) : (
+                <RidesCalendar rides={ridesData} onRideClick={handleCalendarClick} />
+              )}
+            </section>
 
-        {hydrating ? (
-          <section className="pb-6">
-            <h2 className="text-sm font-bold text-gray-900 mb-3">As minhas ofertas</h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {Array.from({ length: 2 }).map((_, index) => (
-                <EntityCardSkeleton key={`myoffers-skeleton-${index}`} />
-              ))}
-            </div>
-          </section>
-        ) : myOffers.length > 0 && (
-          <section className="pb-6">
-            <h2 className="text-sm font-bold text-gray-900 mb-3">As minhas ofertas</h2>
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-              {myOffers.map((offer) => (
-                <EntityCard
-                  key={offer.id}
-                  title={`${offer.origem} → ${offer.destino}`}
-                  subtitle={`${offer.data} às ${offer.hora}`}
-                  meta={`${offer.lugaresDisponiveis}/${offer.lugares} lugares  •  ${offer.vehicle.brand} ${offer.vehicle.model}  •  ${offer.pedidos.length} pedido${offer.pedidos.length !== 1 ? "s" : ""}`}
-                  avatar={{ initials: user?.profile?.name?.charAt(0).toUpperCase() || "U" }}
-                  badges={[{ label: "Condutor", tone: "brand" }]}
-                  primaryLabel={offer.pedidos.length > 0 ? "Ver pedidos" : "Detalhes"}
-                  onPrimary={() => {
-                    setSelectedRide({ ...offer, type: "offer" });
-                    setOpen(true);
-                  }}
-                />
-              ))}
-            </div>
-          </section>
-        )}
+            {/* Templates */}
+            <section className="pb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold text-gray-900">Templates de viagem</h2>
+                <Button variant="secondary" className="text-xs" onClick={() => setOpenScheduleSheet(true)}>
+                  Novo template
+                </Button>
+              </div>
+              {schedulesLoading ? (
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                  {Array.from({ length: 2 }).map((_, i) => <EntityCardSkeleton key={i} />)}
+                </div>
+              ) : schedules.length === 0 ? (
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-center">
+                  <p className="text-sm text-gray-600">Ainda não tens templates.</p>
+                  <p className="text-xs text-gray-500 mt-1">Cria um para publicar boleias recorrentes (ex.: Seg–Sex às 08:00).</p>
+                  <Button variant="secondary" className="mt-3" onClick={() => setOpenScheduleSheet(true)}>
+                    Criar template
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                  {schedules.map((s) => (
+                    <EntityCard
+                      key={s.id}
+                      title={`${s.origin} → ${s.destination}`}
+                      subtitle={`${s.time} · ${s.daysOfWeek.join(", ")}`}
+                      meta={`${s.availableSeats} lugares${s.price != null && s.price > 0 ? ` · €${s.price.toFixed(0)}` : ""}`}
+                      badges={s.active ? [{ label: "Ativo", tone: "success" }] : [{ label: "Inativo" }]}
+                      avatar={{ initials: s.vehicle ? `${s.vehicle.brand[0]}${s.vehicle.model[0]}` : "?" }}
+                      primaryLabel="Criar boleia"
+                      secondaryLabel="Detalhes"
+                      onPrimary={() => { setSelectedSchedule(s); setOpenCreateRideSheet(true); }}
+                      onSecondary={() => { setSelectedSchedule(s); setOpenCreateRideSheet(true); }}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
 
-        {hydrating ? (
-          <section className="pb-6">
-            <h2 className="text-sm font-bold text-gray-900 mb-3">Os meus pedidos</h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {Array.from({ length: 2 }).map((_, index) => (
-                <EntityCardSkeleton key={`myrequests-skeleton-${index}`} />
-              ))}
-            </div>
-          </section>
-        ) : myRequests.length > 0 && (
-          <section className="pb-6">
-            <h2 className="text-sm font-bold text-gray-900 mb-3">Os meus pedidos</h2>
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-              {myRequests.map((request) => (
-                <EntityCard
-                  key={request.id}
-                  title={`${request.origem} → ${request.destino}`}
-                  subtitle={`${request.data} • ${request.horaMin}-${request.horaMax}`}
-                  meta={`${request.passageiros} passageiro${request.passageiros !== 1 ? "s" : ""}  •  ${request.urgencia}`}
-                  avatar={{ initials: user?.profile?.name?.charAt(0).toUpperCase() || "U" }}
-                  badges={[
-                    {
-                      label: request.status === "matched" ? "Confirmado" : request.status === "pending" ? "Pendente" : "Cancelado",
-                      tone: request.status === "matched" ? "success" : request.status === "pending" ? "warning" : undefined,
-                    },
-                  ]}
-                  primaryLabel="Detalhes"
-                  onPrimary={() => {
-                    setSelectedRide({ ...request, type: "request" });
-                    setOpen(true);
-                  }}
-                />
-              ))}
-            </div>
-          </section>
-        )}
+            {/* As minhas boleias (condutor) */}
+            {!isLoading && myRides.filter((r) => r.status !== "CANCELLED").length > 0 && (
+              <section className="pb-6">
+                <h2 className="text-sm font-bold text-gray-900 mb-3">As minhas boleias</h2>
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                  {myRides.filter((r) => r.status !== "CANCELLED").map((ride) => {
+                    const pending = pendingBookingsForRide(ride);
+                    const initials = ride.vehicle
+                      ? `${ride.vehicle.brand[0]}${ride.vehicle.model[0]}`
+                      : "?";
+                    return (
+                      <EntityCard
+                        key={ride.id}
+                        title={`${ride.origin} → ${ride.destination}`}
+                        subtitle={formatDateTime(ride.departureTime)}
+                        meta={`${ride.remainingSeats} lugares livres${ride.price ? ` · €${ride.price.toFixed(0)}` : ""}`}
+                        badges={[
+                          { label: "Condutor", tone: "brand" },
+                          ...(pending.length > 0 ? [{ label: `${pending.length} pendente${pending.length > 1 ? "s" : ""}`, tone: "warning" as const }] : []),
+                        ]}
+                        avatar={{ initials }}
+                        primaryLabel={pending.length > 0 ? `Ver reservas (${pending.length})` : "Detalhes"}
+                        onPrimary={() => {
+                          setSelectedRide(ride);
+                          setSelectedBooking(null);
+                          setSheetView(pending.length > 0 ? "passengers" : "ride");
+                          setOpenSheet(true);
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* As minhas reservas (passageiro) */}
+            {!isLoading && myBookings.filter((b) => b.status !== "CANCELLED" && b.status !== "DECLINED").length > 0 && (
+              <section className="pb-6">
+                <h2 className="text-sm font-bold text-gray-900 mb-3">As minhas reservas</h2>
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                  {myBookings
+                    .filter((b) => b.status !== "CANCELLED" && b.status !== "DECLINED")
+                    .map((booking) => (
+                      <EntityCard
+                        key={booking.id}
+                        title={booking.ride ? `${booking.ride.origin} → ${booking.ride.destination}` : "Boleia"}
+                        subtitle={booking.ride ? formatDateTime(booking.ride.departureTime) : ""}
+                        meta={`${booking.seats} lugar${booking.seats > 1 ? "es" : ""}${booking.ride?.price ? ` · €${(booking.ride.price * booking.seats).toFixed(0)}` : ""}`}
+                        badges={[{ label: STATUS_LABEL[booking.status] ?? booking.status, tone: STATUS_TONE[booking.status] }]}
+                        avatar={{
+                          src: booking.ride?.driver?.profile?.avatarUrl ?? undefined,
+                          initials: (booking.ride?.driver?.profile?.name ?? booking.ride?.driver?.email ?? "?").slice(0, 2).toUpperCase(),
+                        }}
+                        primaryLabel="Detalhes"
+                        onPrimary={() => {
+                          setSelectedBooking(booking);
+                          setSelectedRide(null);
+                          setSheetView("booking");
+                          setOpenSheet(true);
+                        }}
+                      />
+                    ))}
+                </div>
+              </section>
+            )}
+
           </div>
         </div>
       </div>
 
+      {/* Sheet de detalhes */}
       <Sheet
-        open={open}
-        onClose={() => { 
-          setOpen(false); 
-          setSelectedRide(null); 
-          setViewingRequests(false);
-        }}
+        open={openSheet}
+        onClose={() => { setOpenSheet(false); setSelectedRide(null); setSelectedBooking(null); setSheetView("ride"); }}
         title={
-          viewingRequests && selectedRide && "type" in selectedRide && selectedRide.type === "offer"
-            ? "Pedidos recebidos"
-            : selectedRide?.type === "offer"
-            ? "Oferta de boleia"
-            : selectedRide?.type === "request"
-            ? "Pedido de boleia"
-            : "Detalhes"
+          sheetView === "passengers" ? "Reservas pendentes"
+          : selectedRide ? "Boleia"
+          : "A minha reserva"
         }
         height="lg"
         footer={
-          viewingRequests ? (
-            <Button variant="secondary" className="w-full" onClick={() => setViewingRequests(false)}>
-              Voltar
-            </Button>
-          ) : (
+          sheetView === "passengers" ? (
+            <Button variant="secondary" className="w-full" onClick={() => setSheetView("ride")}>Voltar</Button>
+          ) : selectedRide ? (
             <div className="flex gap-2">
-              <Button 
-                variant="secondary" 
-                className="flex-1" 
-                onClick={() => { setOpen(false); setSelectedRide(null); }}
-              >
-                Fechar
+              <Button variant="secondary" className="flex-1" onClick={() => setOpenSheet(false)}>Fechar</Button>
+              {(selectedRide.bookings ?? []).filter((b) => b.status === "PENDING").length > 0 && (
+                <Button className="flex-1" onClick={() => setSheetView("passengers")}>
+                  Ver reservas ({(selectedRide.bookings ?? []).filter((b) => b.status === "PENDING").length})
+                </Button>
+              )}
+              <Button variant="danger" className="flex-1" onClick={() => handleCancelRide(selectedRide.id)}>
+                Cancelar boleia
               </Button>
-              {selectedRide?.type === "offer" && "pedidos" in selectedRide && selectedRide.pedidos.length > 0 && (
-                <Button className="flex-1" onClick={() => setViewingRequests(true)}>
-                  Ver pedidos ({selectedRide.pedidos.length})
-                </Button>
-              )}
-              {selectedRide?.type === "offer" && (
-                <Button 
-                  variant="danger" 
-                  className="flex-1" 
-                  onClick={() => "id" in selectedRide && handleCancelOffer(selectedRide.id)}
-                >
-                  Cancelar oferta
-                </Button>
-              )}
-              {selectedRide?.type === "request" && (
-                <Button 
-                  variant="danger" 
-                  className="flex-1" 
-                  onClick={() => "id" in selectedRide && handleCancelRequest(selectedRide.id)}
-                >
-                  Cancelar pedido
+            </div>
+          ) : selectedBooking ? (
+            <div className="flex gap-2">
+              <Button variant="secondary" className="flex-1" onClick={() => setOpenSheet(false)}>Fechar</Button>
+              {selectedBooking.status === "PENDING" && (
+                <Button variant="danger" className="flex-1" onClick={() => handleCancelBooking(selectedBooking.id)}>
+                  Cancelar reserva
                 </Button>
               )}
             </div>
-          )
+          ) : null
         }
       >
-        {viewingRequests && selectedRide && "type" in selectedRide && selectedRide.type === "offer" && "id" in selectedRide ? (
+        {/* Vista: Passageiros com reservas pendentes */}
+        {sheetView === "passengers" && selectedRide && (
           <div className="grid gap-3 p-1">
-            {getRequestsForOffer(selectedRide.id).length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-sm text-gray-600">Sem pedidos ainda</p>
-              </div>
+            {(selectedRide.bookings ?? []).filter((b) => b.status === "PENDING").length === 0 ? (
+              <p className="text-sm text-gray-600 text-center py-12">Sem reservas pendentes</p>
             ) : (
-              getRequestsForOffer(selectedRide.id).map((request) => (
-                <div key={request.id} className="p-4 border border-gray-200 bg-gray-50 rounded-xl">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="text-sm font-semibold text-gray-900">
-                        {request.origem} → {request.destino}
+              (selectedRide.bookings ?? [])
+                .filter((b: ApiRideBooking) => b.status === "PENDING")
+                .map((b: ApiRideBooking) => {
+                  const name = b.user?.profile?.name ?? b.user?.email ?? "Passageiro";
+                  return (
+                    <div key={b.id} className="p-4 border border-gray-200 bg-gray-50 rounded-xl">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <div className="font-semibold text-sm text-gray-900">{name}</div>
+                          <div className="text-xs text-gray-500">{b.seats} lugar{b.seats > 1 ? "es" : ""}</div>
+                        </div>
+                        <span className="text-xs bg-amber-100 text-amber-700 border border-amber-200 rounded-full px-2 py-0.5">
+                          Pendente
+                        </span>
                       </div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        {request.data} • {request.horaMin}-{request.horaMax}
+                      <div className="flex gap-2">
+                        <Button variant="secondary" className="flex-1" onClick={() => handleBookingStatus(b.id, "DECLINED")}>
+                          Recusar
+                        </Button>
+                        <Button className="flex-1" onClick={() => handleBookingStatus(b.id, "CONFIRMED")}>
+                          Confirmar
+                        </Button>
                       </div>
                     </div>
-                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      request.status === "matched" 
-                        ? "bg-green-500/20 text-green-300 border border-green-500/30" 
-                        : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                    }`}>
-                      {request.status === "matched" ? "Aceite" : "Pendente"}
-                    </div>
-                  </div>
-
-                  <div className="grid gap-2 mb-3">
-                    <div className="text-xs text-gray-600">
-                      <strong>Passageiros:</strong> {request.passageiros}
-                    </div>
-                    {request.observacoes && (
-                      <div className="text-xs text-gray-600">
-                        <strong>Observações:</strong> {request.observacoes}
-                      </div>
-                    )}
-                    <div className="text-xs text-gray-600">
-                      <strong>Contacto:</strong> {request.contacto}
-                    </div>
-                    {request.requestMessage && (
-                      <div className="rounded-lg border border-blue-500/30 bg-blue-500/20 px-3 py-2">
-                        <div className="text-xs font-semibold text-blue-300">Mensagem do passageiro</div>
-                        <div className="text-sm text-blue-300/80">{request.requestMessage}</div>
-                      </div>
-                    )}
-                  </div>
-
-                  {request.status === "pending" && (
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="secondary" 
-                        className="flex-1" 
-                        onClick={() => handleDeclineRequest(selectedRide.id, request.id)}
-                      >
-                        Recusar
-                      </Button>
-                      <Button 
-                        className="flex-1" 
-                        onClick={() => handleAcceptRequest(selectedRide.id, request.id)}
-                      >
-                        Aceitar
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))
+                  );
+                })
             )}
           </div>
-        ) : selectedRide && (
+        )}
+
+        {/* Vista: Detalhes da minha boleia (condutor) */}
+        {sheetView === "ride" && selectedRide && (
           <div className="grid gap-4 p-1">
-            <div className="grid gap-2">
-              <div className="text-xs font-semibold text-gray-600 uppercase">
-                {selectedRide.type === "request" ? "Pedido de Boleia" : "Oferta de Boleia"}
-              </div>
-              <div className="text-xl font-bold text-white">
-                {"hora" in selectedRide ? selectedRide.hora : "horaMin" in selectedRide ? `${selectedRide.horaMin}-${selectedRide.horaMax}` : ""}
-              </div>
-            </div>
-
             <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">📍</span>
-                <div>
-                  <div className="text-xs text-gray-600">Origem</div>
-                  <div className="text-sm font-semibold text-gray-900">{"origem" in selectedRide ? selectedRide.origem : ""}</div>
-                </div>
-              </div>
-              <div className="h-px bg-gray-100 my-1" />
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🎯</span>
-                <div>
-                  <div className="text-xs text-gray-600">Destino</div>
-                  <div className="text-sm font-semibold text-gray-900">{"destino" in selectedRide ? selectedRide.destino : ""}</div>
-                </div>
-              </div>
+              <Row label="Origem" value={selectedRide.origin} />
+              <div className="h-px bg-gray-100" />
+              <Row label="Destino" value={selectedRide.destination} />
             </div>
-
             <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-              <div className="text-xs text-gray-600">Data</div>
-              <div className="text-sm font-semibold text-gray-900">{"data" in selectedRide ? selectedRide.data : ""}</div>
+              <Row label="Partida" value={formatDateTime(selectedRide.departureTime)} />
+              <Row label="Lugares disponíveis" value={`${selectedRide.remainingSeats} / ${selectedRide.availableSeats}`} />
+              {selectedRide.price != null && <Row label="Preço/lugar" value={`€${selectedRide.price.toFixed(2)}`} />}
             </div>
-
-            {selectedRide.type === "offer" && "vehicle" in selectedRide && (
-              <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                <div className="text-xs text-gray-600">Carro associado</div>
-                <div className="text-sm font-semibold text-gray-900">
+            {selectedRide.vehicle && (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                <div className="text-xs text-gray-500 mb-1">Veículo</div>
+                <div className="font-semibold text-sm text-gray-900">
                   {selectedRide.vehicle.brand} {selectedRide.vehicle.model}
-                </div>
-                {(selectedRide.vehicle.plate || selectedRide.vehicle.color) && (
-                  <div className="text-xs text-gray-500">
-                    {selectedRide.vehicle.plate && <span>Matrícula: {selectedRide.vehicle.plate}</span>}
-                    {selectedRide.vehicle.plate && selectedRide.vehicle.color && <span> • </span>}
-                    {selectedRide.vehicle.color && <span>Cor: {selectedRide.vehicle.color}</span>}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {selectedRide.type === "offer" && "lugaresDisponiveis" in selectedRide && (
-              <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
-                <div className="text-xs text-green-300">
-                  <strong>{selectedRide.lugaresDisponiveis}/{("lugares" in selectedRide && selectedRide.lugares) || 0} lugares disponíveis</strong>
+                  {selectedRide.vehicle.color ? ` · ${selectedRide.vehicle.color}` : ""}
                 </div>
               </div>
             )}
-
-            {selectedRide.type === "request" && "status" in selectedRide && (
-              <div className={`p-3 rounded-lg ${
-                selectedRide.status === "matched" ? "bg-green-500/20 border border-green-500/30" : "bg-blue-500/20 border border-blue-500/30"
-              }`}>
-                <div className={`text-xs ${
-                  selectedRide.status === "matched" ? "text-green-300" : "text-blue-300"
-                }`}>
-                  {selectedRide.status === "matched" 
-                    ? "✓ Boleia confirmada!" 
-                    : "Pedido pendente • Aguarda confirmação"}
+            {(selectedRide.bookings ?? []).filter((b) => b.status === "CONFIRMED").length > 0 && (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                <div className="text-xs text-gray-500 mb-2">Passageiros confirmados</div>
+                <div className="grid gap-1">
+                  {(selectedRide.bookings ?? [])
+                    .filter((b: ApiRideBooking) => b.status === "CONFIRMED")
+                    .map((b: ApiRideBooking) => (
+                      <div key={b.id} className="text-sm text-gray-900">
+                        {b.user?.profile?.name ?? b.user?.email ?? "Passageiro"} · {b.seats} lugar{b.seats > 1 ? "es" : ""}
+                      </div>
+                    ))}
                 </div>
               </div>
             )}
+          </div>
+        )}
 
-            {"observacoes" in selectedRide && selectedRide.observacoes && (
-              <div className="grid gap-2">
-                <div className="text-xs font-semibold text-gray-600">Observações</div>
-                <div className="text-sm text-gray-700">{selectedRide.observacoes}</div>
+        {/* Vista: Detalhes da minha reserva (passageiro) */}
+        {sheetView === "booking" && selectedBooking && selectedBooking.ride && (
+          <div className="grid gap-4 p-1">
+            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+              <Row label="Origem" value={selectedBooking.ride.origin} />
+              <div className="h-px bg-gray-100" />
+              <Row label="Destino" value={selectedBooking.ride.destination} />
+            </div>
+            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+              <Row label="Partida" value={formatDateTime(selectedBooking.ride.departureTime)} />
+              <Row label="Lugares reservados" value={String(selectedBooking.seats)} />
+              {selectedBooking.ride.price != null && (
+                <Row label="Custo total" value={`€${(selectedBooking.ride.price * selectedBooking.seats).toFixed(2)}`} />
+              )}
+              <Row label="Estado" value={STATUS_LABEL[selectedBooking.status] ?? selectedBooking.status} />
+            </div>
+            {selectedBooking.ride.driver && (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                <div className="text-xs text-gray-500 mb-1">Condutor</div>
+                <div className="font-semibold text-sm text-gray-900">
+                  {selectedBooking.ride.driver.profile?.name ?? selectedBooking.ride.driver.email}
+                </div>
+              </div>
+            )}
+            {selectedBooking.ride.vehicle && (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                <div className="text-xs text-gray-500 mb-1">Veículo</div>
+                <div className="font-semibold text-sm text-gray-900">
+                  {selectedBooking.ride.vehicle.brand} {selectedBooking.ride.vehicle.model}
+                  {selectedBooking.ride.vehicle.color ? ` · ${selectedBooking.ride.vehicle.color}` : ""}
+                </div>
               </div>
             )}
           </div>
@@ -498,20 +514,23 @@ export default function RidesPage() {
       <CreateScheduleSheet
         open={openScheduleSheet}
         onClose={() => setOpenScheduleSheet(false)}
-        onSuccess={() => fetchSchedules()}
+        onSuccess={fetchSchedules}
       />
       <CreateRideFromTemplateSheet
         open={openCreateRideSheet}
         schedule={selectedSchedule}
-        onClose={() => {
-          setOpenCreateRideSheet(false);
-          setSelectedSchedule(null);
-        }}
-        onSuccess={() => fetchSchedules()}
+        onClose={() => { setOpenCreateRideSheet(false); setSelectedSchedule(null); }}
+        onSuccess={fetchSchedules}
       />
     </>
   );
 }
 
-
-
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-gray-500">{label}</span>
+      <span className="font-semibold text-gray-900">{value}</span>
+    </div>
+  );
+}

@@ -114,6 +114,40 @@ export class BookingsService {
     return bookings.map((booking) => this.toResponse(booking));
   }
 
+  async updateStatus(driverId: string, bookingId: string, status: 'CONFIRMED' | 'DECLINED') {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { ride: true },
+    });
+
+    if (!booking) throw new NotFoundException('Reserva não encontrada');
+    if (booking.ride.driverId !== driverId) {
+      throw new ForbiddenException('Só o condutor pode gerir reservas desta boleia');
+    }
+    if (booking.status !== 'PENDING') {
+      throw new BadRequestException('Só é possível alterar reservas com estado PENDING');
+    }
+
+    const updated = await this.prisma.booking.update({
+      where: { id: bookingId },
+      data: { status },
+      include: {
+        ride: { include: { vehicle: true, driver: { include: { profile: true } } } },
+        user: { include: { profile: true } },
+      },
+    });
+
+    // Notificar passageiro via SSE
+    this.eventsService.emit(booking.userId, 'booking.status', {
+      bookingId,
+      status,
+      origin: booking.ride.origin,
+      destination: booking.ride.destination,
+    });
+
+    return this.toResponse(updated);
+  }
+
   async cancel(userId: string, bookingId: string) {
     // Verificar existência e ownership antes de tentar cancelar
     const booking = await this.prisma.booking.findUnique({
