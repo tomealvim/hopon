@@ -4,12 +4,14 @@ import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
 import { SearchRidesDto } from './dto/search-rides.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { WalletService } from '../wallet/wallet.service';
 
 @Injectable()
 export class RidesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly walletService: WalletService,
   ) {}
 
   async create(userId: string, dto: CreateRideDto) {
@@ -358,6 +360,62 @@ export class RidesService {
     return this.toResponse(ride);
   }
 
+  async complete(driverId: string, rideId: string) {
+    const ride = await this.prisma.ride.findUnique({
+      where: { id: rideId },
+      include: { bookings: true },
+    });
+
+    if (!ride) throw new NotFoundException('Boleia não encontrada');
+    if (ride.driverId !== driverId) throw new ForbiddenException('Não tens permissão para concluir esta boleia');
+    if (ride.status !== 'SCHEDULED') throw new BadRequestException('A boleia não está em estado SCHEDULED');
+
+    const confirmedBookings = ride.bookings.filter((b) => b.status === 'CONFIRMED');
+    const pendingBookings = ride.bookings.filter((b) => b.status === 'PENDING');
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.ride.update({ where: { id: rideId }, data: { status: 'COMPLETED' } });
+
+      // Marcar reservas confirmadas como concluídas
+      for (const booking of confirmedBookings) {
+        await tx.booking.update({ where: { id: booking.id }, data: { status: 'COMPLETED' } });
+      }
+
+      // Cancelar reservas pendentes e reembolsar (não chegaram a embarcar)
+      for (const booking of pendingBookings) {
+        await tx.booking.update({ where: { id: booking.id }, data: { status: 'CANCELLED' } });
+        if (ride.price != null && Number(ride.price) > 0) {
+          const amount = Number(ride.price) * booking.seats;
+          let wallet = await tx.wallet.findFirst({ where: { userId: booking.userId } });
+          if (!wallet) wallet = await tx.wallet.create({ data: { userId: booking.userId } });
+          await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: amount } } });
+          await tx.walletTransaction.create({
+            data: { walletId: wallet.id, type: 'REFUND', amount, description: 'Boleia concluída sem confirmação', reference: booking.id },
+          });
+        }
+      }
+
+      // Creditar condutor pelo total das reservas confirmadas
+      if (ride.price != null && Number(ride.price) > 0 && confirmedBookings.length > 0) {
+        const totalAmount = confirmedBookings.reduce((sum, b) => sum + Number(ride.price) * b.seats, 0);
+        let wallet = await tx.wallet.findFirst({ where: { userId: driverId } });
+        if (!wallet) wallet = await tx.wallet.create({ data: { userId: driverId } });
+        await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: totalAmount } } });
+        await tx.walletTransaction.create({
+          data: {
+            walletId: wallet.id,
+            type: 'PAYOUT',
+            amount: totalAmount,
+            description: `Boleia concluída ${ride.origin} → ${ride.destination}`,
+            reference: rideId,
+          },
+        });
+      }
+    });
+
+    return { message: 'Boleia concluída com sucesso' };
+  }
+
   async remove(userId: string, rideId: string) {
     await this.ensureRideOwnership(userId, rideId);
 
@@ -394,6 +452,23 @@ export class RidesService {
       } catch (error) {
         // Log do erro mas não bloqueia o cancelamento
         console.error('Erro ao enviar notificações de cancelamento:', error);
+      }
+    }
+
+    // Reembolsar reservas pendentes (já foram debitadas)
+    if (ride.price != null && Number(ride.price) > 0) {
+      const pendingBookings = ride.bookings.filter((b) => b.status === 'PENDING');
+      for (const booking of pendingBookings) {
+        try {
+          await this.walletService.refund(
+            booking.userId,
+            Number(ride.price) * booking.seats,
+            'Boleia cancelada pelo condutor',
+            booking.id,
+          );
+        } catch (err) {
+          console.error(`[RidesService] Erro ao reembolsar booking ${booking.id}:`, err);
+        }
       }
     }
 

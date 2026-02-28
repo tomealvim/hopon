@@ -98,6 +98,48 @@ export class WalletService {
     });
   }
 
+  /** Reembolso (reserva cancelada ou recusada) */
+  async refund(userId: string, amount: number, description: string, reference?: string) {
+    const wallet = await this.getOrCreate(userId);
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.wallet.update({
+        where: { id: wallet.id },
+        data: { balance: { increment: amount } },
+      });
+      return tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          type: TRANSACTION_TYPES.REFUND,
+          amount,
+          description,
+          reference: reference ?? null,
+        },
+      });
+    });
+  }
+
+  /** Payout ao condutor quando viagem é concluída */
+  async credit(userId: string, amount: number, description: string, reference?: string) {
+    const wallet = await this.getOrCreate(userId);
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.wallet.update({
+        where: { id: wallet.id },
+        data: { balance: { increment: amount } },
+      });
+      return tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          type: TRANSACTION_TYPES.PAYOUT,
+          amount,
+          description,
+          reference: reference ?? null,
+        },
+      });
+    });
+  }
+
   private toTransactionResponse(t: {
     id: string;
     type: string;

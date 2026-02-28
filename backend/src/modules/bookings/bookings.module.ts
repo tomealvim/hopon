@@ -5,9 +5,10 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { VerifiedUserGuard } from '../../common/guards/verified-user.guard';
 import { InboxModule } from '../inbox/inbox.module';
 import { EventsModule } from '../events/events.module';
+import { WalletModule } from '../wallet/wallet.module';
 
 @Module({
-  imports: [PrismaModule, InboxModule, EventsModule],
+  imports: [PrismaModule, InboxModule, EventsModule, WalletModule],
   controllers: [BookingsController],
   providers: [BookingsService, VerifiedUserGuard],
 })

@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { InboxService } from '../inbox/inbox.service';
 import { EventsService } from '../events/events.service';
+import { WalletService } from '../wallet/wallet.service';
 
 @Injectable()
 export class BookingsService {
@@ -10,9 +11,23 @@ export class BookingsService {
     private readonly prisma: PrismaService,
     private readonly inboxService: InboxService,
     private readonly eventsService: EventsService,
+    private readonly walletService: WalletService,
   ) {}
 
   async create(userId: string, rideId: string, dto: CreateBookingDto) {
+    // Pré-verificar saldo antes de criar a reserva
+    const rideCheck = await this.prisma.ride.findUnique({ where: { id: rideId }, select: { price: true } });
+    if (rideCheck?.price != null && Number(rideCheck.price) > 0) {
+      const needed = Number(rideCheck.price) * dto.seats;
+      const wallet = await this.prisma.wallet.findFirst({ where: { userId } });
+      const balance = wallet ? Number(wallet.balance) : 0;
+      if (balance < needed) {
+        throw new BadRequestException(
+          `Saldo insuficiente. Tens €${balance.toFixed(2)}, mas precisas de €${needed.toFixed(2)}.`,
+        );
+      }
+    }
+
     const booking = await this.prisma.$transaction(async (tx) => {
       // Bloquear a linha da boleia — garante que reservas concorrentes ficam em fila
       // e não conseguem criar overbooking por race condition
@@ -64,6 +79,23 @@ export class BookingsService {
         },
       });
     });
+
+    // Debitar carteira do passageiro se a boleia tiver preço
+    if (booking.ride.price != null && Number(booking.ride.price) > 0) {
+      const amount = Number(booking.ride.price) * booking.seats;
+      try {
+        await this.walletService.debit(
+          userId,
+          amount,
+          `Boleia ${booking.ride.origin} → ${booking.ride.destination}`,
+          booking.id,
+        );
+      } catch (err) {
+        // Reverter: cancelar a reserva
+        await this.prisma.booking.update({ where: { id: booking.id }, data: { status: 'CANCELLED' } });
+        throw err;
+      }
+    }
 
     // Criar conversa entre condutor e passageiro
     let conversationId: string | null = null;
@@ -128,13 +160,28 @@ export class BookingsService {
       throw new BadRequestException('Só é possível alterar reservas com estado PENDING');
     }
 
-    const updated = await this.prisma.booking.update({
-      where: { id: bookingId },
-      data: { status },
-      include: {
-        ride: { include: { vehicle: true, driver: { include: { profile: true } } } },
-        user: { include: { profile: true } },
-      },
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const upd = await tx.booking.update({
+        where: { id: bookingId },
+        data: { status },
+        include: {
+          ride: { include: { vehicle: true, driver: { include: { profile: true } } } },
+          user: { include: { profile: true } },
+        },
+      });
+
+      // Reembolsar passageiro se recusado e boleia tinha preço
+      if (status === 'DECLINED' && booking.ride.price != null && Number(booking.ride.price) > 0) {
+        const amount = Number(booking.ride.price) * booking.seats;
+        let wallet = await tx.wallet.findFirst({ where: { userId: booking.userId } });
+        if (!wallet) wallet = await tx.wallet.create({ data: { userId: booking.userId } });
+        await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: amount } } });
+        await tx.walletTransaction.create({
+          data: { walletId: wallet.id, type: 'REFUND', amount, description: 'Reserva recusada pelo condutor', reference: bookingId },
+        });
+      }
+
+      return upd;
     });
 
     // Notificar passageiro via SSE
@@ -152,22 +199,33 @@ export class BookingsService {
     // Verificar existência e ownership antes de tentar cancelar
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
+      include: { ride: true },
     });
 
     if (!booking) throw new NotFoundException('Reserva não encontrada');
     if (booking.userId !== userId) throw new ForbiddenException('Não tens permissão para cancelar esta reserva');
     if (booking.status === 'COMPLETED') throw new BadRequestException('Não é possível cancelar uma reserva já completada');
 
-    // Update condicional atómico — só cancela se ainda estiver em estado cancelável
-    // Previne que dois pedidos simultâneos cancelem a mesma reserva duas vezes
-    const result = await this.prisma.booking.updateMany({
-      where: { id: bookingId, status: { notIn: ['CANCELLED', 'COMPLETED'] } },
-      data: { status: 'CANCELLED' },
-    });
+    // Cancelar e reembolsar atomicamente
+    await this.prisma.$transaction(async (tx) => {
+      const result = await tx.booking.updateMany({
+        where: { id: bookingId, status: { notIn: ['CANCELLED', 'COMPLETED'] } },
+        data: { status: 'CANCELLED' },
+      });
 
-    if (result.count === 0) {
-      throw new BadRequestException('A reserva já foi cancelada');
-    }
+      if (result.count === 0) throw new BadRequestException('A reserva já foi cancelada');
+
+      // Reembolsar se boleia tinha preço
+      if (booking.ride.price != null && Number(booking.ride.price) > 0) {
+        const amount = Number(booking.ride.price) * booking.seats;
+        let wallet = await tx.wallet.findFirst({ where: { userId } });
+        if (!wallet) wallet = await tx.wallet.create({ data: { userId } });
+        await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: amount } } });
+        await tx.walletTransaction.create({
+          data: { walletId: wallet.id, type: 'REFUND', amount, description: 'Cancelamento de reserva', reference: bookingId },
+        });
+      }
+    });
 
     const updatedBooking = await this.prisma.booking.findUnique({
       where: { id: bookingId },

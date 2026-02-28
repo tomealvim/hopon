@@ -222,6 +222,18 @@ export default function RidesPage() {
     }
   }
 
+  // --- Complete ride (driver) ---
+  async function handleCompleteRide(rideId: string) {
+    try {
+      await apiRequest(`/rides/${rideId}/complete`, { method: "POST" });
+      showSuccess("Boleia concluída!", "O pagamento foi processado.");
+      await fetchMyRides();
+      setOpenSheet(false);
+    } catch (err) {
+      showError("Erro ao concluir boleia", err instanceof Error ? err.message : "Tenta novamente.");
+    }
+  }
+
   const isLoading = hydrating || ridesLoading || bookingsLoading;
   const pendingBookingsForRide = (ride: ApiRide) =>
     (ride.bookings ?? []).filter((b) => b.status === "PENDING");
@@ -376,15 +388,20 @@ export default function RidesPage() {
           sheetView === "passengers" ? (
             <Button variant="secondary" className="w-full" onClick={() => setSheetView("ride")}>Voltar</Button>
           ) : selectedRide ? (
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button variant="secondary" className="flex-1" onClick={() => setOpenSheet(false)}>Fechar</Button>
               {(selectedRide.bookings ?? []).filter((b) => b.status === "PENDING").length > 0 && (
                 <Button className="flex-1" onClick={() => setSheetView("passengers")}>
                   Ver reservas ({(selectedRide.bookings ?? []).filter((b) => b.status === "PENDING").length})
                 </Button>
               )}
+              {selectedRide.status === "SCHEDULED" && (
+                <Button variant="secondary" className="flex-1" onClick={() => handleCompleteRide(selectedRide.id)}>
+                  Concluir
+                </Button>
+              )}
               <Button variant="danger" className="flex-1" onClick={() => handleCancelRide(selectedRide.id)}>
-                Cancelar boleia
+                Cancelar
               </Button>
             </div>
           ) : selectedBooking ? (

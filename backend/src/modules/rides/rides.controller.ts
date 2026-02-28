@@ -65,5 +65,13 @@ export class RidesController {
   remove(@Request() req, @Param('id') id: string) {
     return this.ridesService.remove(req.user.id, id);
   }
+
+  @Post(':id/complete')
+  @UseGuards(JwtAuthGuard, VerifiedUserGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Marcar boleia como concluída e processar pagamentos' })
+  complete(@Request() req, @Param('id') id: string) {
+    return this.ridesService.complete(req.user.id, id);
+  }
 }
 

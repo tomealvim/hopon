@@ -248,20 +248,21 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         onApply={(next) => { setFilters(next); setOpenFilters(false); }}
       />
 
-      {selectedRideId && (
-        <RequestSeatSheet
-          open={openRequestSeat}
-          onClose={() => { setOpenRequestSeat(false); setSelectedRideId(null); }}
-          onConfirm={handleConfirmBook}
-          offerTitle={(() => {
-            const ride = [...apiRides, ...forYouRides].find((r) => r.id === selectedRideId);
-            if (!ride) return "";
-            const dep = new Date(ride.departureTime);
-            const t = dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
-            return `${ride.origin} → ${ride.destination} (${t})`;
-          })()}
-        />
-      )}
+      {selectedRideId && (() => {
+        const ride = [...apiRides, ...forYouRides].find((r) => r.id === selectedRideId);
+        const dep = ride ? new Date(ride.departureTime) : null;
+        const t = dep ? dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }) : "";
+        return (
+          <RequestSeatSheet
+            open={openRequestSeat}
+            onClose={() => { setOpenRequestSeat(false); setSelectedRideId(null); }}
+            onConfirm={handleConfirmBook}
+            offerTitle={ride ? `${ride.origin} → ${ride.destination} (${t})` : ""}
+            price={ride?.price}
+            seats={1}
+          />
+        );
+      })()}
 
       {/* Detail sheet */}
       <Sheet
