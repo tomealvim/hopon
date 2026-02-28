@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { LoggerModule } from 'nestjs-pino';
 import { createKeyv } from '@keyv/redis';
 import { join } from 'path';
 import { AppController } from './app.controller';
@@ -61,6 +62,15 @@ const backendEnv = join(__dirname, '..', '.env');
         limit: 60,    // 60 pedidos por minuto por IP (todos os endpoints)
       },
     ]),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+        transport: process.env.NODE_ENV !== 'production'
+          ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
+          : undefined,
+        redact: ['req.headers.authorization'], // não logar tokens JWT
+      },
+    }),
     PrismaModule,
     AuthModule,
     UsersModule,

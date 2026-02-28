@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import * as Sentry from '@sentry/nestjs';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -34,6 +35,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
         `Unhandled exception: ${message}`,
         exception instanceof Error ? exception.stack : String(exception),
       );
+      // Reportar ao Sentry (só se DSN estiver configurado)
+      Sentry.captureException(exception);
     }
 
     const body: Record<string, unknown> = {
