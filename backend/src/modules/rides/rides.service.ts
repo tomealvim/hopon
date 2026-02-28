@@ -140,6 +140,93 @@ export class RidesService {
     return this.toResponse(ride);
   }
 
+  async findForUser(userId: string) {
+    // Obter templates ativos do utilizador
+    const templates = await this.prisma.scheduleTemplate.findMany({
+      where: { userId, active: true },
+    });
+
+    if (templates.length === 0) return [];
+
+    // Boleias futuras SCHEDULED que não são do próprio utilizador
+    const now = new Date();
+    const rides = await this.prisma.ride.findMany({
+      where: {
+        status: 'SCHEDULED',
+        driverId: { not: userId },
+        departureTime: { gte: now },
+      },
+      include: {
+        vehicle: { include: { user: { include: { profile: true } } } },
+        driver: { include: { profile: true } },
+        bookings: true,
+        originLocation: true,
+        destinationLocation: true,
+      },
+    });
+
+    const DAY_NAMES = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+
+    // matchScore acumula pontos por cada template que faz match com a ride
+    const scores = new Map<string, { ride: (typeof rides)[0]; score: number }>();
+
+    for (const template of templates) {
+      const templateDays = template.daysOfWeek as string[];
+      const [th, tm] = template.time.split(':').map(Number);
+      const templateMin = th * 60 + tm;
+
+      for (const ride of rides) {
+        // Dia da semana
+        const rideDay = DAY_NAMES[ride.departureTime.getDay()];
+        if (!templateDays.includes(rideDay)) continue;
+
+        // Hora ±30 min
+        const rideMin = ride.departureTime.getHours() * 60 + ride.departureTime.getMinutes();
+        const timeDiff = Math.abs(rideMin - templateMin);
+        if (timeDiff > 30) continue;
+
+        // Lugares disponíveis
+        const booked = ride.bookings
+          .filter((b) => b.status === 'CONFIRMED' || b.status === 'PENDING')
+          .reduce((s, b) => s + b.seats, 0);
+        if (ride.availableSeats - booked <= 0) continue;
+
+        // Origem e destino — text overlap (normalizado, sem acentos)
+        if (!this.textOverlap(ride.origin, template.origin)) continue;
+        if (!this.textOverlap(ride.destination, template.destination)) continue;
+
+        // Score: mais pontos quanto mais próximo no horário
+        const timeScore = 30 - timeDiff;
+        const prev = scores.get(ride.id);
+        if (prev) {
+          prev.score += timeScore + 10; // +10 por cada template adicional que faz match
+        } else {
+          scores.set(ride.id, { ride, score: timeScore });
+        }
+      }
+    }
+
+    return Array.from(scores.values())
+      .sort(
+        (a, b) =>
+          b.score - a.score ||
+          a.ride.departureTime.getTime() - b.ride.departureTime.getTime(),
+      )
+      .map(({ ride, score }) => ({ ...this.toResponse(ride), matchScore: score }));
+  }
+
+  private textOverlap(a: string, b: string): boolean {
+    const norm = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+    const na = norm(a);
+    const nb = norm(b);
+    return na.includes(nb) || nb.includes(na);
+  }
+
   async search(dto: SearchRidesDto) {
     const where: any = {
       status: 'SCHEDULED',

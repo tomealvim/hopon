@@ -39,6 +39,20 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   const [detailLoading, setDetailLoading] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
 
+  // "Para Ti" — boleias que batem com os templates do utilizador
+  const [forYouRides, setForYouRides] = useState<ApiRide[]>([]);
+  const [forYouLoading, setForYouLoading] = useState(false);
+  const [forYouLoaded, setForYouLoaded] = useState(false);
+
+  useEffect(() => {
+    if (tab !== "for-you" || forYouLoaded) return;
+    setForYouLoading(true);
+    apiRequest<ApiRide[]>("/rides/for-you")
+      .then((data) => { setForYouRides(Array.isArray(data) ? data : []); setForYouLoaded(true); })
+      .catch(() => setForYouRides([]))
+      .finally(() => setForYouLoading(false));
+  }, [tab, forYouLoaded]);
+
   // Carregar boleias ao mudar filtros (só no tab explore)
   useEffect(() => {
     if (tab !== "explore") return;
@@ -164,15 +178,63 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
               </>
             )}
 
-            {/* For You — placeholder até 2.5 */}
+            {/* Para Ti */}
             {tab === "for-you" && (
-              <div className="text-center py-16 px-4">
-                <p className="text-xl font-bold text-gray-900 mb-2">Para Ti</p>
-                <p className="text-sm text-gray-600 max-w-[280px] mx-auto">
-                  Em breve verás aqui boleias que batem certo com o teu horário habitual.
-                  Cria templates de viagem na aba Rides para activar esta funcionalidade.
-                </p>
-              </div>
+              <>
+                <h2 className="text-sm font-bold text-gray-800 mt-3 mb-2">
+                  Para ti
+                  {forYouRides.length > 0 && ` (${forYouRides.length})`}
+                </h2>
+                {forYouLoading ? (
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    {Array.from({ length: 3 }).map((_, i) => <EntityCardSkeleton key={i} />)}
+                  </div>
+                ) : forYouRides.length === 0 ? (
+                  <div className="text-center py-16 px-4">
+                    <p className="text-xl font-bold text-gray-900 mb-2">Sem sugestões ainda</p>
+                    <p className="text-sm text-gray-600 max-w-[300px] mx-auto">
+                      Cria templates de viagem na aba <strong>Rides</strong> para veres aqui
+                      as boleias que batem certo com o teu horário habitual.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    {forYouRides.map((ride) => {
+                      const dep = new Date(ride.departureTime);
+                      const dateStr = dep.toLocaleDateString("pt-PT", { weekday: "short", day: "numeric", month: "short" });
+                      const timeStr = dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+                      const driverName = ride.driver?.profile?.name ?? ride.driver?.email ?? "Condutor";
+                      const seatsLeft = ride.remainingSeats;
+                      return (
+                        <EntityCard
+                          key={ride.id}
+                          title={`${ride.origin} → ${ride.destination}`}
+                          subtitle={`${dateStr}, ${timeStr}`}
+                          meta={`Condutor: ${driverName}`}
+                          badges={[
+                            { label: "Para ti", tone: "brand" },
+                            {
+                              label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`,
+                              tone: seatsLeft >= 3 ? "success" : "warning",
+                            },
+                            ...(ride.price != null && ride.price > 0
+                              ? [{ label: `€${ride.price.toFixed(0)}/lugar` }]
+                              : []),
+                          ]}
+                          avatar={{
+                            src: ride.driver?.profile?.avatarUrl ?? undefined,
+                            initials: driverName.slice(0, 2).toUpperCase(),
+                          }}
+                          primaryLabel="Reservar"
+                          secondaryLabel="Detalhes"
+                          onPrimary={() => { setSelectedRideId(ride.id); setOpenRequestSeat(true); }}
+                          onSecondary={() => openRideDetail(ride.id)}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
 
           </div>
@@ -192,7 +254,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
           onClose={() => { setOpenRequestSeat(false); setSelectedRideId(null); }}
           onConfirm={handleConfirmBook}
           offerTitle={(() => {
-            const ride = apiRides.find((r) => r.id === selectedRideId);
+            const ride = [...apiRides, ...forYouRides].find((r) => r.id === selectedRideId);
             if (!ride) return "";
             const dep = new Date(ride.departureTime);
             const t = dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });

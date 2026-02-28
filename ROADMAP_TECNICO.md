@@ -124,7 +124,7 @@ estudante. Não quebra nada mas deve ser limpo gradualmente.
 
 ---
 
-### 2.4 — Eliminar mock data / ligar tudo à API 🔴 PRÓXIMO
+### 2.4 — Eliminar mock data / ligar tudo à API ✅ CONCLUÍDA
 
 Resolver o problema mais crítico: `RidesContext` mock vs API real.
 
@@ -145,7 +145,7 @@ Resolver o problema mais crítico: `RidesContext` mock vs API real.
 
 ---
 
-### 2.5 — "Para Ti" com ScheduleTemplates 🔴 CORE DO PRODUTO
+### 2.5 — "Para Ti" com ScheduleTemplates ✅ CONCLUÍDA
 
 O algoritmo de matching que define o produto.
 

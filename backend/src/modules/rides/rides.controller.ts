@@ -34,6 +34,14 @@ export class RidesController {
     return this.ridesService.search(dto);
   }
 
+  @Get('for-you')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Boleias que batem certo com os templates do utilizador' })
+  findForUser(@Request() req) {
+    return this.ridesService.findForUser(req.user.id);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()

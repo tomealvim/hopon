@@ -62,4 +62,6 @@ export interface ApiRide {
   bookings?: ApiRideBooking[];
   createdAt?: string;
   updatedAt?: string;
+  /** Presente em respostas de /rides/for-you — pontuação de relevância */
+  matchScore?: number;
 }
