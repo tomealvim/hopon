@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from 'nestjs-pino';
 import { createKeyv } from '@keyv/redis';
 import { join } from 'path';
@@ -21,6 +22,7 @@ import { EventsModule } from './modules/events/events.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { SchedulerModule } from './modules/scheduler/scheduler.module';
 
 // Garantir que o .env seja sempre o da pasta backend (mesmo ao correr a partir da raiz do repo)
 const backendEnv = join(__dirname, '..', '.env');
@@ -71,6 +73,7 @@ const backendEnv = join(__dirname, '..', '.env');
         redact: ['req.headers.authorization'], // não logar tokens JWT
       },
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -84,6 +87,7 @@ const backendEnv = join(__dirname, '..', '.env');
     WalletModule,
     ReportsModule,
     AdminModule,
+    SchedulerModule,
   ],
 })
 export class AppModule {}
