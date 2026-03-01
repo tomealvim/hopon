@@ -14,12 +14,13 @@ type PendingAuth = {
 
 interface AuthPageProps {
   onAuthSuccess?: () => void;
+  initialMode?: AuthMode;
 }
 
-export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
+export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthPageProps) {
   const { login, register } = useAuth();
   const { showError } = useNotifications();
-  const [mode, setMode] = useState<AuthMode>('login');
+  const [mode, setMode] = useState<AuthMode>(initialMode);
   const [view, setView] = useState<AuthView>('form');
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({

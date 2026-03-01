@@ -13,7 +13,9 @@ import { apiRequest } from "./services/api";
 import BottomNav from "./components/ui/BottomNav";
 import AuthPage from "./pages/AuthPage";
 import OnboardingPage, { hasCompletedOnboarding } from "./pages/OnboardingPage";
+import LandingPage from "./pages/LandingPage";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
+import WelcomeSheet from "./components/ui/WelcomeSheet";
 import DiscoverPage from "./pages/DiscoverPage";
 import RidesPage from "./pages/RidesPage";
 import InboxPage from "./pages/InboxPage";
@@ -56,7 +58,16 @@ function AppContent() {
   const [initialThreadId, setInitialThreadId] = useState<string | undefined>(undefined);
   const [vehicleSheetTrigger, setVehicleSheetTrigger] = useState(0);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => hasCompletedOnboarding());
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
+  const [showWelcome, setShowWelcome] = useState(false);
   const [profileSheetsOpen, setProfileSheetsOpen] = useState(false);
+
+  useEffect(() => {
+    if (user && hasCompletedProfile && !localStorage.getItem('hopon_welcome_shown')) {
+      setShowWelcome(true);
+      localStorage.setItem('hopon_welcome_shown', 'true');
+    }
+  }, [user, hasCompletedProfile]);
 
   const showGlobalHeader = tab === "rides" || tab === "inbox";
   const hideBottomNav = openOffer || openComposer || profileSheetsOpen;
@@ -95,8 +106,16 @@ function AppContent() {
   }
 
   if (isLoading) return <Loading message="A inicializar..." />;
-  if (!hasSeenOnboarding) return <OnboardingPage onComplete={() => setHasSeenOnboarding(true)} />;
-  if (!user) return <AuthPage onAuthSuccess={() => {}} />;
+  if (!hasSeenOnboarding) return (
+    <LandingPage
+      onStart={(mode) => {
+        setAuthMode(mode);
+        localStorage.setItem('hopon_onboarding_completed', 'true');
+        setHasSeenOnboarding(true);
+      }}
+    />
+  );
+  if (!user) return <AuthPage onAuthSuccess={() => {}} initialMode={authMode} />;
   if (!hasCompletedProfile) return <ProfileSetupPage />;
 
   return (
@@ -198,6 +217,14 @@ function AppContent() {
 
       {/* Painel de notificações */}
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
+
+      {/* Bem-vindo — mostrado uma vez após criar perfil */}
+      <WelcomeSheet
+        open={showWelcome}
+        onClose={() => setShowWelcome(false)}
+        onGoToProfile={() => { setShowWelcome(false); setTab('profile'); }}
+        onGoToRides={() => { setShowWelcome(false); setTab('rides'); }}
+      />
     </div>
   );
 }
