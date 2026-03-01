@@ -12,7 +12,7 @@ import { AppNotificationsProvider } from "./contexts/AppNotificationsContext";
 import { apiRequest } from "./services/api";
 import BottomNav from "./components/ui/BottomNav";
 import AuthPage from "./pages/AuthPage";
-import OnboardingPage, { hasCompletedOnboarding } from "./pages/OnboardingPage";
+import { hasCompletedOnboarding } from "./pages/OnboardingPage";
 import LandingPage from "./pages/LandingPage";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
 import WelcomeSheet from "./components/ui/WelcomeSheet";
