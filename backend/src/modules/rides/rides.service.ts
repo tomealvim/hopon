@@ -436,6 +436,28 @@ export class RidesService {
       }
     });
 
+    // Notificar passageiros confirmados: boleia concluída + prompt de avaliação
+    for (const booking of confirmedBookings) {
+      void this.notificationsService.createNotification(
+        booking.userId,
+        'ride.completed',
+        'Boleia concluída!',
+        `A tua boleia ${ride.origin} → ${ride.destination} foi concluída. Avalia o condutor!`,
+        { bookingId: booking.id, rideId, driverId, role: 'passenger' },
+      );
+    }
+
+    // Notificar o próprio condutor: prompt para avaliar passageiros
+    if (confirmedBookings.length > 0) {
+      void this.notificationsService.createNotification(
+        driverId,
+        'ride.completed',
+        'Boleia concluída!',
+        `${ride.origin} → ${ride.destination} concluída. Avalia os teus passageiros!`,
+        { rideId, role: 'driver' },
+      );
+    }
+
     return { message: 'Boleia concluída com sucesso' };
   }
 

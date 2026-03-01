@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { apiRequest } from "../services/api";
 import { useNotifications } from "../contexts/NotificationContext";
+import { useSSE } from "../contexts/SSEContext";
 import EntityCard from "../components/ui/EntityCard";
 import RidesCalendar, { type DayRides } from "../components/ui/RidesCalendar";
 import Sheet from "../components/ui/Sheet";
@@ -10,9 +11,20 @@ import BackgroundGlow from "../components/ui/BackgroundGlow";
 import { EntityCardSkeleton, RideCardSkeleton } from "../components/ui/Skeleton";
 import CreateScheduleSheet from "../components/rides/CreateScheduleSheet";
 import CreateRideFromTemplateSheet from "../components/rides/CreateRideFromTemplateSheet";
+import RatingsSheet from "../components/profile/RatingsSheet";
 import type { ApiRide, ApiRideBooking } from "./types/ride-api";
 import type { ApiBooking } from "./types/booking-api";
 import type { ApiSchedule } from "./types/schedule-api";
+
+interface PendingRating {
+  bookingId: string;
+  role: "driver" | "passenger";
+  revieweeId: string;
+  revieweeName: string;
+  origin: string;
+  destination: string;
+  departureTime: string;
+}
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -49,6 +61,7 @@ const STATUS_TONE: Record<string, "success" | "warning" | "brand" | undefined> =
 export default function RidesPage() {
   const { user } = useAuth();
   const { showSuccess, showError } = useNotifications();
+  const { subscribe } = useSSE();
 
   // --- Driver rides ---
   const [myRides, setMyRides] = useState<ApiRide[]>([]);
@@ -57,6 +70,11 @@ export default function RidesPage() {
   // --- Passenger bookings ---
   const [myBookings, setMyBookings] = useState<ApiBooking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+
+  // --- Pending ratings ---
+  const [pendingRatings, setPendingRatings] = useState<PendingRating[]>([]);
+  const [ratingTarget, setRatingTarget] = useState<PendingRating | null>(null);
+  const [openRating, setOpenRating] = useState(false);
 
   // --- Schedules ---
   const [schedules, setSchedules] = useState<ApiSchedule[]>([]);
@@ -97,6 +115,15 @@ export default function RidesPage() {
     }
   }, []);
 
+  const fetchPendingRatings = useCallback(async () => {
+    try {
+      const data = await apiRequest<PendingRating[]>("/ratings/pending");
+      setPendingRatings(Array.isArray(data) ? data : []);
+    } catch {
+      setPendingRatings([]);
+    }
+  }, []);
+
   const fetchSchedules = useCallback(async () => {
     setSchedulesLoading(true);
     try {
@@ -114,8 +141,16 @@ export default function RidesPage() {
       fetchMyRides();
       fetchMyBookings();
       fetchSchedules();
+      fetchPendingRatings();
     }
-  }, [user, fetchMyRides, fetchMyBookings, fetchSchedules]);
+  }, [user, fetchMyRides, fetchMyBookings, fetchSchedules, fetchPendingRatings]);
+
+  // Quando chega SSE de boleia concluída, refrescar ratings pendentes
+  useEffect(() => {
+    return subscribe("ride.completed", () => {
+      fetchPendingRatings();
+    });
+  }, [subscribe, fetchPendingRatings]);
 
   useEffect(() => {
     const t = setTimeout(() => setHydrating(false), 300);
@@ -228,6 +263,7 @@ export default function RidesPage() {
       await apiRequest(`/rides/${rideId}/complete`, { method: "POST" });
       showSuccess("Boleia concluída!", "O pagamento foi processado.");
       await fetchMyRides();
+      fetchPendingRatings();
       setOpenSheet(false);
     } catch (err) {
       showError("Erro ao concluir boleia", err instanceof Error ? err.message : "Tenta novamente.");
@@ -346,26 +382,31 @@ export default function RidesPage() {
                 <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                   {myBookings
                     .filter((b) => b.status !== "CANCELLED" && b.status !== "DECLINED")
-                    .map((booking) => (
-                      <EntityCard
-                        key={booking.id}
-                        title={booking.ride ? `${booking.ride.origin} → ${booking.ride.destination}` : "Boleia"}
-                        subtitle={booking.ride ? formatDateTime(booking.ride.departureTime) : ""}
-                        meta={`${booking.seats} lugar${booking.seats > 1 ? "es" : ""}${booking.ride?.price ? ` · €${(booking.ride.price * booking.seats).toFixed(0)}` : ""}`}
-                        badges={[{ label: STATUS_LABEL[booking.status] ?? booking.status, tone: STATUS_TONE[booking.status] }]}
-                        avatar={{
-                          src: booking.ride?.driver?.profile?.avatarUrl ?? undefined,
-                          initials: (booking.ride?.driver?.profile?.name ?? booking.ride?.driver?.email ?? "?").slice(0, 2).toUpperCase(),
-                        }}
-                        primaryLabel="Detalhes"
-                        onPrimary={() => {
-                          setSelectedBooking(booking);
-                          setSelectedRide(null);
-                          setSheetView("booking");
-                          setOpenSheet(true);
-                        }}
-                      />
-                    ))}
+                    .map((booking) => {
+                      const pendingForBooking = pendingRatings.find((r) => r.bookingId === booking.id);
+                      return (
+                        <EntityCard
+                          key={booking.id}
+                          title={booking.ride ? `${booking.ride.origin} → ${booking.ride.destination}` : "Boleia"}
+                          subtitle={booking.ride ? formatDateTime(booking.ride.departureTime) : ""}
+                          meta={`${booking.seats} lugar${booking.seats > 1 ? "es" : ""}${booking.ride?.price ? ` · €${(booking.ride.price * booking.seats).toFixed(0)}` : ""}`}
+                          badges={[{ label: STATUS_LABEL[booking.status] ?? booking.status, tone: STATUS_TONE[booking.status] }]}
+                          avatar={{
+                            src: booking.ride?.driver?.profile?.avatarUrl ?? undefined,
+                            initials: (booking.ride?.driver?.profile?.name ?? booking.ride?.driver?.email ?? "?").slice(0, 2).toUpperCase(),
+                          }}
+                          primaryLabel="Detalhes"
+                          onPrimary={() => {
+                            setSelectedBooking(booking);
+                            setSelectedRide(null);
+                            setSheetView("booking");
+                            setOpenSheet(true);
+                          }}
+                          secondaryLabel={pendingForBooking ? "Avaliar condutor" : undefined}
+                          onSecondary={pendingForBooking ? () => { setRatingTarget(pendingForBooking); setOpenRating(true); } : undefined}
+                        />
+                      );
+                    })}
                 </div>
               </section>
             )}
@@ -412,6 +453,14 @@ export default function RidesPage() {
                   Cancelar reserva
                 </Button>
               )}
+              {(() => {
+                const pending = pendingRatings.find((r) => r.bookingId === selectedBooking.id);
+                return pending ? (
+                  <Button className="flex-1" onClick={() => { setRatingTarget(pending); setOpenSheet(false); setOpenRating(true); }}>
+                    Avaliar condutor
+                  </Button>
+                ) : null;
+              })()}
             </div>
           ) : null
         }
@@ -480,11 +529,22 @@ export default function RidesPage() {
                 <div className="grid gap-1">
                   {(selectedRide.bookings ?? [])
                     .filter((b: ApiRideBooking) => b.status === "CONFIRMED")
-                    .map((b: ApiRideBooking) => (
-                      <div key={b.id} className="text-sm text-gray-900">
-                        {b.user?.profile?.name ?? b.user?.email ?? "Passageiro"} · {b.seats} lugar{b.seats > 1 ? "es" : ""}
-                      </div>
-                    ))}
+                    .map((b: ApiRideBooking) => {
+                      const pendingForPassenger = pendingRatings.find((r) => r.bookingId === b.id && r.role === "driver");
+                      return (
+                        <div key={b.id} className="flex items-center justify-between text-sm text-gray-900">
+                          <span>{b.user?.profile?.name ?? b.user?.email ?? "Passageiro"} · {b.seats} lugar{b.seats > 1 ? "es" : ""}</span>
+                          {pendingForPassenger && (
+                            <button
+                              className="text-xs font-semibold text-blue-600 ml-2 shrink-0"
+                              onClick={() => { setRatingTarget(pendingForPassenger); setOpenSheet(false); setOpenRating(true); }}
+                            >
+                              Avaliar
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
             )}
@@ -545,6 +605,13 @@ export default function RidesPage() {
         schedule={selectedSchedule}
         onClose={() => { setOpenCreateRideSheet(false); setSelectedSchedule(null); }}
         onSuccess={fetchSchedules}
+      />
+      <RatingsSheet
+        open={openRating}
+        onClose={() => { setOpenRating(false); setRatingTarget(null); fetchPendingRatings(); }}
+        bookingId={ratingTarget?.bookingId}
+        revieweeId={ratingTarget?.revieweeId}
+        revieweeName={ratingTarget?.revieweeName}
       />
     </>
   );

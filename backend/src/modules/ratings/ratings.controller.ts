@@ -13,6 +13,12 @@ export class RatingsController {
     return this.ratingsService.create(req.user.id, dto);
   }
 
+  @Get('pending')
+  @UseGuards(JwtAuthGuard)
+  findPending(@Request() req: any) {
+    return this.ratingsService.findPending(req.user.id);
+  }
+
   @Get('users/:userId')
   @UseGuards(JwtAuthGuard)
   getUserRatings(@Param('userId') userId: string) {

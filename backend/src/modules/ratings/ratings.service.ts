@@ -54,6 +54,54 @@ export class RatingsService {
     }
   }
 
+  async findPending(userId: string) {
+    // Bookings COMPLETED onde fui passageiro e ainda não avaliei o condutor
+    const asPassenger = await this.prisma.booking.findMany({
+      where: {
+        userId,
+        status: 'COMPLETED',
+        ratings: { none: { reviewerId: userId } },
+      },
+      include: {
+        ride: { include: { driver: { include: { profile: true } } } },
+      },
+    });
+
+    // Bookings COMPLETED onde fui condutor e ainda não avaliei o passageiro
+    const asDriver = await this.prisma.booking.findMany({
+      where: {
+        status: 'COMPLETED',
+        ratings: { none: { reviewerId: userId } },
+        ride: { driverId: userId },
+      },
+      include: {
+        ride: true,
+        user: { include: { profile: true } },
+      },
+    });
+
+    return [
+      ...asPassenger.map((b) => ({
+        bookingId: b.id,
+        role: 'passenger' as const,
+        revieweeId: b.ride.driverId,
+        revieweeName: b.ride.driver?.profile?.name ?? b.ride.driver?.email ?? 'Condutor',
+        origin: b.ride.origin,
+        destination: b.ride.destination,
+        departureTime: b.ride.departureTime,
+      })),
+      ...asDriver.map((b) => ({
+        bookingId: b.id,
+        role: 'driver' as const,
+        revieweeId: b.userId,
+        revieweeName: b.user?.profile?.name ?? b.user?.email ?? 'Passageiro',
+        origin: b.ride.origin,
+        destination: b.ride.destination,
+        departureTime: b.ride.departureTime,
+      })),
+    ];
+  }
+
   async getUserRatings(userId: string) {
     const ratings = await this.prisma.rating.findMany({
       where: { revieweeId: userId },

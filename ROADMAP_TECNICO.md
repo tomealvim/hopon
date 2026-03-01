@@ -239,3 +239,28 @@ Para o modelo de partilha de custos funcionar, o preço tem de ser transparente 
 2.8  Trust & Safety                             ← antes de crescer utilizadores
 3.x  Scale                                      ← quando tiveres problemas de scale
 ```
+
+---
+
+## Fase 4 — Notificações, PWA e Perfil Público ✅ CONCLUÍDA
+
+| # | Item | Estado |
+|---|---|---|
+| 4.1 | In-app notifications | ✅ Modelo Notification + NotificationsModule + NotificationsSheet |
+| 4.2 | Perfil público | ✅ GET /users/:id + PublicProfileSheet + ratings agregadas |
+| 4.3 | — | — |
+| 4.4 | Histórico de boleias | ✅ GET /rides/history + HistorySheet no ProfilePage |
+| 4.5 | PWA | ✅ vite-plugin-pwa (injectManifest) + manifest + icon.svg + meta tags |
+| 4.6 | Push notifications | ✅ web-push VAPID + PushService + sw.ts (push handler) + usePushNotifications |
+
+---
+
+## Fase 5 — Polimento e Features Avançadas
+
+| # | Item | Estado |
+|---|---|---|
+| 5.1 | Fluxo de avaliação pós-viagem | ✅ GET /ratings/pending + SSE ride.completed + botões "Avaliar" em RidesPage |
+| 5.2 | Templates de email HTML | ⬜ Resend + HTML bonito para OTP/booking/etc |
+| 5.3 | Auto-geração de boleias por template (cron) | ⬜ BullMQ cron job — cria Rides a partir de ScheduleTemplates ativos |
+| 5.4 | Invalidação de cache nas mutações | ⬜ Limpar cache Redis após criar/cancelar rides/bookings |
+| 5.5 | Filtros avançados na Discover | ⬜ Filtrar por data, hora, preço máx, lugares disponíveis |
