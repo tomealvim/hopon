@@ -277,6 +277,11 @@ export class RidesService {
       where.availableSeats = { gte: dto.minSeats };
     }
 
+    if (dto.maxPrice != null) {
+      // Incluir boleias gratuitas (price null) e boleias até ao preço máximo
+      where.OR = [{ price: null }, { price: { lte: dto.maxPrice } }];
+    }
+
     // Pesquisa por proximidade: filtrar por IDs de rides cujo origin está dentro do raio
     if (dto.lat != null && dto.lng != null) {
       const radiusKm = dto.radius ?? 10;

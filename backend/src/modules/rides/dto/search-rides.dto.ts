@@ -49,5 +49,12 @@ export class SearchRidesDto {
   @IsNumber()
   @Min(1)
   radius?: number;
+
+  @ApiPropertyOptional({ example: 5, description: 'Preço máximo por lugar (€)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  maxPrice?: number;
 }
 

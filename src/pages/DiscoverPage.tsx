@@ -21,6 +21,19 @@ type DiscoverPageProps = {
   onOpenInbox?: (threadId?: string) => void;
 };
 
+function activeFilterCount(f: DiscoverFilters): number {
+  let n = 0;
+  if (f.origin?.trim()) n++;
+  if (f.destination?.trim()) n++;
+  if (f.date) n++;
+  if (f.departFrom && f.date) n++;
+  if (f.departTo && f.date) n++;
+  if (f.minSeats > 1) n++;
+  if (f.maxPrice != null) n++;
+  if (f.verified) n++;
+  return n;
+}
+
 export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPageProps) {
   const { user } = useAuth();
   const { showSuccess, showError } = useNotifications();
@@ -63,19 +76,32 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
       .finally(() => setForYouLoading(false));
   }, [tab, forYouLoaded]);
 
+  // Helper — converte os filtros em query params para o backend
+  function buildSearchParams(f: typeof filters): URLSearchParams {
+    const params = new URLSearchParams();
+    if (f.origin?.trim()) params.set("origin", f.origin.trim());
+    if (f.destination?.trim()) params.set("destination", f.destination.trim());
+    if (f.minSeats > 1) params.set("minSeats", String(f.minSeats));
+    if (f.maxPrice != null) params.set("maxPrice", String(f.maxPrice));
+    if (f.date) {
+      const from = f.departFrom ? `${f.date}T${f.departFrom}:00` : `${f.date}T00:00:00`;
+      const to   = f.departTo   ? `${f.date}T${f.departTo}:59`   : `${f.date}T23:59:59`;
+      params.set("departureTimeFrom", new Date(from).toISOString());
+      params.set("departureTimeTo",   new Date(to).toISOString());
+    }
+    return params;
+  }
+
   // Carregar boleias ao mudar filtros (só no tab explore)
   useEffect(() => {
     if (tab !== "explore") return;
-    const params = new URLSearchParams();
-    if (filters.origin?.trim()) params.set("origin", filters.origin.trim());
-    if (filters.destination?.trim()) params.set("destination", filters.destination.trim());
-    if (filters.minSeats > 0) params.set("minSeats", String(filters.minSeats));
     setApiRidesLoading(true);
-    apiRequest<ApiRide[]>(`/rides/search?${params.toString()}`)
+    apiRequest<ApiRide[]>(`/rides/search?${buildSearchParams(filters).toString()}`)
       .then((data) => setApiRides(Array.isArray(data) ? data : []))
       .catch(() => setApiRides([]))
       .finally(() => setApiRidesLoading(false));
-  }, [tab, filters.origin, filters.destination, filters.minSeats]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, filters.origin, filters.destination, filters.minSeats, filters.maxPrice, filters.date, filters.departFrom, filters.departTo]);
 
   // Abrir detalhe
   async function openRideDetail(rideId: string) {
@@ -108,11 +134,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
       setOpenRequestSeat(false);
       setSelectedRideId(null);
       // Refrescar lista para actualizar lugares disponíveis
-      const params = new URLSearchParams();
-      if (filters.origin?.trim()) params.set("origin", filters.origin.trim());
-      if (filters.destination?.trim()) params.set("destination", filters.destination.trim());
-      if (filters.minSeats > 0) params.set("minSeats", String(filters.minSeats));
-      apiRequest<ApiRide[]>(`/rides/search?${params.toString()}`)
+      apiRequest<ApiRide[]>(`/rides/search?${buildSearchParams(filters).toString()}`)
         .then((data) => setApiRides(Array.isArray(data) ? data : []))
         .catch(() => {});
     } catch (err) {
@@ -120,9 +142,20 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
     }
   }
 
+  // Chips de filtros activos (para mostrar na UI)
+  const filterChips: { label: string; clear: () => void }[] = [];
+  if (filters.origin?.trim()) filterChips.push({ label: `De: ${filters.origin.trim()}`, clear: () => setFilters(f => ({ ...f, origin: "" })) });
+  if (filters.destination?.trim()) filterChips.push({ label: `Para: ${filters.destination.trim()}`, clear: () => setFilters(f => ({ ...f, destination: "" })) });
+  if (filters.date) filterChips.push({ label: new Date(filters.date + "T12:00:00").toLocaleDateString("pt-PT", { day: "numeric", month: "short" }), clear: () => setFilters(f => ({ ...f, date: "", departFrom: "", departTo: "" })) });
+  if (filters.departFrom && filters.date) filterChips.push({ label: `≥ ${filters.departFrom}`, clear: () => setFilters(f => ({ ...f, departFrom: "" })) });
+  if (filters.departTo && filters.date) filterChips.push({ label: `≤ ${filters.departTo}`, clear: () => setFilters(f => ({ ...f, departTo: "" })) });
+  if (filters.minSeats > 1) filterChips.push({ label: `${filters.minSeats}+ lugares`, clear: () => setFilters(f => ({ ...f, minSeats: 1 })) });
+  if (filters.maxPrice != null) filterChips.push({ label: `≤ €${filters.maxPrice}`, clear: () => setFilters(f => ({ ...f, maxPrice: undefined })) });
+  if (filters.verified) filterChips.push({ label: "Verificados", clear: () => setFilters(f => ({ ...f, verified: false })) });
+
   return (
     <>
-      <DiscoverTopBar active={tab} onChange={setTab} onFilter={() => setOpenFilters(true)} />
+      <DiscoverTopBar active={tab} onChange={setTab} onFilter={() => setOpenFilters(true)} filterCount={activeFilterCount(filters)} />
 
       <main className="relative min-h-screen pb-32 bg-white text-gray-900">
         <BackgroundGlow />
@@ -132,15 +165,30 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
             {/* Explore */}
             {tab === "explore" && (
               <>
+                {/* Chips de filtros activos */}
+                {filterChips.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto scrollbar-none py-2 -mx-4 px-4">
+                    {filterChips.map((chip) => (
+                      <button
+                        key={chip.label}
+                        onClick={chip.clear}
+                        className="shrink-0 inline-flex items-center gap-1 bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-full"
+                      >
+                        {chip.label}
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <h2 className="text-sm font-bold text-gray-800 mt-3 mb-2">
                   Boleias disponíveis
-                  {apiRides.length > 0 && ` (${apiRides.length})`}
+                  {apiRides.length > 0 && ` (${apiRides.filter(r => !filters.verified || r.driver?.isIdentityVerified).filter(r => r.driverId !== user?.id).length})`}
                 </h2>
                 {apiRidesLoading ? (
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                     {Array.from({ length: 4 }).map((_, i) => <EntityCardSkeleton key={i} />)}
                   </div>
-                ) : apiRides.length === 0 ? (
+                ) : apiRides.filter((r) => r.driverId !== user?.id && (!filters.verified || r.driver?.isIdentityVerified)).length === 0 ? (
                   <div className="text-center py-16 px-4">
                     <p className="text-xl font-bold text-gray-900 mb-2">Sem boleias disponíveis</p>
                     <p className="text-sm text-gray-600 max-w-[280px] mx-auto">
@@ -150,7 +198,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                 ) : (
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                     {apiRides
-                      .filter((ride) => ride.driverId !== user?.id)
+                      .filter((ride) => ride.driverId !== user?.id && (!filters.verified || ride.driver?.isIdentityVerified))
                       .map((ride) => {
                         const dep = new Date(ride.departureTime);
                         const dateStr = dep.toLocaleDateString("pt-PT", { day: "numeric", month: "short", year: "numeric" });

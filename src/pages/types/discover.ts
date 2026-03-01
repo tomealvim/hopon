@@ -9,6 +9,7 @@ export type DiscoverFilters = {
   routeOverlapPct: number;  // 0..100
 
   // Tempo
+  date?: string;            // "YYYY-MM-DD" — dia específico (vazio = qualquer dia)
   departFrom?: string;      // "08:00"
   departTo?: string;        // "10:00"
   toleranceMin: number;     // 0..20
@@ -47,6 +48,7 @@ export const defaultFilters: DiscoverFilters = {
   deviationKm: 0,
   routeOverlapPct: 60,
 
+  date: "",
   departFrom: "",
   departTo: "",
   toleranceMin: 5,

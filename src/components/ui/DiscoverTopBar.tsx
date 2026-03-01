@@ -7,9 +7,10 @@ type Props = {
   active: DiscoverTab;
   onChange: (tab: DiscoverTab) => void;
   onFilter?: () => void;
+  filterCount?: number;
 };
 
-export default function DiscoverTopBar({ active, onChange, onFilter }: Props) {
+export default function DiscoverTopBar({ active, onChange, onFilter, filterCount = 0 }: Props) {
   const order: DiscoverTab[] = ["explore", "for-you"];
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const i = order.indexOf(active);
@@ -51,7 +52,7 @@ export default function DiscoverTopBar({ active, onChange, onFilter }: Props) {
         </div>
         <button
           type="button"
-          className={iconButton}
+          className={cn(iconButton, "relative")}
           aria-label="Filtros rápidos"
           onClick={onFilter}
         >
@@ -61,6 +62,11 @@ export default function DiscoverTopBar({ active, onChange, onFilter }: Props) {
             <circle cx="12" cy="9" r="2" />
             <circle cx="20" cy="8" r="2" />
           </svg>
+          {filterCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">
+              {filterCount}
+            </span>
+          )}
         </button>
       </div>
     </div>
