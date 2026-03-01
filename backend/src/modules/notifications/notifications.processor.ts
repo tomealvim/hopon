@@ -11,6 +11,14 @@ import {
   BookingCancelledEmailPayload,
   RideCancelledEmailPayload,
 } from './email-jobs.types';
+import {
+  otpEmailHtml,
+  bookingCreatedEmailHtml,
+  bookingConfirmedEmailHtml,
+  bookingDeclinedEmailHtml,
+  bookingCancelledEmailHtml,
+  rideCancelledEmailHtml,
+} from './email-templates';
 
 type EmailJobPayload =
   | OtpEmailPayload
@@ -35,17 +43,12 @@ export class NotificationsProcessor extends WorkerHost {
     switch (job.name) {
       case 'email.otp': {
         const { to, code, purpose, expiryMinutes } = job.data as OtpEmailPayload;
-        const subject =
-          purpose === 'email'
-            ? 'Código de verificação Hopon'
-            : 'Código de verificação de telefone Hopon';
-        const html =
-          purpose === 'email'
-            ? `<p>O teu código de verificação é: <strong>${code}</strong></p><p>Válido por ${expiryMinutes} minutos.</p>`
-            : `<p>O teu código de verificação de telefone é: <strong>${code}</strong></p><p>Válido por ${expiryMinutes} minutos.</p>`;
+        const subject = purpose === 'email'
+          ? 'Código de verificação — HopOn'
+          : 'Código de verificação de telefone — HopOn';
         if (resendKey) {
           const resend = new Resend(resendKey);
-          await resend.emails.send({ from: fromEmail, to, subject, html });
+          await resend.emails.send({ from: fromEmail, to, subject, html: otpEmailHtml(code, purpose, expiryMinutes) });
         } else {
           this.logger.log(`[dev] OTP (${purpose}) para ${to}: ${code}`);
         }
@@ -60,8 +63,8 @@ export class NotificationsProcessor extends WorkerHost {
           await resend.emails.send({
             from: fromEmail,
             to: driverEmail,
-            subject: 'Nova reserva pendente — Hopon',
-            html: `<p>Olá ${driverName},</p><p><strong>${passengerName}</strong> reservou ${seats} lugar(es) na tua boleia de <strong>${origin}</strong> para <strong>${destination}</strong> (${departureTime}).</p><p>Acede à app para confirmar ou recusar.</p>`,
+            subject: 'Nova reserva pendente — HopOn',
+            html: bookingCreatedEmailHtml(driverName, passengerName, origin, destination, departureTime, seats),
           });
         } else {
           this.logger.log(`[dev] email.booking-created → ${driverEmail} (passageiro: ${passengerName})`);
@@ -79,10 +82,10 @@ export class NotificationsProcessor extends WorkerHost {
           await resend.emails.send({
             from: fromEmail,
             to: passengerEmail,
-            subject: isConfirmed ? 'Reserva confirmada — Hopon' : 'Reserva recusada — Hopon',
+            subject: isConfirmed ? 'Reserva confirmada — HopOn' : 'Reserva não aceite — HopOn',
             html: isConfirmed
-              ? `<p>Olá ${passengerName},</p><p>A tua reserva de <strong>${origin}</strong> para <strong>${destination}</strong> (${departureTime}) foi <strong>confirmada</strong>.</p>`
-              : `<p>Olá ${passengerName},</p><p>Infelizmente a tua reserva de <strong>${origin}</strong> para <strong>${destination}</strong> (${departureTime}) foi <strong>recusada</strong>.</p>`,
+              ? bookingConfirmedEmailHtml(passengerName, origin, destination, departureTime)
+              : bookingDeclinedEmailHtml(passengerName, origin, destination, departureTime),
           });
         } else {
           this.logger.log(`[dev] ${job.name} → ${passengerEmail} (status: ${status})`);
@@ -98,8 +101,8 @@ export class NotificationsProcessor extends WorkerHost {
           await resend.emails.send({
             from: fromEmail,
             to: driverEmail,
-            subject: 'Reserva cancelada pelo passageiro — Hopon',
-            html: `<p>Olá ${driverName},</p><p><strong>${passengerName}</strong> cancelou a reserva na boleia de <strong>${origin}</strong> para <strong>${destination}</strong> (${departureTime}).</p>`,
+            subject: 'Reserva cancelada — HopOn',
+            html: bookingCancelledEmailHtml(driverName, passengerName, origin, destination, departureTime),
           });
         } else {
           this.logger.log(`[dev] email.booking-cancelled → ${driverEmail} (passageiro: ${passengerName})`);
@@ -115,8 +118,8 @@ export class NotificationsProcessor extends WorkerHost {
           await resend.emails.send({
             from: fromEmail,
             to: userEmail,
-            subject: 'Boleia cancelada — Hopon',
-            html: `<p>Olá ${userName},</p><p>A boleia de <strong>${origin}</strong> para <strong>${destination}</strong> (${departureTime}) foi cancelada.</p>`,
+            subject: 'Boleia cancelada — HopOn',
+            html: rideCancelledEmailHtml(userName, origin, destination, departureTime),
           });
         } else {
           this.logger.log(`[dev] email.ride-cancelled → ${userEmail}`);

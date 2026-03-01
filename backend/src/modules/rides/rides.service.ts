@@ -87,6 +87,9 @@ export class RidesService {
       },
     });
 
+    // Invalidar cache de pesquisa para resultados imediatos
+    void this.cache.clear();
+
     return this.toResponse(ride);
   }
 
@@ -463,6 +466,9 @@ export class RidesService {
       );
     }
 
+    // Invalidar cache — boleia COMPLETED não deve aparecer na pesquisa
+    void this.cache.clear();
+
     return { message: 'Boleia concluída com sucesso' };
   }
 
@@ -532,6 +538,9 @@ export class RidesService {
     await this.prisma.ride.delete({
       where: { id: rideId },
     });
+
+    // Invalidar cache para a ride removida não aparecer nos resultados
+    void this.cache.clear();
 
     return { message: 'Boleia cancelada com sucesso' };
   }
