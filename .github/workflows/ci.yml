@@ -58,4 +58,4 @@ jobs:
         env:
           # Variáveis obrigatórias em build-time; valores dummy para CI
           VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN || 'pk.dummy_ci_token' }}
-          VITE_API_URL: http://localhost:3000/api/v1
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://localhost:3000/api/v1' }}

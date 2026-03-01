@@ -13,6 +13,7 @@ if (sentryDsn) {
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
@@ -41,8 +42,13 @@ async function bootstrap() {
     }),
   );
 
-  // CORS
-  app.enableCors();
+  // CORS — suporta múltiplas origens via FRONTEND_URL (vírgulas)
+  const configService = app.get(ConfigService);
+  const allowedOrigins = configService
+    .get<string>('FRONTEND_URL', 'http://localhost:5173')
+    .split(',')
+    .map((o) => o.trim());
+  app.enableCors({ origin: allowedOrigins, credentials: true });
 
   // Swagger
   const config = new DocumentBuilder()
