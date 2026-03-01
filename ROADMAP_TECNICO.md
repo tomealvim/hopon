@@ -260,7 +260,7 @@ Para o modelo de partilha de custos funcionar, o preço tem de ser transparente 
 | # | Item | Estado |
 |---|---|---|
 | 5.1 | Fluxo de avaliação pós-viagem | ✅ GET /ratings/pending + SSE ride.completed + botões "Avaliar" em RidesPage |
-| 5.2 | Templates de email HTML | ⬜ Resend + HTML bonito para OTP/booking/etc |
-| 5.3 | Auto-geração de boleias por template (cron) | ⬜ BullMQ cron job — cria Rides a partir de ScheduleTemplates ativos |
-| 5.4 | Invalidação de cache nas mutações | ⬜ Limpar cache Redis após criar/cancelar rides/bookings |
-| 5.5 | Filtros avançados na Discover | ⬜ Filtrar por data, hora, preço máx, lugares disponíveis |
+| 5.2 | Templates de email HTML | ✅ Layout HTML com branding HopOn, estilos inline, 6 templates |
+| 5.3 | Auto-geração de boleias por template (cron) | ✅ @nestjs/schedule cron diário às 06:00, POST /scheduler/trigger para teste |
+| 5.4 | Invalidação de cache nas mutações | ✅ cache.clear() após create/remove/complete em rides.service |
+| 5.5 | Filtros avançados na Discover | ✅ Data, hora, preço máx, lugares, verificados — chips de filtros ativos |
