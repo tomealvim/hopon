@@ -54,5 +54,29 @@ export class CreateRideDto {
   @IsNumber()
   @MinNumber(0)
   price?: number;
+
+  @ApiPropertyOptional({ example: 312.5, description: 'Distância da rota em km (da API de pricing)' })
+  @IsOptional()
+  @IsNumber()
+  @MinNumber(0)
+  routeDistanceKm?: number;
+
+  @ApiPropertyOptional({ example: 165, description: 'Duração da rota em minutos (com tráfego)' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  routeDurationMin?: number;
+
+  @ApiPropertyOptional({ example: 23.35, description: 'Custo de portagens da rota selecionada' })
+  @IsOptional()
+  @IsNumber()
+  @MinNumber(0)
+  routeTollCost?: number;
+
+  @ApiPropertyOptional({ example: 1.40, description: 'Taxa de plataforma (10% do preço por lugar)' })
+  @IsOptional()
+  @IsNumber()
+  @MinNumber(0)
+  platformFee?: number;
 }
 

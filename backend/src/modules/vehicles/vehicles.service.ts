@@ -38,6 +38,8 @@ export class VehiclesService {
         imageUrl: dto.imageUrl,
         seats: dto.seats ?? 4,
         features: this.normalizeFeatures(dto.features),
+        fuelType: dto.fuelType,
+        avgConsumption: dto.avgConsumption,
       },
     });
     return this.toResponse(vehicle);
@@ -58,6 +60,8 @@ export class VehiclesService {
           dto.features !== undefined
             ? this.normalizeFeatures(dto.features)
             : undefined,
+        fuelType: dto.fuelType,
+        avgConsumption: dto.avgConsumption,
       },
     });
     return this.toResponse(vehicle);

@@ -26,6 +26,7 @@ import { Loading } from "./components/ui/Skeleton";
 import OfferRideForm, { type OfferRideFormValues } from "./components/ui/OfferRideForm";
 import AppName from "./components/ui/AppName";
 import NotificationsSheet from "./components/ui/NotificationsSheet";
+import PolicyAcceptanceSheet from "./components/ui/PolicyAcceptanceSheet";
 
 export type Tab = "discover" | "rides" | "inbox" | "profile";
 
@@ -61,6 +62,8 @@ function AppContent() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
   const [showWelcome, setShowWelcome] = useState(false);
   const [profileSheetsOpen, setProfileSheetsOpen] = useState(false);
+  const [openDriverPolicy, setOpenDriverPolicy] = useState(false);
+  const [pendingOfferValues, setPendingOfferValues] = useState<OfferRideFormValues | null>(null);
 
   useEffect(() => {
     if (user && hasCompletedProfile && !localStorage.getItem('hopon_welcome_shown')) {
@@ -79,28 +82,42 @@ function AppContent() {
     setVehicleSheetTrigger((prev) => prev + 1);
   };
 
+  async function doSubmitOffer(vals: OfferRideFormValues) {
+    const departureTime = new Date(`${vals.data}T${vals.hora}:00`).toISOString();
+    await apiRequest("/rides", {
+      method: "POST",
+      body: JSON.stringify({
+        vehicleId: vals.vehicleId,
+        origin: vals.origem,
+        destination: vals.destino,
+        departureTime,
+        availableSeats: vals.lugares,
+        price: vals.price ?? null,
+        originLat: vals.origemLat,
+        originLng: vals.origemLng,
+        destinationLat: vals.destinoLat,
+        destinationLng: vals.destinoLng,
+        routeDistanceKm: vals.routeDistanceKm,
+        routeDurationMin: vals.routeDurationMin,
+        routeTollCost: vals.routeTollCost,
+        platformFee: vals.platformFee,
+      }),
+    });
+    showSuccess("Boleia criada!", `${vals.origem} → ${vals.destino}`);
+    setOpenOffer(false);
+    setTab("rides");
+  }
+
   async function handleSubmitOffer(vals: OfferRideFormValues) {
     try {
-      const departureTime = new Date(`${vals.data}T${vals.hora}:00`).toISOString();
-      await apiRequest("/rides", {
-        method: "POST",
-        body: JSON.stringify({
-          vehicleId: vals.vehicleId,
-          origin: vals.origem,
-          destination: vals.destino,
-          departureTime,
-          availableSeats: vals.lugares,
-          price: vals.price ?? null,
-          originLat: vals.origemLat,
-          originLng: vals.origemLng,
-          destinationLat: vals.destinoLat,
-          destinationLng: vals.destinoLng,
-        }),
-      });
-      showSuccess("Boleia criada!", `${vals.origem} → ${vals.destino}`);
-      setOpenOffer(false);
-      setTab("rides");
-    } catch (err) {
+      await doSubmitOffer(vals);
+    } catch (err: any) {
+      const msg = err?.message ?? String(err);
+      if (msg.includes("DRIVER_POLICY_NOT_ACCEPTED")) {
+        setPendingOfferValues(vals);
+        setOpenDriverPolicy(true);
+        return;
+      }
       showError("Erro ao criar boleia", err instanceof Error ? err.message : "Tenta novamente.");
     }
   }
@@ -217,6 +234,25 @@ function AppContent() {
 
       {/* Painel de notificações */}
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
+
+      {/* Política de condutor — aparece quando o condutor tenta publicar sem aceitar */}
+      <PolicyAcceptanceSheet
+        open={openDriverPolicy}
+        role="driver"
+        onClose={() => { setOpenDriverPolicy(false); setPendingOfferValues(null); }}
+        onAccepted={async () => {
+          setOpenDriverPolicy(false);
+          if (pendingOfferValues) {
+            try {
+              await doSubmitOffer(pendingOfferValues);
+            } catch (err) {
+              showError("Erro ao criar boleia", err instanceof Error ? err.message : "Tenta novamente.");
+            } finally {
+              setPendingOfferValues(null);
+            }
+          }
+        }}
+      />
 
       {/* Bem-vindo — mostrado uma vez após criar perfil */}
       <WelcomeSheet

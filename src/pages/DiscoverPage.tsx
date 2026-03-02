@@ -5,6 +5,7 @@ import { apiRequest } from "../services/api";
 import DiscoverTopBar, { type DiscoverTab } from "../components/ui/DiscoverTopBar";
 import DiscoverFiltersSheet from "../components/ui/DiscoverFiltersSheet";
 import RequestSeatSheet from "../components/ui/RequestSeatSheet";
+import PolicyAcceptanceSheet from "../components/ui/PolicyAcceptanceSheet";
 import EntityCard from "../components/ui/EntityCard";
 import { EntityCardSkeleton } from "../components/ui/Skeleton";
 import Sheet from "../components/ui/Sheet";
@@ -61,6 +62,10 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   // Public profile sheet
   const [openProfile, setOpenProfile] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
+
+  // Política de passageiro
+  const [openPassengerPolicy, setOpenPassengerPolicy] = useState(false);
+  const [pendingBookingRideId, setPendingBookingRideId] = useState<string | null>(null);
 
   // "Para Ti" — boleias que batem com os templates do utilizador
   const [forYouRides, setForYouRides] = useState<ApiRide[]>([]);
@@ -119,25 +124,35 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   }
 
   // Confirmar reserva
+  async function doBook(rideId: string) {
+    await apiRequest(`/bookings/rides/${rideId}`, {
+      method: "POST",
+      body: JSON.stringify({ seats: 1 }),
+    });
+    const ride = [...apiRides, ...forYouRides].find((r) => r.id === rideId);
+    showSuccess(
+      "Reserva feita!",
+      ride ? `${ride.origin} → ${ride.destination}. O condutor irá confirmar em breve.` : "Reserva registada."
+    );
+    setOpenRequestSeat(false);
+    setSelectedRideId(null);
+    apiRequest<ApiRide[]>(`/rides/search?${buildSearchParams(filters).toString()}`)
+      .then((data) => setApiRides(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }
+
   async function handleConfirmBook() {
     if (!selectedRideId) return;
     try {
-      await apiRequest(`/bookings/rides/${selectedRideId}`, {
-        method: "POST",
-        body: JSON.stringify({ seats: 1 }),
-      });
-      const ride = apiRides.find((r) => r.id === selectedRideId);
-      showSuccess(
-        "Reserva feita!",
-        ride ? `${ride.origin} → ${ride.destination}. O condutor irá confirmar em breve.` : "Reserva registada."
-      );
-      setOpenRequestSeat(false);
-      setSelectedRideId(null);
-      // Refrescar lista para actualizar lugares disponíveis
-      apiRequest<ApiRide[]>(`/rides/search?${buildSearchParams(filters).toString()}`)
-        .then((data) => setApiRides(Array.isArray(data) ? data : []))
-        .catch(() => {});
-    } catch (err) {
+      await doBook(selectedRideId);
+    } catch (err: any) {
+      const msg = err?.message ?? String(err);
+      if (msg.includes("PASSENGER_POLICY_NOT_ACCEPTED")) {
+        setPendingBookingRideId(selectedRideId);
+        setOpenRequestSeat(false);
+        setOpenPassengerPolicy(true);
+        return;
+      }
       showError("Erro ao reservar", err instanceof Error ? err.message : "Tenta novamente.");
     }
   }
@@ -323,6 +338,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
             onConfirm={handleConfirmBook}
             offerTitle={ride ? `${ride.origin} → ${ride.destination} (${t})` : ""}
             price={ride?.price}
+            platformFee={(ride as any)?.platformFee}
             seats={1}
           />
         );
@@ -336,6 +352,25 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
           targetName={reportTarget.name}
         />
       )}
+
+      {/* Política de passageiro — aparece quando tenta reservar sem aceitar */}
+      <PolicyAcceptanceSheet
+        open={openPassengerPolicy}
+        role="passenger"
+        onClose={() => { setOpenPassengerPolicy(false); setPendingBookingRideId(null); }}
+        onAccepted={async () => {
+          setOpenPassengerPolicy(false);
+          if (pendingBookingRideId) {
+            try {
+              await doBook(pendingBookingRideId);
+            } catch (err) {
+              showError("Erro ao reservar", err instanceof Error ? err.message : "Tenta novamente.");
+            } finally {
+              setPendingBookingRideId(null);
+            }
+          }
+        }}
+      />
 
       <PublicProfileSheet
         userId={profileUserId}

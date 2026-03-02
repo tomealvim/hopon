@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "rides" ADD COLUMN "routeDistanceKm" DOUBLE PRECISION;
+ALTER TABLE "rides" ADD COLUMN "routeDurationMin" INTEGER;
+ALTER TABLE "rides" ADD COLUMN "routeTollCost" DOUBLE PRECISION;
+ALTER TABLE "rides" ADD COLUMN "platformFee" DOUBLE PRECISION;

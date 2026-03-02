@@ -1,6 +1,7 @@
 import {
   Controller, Post, Body, Get, UseGuards, Request, Patch, Headers,
   UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator,
+  HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -15,6 +16,7 @@ import { OtpVerifyDto } from './dto/otp-verify.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { AcceptPolicyDto } from './dto/accept-policy.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -125,6 +127,15 @@ export class AuthController {
     file: Express.Multer.File,
   ) {
     return this.authService.uploadAvatar(req.user.id, file);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('me/accept-policy')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Aceitar política de viagens (passageiro ou condutor)' })
+  acceptPolicy(@Request() req, @Body() dto: AcceptPolicyDto) {
+    return this.authService.acceptPolicy(req.user.id, dto.role);
   }
 
   @UseGuards(JwtAuthGuard)

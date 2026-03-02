@@ -298,6 +298,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           airConditioning: values.airConditioning,
           heater: values.heater,
         },
+        fuelType: values.fuelType || undefined,
+        avgConsumption: values.avgConsumption,
       });
 
       if (!isEditingExisting && savedVehicle) {
@@ -1157,6 +1159,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                 imageUrl: editingVehicle.imageUrl ?? "",
                 airConditioning: editingVehicle.features.airConditioning,
                 heater: editingVehicle.features.heater,
+                fuelType: (editingVehicle as any).fuelType ?? "",
+                avgConsumption: (editingVehicle as any).avgConsumption ?? undefined,
               }
             : undefined
         }

@@ -393,6 +393,23 @@ export class AuthService {
     return this.getMe(userId);
   }
 
+  async acceptPolicy(userId: string, role: 'passenger' | 'driver') {
+    const updateData: Prisma.UserUpdateInput = {};
+    if (role === 'passenger') {
+      updateData.passengerPolicyAcceptedAt = new Date();
+    } else {
+      updateData.driverPolicyAcceptedAt = new Date();
+    }
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      include: { profile: true, vehicles: true },
+    });
+
+    return this.buildUserResponse(user);
+  }
+
   async uploadAvatar(userId: string, file: Express.Multer.File) {
     const avatarUrl = await this.storageService.uploadAvatar(userId, file.buffer, file.mimetype);
 
@@ -495,6 +512,10 @@ export class AuthService {
       verification: {
         email: !!rest.emailVerifiedAt,
         phone: !!rest.phoneVerifiedAt,
+      },
+      policy: {
+        passengerAcceptedAt: rest.passengerPolicyAcceptedAt ?? null,
+        driverAcceptedAt: rest.driverPolicyAcceptedAt ?? null,
       },
     };
   }

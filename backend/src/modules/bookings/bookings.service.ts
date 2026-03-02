@@ -17,6 +17,15 @@ export class BookingsService {
   ) {}
 
   async create(userId: string, rideId: string, dto: CreateBookingDto) {
+    // Verificar se o passageiro aceitou a política de viagens
+    const passenger = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { passengerPolicyAcceptedAt: true },
+    });
+    if (!passenger?.passengerPolicyAcceptedAt) {
+      throw new ForbiddenException('PASSENGER_POLICY_NOT_ACCEPTED');
+    }
+
     // Pré-verificar saldo antes de criar a reserva
     const rideCheck = await this.prisma.ride.findUnique({ where: { id: rideId }, select: { price: true } });
     if (rideCheck?.price != null && Number(rideCheck.price) > 0) {

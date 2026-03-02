@@ -51,6 +51,9 @@ model User {
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
 
+  passengerPolicyAcceptedAt DateTime?
+  driverPolicyAcceptedAt    DateTime?
+
   @@map("users")
 }
 
@@ -91,16 +94,18 @@ model Vehicle {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   brand     String
   model     String
   plate     String?  // Hashed ideally, or encrypted
   color     String?
   imageUrl  String?
   seats     Int      @default(4)
-  
-  features  Json?
-  
+
+  features       Json?
+  fuelType       String?  // "gasolina95" | "gasoleo" | "gpl" | "eletrico" | "hibrido"
+  avgConsumption Float?   // L/100km (ou kWh/100km para elétrico)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -143,6 +148,11 @@ model Ride {
 
   availableSeats Int
   price          Float?
+
+  routeDistanceKm  Float?
+  routeDurationMin Int?
+  routeTollCost    Float?
+  platformFee      Float?
 
   status         String    @default("SCHEDULED")
 

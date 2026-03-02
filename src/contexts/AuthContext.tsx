@@ -12,6 +12,8 @@ type VehicleInput = {
   imageUrl?: string;
   seats?: number;
   features: Vehicle["features"];
+  fuelType?: string;
+  avgConsumption?: number;
 };
 
 type ProfileUpdatePayload = Partial<UserProfile> & { phone?: string };
@@ -30,6 +32,7 @@ interface AuthContextValue {
   sendOtp: (purpose: "email" | "phone") => Promise<void>;
   verifyOtp: (purpose: "email" | "phone", code: string) => Promise<User>;
   hasCompletedProfile: boolean;
+  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -187,6 +190,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       imageUrl: vehicle.imageUrl || undefined,
       seats: vehicle.seats,
       features: vehicle.features,
+      fuelType: vehicle.fuelType || undefined,
+      avgConsumption: vehicle.avgConsumption,
     };
     const endpoint = isEditing ? `/vehicles/${vehicle.id}` : "/vehicles";
     const method = isEditing ? "PATCH" : "POST";
@@ -255,6 +260,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return updatedUser;
   };
 
+  const refresh = async () => {
+    const updatedUser = await apiRequest<User>("/auth/me");
+    setUser(updatedUser);
+  };
+
   const hasCompletedProfile = user?.profile?.setupCompleted === true;
 
   return (
@@ -273,6 +283,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sendOtp,
         verifyOtp,
         hasCompletedProfile,
+        refresh,
       }}
     >
       {children}

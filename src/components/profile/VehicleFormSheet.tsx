@@ -11,6 +11,8 @@ export type VehicleFormValues = {
   imageUrl: string;
   airConditioning: boolean;
   heater: boolean;
+  fuelType: string;
+  avgConsumption: number | undefined;
 };
 
 type VehicleFormSheetProps = {
@@ -26,6 +28,14 @@ type FieldErrors = {
   model?: string;
 };
 
+const FUEL_TYPE_OPTIONS = [
+  { value: "gasolina95", label: "Gasolina 95" },
+  { value: "gasoleo", label: "Gasóleo" },
+  { value: "gpl", label: "GPL" },
+  { value: "eletrico", label: "Elétrico" },
+  { value: "hibrido", label: "Híbrido" },
+];
+
 const EMPTY_VALUES: VehicleFormValues = {
   brand: "",
   model: "",
@@ -34,6 +44,8 @@ const EMPTY_VALUES: VehicleFormValues = {
   imageUrl: "",
   airConditioning: true,
   heater: true,
+  fuelType: "",
+  avgConsumption: undefined,
 };
 
 export default function VehicleFormSheet({
@@ -176,8 +188,48 @@ export default function VehicleFormSheet({
           </div>
         </div>
 
+        <div className="grid gap-4">
+          <label className="grid gap-2 text-sm font-semibold text-gray-700">
+            <span>Tipo de combustível</span>
+            <select
+              value={values.fuelType}
+              onChange={e => setValues(prev => ({ ...prev, fuelType: e.target.value }))}
+              className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+            >
+              <option value="">Selecionar...</option>
+              {FUEL_TYPE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="grid gap-2 text-sm font-semibold text-gray-700">
+            <span className="flex items-center gap-1">
+              Consumo médio
+              <span
+                title="Litros por 100 km para combustão (ex: 6.5). kWh por 100 km para elétrico (ex: 17)."
+                className="cursor-help text-xs font-normal text-gray-400"
+              >
+                (L/100km ou kWh/100km) ⓘ
+              </span>
+            </span>
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={values.avgConsumption ?? ""}
+              placeholder="Ex: 6.5"
+              onChange={e => {
+                const val = e.target.value;
+                setValues(prev => ({ ...prev, avgConsumption: val === "" ? undefined : parseFloat(val) }));
+              }}
+              className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+            />
+          </label>
+        </div>
+
         <p className="text-xs text-gray-600">
-          Marca e modelo são obrigatórios para calcularmos o consumo do veículo e dividir os custos da viagem.
+          Combustível e consumo ajudam-nos a calcular o preço real da viagem com base nos custos do condutor.
         </p>
       </div>
     </Sheet>

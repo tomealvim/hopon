@@ -1,10 +1,11 @@
-import { useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import TimePicker from "./TimePicker";
 import { Button } from "./Button";
 import { cn } from "../../utils/cn";
 import { useAuth } from "../../contexts/AuthContext";
 import { LocationInput } from "./LocationInput";
 import type { Vehicle } from "../../pages/types/user";
+import { apiRequest } from "../../services/api";
 
 export type OfferRideFormValues = {
   vehicleId: string;
@@ -18,6 +19,10 @@ export type OfferRideFormValues = {
   hora: string; // HH:MM
   lugares: number;
   price?: number; // preço por lugar em €
+  routeDistanceKm?: number;
+  routeDurationMin?: number;
+  routeTollCost?: number;
+  platformFee?: number;
   aceitaDesvios: boolean;
   desvioMaxMin: number; // minutos
   pontoEncontro?: string;
@@ -39,19 +44,27 @@ export type OfferRideFormProps = {
   onRequireVehicleSetup?: () => void;
 };
 
-/** Fórmula de Haversine — distância entre dois pontos em km */
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+interface PriceBreakdown {
+  distanceKm: number;
+  durationMin: number;
+  fuelCost: number;
+  tollCost: number;
+  pricePerSeat: number;
+  platformFee: number;
+  passengerPays: number;
+  driverReceives: number;
+  suggestedMaxPrice: number;
 }
 
-const FUEL_COST_PER_KM = 0.06; // €/km — média Portugal (combustível + desgaste)
+interface RouteOption {
+  routeId: string;
+  label: string;
+  distanceKm: number;
+  durationMin: number;
+  tollCost: number;
+  breakdown: PriceBreakdown;
+  polyline: string;
+}
 
 export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVehicleSetup }: OfferRideFormProps) {
   const { user, setActiveVehicle } = useAuth();
@@ -85,9 +98,13 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
   const [values, setValues] = useState<OfferRideFormValues>(defaultValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // Estado da calculadora de custo
-  const [hasTolls, setHasTolls] = useState(false);
-  const [tollAmount, setTollAmount] = useState(0);
+  // Pricing state
+  const [routeOptions, setRouteOptions] = useState<RouteOption[]>([]);
+  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [pricingError, setPricingError] = useState<string | null>(null);
+
+  const pricingDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!hasVehicles) return;
@@ -99,6 +116,99 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
     }
   }, [hasVehicles, vehicles, activeVehicleId, values.vehicleId]);
 
+  // Calcular rotas quando os campos necessários estão preenchidos
+  const canCalculate =
+    values.origemLat != null &&
+    values.origemLng != null &&
+    values.destinoLat != null &&
+    values.destinoLng != null &&
+    values.vehicleId &&
+    values.data &&
+    values.hora &&
+    values.lugares >= 1;
+
+  const fetchRoutes = useCallback(async () => {
+    if (!canCalculate) return;
+    setPricingLoading(true);
+    setPricingError(null);
+    try {
+      const departureTime = new Date(`${values.data}T${values.hora}:00`).toISOString();
+      const routes = await apiRequest<RouteOption[]>("/pricing/calculate", {
+        method: "POST",
+        body: JSON.stringify({
+          originLat: values.origemLat,
+          originLng: values.origemLng,
+          destLat: values.destinoLat,
+          destLng: values.destinoLng,
+          departureTime,
+          vehicleId: values.vehicleId,
+          seats: values.lugares,
+        }),
+      });
+      setRouteOptions(routes);
+      // Selecionar automaticamente a primeira rota
+      if (routes.length > 0) {
+        const first = routes[0];
+        setSelectedRouteId(first.routeId);
+        setValues((prev) => ({
+          ...prev,
+          price: first.breakdown.pricePerSeat,
+          routeDistanceKm: first.distanceKm,
+          routeDurationMin: first.durationMin,
+          routeTollCost: first.tollCost,
+          platformFee: first.breakdown.platformFee,
+        }));
+      }
+    } catch (err: any) {
+      const msg = err?.message ?? String(err);
+      if (msg.includes("GOOGLE_MAPS_API_KEY")) {
+        setPricingError("API de rotas não configurada. Define um preço manualmente.");
+      } else {
+        setPricingError("Não foi possível calcular a rota. Define um preço manualmente.");
+      }
+      setRouteOptions([]);
+    } finally {
+      setPricingLoading(false);
+    }
+  }, [
+    canCalculate,
+    values.origemLat,
+    values.origemLng,
+    values.destinoLat,
+    values.destinoLng,
+    values.vehicleId,
+    values.data,
+    values.hora,
+    values.lugares,
+  ]);
+
+  useEffect(() => {
+    if (!canCalculate) {
+      setRouteOptions([]);
+      setSelectedRouteId(null);
+      return;
+    }
+    if (pricingDebounce.current) clearTimeout(pricingDebounce.current);
+    pricingDebounce.current = setTimeout(fetchRoutes, 800);
+    return () => {
+      if (pricingDebounce.current) clearTimeout(pricingDebounce.current);
+    };
+  }, [canCalculate, fetchRoutes]);
+
+  const selectedRoute = routeOptions.find((r) => r.routeId === selectedRouteId) ?? null;
+
+  const handleSelectRoute = (route: RouteOption) => {
+    setSelectedRouteId(route.routeId);
+    setValues((prev) => ({
+      ...prev,
+      price: route.breakdown.pricePerSeat,
+      routeDistanceKm: route.distanceKm,
+      routeDurationMin: route.durationMin,
+      routeTollCost: route.tollCost,
+      platformFee: route.breakdown.platformFee,
+    }));
+  };
+
   const set = <K extends keyof OfferRideFormValues>(key: K, val: OfferRideFormValues[K]) => {
     setValues((prev) => ({ ...prev, [key]: val }));
   };
@@ -109,24 +219,10 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
 
   const setTouchedField = (name: string) => setTouched((prev) => ({ ...prev, [name]: true }));
 
-  // Cálculo de distância e custo
-  const hasCoords =
-    values.origemLat != null &&
-    values.origemLng != null &&
-    values.destinoLat != null &&
-    values.destinoLng != null;
-
-  const distanceKm = useMemo(() => {
-    if (!hasCoords) return null;
-    return haversineKm(values.origemLat!, values.origemLng!, values.destinoLat!, values.destinoLng!);
-  }, [hasCoords, values.origemLat, values.origemLng, values.destinoLat, values.destinoLng]);
-
-  const fuelCost = distanceKm != null ? distanceKm * FUEL_COST_PER_KM : null;
-  const activeTolls = hasTolls ? tollAmount : 0;
-  const suggestedPrice =
-    fuelCost != null && values.lugares > 0
-      ? Math.ceil(((fuelCost + activeTolls) / values.lugares) * 100) / 100
-      : null;
+  const priceExceedsCeiling =
+    values.price != null &&
+    selectedRoute != null &&
+    values.price > selectedRoute.breakdown.suggestedMaxPrice;
 
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
@@ -137,13 +233,14 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
     if (!values.hora) e.hora = "Obrigatório";
     if (values.lugares < 1) e.lugares = "Mínimo 1";
     if (values.aceitaDesvios && (values.desvioMaxMin < 0 || values.desvioMaxMin > 60)) e.desvioMaxMin = "0–60 min";
+    if (priceExceedsCeiling) e.price = `Máx. permitido: €${selectedRoute!.breakdown.suggestedMaxPrice.toFixed(2)} (+20% sobre custo real)`;
     return e;
-  }, [values]);
+  }, [values, priceExceedsCeiling, selectedRoute]);
 
   const submit = (ev: React.FormEvent) => {
     ev.preventDefault();
     if (Object.keys(errors).length > 0) {
-      setTouched({ vehicleId: true, origem: true, destino: true, data: true, hora: true, lugares: true, desvioMaxMin: true });
+      setTouched({ vehicleId: true, origem: true, destino: true, data: true, hora: true, lugares: true, desvioMaxMin: true, price: true });
       return;
     }
     onSubmit(values);
@@ -280,89 +377,109 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
         {touched.lugares && errors.lugares && <div className="text-xs text-red-600 mt-1">{errors.lugares}</div>}
       </div>
 
-      {/* Calculadora de custo */}
+      {/* Calculadora de custo — Rotas reais */}
       <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 grid gap-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Custo da viagem</p>
 
-        {hasCoords && distanceKm != null ? (
-          <div className="grid gap-1.5 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Distância estimada</span>
-              <span className="font-medium text-gray-900">~{Math.round(distanceKm)} km</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Gasolina (~€0.06/km)</span>
-              <span className="font-medium text-gray-900">€{(distanceKm * FUEL_COST_PER_KM).toFixed(2)}</span>
-            </div>
-          </div>
-        ) : (
+        {!canCalculate && (
           <p className="text-xs text-gray-500">
-            Seleciona origem e destino via autocomplete para calcular a distância e obter uma sugestão de preço.
+            Preenche origem, destino, data, hora e lugares para calcular o custo real com base no teu veículo.
           </p>
         )}
 
-        {/* Portagens */}
-        <label className="flex items-center gap-2 text-sm text-gray-900 cursor-pointer">
-          <input
-            type="checkbox"
-            className="w-4 h-4 rounded border-gray-300"
-            checked={hasTolls}
-            onChange={(e) => { setHasTolls(e.target.checked); if (!e.target.checked) setTollAmount(0); }}
-          />
-          Há portagens nesta rota?
-        </label>
-
-        {hasTolls && (
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Portagens — valor total estimado (€)</label>
-            <input
-              type="number"
-              min="0"
-              step="0.50"
-              className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
-              placeholder="Ex.: 3.50"
-              value={tollAmount || ""}
-              onChange={(e) => setTollAmount(Math.max(0, Number(e.target.value)))}
-            />
+        {canCalculate && pricingLoading && (
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span className="animate-spin text-base">⟳</span>
+            A calcular rotas e preços...
           </div>
         )}
 
-        {/* Sugestão de preço */}
-        {suggestedPrice != null && (
-          <div className="flex items-center justify-between border-t border-gray-200 pt-2">
-            <span className="text-sm text-gray-700">Sugestão por lugar</span>
-            <div className="flex items-center gap-2">
-              <span className="text-base font-bold text-emerald-700">€{suggestedPrice.toFixed(2)}</span>
-              <button
-                type="button"
-                className="text-xs text-[#FF719A] font-semibold hover:underline"
-                onClick={() => set("price", suggestedPrice)}
-              >
-                Usar
-              </button>
-            </div>
+        {canCalculate && pricingError && !pricingLoading && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            {pricingError}
+          </p>
+        )}
+
+        {routeOptions.length > 0 && !pricingLoading && (
+          <div className="grid gap-2">
+            {routeOptions.map((route) => {
+              const isSelected = route.routeId === selectedRouteId;
+              return (
+                <button
+                  key={route.routeId}
+                  type="button"
+                  onClick={() => handleSelectRoute(route)}
+                  className={cn(
+                    "text-left rounded-xl border px-4 py-3 transition",
+                    isSelected
+                      ? "border-emerald-400 bg-emerald-50"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
+                  )}
+                  aria-pressed={isSelected}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px]",
+                        isSelected ? "border-emerald-500 bg-emerald-500 text-white" : "border-gray-300 text-gray-400"
+                      )}>
+                        {isSelected ? "✓" : ""}
+                      </span>
+                      <span className="text-sm font-semibold text-gray-900">{route.label}</span>
+                    </div>
+                    <span className="text-sm font-bold text-emerald-700">
+                      €{route.breakdown.pricePerSeat.toFixed(2)}<span className="text-xs font-normal text-gray-500">/lugar</span>
+                    </span>
+                  </div>
+                  <div className="mt-1.5 pl-6 grid gap-1 text-xs text-gray-500">
+                    <span>{route.distanceKm} km · {route.durationMin} min com tráfego</span>
+                    {route.tollCost > 0 && (
+                      <span>Portagens: €{route.tollCost.toFixed(2)}</span>
+                    )}
+                    <span>
+                      Combustível: €{route.breakdown.fuelCost.toFixed(2)} · Taxa HopOn: €{route.breakdown.platformFee.toFixed(2)} · Passageiro paga: <strong className="text-gray-700">€{route.breakdown.passengerPays.toFixed(2)}</strong>
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
 
-        {/* Preço final */}
+        {/* Preço final (editável) */}
         <div>
           <label htmlFor={`${id}-price`} className="block text-xs font-semibold text-gray-600 mb-1">
             Preço por lugar (€)
-            {suggestedPrice != null && <span className="ml-1 font-normal text-gray-400">— ajusta se quiseres</span>}
+            {selectedRoute && (
+              <span className="ml-1 font-normal text-gray-400">
+                — máx. €{selectedRoute.breakdown.suggestedMaxPrice.toFixed(2)}
+              </span>
+            )}
           </label>
           <input
             id={`${id}-price`}
             type="number"
             min="0"
             step="0.10"
-            className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
-            placeholder={suggestedPrice != null ? `Sugestão: €${suggestedPrice.toFixed(2)}` : "0.00"}
+            className={cn(
+              "w-full px-3 py-2.5 border bg-white text-gray-900 rounded-xl outline-none focus:ring-2 focus:ring-[#FF719A]/20",
+              touched.price && errors.price
+                ? "border-red-400 focus:border-red-400"
+                : "border-gray-200 focus:border-[#FF719A]"
+            )}
+            placeholder={selectedRoute ? `Sugestão: €${selectedRoute.breakdown.pricePerSeat.toFixed(2)}` : "0.00"}
             value={values.price ?? ""}
             onChange={(e) => set("price", e.target.value !== "" ? Number(e.target.value) : undefined)}
+            onBlur={() => setTouchedField("price")}
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Este valor é partilha de custo, não lucro. Cada passageiro paga este valor.
-          </p>
+          {touched.price && errors.price && (
+            <p className="text-xs text-red-600 mt-1">{errors.price}</p>
+          )}
+          {!errors.price && (
+            <p className="text-xs text-gray-500 mt-1">
+              Este valor é partilha de custo, não lucro. Cada passageiro paga este valor mais a taxa HopOn.
+            </p>
+          )}
         </div>
       </div>
 

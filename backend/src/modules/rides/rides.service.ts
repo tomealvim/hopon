@@ -21,6 +21,15 @@ export class RidesService {
   ) {}
 
   async create(userId: string, dto: CreateRideDto) {
+    // Verificar se o condutor aceitou a política de viagens
+    const driver = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { driverPolicyAcceptedAt: true },
+    });
+    if (!driver?.driverPolicyAcceptedAt) {
+      throw new ForbiddenException('DRIVER_POLICY_NOT_ACCEPTED');
+    }
+
     // Verificar se o veículo pertence ao utilizador
     const vehicle = await this.prisma.vehicle.findFirst({
       where: { id: dto.vehicleId, userId },
@@ -65,6 +74,10 @@ export class RidesService {
         status: 'SCHEDULED',
         ...(originLocationId && { originLocationId }),
         ...(destinationLocationId && { destinationLocationId }),
+        ...(dto.routeDistanceKm != null && { routeDistanceKm: dto.routeDistanceKm }),
+        ...(dto.routeDurationMin != null && { routeDurationMin: dto.routeDurationMin }),
+        ...(dto.routeTollCost != null && { routeTollCost: dto.routeTollCost }),
+        ...(dto.platformFee != null && { platformFee: dto.platformFee }),
       },
       include: {
         vehicle: {
@@ -630,6 +643,10 @@ export class RidesService {
       bookedSeats,
       remainingSeats: ride.availableSeats - bookedSeats,
       price: ride.price,
+      routeDistanceKm: ride.routeDistanceKm ?? null,
+      routeDurationMin: ride.routeDurationMin ?? null,
+      routeTollCost: ride.routeTollCost ?? null,
+      platformFee: ride.platformFee ?? null,
       status: ride.status,
       vehicle: ride.vehicle
         ? {

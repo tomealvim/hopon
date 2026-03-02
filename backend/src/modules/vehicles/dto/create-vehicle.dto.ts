@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   Length,
@@ -57,5 +58,16 @@ export class CreateVehicleDto {
   @ValidateNested()
   @Type(() => VehicleFeaturesDto)
   features?: VehicleFeaturesDto;
+
+  @ApiPropertyOptional({ enum: ['gasolina95', 'gasoleo', 'gpl', 'eletrico', 'hibrido'] })
+  @IsOptional()
+  @IsString()
+  fuelType?: string;
+
+  @ApiPropertyOptional({ example: 6.5, description: 'L/100km ou kWh/100km' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  avgConsumption?: number;
 }
 

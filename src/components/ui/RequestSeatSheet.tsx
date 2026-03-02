@@ -9,10 +9,11 @@ type Props = {
   onConfirm: (message?: string) => void;
   offerTitle: string;
   price?: number | null;
+  platformFee?: number | null;
   seats?: number;
 };
 
-export default function RequestSeatSheet({ open, onClose, onConfirm, offerTitle, price, seats = 1 }: Props) {
+export default function RequestSeatSheet({ open, onClose, onConfirm, offerTitle, price, platformFee, seats = 1 }: Props) {
   const [message, setMessage] = useState("");
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
@@ -20,6 +21,12 @@ export default function RequestSeatSheet({ open, onClose, onConfirm, offerTitle,
   const hasCost = price != null && price > 0;
   const totalCost = hasCost ? price * seats : 0;
   const hasEnough = walletBalance == null || !hasCost || walletBalance >= totalCost;
+
+  // Breakdown: se temos platformFee, podemos mostrar custo sem comissão separado
+  const hasFeeBreakdown = hasCost && platformFee != null && platformFee > 0;
+  const baseCostPerSeat = hasFeeBreakdown ? price - platformFee! : price ?? 0;
+  const totalBase = baseCostPerSeat * seats;
+  const totalFee = hasFeeBreakdown ? platformFee! * seats : 0;
 
   useEffect(() => {
     if (!open || !hasCost) return;
@@ -64,13 +71,36 @@ export default function RequestSeatSheet({ open, onClose, onConfirm, offerTitle,
 
         {hasCost && (
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 grid gap-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">
-                Custo ({seats} lugar{seats > 1 ? "es" : ""} × €{price.toFixed(2)})
-              </span>
-              <span className="font-semibold text-gray-900">€{totalCost.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Detalhes do custo</p>
+
+            {hasFeeBreakdown ? (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">
+                    Combustível + portagens ({seats} {seats > 1 ? "lugares" : "lugar"})
+                  </span>
+                  <span className="text-gray-700">€{totalBase.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Taxa de serviço HopOn (10%)</span>
+                  <span className="text-gray-700">€{totalFee.toFixed(2)}</span>
+                </div>
+                <div className="my-1 border-t border-gray-200" />
+                <div className="flex justify-between text-sm font-semibold">
+                  <span className="text-gray-900">Total</span>
+                  <span className="text-gray-900">€{totalCost.toFixed(2)}</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">
+                  Custo ({seats} {seats > 1 ? "lugares" : "lugar"} × €{price!.toFixed(2)})
+                </span>
+                <span className="font-semibold text-gray-900">€{totalCost.toFixed(2)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between text-sm mt-1">
               <span className="text-gray-500">Saldo na carteira</span>
               <span className={`font-semibold ${hasEnough ? "text-gray-900" : "text-red-600"}`}>
                 {balanceLoading ? "..." : walletBalance != null ? `€${walletBalance.toFixed(2)}` : "—"}
