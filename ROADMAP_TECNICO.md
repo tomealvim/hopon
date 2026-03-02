@@ -264,3 +264,30 @@ Para o modelo de partilha de custos funcionar, o preço tem de ser transparente 
 | 5.3 | Auto-geração de boleias por template (cron) | ✅ @nestjs/schedule cron diário às 06:00, POST /scheduler/trigger para teste |
 | 5.4 | Invalidação de cache nas mutações | ✅ cache.clear() após create/remove/complete em rides.service |
 | 5.5 | Filtros avançados na Discover | ✅ Data, hora, preço máx, lugares, verificados — chips de filtros ativos |
+
+---
+
+## Fase 6 — Deploy & Testes E2E
+
+| # | Item | Estado |
+|---|---|---|
+| 6.1 | Deploy Railway (backend) + Vercel (frontend) | ✅ Railway + Vercel configurados, CI/CD automático via push para main |
+| 6.2 | Testes E2E contra produção | ✅ Suite completa 6/6 passou contra Railway; DB verify 19/19 |
+| 6.3 | Throttler ajustado para testes | ✅ 300 req/min (era 60) — protege contra abuso sem bloquear suite de testes |
+
+### Detalhes — 6.2 Testes E2E
+
+- `API_BASE` configurável via env var em todos os ficheiros de teste
+- `test-auth-basic.js` e `test-profile-basic.js` migrados de `http` module para `fetch`
+- `test-rides-bookings-advanced.js`: fix de 2 bugs (reset de status e preço após testes PATCH)
+- `test-db-verify.js`: novo script — verifica consistência da BD ponta-a-ponta via API (user → veículo → boleia → reserva → inbox → notificações)
+- `ALLOW_TEST_VERIFY=1` adicionado ao Railway para ativar endpoint de verificação de email em testes
+
+**Scripts disponíveis:**
+```bash
+cd backend
+npm run test:api:all          # suite completa contra localhost
+npm run test:api:prod         # suite completa contra Railway
+npm run test:db:verify        # DB verify contra localhost
+npm run test:db:verify:prod   # DB verify contra Railway
+```
