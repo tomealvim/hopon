@@ -17,10 +17,15 @@ export class PushService {
     const email = config.get<string>('VAPID_EMAIL', 'mailto:hopon@example.com');
 
     if (publicKey && privateKey) {
-      webpush.setVapidDetails(email, publicKey, privateKey);
-      this.ready = true;
+      try {
+        webpush.setVapidDetails(email, publicKey, privateKey);
+        this.ready = true;
+      } catch (err: any) {
+        this.logger.error(`VAPID keys inválidas — push notifications desativadas: ${err.message}`);
+        this.ready = false;
+      }
     } else {
-      this.logger.warn('VAPID keys not configured — push notifications disabled');
+      this.logger.warn('VAPID keys não configuradas — push notifications desativadas');
       this.ready = false;
     }
   }
