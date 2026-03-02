@@ -223,6 +223,7 @@ Para o modelo de partilha de custos funcionar, o preço tem de ser transparente 
 - [x] Cache Redis (`CacheModule`) para `/rides/search` e `/rides/for-you` — TTL 30s/60s
 - [x] Job queue (BullMQ) para emails/notificações assíncronos
 - [x] Object storage MinIO/S3 para avatars — `POST /auth/me/avatar`
+- [x] Cloudflare R2 em produção — bucket `hopon-avatars`, URL pública `pub-*.r2.dev`, testado end-to-end
 - [x] Observabilidade: pino structured logging + Sentry (SENTRY_DSN)
 - [x] Rate limiting por IP — global 60/min, auth 5/15min, OTP 3/15min
 - [x] CI/CD GitHub Actions — backend build+test + frontend build em cada push
@@ -274,6 +275,7 @@ Para o modelo de partilha de custos funcionar, o preço tem de ser transparente 
 | 6.1 | Deploy Railway (backend) + Vercel (frontend) | ✅ Railway + Vercel configurados, CI/CD automático via push para main |
 | 6.2 | Testes E2E contra produção | ✅ Suite completa 6/6 passou contra Railway; DB verify 19/19 |
 | 6.3 | Throttler ajustado para testes | ✅ 300 req/min (era 60) — protege contra abuso sem bloquear suite de testes |
+| 6.4 | Cloudflare R2 para avatars em produção | ✅ Bucket criado, env vars no Railway, upload testado end-to-end — `test-avatar-upload.mjs` |
 
 ### Detalhes — 6.2 Testes E2E
 
