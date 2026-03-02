@@ -8,7 +8,8 @@
  * 3. Profile Básico – atualização de perfil e persistência
  * 4. Vehicles Avançado – CRUD veículos, permissões, validações
  * 5. Rides/Bookings Avançado – boleias e reservas (requer ALLOW_TEST_VERIFY=1 no .env)
- * 6. Refresh Token – refresh JWT, rotação, logout, revogação
+ * 6. Pricing + Política – pricing real (Google Maps + DGEG), guards de política, fuelType/avgConsumption
+ * 7. Refresh Token – refresh JWT, rotação, logout, revogação
  *
  * Uso: npm run test:api:all (na pasta backend)
  */
@@ -21,6 +22,7 @@ const tests = [
   { name: 'Profile Básico', file: 'test-profile-basic.js' },
   { name: 'Vehicles Avançado', file: 'test-vehicles-advanced.js' },
   { name: 'Rides/Bookings Avançado', file: 'test-rides-bookings-advanced.js' },
+  { name: 'Pricing + Política', file: 'test-pricing-policy.js' },
   { name: 'Refresh Token', file: 'test-refresh-token.js' },
 ];
 
