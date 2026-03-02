@@ -431,6 +431,33 @@ export class RidesService {
     return this.toResponse(ride);
   }
 
+  async arrive(driverId: string, rideId: string) {
+    const ride = await this.prisma.ride.findUnique({
+      where: { id: rideId },
+      include: { bookings: true },
+    });
+
+    if (!ride) throw new NotFoundException('Boleia não encontrada');
+    if (ride.driverId !== driverId) throw new ForbiddenException('Não tens permissão para gerir esta boleia');
+    if (ride.status !== 'SCHEDULED') throw new BadRequestException('A boleia não está em estado SCHEDULED');
+
+    await this.prisma.ride.update({
+      where: { id: rideId },
+      data: { status: 'IN_PROGRESS', arrivedAt: new Date() },
+    });
+
+    // Notificar passageiros CONFIRMED
+    const confirmedPassengerIds = ride.bookings
+      .filter((b) => b.status === 'CONFIRMED')
+      .map((b) => b.userId);
+
+    if (confirmedPassengerIds.length > 0) {
+      void this.notificationsService.notifyDriverArrived(rideId, ride.origin, ride.destination, confirmedPassengerIds);
+    }
+
+    return { message: 'Chegada marcada. Passageiros notificados.' };
+  }
+
   async complete(driverId: string, rideId: string) {
     const ride = await this.prisma.ride.findUnique({
       where: { id: rideId },
@@ -439,9 +466,12 @@ export class RidesService {
 
     if (!ride) throw new NotFoundException('Boleia não encontrada');
     if (ride.driverId !== driverId) throw new ForbiddenException('Não tens permissão para concluir esta boleia');
-    if (ride.status !== 'SCHEDULED') throw new BadRequestException('A boleia não está em estado SCHEDULED');
+    if (ride.status !== 'SCHEDULED' && ride.status !== 'IN_PROGRESS') {
+      throw new BadRequestException('A boleia não está em estado SCHEDULED ou IN_PROGRESS');
+    }
 
     const confirmedBookings = ride.bookings.filter((b) => b.status === 'CONFIRMED');
+    const noShowBookings = ride.bookings.filter((b) => b.status === 'NO_SHOW');
     const pendingBookings = ride.bookings.filter((b) => b.status === 'PENDING');
 
     await this.prisma.$transaction(async (tx) => {
@@ -451,6 +481,8 @@ export class RidesService {
       for (const booking of confirmedBookings) {
         await tx.booking.update({ where: { id: booking.id }, data: { status: 'COMPLETED' } });
       }
+
+      // NO_SHOW bookings mantêm status — condutor já estava no ponto, sem reembolso
 
       // Cancelar reservas pendentes e reembolsar (não chegaram a embarcar)
       for (const booking of pendingBookings) {
@@ -466,9 +498,10 @@ export class RidesService {
         }
       }
 
-      // Creditar condutor pelo total das reservas confirmadas
-      if (ride.price != null && Number(ride.price) > 0 && confirmedBookings.length > 0) {
-        const totalAmount = confirmedBookings.reduce((sum, b) => sum + Number(ride.price) * b.seats, 0);
+      // Creditar condutor pelo total das reservas confirmadas + NO_SHOW
+      const paidBookings = [...confirmedBookings, ...noShowBookings];
+      if (ride.price != null && Number(ride.price) > 0 && paidBookings.length > 0) {
+        const totalAmount = paidBookings.reduce((sum, b) => sum + Number(ride.price) * b.seats, 0);
         let wallet = await tx.wallet.findFirst({ where: { userId: driverId } });
         if (!wallet) wallet = await tx.wallet.create({ data: { userId: driverId } });
         await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: totalAmount } } });
@@ -496,7 +529,7 @@ export class RidesService {
     }
 
     // Notificar o próprio condutor: prompt para avaliar passageiros
-    if (confirmedBookings.length > 0) {
+    if (confirmedBookings.length > 0 || noShowBookings.length > 0) {
       void this.notificationsService.createNotification(
         driverId,
         'ride.completed',
@@ -675,6 +708,7 @@ export class RidesService {
       routeTollCost: ride.routeTollCost ?? null,
       platformFee: ride.platformFee ?? null,
       status: ride.status,
+      arrivedAt: ride.arrivedAt ?? null,
       vehicle: ride.vehicle
         ? {
             id: ride.vehicle.id,

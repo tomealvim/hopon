@@ -6,6 +6,13 @@ import { EventsService } from '../events/events.service';
 import { WalletService } from '../wallet/wallet.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
+function getRefundFraction(departureTime: Date): number {
+  const hoursUntil = (departureTime.getTime() - Date.now()) / 3_600_000;
+  if (hoursUntil > 24) return 1.0;
+  if (hoursUntil > 2) return 0.5;
+  return 0.0;
+}
+
 @Injectable()
 export class BookingsService {
   constructor(
@@ -179,7 +186,7 @@ export class BookingsService {
     return bookings.map((booking) => this.toResponse(booking));
   }
 
-  async updateStatus(driverId: string, bookingId: string, status: 'CONFIRMED' | 'DECLINED') {
+  async updateStatus(driverId: string, bookingId: string, status: 'CONFIRMED' | 'DECLINED' | 'NO_SHOW') {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
       include: { ride: true },
@@ -189,8 +196,19 @@ export class BookingsService {
     if (booking.ride.driverId !== driverId) {
       throw new ForbiddenException('Só o condutor pode gerir reservas desta boleia');
     }
-    if (booking.status !== 'PENDING') {
-      throw new BadRequestException('Só é possível alterar reservas com estado PENDING');
+
+    // NO_SHOW: apenas quando ride.status === IN_PROGRESS e booking.status === CONFIRMED
+    if (status === 'NO_SHOW') {
+      if (booking.ride.status !== 'IN_PROGRESS') {
+        throw new BadRequestException('Só é possível marcar no-show quando a boleia está IN_PROGRESS');
+      }
+      if (booking.status !== 'CONFIRMED') {
+        throw new BadRequestException('Só é possível marcar no-show em reservas CONFIRMED');
+      }
+    } else {
+      if (booking.status !== 'PENDING') {
+        throw new BadRequestException('Só é possível alterar reservas com estado PENDING');
+      }
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
@@ -214,8 +232,23 @@ export class BookingsService {
         });
       }
 
+      // NO_SHOW: sem reembolso — condutor estava no ponto
+
       return upd;
     });
+
+    if (status === 'NO_SHOW') {
+      // Notificar passageiro que foi marcado como no-show
+      void this.notificationsService.createNotification(
+        booking.userId,
+        'booking.no_show',
+        'Não apareceste!',
+        `Foste marcado como não aparecido na boleia ${booking.ride.origin} → ${booking.ride.destination}. O valor pago não será reembolsado.`,
+        { bookingId, rideId: booking.rideId },
+      );
+      this.eventsService.emit(booking.userId, 'booking.no_show', { bookingId, rideId: booking.rideId });
+      return this.toResponse(updated);
+    }
 
     const statusLabel = status === 'CONFIRMED' ? 'confirmada' : 'recusada';
 
@@ -243,7 +276,7 @@ export class BookingsService {
       booking.ride.origin,
       booking.ride.destination,
       booking.ride.departureTime.toISOString(),
-      status,
+      status as 'CONFIRMED' | 'DECLINED',
     );
 
     return this.toResponse(updated);
@@ -260,6 +293,8 @@ export class BookingsService {
     if (booking.userId !== userId) throw new ForbiddenException('Não tens permissão para cancelar esta reserva');
     if (booking.status === 'COMPLETED') throw new BadRequestException('Não é possível cancelar uma reserva já completada');
 
+    const refundFraction = getRefundFraction(booking.ride.departureTime);
+
     // Cancelar e reembolsar atomicamente
     await this.prisma.$transaction(async (tx) => {
       const result = await tx.booking.updateMany({
@@ -269,14 +304,19 @@ export class BookingsService {
 
       if (result.count === 0) throw new BadRequestException('A reserva já foi cancelada');
 
-      // Reembolsar se boleia tinha preço
-      if (booking.ride.price != null && Number(booking.ride.price) > 0) {
-        const amount = Number(booking.ride.price) * booking.seats;
+      // Reembolsar com base na política temporal
+      if (booking.ride.price != null && Number(booking.ride.price) > 0 && refundFraction > 0) {
+        const fullAmount = Number(booking.ride.price) * booking.seats;
+        const refundAmount = fullAmount * refundFraction;
+        const description =
+          refundFraction === 1.0
+            ? 'Cancelamento de reserva (reembolso total)'
+            : 'Cancelamento de reserva (reembolso 50% — cancelamento com menos de 24h)';
         let wallet = await tx.wallet.findFirst({ where: { userId } });
         if (!wallet) wallet = await tx.wallet.create({ data: { userId } });
-        await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: amount } } });
+        await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: refundAmount } } });
         await tx.walletTransaction.create({
-          data: { walletId: wallet.id, type: 'REFUND', amount, description: 'Cancelamento de reserva', reference: bookingId },
+          data: { walletId: wallet.id, type: 'REFUND', amount: refundAmount, description, reference: bookingId },
         });
       }
     });

@@ -48,6 +48,8 @@ const STATUS_LABEL: Record<string, string> = {
   CANCELLED: "Cancelada",
   COMPLETED: "Concluída",
   SCHEDULED: "Agendada",
+  IN_PROGRESS: "Em curso",
+  NO_SHOW: "Não apareceu",
 };
 
 const STATUS_TONE: Record<string, "success" | "warning" | "brand" | undefined> = {
@@ -90,6 +92,7 @@ export default function RidesPage() {
   const [sheetView, setSheetView] = useState<"ride" | "booking" | "passengers">("ride");
 
   const [hydrating, setHydrating] = useState(true);
+  const [now, setNow] = useState(() => Date.now());
 
   const fetchMyRides = useCallback(async () => {
     setRidesLoading(true);
@@ -156,6 +159,13 @@ export default function RidesPage() {
     const t = setTimeout(() => setHydrating(false), 300);
     return () => clearTimeout(t);
   }, []);
+
+  // Ticker for live countdown (updates every second when a ride is IN_PROGRESS)
+  useEffect(() => {
+    if (!selectedRide || selectedRide.status !== "IN_PROGRESS") return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [selectedRide?.status, selectedRide?.id]);
 
   // --- Calendar data ---
   const ridesData: DayRides[] = useMemo(() => {
@@ -267,6 +277,37 @@ export default function RidesPage() {
       setOpenSheet(false);
     } catch (err) {
       showError("Erro ao concluir boleia", err instanceof Error ? err.message : "Tenta novamente.");
+    }
+  }
+
+  // --- Arrive at meeting point (driver) ---
+  async function handleArriveAtMeetingPoint(rideId: string) {
+    try {
+      await apiRequest(`/rides/${rideId}/arrive`, { method: "POST" });
+      showSuccess("Chegada marcada!", "Os passageiros foram notificados.");
+      const updated = await apiRequest<ApiRide>(`/rides/${rideId}`);
+      setMyRides((prev) => prev.map((r) => (r.id === rideId ? updated : r)));
+      setSelectedRide(updated);
+    } catch (err) {
+      showError("Erro", err instanceof Error ? err.message : "Tenta novamente.");
+    }
+  }
+
+  // --- Mark no-show (driver) ---
+  async function handleMarkNoShow(bookingId: string) {
+    try {
+      await apiRequest(`/bookings/${bookingId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "NO_SHOW" }),
+      });
+      showSuccess("Passageiro marcado como não apareceu", "");
+      if (selectedRide) {
+        const updated = await apiRequest<ApiRide>(`/rides/${selectedRide.id}`);
+        setMyRides((prev) => prev.map((r) => (r.id === selectedRide.id ? updated : r)));
+        setSelectedRide(updated);
+      }
+    } catch (err) {
+      showError("Erro", err instanceof Error ? err.message : "Tenta novamente.");
     }
   }
 
@@ -436,19 +477,39 @@ export default function RidesPage() {
                   Ver reservas ({(selectedRide.bookings ?? []).filter((b) => b.status === "PENDING").length})
                 </Button>
               )}
-              {selectedRide.status === "SCHEDULED" && (
-                <Button variant="secondary" className="flex-1" onClick={() => handleCompleteRide(selectedRide.id)}>
-                  Concluir
+              {selectedRide.status === "SCHEDULED" && (selectedRide.bookings ?? []).some((b) => b.status === "CONFIRMED") && (
+                <Button className="flex-1" onClick={() => handleArriveAtMeetingPoint(selectedRide.id)}>
+                  Estou no ponto
                 </Button>
               )}
-              <Button variant="danger" className="flex-1" onClick={() => handleCancelRide(selectedRide.id)}>
-                Cancelar
-              </Button>
+              {(selectedRide.status === "SCHEDULED" || selectedRide.status === "IN_PROGRESS") && (() => {
+                if (selectedRide.status === "IN_PROGRESS") {
+                  const arrivedMs = selectedRide.arrivedAt ? new Date(selectedRide.arrivedAt).getTime() : null;
+                  const elapsedS = arrivedMs ? Math.floor((now - arrivedMs) / 1000) : 600;
+                  const remainingConfirmed = (selectedRide.bookings ?? []).filter((b) => b.status === "CONFIRMED").length;
+                  const canComplete = elapsedS >= 600 || remainingConfirmed === 0;
+                  return canComplete ? (
+                    <Button variant="secondary" className="flex-1" onClick={() => handleCompleteRide(selectedRide.id)}>
+                      Concluir
+                    </Button>
+                  ) : null;
+                }
+                return (
+                  <Button variant="secondary" className="flex-1" onClick={() => handleCompleteRide(selectedRide.id)}>
+                    Concluir
+                  </Button>
+                );
+              })()}
+              {selectedRide.status === "SCHEDULED" && (
+                <Button variant="danger" className="flex-1" onClick={() => handleCancelRide(selectedRide.id)}>
+                  Cancelar
+                </Button>
+              )}
             </div>
           ) : selectedBooking ? (
             <div className="flex gap-2">
               <Button variant="secondary" className="flex-1" onClick={() => setOpenSheet(false)}>Fechar</Button>
-              {selectedBooking.status === "PENDING" && (
+              {(selectedBooking.status === "PENDING" || selectedBooking.status === "CONFIRMED") && (
                 <Button variant="danger" className="flex-1" onClick={() => handleCancelBooking(selectedBooking.id)}>
                   Cancelar reserva
                 </Button>
@@ -523,25 +584,58 @@ export default function RidesPage() {
                 </div>
               </div>
             )}
-            {(selectedRide.bookings ?? []).filter((b) => b.status === "CONFIRMED").length > 0 && (
+            {selectedRide.status === "IN_PROGRESS" && selectedRide.arrivedAt && (() => {
+              const arrivedMs = new Date(selectedRide.arrivedAt).getTime();
+              const elapsedS = Math.floor((now - arrivedMs) / 1000);
+              const remainingS = Math.max(0, 600 - elapsedS);
+              const mm = String(Math.floor(remainingS / 60)).padStart(2, "0");
+              const ss = String(remainingS % 60).padStart(2, "0");
+              return (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                  <div className="text-xs text-amber-700 mb-1">Janela de espera</div>
+                  {remainingS > 0 ? (
+                    <div className="text-2xl font-mono font-bold text-amber-800">{mm}:{ss}</div>
+                  ) : (
+                    <div className="text-sm font-semibold text-amber-800">Tempo esgotado — podes concluir a viagem</div>
+                  )}
+                </div>
+              );
+            })()}
+            {(selectedRide.bookings ?? []).filter((b) => b.status === "CONFIRMED" || b.status === "NO_SHOW").length > 0 && (
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
                 <div className="text-xs text-gray-500 mb-2">Passageiros confirmados</div>
-                <div className="grid gap-1">
+                <div className="grid gap-2">
                   {(selectedRide.bookings ?? [])
-                    .filter((b: ApiRideBooking) => b.status === "CONFIRMED")
+                    .filter((b: ApiRideBooking) => b.status === "CONFIRMED" || b.status === "NO_SHOW")
                     .map((b: ApiRideBooking) => {
                       const pendingForPassenger = pendingRatings.find((r) => r.bookingId === b.id && r.role === "driver");
+                      const isNoShow = b.status === "NO_SHOW";
                       return (
                         <div key={b.id} className="flex items-center justify-between text-sm text-gray-900">
-                          <span>{b.user?.profile?.name ?? b.user?.email ?? "Passageiro"} · {b.seats} lugar{b.seats > 1 ? "es" : ""}</span>
-                          {pendingForPassenger && (
-                            <button
-                              className="text-xs font-semibold text-blue-600 ml-2 shrink-0"
-                              onClick={() => { setRatingTarget(pendingForPassenger); setOpenSheet(false); setOpenRating(true); }}
-                            >
-                              Avaliar
-                            </button>
-                          )}
+                          <span className={isNoShow ? "line-through text-gray-400" : ""}>
+                            {b.user?.profile?.name ?? b.user?.email ?? "Passageiro"} · {b.seats} lugar{b.seats > 1 ? "es" : ""}
+                          </span>
+                          <div className="flex items-center gap-2 ml-2 shrink-0">
+                            {!isNoShow && selectedRide.status === "IN_PROGRESS" && (
+                              <button
+                                className="text-xs font-semibold text-red-500 border border-red-200 rounded px-2 py-0.5 hover:bg-red-50"
+                                onClick={() => handleMarkNoShow(b.id)}
+                              >
+                                Não apareceu
+                              </button>
+                            )}
+                            {isNoShow && (
+                              <span className="text-xs text-red-500 border border-red-200 rounded px-2 py-0.5">Não apareceu</span>
+                            )}
+                            {pendingForPassenger && (
+                              <button
+                                className="text-xs font-semibold text-blue-600"
+                                onClick={() => { setRatingTarget(pendingForPassenger); setOpenSheet(false); setOpenRating(true); }}
+                              >
+                                Avaliar
+                              </button>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -567,6 +661,21 @@ export default function RidesPage() {
               )}
               <Row label="Estado" value={STATUS_LABEL[selectedBooking.status] ?? selectedBooking.status} />
             </div>
+            {(selectedBooking.status === "PENDING" || selectedBooking.status === "CONFIRMED") && selectedBooking.ride.price != null && selectedBooking.ride.price > 0 && (() => {
+              const hoursUntil = (new Date(selectedBooking.ride.departureTime).getTime() - Date.now()) / 3_600_000;
+              const policyText =
+                hoursUntil > 24
+                  ? "Reembolso total se cancelares agora"
+                  : hoursUntil > 2
+                    ? "Reembolso de 50% se cancelares agora (menos de 24h)"
+                    : "Sem reembolso — partida em menos de 2h";
+              const tone = hoursUntil > 24 ? "text-green-700 border-green-200 bg-green-50" : hoursUntil > 2 ? "text-amber-700 border-amber-200 bg-amber-50" : "text-red-700 border-red-200 bg-red-50";
+              return (
+                <div className={`p-3 rounded-xl border text-xs ${tone}`}>
+                  <span className="font-semibold">Política de cancelamento: </span>{policyText}
+                </div>
+              );
+            })()}
             {selectedBooking.ride.driver && (
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
                 <div className="text-xs text-gray-500 mb-1">Condutor</div>

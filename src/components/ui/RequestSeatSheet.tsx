@@ -11,9 +11,10 @@ type Props = {
   price?: number | null;
   platformFee?: number | null;
   seats?: number;
+  departureTime?: string | null;
 };
 
-export default function RequestSeatSheet({ open, onClose, onConfirm, offerTitle, price, platformFee, seats = 1 }: Props) {
+export default function RequestSeatSheet({ open, onClose, onConfirm, offerTitle, price, platformFee, seats = 1, departureTime }: Props) {
   const [message, setMessage] = useState("");
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
@@ -111,6 +112,24 @@ export default function RequestSeatSheet({ open, onClose, onConfirm, offerTitle,
                 Saldo insuficiente. Carrega a carteira em Perfil → Carteira.
               </p>
             )}
+          </div>
+        )}
+
+        {price != null && price > 0 && (
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 grid gap-1">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Política de cancelamento</p>
+            <div className="flex justify-between text-xs text-gray-700">
+              <span>Mais de 24h antes da partida</span>
+              <span className="font-semibold text-green-700">Reembolso total</span>
+            </div>
+            <div className="flex justify-between text-xs text-gray-700">
+              <span>Entre 2h e 24h antes</span>
+              <span className="font-semibold text-amber-700">Reembolso 50%</span>
+            </div>
+            <div className="flex justify-between text-xs text-gray-700">
+              <span>Menos de 2h antes</span>
+              <span className="font-semibold text-red-700">Sem reembolso</span>
+            </div>
           </div>
         )}
 

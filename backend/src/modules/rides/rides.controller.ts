@@ -74,6 +74,14 @@ export class RidesController {
     return this.ridesService.remove(req.user.id, id);
   }
 
+  @Post(':id/arrive')
+  @UseGuards(JwtAuthGuard, VerifiedUserGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Condutor marca chegada ao ponto de encontro' })
+  arrive(@Request() req, @Param('id') id: string) {
+    return this.ridesService.arrive(req.user.id, id);
+  }
+
   @Post(':id/complete')
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()

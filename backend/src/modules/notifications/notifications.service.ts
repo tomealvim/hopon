@@ -185,6 +185,31 @@ export class NotificationsService {
     }
   }
 
+  async notifyDriverArrived(
+    rideId: string,
+    origin: string,
+    destination: string,
+    passengerUserIds: string[],
+  ) {
+    if (passengerUserIds.length === 0) return;
+
+    const title = 'Condutor no ponto!';
+    const body = `O teu condutor chegou ao ponto de encontro para a boleia ${origin} → ${destination}. Tens 10 minutos para aparecer.`;
+
+    for (const userId of passengerUserIds) {
+      void this.createNotification(userId, 'ride.arrived', title, body, {
+        rideId,
+        origin,
+        destination,
+      });
+    }
+
+    // Emitir SSE ride.arrived para passageiros conectados
+    for (const userId of passengerUserIds) {
+      this.eventsService.emit(userId, 'ride.arrived', { rideId, origin, destination });
+    }
+  }
+
   async notifyRideCancelled(
     rideId: string,
     rideOrigin: string,
