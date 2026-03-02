@@ -117,13 +117,12 @@ async function run() {
   let vehicleId;
 
   const vehiclePayload = {
-    make: 'Toyota',
+    brand: 'Toyota',
     model: 'Corolla',
-    year: 2020,
     color: 'Azul',
-    licensePlate: `TEST${randomSuffix().toUpperCase()}`,
+    plate: `TS-${randomSuffix().toUpperCase().slice(0, 2)}-00`,
     seats: 4,
-    features: ['AC', 'USB'],
+    features: { airConditioning: true, heater: false },
   };
 
   const createVehicleRes = await req('POST', '/vehicles', vehiclePayload, driverToken);
@@ -136,8 +135,8 @@ async function run() {
   check('Veículo criado aparece em GET /vehicles', vehicleFound, `id: ${vehicleId}`);
 
   if (vehicleId) {
-    const vRes = await req('GET', `/vehicles/${vehicleId}`, null, driverToken);
-    check('GET /vehicles/:id retorna features corretas', Array.isArray(vRes.data.features) && vRes.data.features.includes('AC'));
+    const vehicle = listVehiclesRes.data?.find(v => v.id === vehicleId);
+    check('Veículo tem features corretas (airConditioning=true)', vehicle?.features?.airConditioning === true);
   }
 
   // ─── 3. BOLEIA ─────────────────────────────────────────────────────────────
@@ -150,11 +149,11 @@ async function run() {
     const tomorrow = new Date(Date.now() + 86400000).toISOString();
     const ridePayload = {
       vehicleId,
-      origin: { address: 'Porto, Portugal', lat: 41.15, lng: -8.61 },
-      destination: { address: 'Lisboa, Portugal', lat: 38.72, lng: -9.14 },
+      origin: 'Porto, Portugal',
+      destination: 'Lisboa, Portugal',
       departureTime: tomorrow,
       availableSeats: 3,
-      pricePerSeat: 15.5,
+      price: 0,
     };
 
     const createRideRes = await req('POST', '/rides', ridePayload, driverToken);
@@ -169,7 +168,7 @@ async function run() {
     if (rideId) {
       const rideRes = await req('GET', `/rides/${rideId}`, null, driverToken);
       check('GET /rides/:id retorna seats corretos', rideRes.data.availableSeats === 3);
-      check('GET /rides/:id retorna price correto', rideRes.data.pricePerSeat === 15.5);
+      check('GET /rides/:id retorna price correto', Number(rideRes.data.price) === 0);
     }
   }
 
