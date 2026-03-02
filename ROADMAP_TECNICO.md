@@ -276,6 +276,7 @@ Para o modelo de partilha de custos funcionar, o preço tem de ser transparente 
 | 6.2 | Testes E2E contra produção | ✅ Suite completa 6/6 passou contra Railway; DB verify 19/19 |
 | 6.3 | Throttler ajustado para testes | ✅ 300 req/min (era 60) — protege contra abuso sem bloquear suite de testes |
 | 6.4 | Cloudflare R2 para avatars em produção | ✅ Bucket criado, env vars no Railway, upload testado end-to-end — `test-avatar-upload.mjs` |
+| 6.5 | Push notifications em produção | ✅ VAPID keys corretas no Railway, `SubscribeDto` fix (`@IsString`), flow end-to-end testado — booking dispara push ao driver |
 
 ### Detalhes — 6.2 Testes E2E
 
