@@ -24,7 +24,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @Throttle({ default: { ttl: 900_000, limit: 20 } }) // 20 registos / 15 min por IP
+  @Throttle({ default: { ttl: 900_000, limit: 200 } }) // 200 registos / 15 min por IP (suite de testes usa ~50)
   @ApiOperation({ summary: 'Registar novo utilizador com email/password' })
   async register(
     @Body() dto: RegisterDto,
@@ -41,7 +41,7 @@ export class AuthController {
   }
 
   @Post('login')
-  @Throttle({ default: { ttl: 900_000, limit: 20 } }) // 20 tentativas / 15 min por IP
+  @Throttle({ default: { ttl: 900_000, limit: 200 } }) // 200 tentativas / 15 min por IP
   @ApiOperation({ summary: 'Login com email/password' })
   async login(
     @Body() dto: LoginDto,

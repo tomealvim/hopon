@@ -69,13 +69,16 @@ async function registerUser(suffix) {
   return { token: res.data.accessToken, userId: res.data.user.id };
 }
 
-/** Regista e marca email como verificado (para endpoints que exigem VerifiedUserGuard). Requer ALLOW_TEST_VERIFY=1. */
+/** Regista, verifica email e aceita políticas de viagem (passageiro + condutor). Requer ALLOW_TEST_VERIFY=1. */
 async function registerAndVerifyUser(suffix) {
   const user = await registerUser(suffix);
   const verifyRes = await request("POST", "/auth/test/verify-email", {}, user.token);
   if (!verifyRes.ok) {
     throw new Error(`Verificar email de ${suffix} falhou (status: ${verifyRes.status}). Define ALLOW_TEST_VERIFY=1 no backend.`);
   }
+  // Aceitar políticas (necessário para criar boleias e reservas)
+  await request("POST", "/auth/me/accept-policy", { role: "passenger" }, user.token);
+  await request("POST", "/auth/me/accept-policy", { role: "driver" }, user.token);
   return user;
 }
 
@@ -145,6 +148,18 @@ async function run() {
     console.warn("⚠️ ALLOW_TEST_VERIFY=1 não está definido no backend. Testes de rides/bookings podem falhar com 403.");
   } else {
     console.log("✅ Emails marcados como verificados");
+  }
+
+  // Aceitar política de viagens para condutor e passageiro
+  logStep("SETUP: Aceitar política de viagens");
+  const policyDriverAsDriver = await request("POST", "/auth/me/accept-policy", { role: "driver" }, driverToken);
+  const policyDriverAsPassenger = await request("POST", "/auth/me/accept-policy", { role: "passenger" }, driverToken);
+  const policyOther = await request("POST", "/auth/me/accept-policy", { role: "driver" }, otherDriverToken);
+  const policyPassenger = await request("POST", "/auth/me/accept-policy", { role: "passenger" }, passengerToken);
+  if (!policyDriverAsDriver.ok || !policyDriverAsPassenger.ok || !policyPassenger.ok || !policyOther.ok) {
+    console.warn("⚠️ Falhou aceitar política:", policyDriverAsDriver.data, policyPassenger.data);
+  } else {
+    console.log("✅ Políticas aceites");
   }
 
   console.log("✅ Setup completo");
