@@ -39,11 +39,6 @@ export class CreateRideDto {
   @IsString()
   city?: string;
 
-  @ApiPropertyOptional({ example: 'ULisboa' })
-  @IsOptional()
-  @IsString()
-  campus?: string;
-
   @ApiProperty({ example: '2024-03-15T08:00:00Z' })
   @IsDateString()
   departureTime: string;

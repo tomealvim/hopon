@@ -18,7 +18,6 @@ export type LocationValue = {
   lng?: number;
   placeId?: string;
   city?: string;
-  campus?: string;
 };
 
 type Suggestion = {

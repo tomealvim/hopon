@@ -6,7 +6,6 @@ export interface ApiLocation {
   lat?: number | null;
   lng?: number | null;
   city?: string | null;
-  campus?: string | null;
 }
 
 export interface ApiRideDriver {

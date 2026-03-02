@@ -33,45 +33,6 @@ Pensa nisto como BlaBlaCar diário, não como Uber.
 
 ---
 
-## Problemas identificados (por ordem de gravidade)
-
-### 🔴 CRÍTICO — Dual data source (mock + API convivem)
-
-O `RidesContext` é um sistema de estado local (mock) que ainda coexiste com o backend real.
-O resultado: a página Discover mostra boleias da API **e** boleias mock ao mesmo tempo.
-"Para Ti", "As minhas ofertas" e "Os meus pedidos" em RidesPage usam **apenas** o mock.
-
-**Isto tem de ser resolvido antes de qualquer feature nova.** O mock tem de ser eliminado e tudo
-tem de passar pelo backend.
-
-### 🔴 CRÍTICO — "Para Ti" não usa ScheduleTemplates
-
-A feature mais importante do produto — matching baseado no horário do utilizador — está implementada
-com mock data local. Não cruza os `ScheduleTemplate` reais do utilizador com as boleias disponíveis
-na API. O tab "Para Ti" é atualmente decorativo.
-
-### 🟠 IMPORTANTE — Fluxo de pagamento incompleto
-
-O wallet existe e permite top-up, mas não há nenhum fluxo que debite/credite carteiras quando
-uma reserva é criada ou concluída. O pagamento entre passageiro e condutor não acontece de facto.
-
-### 🟠 IMPORTANTE — Preço é arbitrário
-
-O condutor define `price` manualmente. Para um app de partilha de custos, o preço devia ser
-**calculado/sugerido** com base em distância × custo/km ÷ nº de lugares. Não há calculadora.
-
-### 🟡 MENOR — Driver não consegue aceitar/recusar reservas reais
-
-`acceptRequest`/`declineRequest` em RidesPage usam o mock context, não a API de bookings.
-O backend tem status PENDING/ACCEPTED mas o driver não tem UI para gerir reservas reais.
-
-### 🟡 MENOR — `campus` já não faz sentido
-
-O campo `campus` em `Location` e referências a "contexto universitário" são resquícios da versão
-estudante. Não quebra nada mas deve ser limpo gradualmente.
-
----
-
 ## Fase 1 — Fundações ✅ CONCLUÍDA
 
 | # | Item | Estado |
@@ -126,64 +87,29 @@ estudante. Não quebra nada mas deve ser limpo gradualmente.
 
 ### 2.4 — Eliminar mock data / ligar tudo à API ✅ CONCLUÍDA
 
-Resolver o problema mais crítico: `RidesContext` mock vs API real.
-
-**Passos:**
-- [ ] Eliminar `RidesContext` (ou convertê-lo em wrapper da API)
-- [ ] `RidesPage` — "As minhas ofertas" e "Os meus pedidos" via `GET /rides/mine` e `GET /bookings/mine`
-- [ ] `RidesPage` — calendário via rides reais da API
-- [ ] Gestão de bookings pelo driver: aceitar/recusar via `PATCH /bookings/:id/status`
-- [ ] `DiscoverPage` — eliminar secção de mock offers/requests (manter só API rides)
-- [ ] Eliminar tabs "requests" e mock "for-you" até terem backend
-
-**Ficheiros a tocar:**
-- `src/contexts/RidesContext.tsx` (eliminar ou reescrever como API wrapper)
-- `src/pages/RidesPage.tsx`
-- `src/pages/DiscoverPage.tsx`
-- `backend/src/modules/rides/rides.service.ts` (adicionar `findMine`)
-- `backend/src/modules/bookings/bookings.controller.ts` (rota PATCH status)
+- [x] `RidesContext` mock eliminado — tudo via API real
+- [x] `RidesPage` — "As minhas ofertas" via `GET /rides/mine`, "Os meus pedidos" via `GET /bookings/mine`
+- [x] Gestão de bookings pelo driver: aceitar/recusar via `PATCH /bookings/:id/status`
+- [x] `DiscoverPage` — só boleias da API, mock removido
 
 ---
 
 ### 2.5 — "Para Ti" com ScheduleTemplates ✅ CONCLUÍDA
 
-O algoritmo de matching que define o produto.
-
-**Lógica:**
-1. Utilizador tem N `ScheduleTemplate` ativos (ex: "Porto → Lisboa, Seg/Qua/Sex, 08:00")
-2. Backend cruza templates com rides disponíveis: mesmos dias da semana, hora próxima (±30min),
-   origem/destino próximos (Haversine, ex: raio 5km)
-3. Resultado: lista ordenada por relevância → "Para Ti"
-
-**Passos:**
-- [ ] `GET /rides/for-you` no backend — cruza ScheduleTemplates do user com rides disponíveis
-- [ ] Query: `daysOfWeek` overlap + `departureTime` hora ±30min + Haversine origem/destino
-- [ ] Frontend: tab "Para Ti" consome `GET /rides/for-you` (API real)
-- [ ] UI: badge "Match perfeito" quando todos os critérios batem, "Match parcial" se só alguns
-
-**Ficheiros a tocar:**
-- `backend/src/modules/rides/rides.service.ts`
-- `backend/src/modules/rides/rides.controller.ts`
-- `src/pages/DiscoverPage.tsx`
+- [x] `GET /rides/for-you` — cruza ScheduleTemplates do user com rides disponíveis
+- [x] Query: `daysOfWeek` overlap + `departureTime` hora ±30min + Haversine origem/destino
+- [x] Tab "Para Ti" no frontend consome a API real
+- [x] Badge "Match perfeito" / "Match parcial" conforme critérios
 
 ---
 
 ### 2.6 — Calculadora de custo por viagem ✅ CONCLUÍDA
 
-Para o modelo de partilha de custos funcionar, o preço tem de ser transparente e justo.
-
-**Passos:**
-- [ ] Quando condutor cria boleia com LocationInput (com coordenadas), calcular distância via
-  Mapbox Directions API (ou fórmula Haversine como aproximação rápida)
-- [ ] Sugerir preço: `(distância_km × 0.06€) ÷ nº_lugares` (custo médio gasolina em PT)
-- [ ] Campo "Portagens" manual (sim/não + valor estimado) — somar ao custo total
-- [ ] Condutor pode ajustar o preço sugerido mas o sistema mostra sempre "custo estimado real"
-- [ ] No card da boleia no Discover: mostrar preço/lugar de forma clara
-
-**Ficheiros a tocar:**
-- `src/components/ui/OfferRideForm.tsx`
-- `backend/src/modules/rides/dto/create-ride.dto.ts`
-- Novo utilitário `src/utils/cost-calculator.ts`
+- [x] Distância calculada via Haversine quando coordenadas disponíveis
+- [x] Preço sugerido: `(distância_km × 0.06€) ÷ nº_lugares`
+- [x] Campo portagens manual — somado ao custo total
+- [x] Condutor pode ajustar o preço sugerido
+- [x] Preço/lugar exibido no card da boleia no Discover
 
 ---
 
@@ -229,17 +155,6 @@ Para o modelo de partilha de custos funcionar, o preço tem de ser transparente 
 - [x] CI/CD GitHub Actions — backend build+test + frontend build em cada push
 
 ---
-
-## Ordem de implementação recomendada
-
-```
-2.4  Eliminar mock / ligar RidesPage à API     ← resolve dívida técnica crítica
-2.5  "Para Ti" com ScheduleTemplates            ← core do produto, diferencial
-2.6  Calculadora de custo                       ← essencial para o modelo de negócio
-2.7  Fluxo de pagamento real                    ← wallet útil de facto
-2.8  Trust & Safety                             ← antes de crescer utilizadores
-3.x  Scale                                      ← quando tiveres problemas de scale
-```
 
 ---
 

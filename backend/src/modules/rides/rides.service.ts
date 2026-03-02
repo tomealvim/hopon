@@ -41,7 +41,7 @@ export class RidesService {
 
     if (dto.originLat != null && dto.originLng != null) {
       const loc = await this.prisma.location.create({
-        data: { label: dto.origin, lat: dto.originLat, lng: dto.originLng, city: dto.city ?? null, campus: dto.campus ?? null },
+        data: { label: dto.origin, lat: dto.originLat, lng: dto.originLng, city: dto.city ?? null },
       });
       originLocationId = loc.id;
     }
@@ -620,10 +620,10 @@ export class RidesService {
       origin: ride.origin,
       destination: ride.destination,
       originLocation: ride.originLocation
-        ? { id: ride.originLocation.id, label: ride.originLocation.label, lat: ride.originLocation.lat, lng: ride.originLocation.lng, city: ride.originLocation.city, campus: ride.originLocation.campus }
+        ? { id: ride.originLocation.id, label: ride.originLocation.label, lat: ride.originLocation.lat, lng: ride.originLocation.lng, city: ride.originLocation.city }
         : null,
       destinationLocation: ride.destinationLocation
-        ? { id: ride.destinationLocation.id, label: ride.destinationLocation.label, lat: ride.destinationLocation.lat, lng: ride.destinationLocation.lng, city: ride.destinationLocation.city, campus: ride.destinationLocation.campus }
+        ? { id: ride.destinationLocation.id, label: ride.destinationLocation.label, lat: ride.destinationLocation.lat, lng: ride.destinationLocation.lng, city: ride.destinationLocation.city }
         : null,
       departureTime: ride.departureTime,
       availableSeats: ride.availableSeats,

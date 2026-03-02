@@ -117,7 +117,6 @@ model Location {
   lng     Float?
   placeId String? // Google Places ID (para integração futura)
   city    String?
-  campus  String?
 
   ridesAsOrigin      Ride[] @relation("OriginLocation")
   ridesAsDestination Ride[] @relation("DestinationLocation")
