@@ -1,5 +1,12 @@
 node_modules/
 dist/
+# Capacitor — builds nativos (gerados localmente)
+ios/App/App/public/
+android/app/src/main/assets/public/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+.gradle/
+android/build/
 .vscode/
 .DS_Store
 .env

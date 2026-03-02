@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HopOn</string>
+    <string name="title_activity_main">HopOn</string>
+    <string name="package_name">com.hopon.app</string>
+    <string name="custom_url_scheme">com.hopon.app</string>
+</resources>
