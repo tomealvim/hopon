@@ -1,11 +1,16 @@
 import { Controller, Post, Delete, Body, Get, UseGuards, Req } from '@nestjs/common';
+import { IsString } from 'class-validator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PushService } from './push.service';
 
 class SubscribeDto {
-  endpoint: string;
-  p256dh: string;
-  auth: string;
+  @IsString() endpoint: string;
+  @IsString() p256dh: string;
+  @IsString() auth: string;
+}
+
+class UnsubscribeDto {
+  @IsString() endpoint: string;
 }
 
 @Controller('push')
@@ -24,7 +29,7 @@ export class PushController {
   }
 
   @Delete('unsubscribe')
-  unsubscribe(@Body() dto: { endpoint: string }) {
+  unsubscribe(@Body() dto: UnsubscribeDto) {
     return this.pushService.unsubscribe(dto.endpoint);
   }
 }
