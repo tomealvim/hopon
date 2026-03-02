@@ -155,6 +155,36 @@ export class NotificationsService {
     await this.queue.add('email.booking-cancelled', payload);
   }
 
+  async notifyRideUpdated(
+    rideId: string,
+    origin: string,
+    destination: string,
+    departureTime: Date,
+    changedFields: string[],
+    affectedUserIds: string[],
+  ) {
+    if (affectedUserIds.length === 0) return;
+
+    const fieldLabels: Record<string, string> = {
+      origin: 'origem',
+      destination: 'destino',
+      departureTime: 'hora de partida',
+    };
+    const changed = changedFields.map((f) => fieldLabels[f] ?? f).join(', ');
+    const title = 'Boleia atualizada';
+    const body = `A boleia ${origin} → ${destination} foi alterada: ${changed}.`;
+
+    for (const userId of affectedUserIds) {
+      void this.createNotification(userId, 'ride.updated', title, body, {
+        rideId,
+        changedFields,
+        origin,
+        destination,
+        departureTime: departureTime.toISOString(),
+      });
+    }
+  }
+
   async notifyRideCancelled(
     rideId: string,
     rideOrigin: string,

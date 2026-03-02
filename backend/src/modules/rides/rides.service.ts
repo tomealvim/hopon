@@ -382,6 +382,12 @@ export class RidesService {
       }
     }
 
+    // Campos que afetam passageiros com reservas ativas — geram notificação
+    const impactfulFields: string[] = [];
+    if (dto.origin !== undefined) impactfulFields.push('origin');
+    if (dto.destination !== undefined) impactfulFields.push('destination');
+    if (dto.departureTime !== undefined) impactfulFields.push('departureTime');
+
     const updateData: any = {};
     if (dto.origin !== undefined) updateData.origin = dto.origin;
     if (dto.destination !== undefined) updateData.destination = dto.destination;
@@ -400,6 +406,27 @@ export class RidesService {
         destinationLocation: true,
       },
     });
+
+    // Notificar passageiros com reservas ativas quando dados relevantes mudam
+    if (impactfulFields.length > 0) {
+      const affectedUserIds = [
+        ...new Set(
+          ride.bookings
+            .filter((b) => b.status === 'CONFIRMED' || b.status === 'PENDING')
+            .map((b) => b.userId),
+        ),
+      ];
+      if (affectedUserIds.length > 0) {
+        void this.notificationsService.notifyRideUpdated(
+          rideId,
+          ride.origin,
+          ride.destination,
+          ride.departureTime,
+          impactfulFields,
+          affectedUserIds,
+        );
+      }
+    }
 
     return this.toResponse(ride);
   }
