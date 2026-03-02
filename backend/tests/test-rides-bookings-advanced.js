@@ -20,7 +20,7 @@
  * - Secção 7: Verificação final (lugares reservados, PATCH/DELETE)
  */
 
-const API_BASE = "http://localhost:3000/api/v1";
+const API_BASE = process.env.API_BASE || "http://localhost:3000/api/v1";
 
 function logStep(name) {
   console.log(`\n=== ${name} ===`);
@@ -424,6 +424,8 @@ async function run() {
     const res = await request("PATCH", `/rides/${rideId}`, { price: 20.00 }, driverToken);
     assert(res.ok, "PATCH deveria devolver 200");
     assert(res.data.price === 20.00, "Preço deveria ser 20.00");
+    // Reset preço para 0 para que os testes de booking não falhem por saldo insuficiente
+    await request("PATCH", `/rides/${rideId}`, { price: 0 }, driverToken);
     passed++;
   });
 
@@ -432,6 +434,8 @@ async function run() {
     const res = await request("PATCH", `/rides/${rideId}`, { status: "IN_PROGRESS" }, driverToken);
     assert(res.ok, "PATCH deveria devolver 200");
     assert(res.data.status === "IN_PROGRESS", "Status deveria ser IN_PROGRESS");
+    // Reset para SCHEDULED para que os testes de booking seguintes possam reservar esta boleia
+    await request("PATCH", `/rides/${rideId}`, { status: "SCHEDULED" }, driverToken);
     passed++;
   });
 

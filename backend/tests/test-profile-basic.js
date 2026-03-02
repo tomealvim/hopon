@@ -3,7 +3,7 @@
  * Teste básico de Perfil: registo, PATCH /auth/me (nome, telefone, contactEmail, username) e GET /auth/me.
  * Requer backend em http://localhost:3000.
  */
-const http = require('http');
+const API_BASE = process.env.API_BASE || 'http://localhost:3000/api/v1';
 
 // Função helper para gerar números de telefone válidos de diferentes países
 function generateUniquePhone() {
@@ -30,44 +30,21 @@ const user = {
   phone: uniquePhone
 };
 
-function request(method, path, body = null, token = null) {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: 'localhost',
-      port: 3000,
-      path: `/api/v1${path}`,
-      method: method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-
-    if (token) {
-      options.headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const req = http.request(options, (res) => {
-      let data = '';
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => {
-        try {
-          const parsed = data ? JSON.parse(data) : {};
-          resolve({ status: res.statusCode, data: parsed });
-        } catch (e) {
-          resolve({ status: res.statusCode, data: data });
-        }
-      });
-    });
-
-    req.on('error', (e) => {
-      reject(e);
-    });
-
-    if (body) {
-      req.write(JSON.stringify(body));
-    }
-    req.end();
+async function request(method, path, body = null, token = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
   });
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    data = await res.text();
+  }
+  return { status: res.status, data };
 }
 
 async function run() {

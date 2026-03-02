@@ -2,7 +2,7 @@
 
 // Node 18+ já tem fetch global. Se estiveres em Node 16, instala node-fetch e importa.
 
-const API_BASE = "http://localhost:3000/api/v1";
+const API_BASE = process.env.API_BASE || "http://localhost:3000/api/v1";
 
 // Função helper para gerar números de telefone válidos de diferentes países
 function generateUniquePhone() {

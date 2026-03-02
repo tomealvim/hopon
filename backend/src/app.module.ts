@@ -3,7 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard, ThrottlerModuleOptions } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from 'nestjs-pino';
 import { createKeyv } from '@keyv/redis';
@@ -57,13 +57,20 @@ const backendEnv = join(__dirname, '..', '.env');
       }),
       inject: [ConfigService],
     }),
-    ThrottlerModule.forRoot([
-      {
-        name: 'default',
-        ttl: 60_000,  // janela de 1 minuto
-        limit: 60,    // 60 pedidos por minuto por IP (todos os endpoints)
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService): ThrottlerModuleOptions => {
+        const isTestMode = config.get('ALLOW_TEST_VERIFY') === '1';
+        return [
+          {
+            name: 'default',
+            ttl: 60_000,
+            limit: isTestMode ? 10_000 : 60,
+          },
+        ];
       },
-    ]),
+      inject: [ConfigService],
+    }),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',

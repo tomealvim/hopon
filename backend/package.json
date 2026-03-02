@@ -24,6 +24,9 @@
     "test:api:rides": "node tests/test-rides-bookings-advanced.js",
     "test:api:refresh": "node tests/test-refresh-token.js",
     "test:api:all": "node tests/test-runner-all.js",
+    "test:api:prod": "API_BASE=https://hopon-production-5bd2.up.railway.app/api/v1 node tests/test-runner-all.js",
+    "test:db:verify": "node tests/test-db-verify.js",
+    "test:db:verify:prod": "API_BASE=https://hopon-production-5bd2.up.railway.app/api/v1 node tests/test-db-verify.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
   },
