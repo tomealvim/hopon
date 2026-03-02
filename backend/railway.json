@@ -5,7 +5,7 @@
     "buildCommand": "npx prisma generate && npm run build"
   },
   "deploy": {
-    "startCommand": "npx prisma migrate resolve --applied 20260302000002_remove_campus_from_location; npx prisma migrate deploy && node dist/main",
+    "startCommand": "npx prisma migrate deploy && node dist/main",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
