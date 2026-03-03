@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { ButtonHTMLAttributes } from "react";
+import PhoneInput, { type Country } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { useAuth } from "../contexts/AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import type { UserProfile } from "./types/user";
@@ -35,7 +37,8 @@ export default function ProfileSetupPage() {
   const [showAvatarSheet, setShowAvatarSheet] = useState(false);
 
   // Step 2: Contactos e morada
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState<string>("");
+  const [country, setCountry] = useState<Country>("PT");
   const [username, setUsername] = useState("");
   const [address, setAddress] = useState("");
 
@@ -145,16 +148,23 @@ export default function ProfileSetupPage() {
 
           {step === 2 && (
             <div className="grid gap-4 text-left">
-              <TextField
-                id="phone"
-                type="tel"
-                label="Telemóvel *"
-                placeholder="Ex: +351912345678"
-                hint="Inclui o código do país sem espaços: +351912345678"
-                value={phone}
-                onChange={setPhone}
-                autoFocus
-              />
+              <div className="grid gap-1.5">
+                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                  Telemóvel *
+                </label>
+                <PhoneInput
+                  international
+                  defaultCountry={country}
+                  country={country}
+                  onCountryChange={(c) => c && setCountry(c)}
+                  value={phone}
+                  onChange={(val) => setPhone(val ?? "")}
+                  className="phone-input-wrapper"
+                />
+                <p className="text-[11px] text-gray-500">
+                  Seleciona o teu país e escreve o número — formatado automaticamente.
+                </p>
+              </div>
               <TextField
                 id="username"
                 label="Username / apelido público"

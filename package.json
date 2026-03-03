@@ -22,6 +22,7 @@
     "@stripe/stripe-js": "^8.9.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-phone-number-input": "^3.4.16",
     "workbox-precaching": "^7.4.0",
     "workbox-routing": "^7.4.0",
     "workbox-strategies": "^7.4.0"

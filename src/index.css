@@ -1,5 +1,58 @@
 @import "tailwindcss";
 
+/* ===== react-phone-number-input overrides ===== */
+.phone-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  background: #f9fafb;
+  padding: 0 1rem;
+  height: 42px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.phone-input-wrapper:focus-within {
+  border-color: #111827;
+  box-shadow: 0 0 0 2px #111827;
+  outline: none;
+}
+.phone-input-wrapper .PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 8px;
+  border-right: 1px solid #e5e7eb;
+  margin-right: 10px;
+  height: 100%;
+}
+.phone-input-wrapper .PhoneInputCountrySelect {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: #374151;
+  padding: 0;
+}
+.phone-input-wrapper .PhoneInputCountryIcon {
+  width: 20px;
+  height: 15px;
+}
+.phone-input-wrapper input[type="tel"] {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.875rem;
+  color: #111827;
+  min-width: 0;
+}
+.phone-input-wrapper input[type="tel"]::placeholder {
+  color: #9ca3af;
+}
+
 /* ===== tokens & base ===== */
 :root {
   --radius-xl: 16px;
