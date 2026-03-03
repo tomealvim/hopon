@@ -26,6 +26,8 @@ export default function ProfileSetupPage() {
   const { updateProfile } = useAuth();
   const { showError } = useNotifications();
   const [step, setStep] = useState<Step>(1);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   // Step 1: Dados pessoais
   const [name, setName] = useState("");
@@ -53,25 +55,34 @@ export default function ProfileSetupPage() {
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (!phone.trim() || !address.trim()) {
       showError("Campos obrigatórios", "Telemóvel e morada são necessários.");
       return;
     }
 
-    const profile: Partial<UserProfile> = {
-      name: name.trim(),
-      username: username.trim() || undefined,
-      avatarUrl: avatarUrl || undefined,
-      address: address.trim(),
-      createdAt: new Date().toISOString(),
-    };
+    setSaving(true);
+    setSaveError("");
+    try {
+      const profile: Partial<UserProfile> = {
+        name: name.trim(),
+        username: username.trim() || undefined,
+        avatarUrl: avatarUrl || undefined,
+        address: address.trim(),
+        createdAt: new Date().toISOString(),
+      };
 
-    updateProfile({
-      ...profile,
-      phone: phone.trim(),
-      setupCompleted: true,
-    });
+      await updateProfile({
+        ...profile,
+        phone: phone.trim(),
+        setupCompleted: true,
+      });
+    } catch (err: any) {
+      const msg = err?.message ?? "Erro ao guardar perfil. Tenta novamente.";
+      setSaveError(msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
 
@@ -138,8 +149,8 @@ export default function ProfileSetupPage() {
                 id="phone"
                 type="tel"
                 label="Telemóvel *"
-                placeholder="Ex: +351 912 345 678"
-                hint="Usado para confirmações e alertas importantes."
+                placeholder="Ex: +351912345678"
+                hint="Inclui o código do país sem espaços: +351912345678"
                 value={phone}
                 onChange={setPhone}
                 autoFocus
@@ -165,9 +176,15 @@ export default function ProfileSetupPage() {
 
         </StepCard>
 
+        {saveError && (
+          <div className="w-full rounded-2xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 text-center">
+            {saveError}
+          </div>
+        )}
+
         <div className="flex flex-col md:flex-row gap-3 w-full pt-2">
           {step > 1 && (
-            <SecondaryActionButton onClick={handleBack}>
+            <SecondaryActionButton onClick={handleBack} disabled={saving}>
               Voltar
             </SecondaryActionButton>
           )}
@@ -176,8 +193,8 @@ export default function ProfileSetupPage() {
               Continuar
             </PrimaryActionButton>
           ) : (
-            <PrimaryActionButton onClick={handleFinish}>
-              Concluir
+            <PrimaryActionButton onClick={handleFinish} disabled={saving}>
+              {saving ? "A guardar…" : "Concluir"}
             </PrimaryActionButton>
           )}
         </div>
