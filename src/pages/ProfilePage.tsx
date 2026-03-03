@@ -17,6 +17,7 @@ import VerificationSheet from "../components/profile/VerificationSheet";
 import RatingsSheet from "../components/profile/RatingsSheet";
 import HistorySheet from "../components/profile/HistorySheet";
 import IdentityVerificationSheet from "../components/profile/IdentityVerificationSheet";
+import AdminPanel from "../components/admin/AdminPanel";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { TERMS_LAST_UPDATED, TERMS_SECTIONS, TERMS_TITLE } from "../data/terms";
 import {
@@ -71,6 +72,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
   const [verificationSheetOpen, setVerificationSheetOpen] = useState(false);
   const [verificationChannel, setVerificationChannel] = useState<"email" | "phone" | null>(null);
   const [openIdentitySheet, setOpenIdentitySheet] = useState(false);
+  const [openAdminPanel, setOpenAdminPanel] = useState(false);
   const [copiedReferral, setCopiedReferral] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPasswordValue, setNewPasswordValue] = useState("");
@@ -208,7 +210,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       openVehicleSheet ||
       openVehicleList ||
       verificationSheetOpen ||
-      openIdentitySheet;
+      openIdentitySheet ||
+      openAdminPanel;
 
     onSheetStateChange?.(isAnySheetOpen);
   }, [
@@ -228,6 +231,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
     openVehicleList,
     verificationSheetOpen,
     openIdentitySheet,
+    openAdminPanel,
     onSheetStateChange,
   ]);
 
@@ -655,6 +659,16 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           ariaControls="profile-terms-sheet"
         />
       </nav>
+
+      {/* ========== ADMIN (apenas visível para admins) ========== */}
+      {user?.isAdmin && (
+        <nav className="bg-white border border-brand/30 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Admin">
+          <div className="px-4 py-3 bg-brand/5 border-b border-brand/20">
+            <h3 className="text-xs font-bold text-brand uppercase tracking-wide">Administração</h3>
+          </div>
+          <ListRow label="Painel Admin" onClick={() => setOpenAdminPanel(true)} />
+        </nav>
+      )}
 
       {/* ========== ZONA DE RISCO ========== */}
       <div className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Zona de risco">
@@ -1249,6 +1263,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         onClose={() => setOpenIdentitySheet(false)}
         currentStatus={user?.identityDocumentStatus}
       />
+      <AdminPanel open={openAdminPanel} onClose={() => setOpenAdminPanel(false)} />
       </div>
     </div>
   );

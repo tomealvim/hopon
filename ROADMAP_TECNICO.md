@@ -275,7 +275,7 @@ VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
 | 8.1 | Comissão HopOn retida no payout | ✅ Concluído |
 | 8.2 | Payout aos condutores (saque para IBAN) | ✅ Concluído (MVP manual) |
 | 8.3 | Levantamento de saldo pelos passageiros | ✅ Concluído |
-| 8.4 | Deploy Stripe em produção (Railway + Vercel + webhook) | ⬜ Pendente (aguarda aprovação Stripe) |
+| 8.4 | Deploy Stripe em produção (Railway + Vercel + webhook) | ✅ Concluído |
 | 8.5 | Pay-per-ride: pagamento direto na reserva | ✅ Concluído — testado 9/9 |
 
 ---
@@ -388,7 +388,7 @@ Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
 | # | Item | Estado |
 |---|---|---|
 | 9.1 | Schedule matching "Para Ti" — passageiros guardam rota habitual | ✅ Concluído |
-| 9.2 | Admin UI — painel web para payout requests, disputas, verificações | ⬜ Pendente (próxima fase) |
+| 9.2 | Admin UI — painel web para payout requests, disputas, verificações | ✅ Concluído |
 | 9.3 | Recurring rides — boleias criadas automaticamente 7 dias à frente | ✅ Concluído |
 | 9.4 | Notificações push melhoradas — lembrete 1h antes | ✅ Concluído |
 
@@ -408,6 +408,19 @@ Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
   - "Para Ti" tab: lista das rotas guardadas com botão "Apagar" + botão "+ Adicionar"
   - Empty state: botão "Guardar rota habitual" (em vez de "vai à aba Rides")
   - Após guardar/apagar rota: reload automático das sugestões
+
+---
+
+### 9.2 — Admin UI ✅
+
+**Implementado:**
+- `AdminPanel.tsx` — Sheet acessível na ProfilePage (só visível para `user.isAdmin === true`)
+- 3 abas: **Saques** / **Disputas** / **Identidade**
+- **Saques**: filtro por estado (PENDING/APPROVED/PROCESSED/REJECTED) + aprovar / marcar como processado / rejeitar com nota opcional
+- **Disputas**: filtro por estado (OPEN/RESOLVED/DISMISSED) + reembolsar (com valor) / descartar com nota de resolução
+- **Identidade**: lista de verificações pendentes + visualizador de documento (lightbox) + aprovar / rejeitar
+- `isAdmin` adicionado ao tipo `User` no frontend (já era devolvido pela API via spread em `buildUserResponse`)
+- Corrigidos erros de build pré-existentes em `IdentityVerificationSheet.tsx` e `RequestSeatSheet.tsx`
 
 ---
 

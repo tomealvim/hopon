@@ -61,5 +61,6 @@ export interface User {
   verification?: UserVerification;
   isIdentityVerified?: boolean;
   identityDocumentStatus?: string | null;
+  isAdmin?: boolean;
 }
 

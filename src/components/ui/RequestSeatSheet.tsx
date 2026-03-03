@@ -81,7 +81,7 @@ export default function RequestSeatSheet({
   price,
   platformFee,
   seats = 1,
-  departureTime,
+  departureTime: _departureTime,
 }: Props) {
   const [message, setMessage]               = useState("");
   const [walletBalance, setWalletBalance]   = useState<number | null>(null);

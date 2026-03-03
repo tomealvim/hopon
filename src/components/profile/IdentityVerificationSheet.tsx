@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import Sheet from "../ui/Sheet";
 import { Button } from "../ui/Button";
 import { cn } from "../../utils/cn";
-import { apiRequest } from "../../services/api";
 
 type Props = {
   open: boolean;
@@ -116,12 +115,13 @@ export default function IdentityVerificationSheet({ open, onClose, currentStatus
       <div className="space-y-6">
 
         {/* Estado atual */}
-        <section className={cn("rounded-2xl border px-4 py-3", {
-          "border-gray-200 bg-gray-50": status === "NONE",
-          "border-amber-200 bg-amber-50": status === "PENDING",
-          "border-emerald-200 bg-emerald-50": status === "VERIFIED",
-          "border-red-200 bg-red-50": status === "REJECTED",
-        })}>
+        <section className={cn(
+          "rounded-2xl border px-4 py-3",
+          status === "NONE" && "border-gray-200 bg-gray-50",
+          status === "PENDING" && "border-amber-200 bg-amber-50",
+          status === "VERIFIED" && "border-emerald-200 bg-emerald-50",
+          status === "REJECTED" && "border-red-200 bg-red-50",
+        )}>
           <p className={cn("text-sm font-semibold", statusInfo.color)}>{statusInfo.label}</p>
           <p className="text-sm text-gray-600 mt-0.5">{statusInfo.description}</p>
         </section>
