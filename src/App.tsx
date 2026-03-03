@@ -108,6 +108,13 @@ function AppContent() {
   }
 
   async function handleSubmitOffer(vals: OfferRideFormValues) {
+    if (!user?.verification?.email) {
+      showError(
+        "Email não confirmado",
+        "Para publicar boleias precisas de confirmar o teu email. Vai ao teu Perfil → Verificações e segue as instruções."
+      );
+      return;
+    }
     try {
       await doSubmitOffer(vals);
     } catch (err: any) {
@@ -115,6 +122,10 @@ function AppContent() {
       if (msg.includes("DRIVER_POLICY_NOT_ACCEPTED")) {
         setPendingOfferValues(vals);
         setOpenDriverPolicy(true);
+        return;
+      }
+      if (msg.toLowerCase().includes("verific") && msg.toLowerCase().includes("email")) {
+        showError("Email não confirmado", "Confirma o teu email no Perfil → Verificações antes de publicar boleias.");
         return;
       }
       showError("Erro ao criar boleia", err instanceof Error ? err.message : "Tenta novamente.");

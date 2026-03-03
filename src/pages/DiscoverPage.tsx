@@ -168,6 +168,18 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
       .catch(() => {});
   }
 
+  function handleOpenBooking(rideId: string) {
+    if (!user?.verification?.email) {
+      showError(
+        "Email não confirmado",
+        "Para reservar boleias precisas de confirmar o teu email. Vai ao teu Perfil → Verificações e segue as instruções."
+      );
+      return;
+    }
+    setSelectedRideId(rideId);
+    setOpenRequestSeat(true);
+  }
+
   async function handleConfirmBook(opts?: { message?: string; stripePaymentIntentId?: string }) {
     if (!selectedRideId) return;
     try {
@@ -178,6 +190,10 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         setPendingBookingRideId(selectedRideId);
         setOpenRequestSeat(false);
         setOpenPassengerPolicy(true);
+        return;
+      }
+      if (msg.toLowerCase().includes("verific") && msg.toLowerCase().includes("email")) {
+        showError("Email não confirmado", "Confirma o teu email no Perfil → Verificações antes de reservar.");
         return;
       }
       showError("Erro ao reservar", err instanceof Error ? err.message : "Tenta novamente.");
@@ -271,7 +287,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                             }}
                             primaryLabel="Reservar"
                             secondaryLabel="Detalhes"
-                            onPrimary={() => { setSelectedRideId(ride.id); setOpenRequestSeat(true); }}
+                            onPrimary={() => handleOpenBooking(ride.id)}
                             onSecondary={() => openRideDetail(ride.id)}
                           />
                         );
@@ -373,7 +389,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                           }}
                           primaryLabel="Reservar"
                           secondaryLabel="Detalhes"
-                          onPrimary={() => { setSelectedRideId(ride.id); setOpenRequestSeat(true); }}
+                          onPrimary={() => handleOpenBooking(ride.id)}
                           onSecondary={() => openRideDetail(ride.id)}
                         />
                       );
@@ -468,8 +484,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                 className="flex-1"
                 onClick={() => {
                   setOpenDetail(false);
-                  setSelectedRideId(detailRide.id);
-                  setOpenRequestSeat(true);
+                  handleOpenBooking(detailRide.id);
                 }}
               >
                 Reservar lugar
