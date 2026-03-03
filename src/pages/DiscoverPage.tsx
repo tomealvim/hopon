@@ -17,6 +17,7 @@ import type { DiscoverFilters } from "./types/discover";
 import { defaultFilters } from "./types/discover";
 import type { ApiRide } from "./types/ride-api";
 import PublicProfileSheet from "../components/ui/PublicProfileSheet";
+import SaveRouteSheet from "../components/discover/SaveRouteSheet";
 
 type DiscoverPageProps = {
   onOpenInbox?: (threadId?: string) => void;
@@ -67,19 +68,45 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   const [openPassengerPolicy, setOpenPassengerPolicy] = useState(false);
   const [pendingBookingRideId, setPendingBookingRideId] = useState<string | null>(null);
 
-  // "Para Ti" — boleias que batem com os templates do utilizador
-  const [forYouRides, setForYouRides] = useState<ApiRide[]>([]);
+  // "Para Ti" — boleias que batem com os templates/rotas do utilizador
+  const [forYouRides, setForYouRides]   = useState<ApiRide[]>([]);
   const [forYouLoading, setForYouLoading] = useState(false);
-  const [forYouLoaded, setForYouLoaded] = useState(false);
+  const [forYouLoaded, setForYouLoaded]   = useState(false);
+
+  // Rotas habituais do passageiro
+  type UserRoute = { id: string; origin: string; destination: string; departTime: string; daysOfWeek: string[] };
+  const [userRoutes, setUserRoutes]         = useState<UserRoute[]>([]);
+  const [routesLoaded, setRoutesLoaded]     = useState(false);
+  const [openSaveRoute, setOpenSaveRoute]   = useState(false);
 
   useEffect(() => {
-    if (tab !== "for-you" || forYouLoaded) return;
-    setForYouLoading(true);
-    apiRequest<ApiRide[]>("/rides/for-you")
-      .then((data) => { setForYouRides(Array.isArray(data) ? data : []); setForYouLoaded(true); })
-      .catch(() => setForYouRides([]))
-      .finally(() => setForYouLoading(false));
-  }, [tab, forYouLoaded]);
+    if (tab !== "for-you") return;
+    // Carregar rotas habituais
+    if (!routesLoaded) {
+      apiRequest<UserRoute[]>("/user-routes")
+        .then((data) => { setUserRoutes(Array.isArray(data) ? data : []); setRoutesLoaded(true); })
+        .catch(() => setRoutesLoaded(true));
+    }
+    // Carregar boleias sugeridas
+    if (!forYouLoaded) {
+      setForYouLoading(true);
+      apiRequest<ApiRide[]>("/rides/for-you")
+        .then((data) => { setForYouRides(Array.isArray(data) ? data : []); setForYouLoaded(true); })
+        .catch(() => setForYouRides([]))
+        .finally(() => setForYouLoading(false));
+    }
+  }, [tab, forYouLoaded, routesLoaded]);
+
+  function handleRouteDeleted(id: string) {
+    setUserRoutes((prev) => prev.filter((r) => r.id !== id));
+    setForYouLoaded(false); // forçar reload das sugestões
+  }
+
+  function handleRouteSaved() {
+    setRoutesLoaded(false);
+    setForYouLoaded(false);
+    setOpenSaveRoute(false);
+  }
 
   // Helper — converte os filtros em query params para o backend
   function buildSearchParams(f: typeof filters): URLSearchParams {
@@ -124,10 +151,10 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   }
 
   // Confirmar reserva
-  async function doBook(rideId: string) {
+  async function doBook(rideId: string, opts?: { message?: string; stripePaymentIntentId?: string }) {
     await apiRequest(`/bookings/rides/${rideId}`, {
       method: "POST",
-      body: JSON.stringify({ seats: 1 }),
+      body: JSON.stringify({ seats: 1, ...opts }),
     });
     const ride = [...apiRides, ...forYouRides].find((r) => r.id === rideId);
     showSuccess(
@@ -141,10 +168,10 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
       .catch(() => {});
   }
 
-  async function handleConfirmBook() {
+  async function handleConfirmBook(opts?: { message?: string; stripePaymentIntentId?: string }) {
     if (!selectedRideId) return;
     try {
-      await doBook(selectedRideId);
+      await doBook(selectedRideId, opts);
     } catch (err: any) {
       const msg = err?.message ?? String(err);
       if (msg.includes("PASSENGER_POLICY_NOT_ACCEPTED")) {
@@ -257,8 +284,46 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
             {/* Para Ti */}
             {tab === "for-you" && (
               <>
-                <h2 className="text-sm font-bold text-gray-800 mt-3 mb-2">
-                  Para ti
+                {/* Rotas habituais guardadas */}
+                {userRoutes.length > 0 && (
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h2 className="text-sm font-bold text-gray-800">As tuas rotas</h2>
+                      <button
+                        type="button"
+                        className="text-xs text-brand font-semibold"
+                        onClick={() => setOpenSaveRoute(true)}
+                      >
+                        + Adicionar
+                      </button>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {userRoutes.map((r) => (
+                        <div key={r.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{r.origin} → {r.destination}</p>
+                            <p className="text-xs text-gray-500">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
+                          </div>
+                          <button
+                            type="button"
+                            className="text-xs text-red-500 font-semibold ml-4 shrink-0"
+                            onClick={async () => {
+                              try {
+                                await apiRequest(`/user-routes/${r.id}`, { method: "DELETE" });
+                                handleRouteDeleted(r.id);
+                              } catch { /* ignore */ }
+                            }}
+                          >
+                            Apagar
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <h2 className="text-sm font-bold text-gray-800 mt-1 mb-2">
+                  Boleias para ti
                   {forYouRides.length > 0 && ` (${forYouRides.length})`}
                 </h2>
                 {forYouLoading ? (
@@ -266,12 +331,14 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                     {Array.from({ length: 3 }).map((_, i) => <EntityCardSkeleton key={i} />)}
                   </div>
                 ) : forYouRides.length === 0 ? (
-                  <div className="text-center py-16 px-4">
+                  <div className="text-center py-12 px-4">
                     <p className="text-xl font-bold text-gray-900 mb-2">Sem sugestões ainda</p>
-                    <p className="text-sm text-gray-600 max-w-[300px] mx-auto">
-                      Cria templates de viagem na aba <strong>Rides</strong> para veres aqui
-                      as boleias que batem certo com o teu horário habitual.
+                    <p className="text-sm text-gray-600 max-w-[300px] mx-auto mb-6">
+                      Guarda a tua rota habitual e vemos boleias que batem certo com o teu horário.
                     </p>
+                    <Button onClick={() => setOpenSaveRoute(true)}>
+                      Guardar rota habitual
+                    </Button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -337,6 +404,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
             onClose={() => { setOpenRequestSeat(false); setSelectedRideId(null); }}
             onConfirm={handleConfirmBook}
             offerTitle={ride ? `${ride.origin} → ${ride.destination} (${t})` : ""}
+            rideId={selectedRideId}
             price={ride?.price}
             platformFee={(ride as any)?.platformFee}
             seats={1}
@@ -376,6 +444,12 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         userId={profileUserId}
         open={openProfile}
         onClose={() => { setOpenProfile(false); setProfileUserId(null); }}
+      />
+
+      <SaveRouteSheet
+        open={openSaveRoute}
+        onClose={() => setOpenSaveRoute(false)}
+        onSaved={handleRouteSaved}
       />
 
       {/* Detail sheet */}

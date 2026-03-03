@@ -1,6 +1,7 @@
 import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class StorageService {
@@ -52,6 +53,35 @@ export class StorageService {
 
     const url = `${this.publicUrl}/${key}`;
     this.logger.log(`Avatar uploaded: ${url}`);
+    return url;
+  }
+
+  async uploadIdentityDocument(
+    userId: string,
+    buffer: Buffer,
+    mimeType: string,
+  ): Promise<string> {
+    if (!this.enabled) {
+      throw new ServiceUnavailableException(
+        'Upload de documentos não está configurado neste servidor.',
+      );
+    }
+
+    const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
+    const uuid = randomUUID();
+    const key = `identity/${userId}/${uuid}.${ext}`;
+
+    await this.client!.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: mimeType,
+      }),
+    );
+
+    const url = `${this.publicUrl}/${key}`;
+    this.logger.log(`Identity document uploaded: ${url}`);
     return url;
   }
 }

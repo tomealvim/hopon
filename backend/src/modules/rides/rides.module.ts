@@ -5,9 +5,10 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { VerifiedUserGuard } from '../../common/guards/verified-user.guard';
 import { WalletModule } from '../wallet/wallet.module';
+import { GeocodingModule } from '../geocoding/geocoding.module';
 
 @Module({
-  imports: [PrismaModule, NotificationsModule, WalletModule],
+  imports: [PrismaModule, NotificationsModule, WalletModule, GeocodingModule],
   controllers: [RidesController],
   providers: [RidesService, VerifiedUserGuard],
   exports: [RidesService],

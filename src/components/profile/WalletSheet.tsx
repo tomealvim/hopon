@@ -1,70 +1,36 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Sheet from "../ui/Sheet";
 import { Button } from "../ui/Button";
 import { cn } from "../../utils/cn";
 import { apiRequest } from "../../services/api";
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import PayoutRequestSheet from "./PayoutRequestSheet";
+import WithdrawSheet from "./WithdrawSheet";
 
 type WalletSheetProps = {
   open: boolean;
   onClose: () => void;
 };
 
-type WalletView = "list" | "add" | "success" | "history";
-type AddMode = "credit" | "debit" | "paypal";
-type PaymentProvider =
-  | "visa"
-  | "mastercard"
-  | "paypal"
-  | "mbway"
-  | "cash"
-  | "applepay";
-
-type PaymentMethod = {
-  id: string;
-  provider: PaymentProvider;
-  masked: string;
-  expires?: string;
-  description?: string;
-};
-
-type AddMethodForm = {
-  provider: PaymentProvider;
-  holder: string;
-  account: string;
-  email: string;
-  expires: string;
-};
+type WalletView = "list" | "amount" | "payment" | "success" | "history";
 
 type WalletTransaction = {
   id: string;
-  type: "CREDIT" | "DEBIT" | "REFUND" | "PAYOUT";
+  type: "CREDIT" | "DEBIT" | "REFUND" | "PAYOUT" | "PAYOUT_PENDING" | "WITHDRAW";
   amount: number;
   description: string | null;
   reference: string | null;
   createdAt: string;
 };
 
-const PROVIDER_META: Record<PaymentProvider, { label: string; badge: string }> = {
-  visa:       { label: "Visa",       badge: "bg-[#1A1F71] text-white" },
-  mastercard: { label: "Mastercard", badge: "bg-gradient-to-r from-[#EB001B] to-[#F79E1B] text-white" },
-  paypal:     { label: "PayPal",     badge: "bg-[#003087] text-white" },
-  mbway:      { label: "MB Way",     badge: "bg-gray-700 text-white" },
-  cash:       { label: "Dinheiro",   badge: "bg-gray-700 text-white" },
-  applepay:   { label: "Apple Pay",  badge: "bg-gray-700 text-white" },
-};
-
-const QUICK_METHODS: PaymentMethod[] = [
-  { id: "apple-pay",     provider: "applepay", masked: "Ligado ao Apple Wallet", description: "Disponível em iPhone e Apple Watch" },
-  { id: "mbway-default", provider: "mbway",    masked: "+351 ••• ••• •••",        description: "MB WAY instantâneo" },
-];
-
-const EMPTY_FORM: AddMethodForm = { provider: "visa", holder: "", account: "", email: "", expires: "" };
-
 const TX_META: Record<WalletTransaction["type"], { label: string; color: string; sign: string }> = {
-  CREDIT: { label: "Carregamento", color: "text-emerald-600", sign: "+" },
-  DEBIT:  { label: "Pagamento",    color: "text-red-500",     sign: "−" },
-  REFUND: { label: "Reembolso",    color: "text-blue-500",    sign: "+" },
-  PAYOUT: { label: "Levantamento", color: "text-orange-500",  sign: "−" },
+  CREDIT:         { label: "Carregamento",       color: "text-emerald-600", sign: "+" },
+  DEBIT:          { label: "Pagamento",           color: "text-red-500",     sign: "−" },
+  REFUND:         { label: "Reembolso",           color: "text-blue-500",    sign: "+" },
+  PAYOUT:         { label: "Levantamento",        color: "text-orange-500",  sign: "−" },
+  PAYOUT_PENDING: { label: "Saque pendente",      color: "text-yellow-600",  sign: "−" },
+  WITHDRAW:       { label: "Reembolso p/ cartão", color: "text-purple-600",  sign: "−" },
 };
 
 function formatCurrency(value: number) {
@@ -75,20 +41,74 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-export default function WalletSheet({ open, onClose }: WalletSheetProps) {
-  const [view, setView]                         = useState<WalletView>("list");
-  const [addMode, setAddMode]                   = useState<AddMode>("credit");
-  const [amount, setAmount]                     = useState("");
-  const [methods, setMethods]                   = useState<PaymentMethod[]>([]);
-  const [selectedMethodId, setSelectedMethodId] = useState(QUICK_METHODS[0]?.id ?? "");
-  const [newMethod, setNewMethod]               = useState<AddMethodForm>(EMPTY_FORM);
-  const [formError, setFormError]               = useState("");
+// ── Stripe checkout form ──────────────────────────────────────────────────────
 
+function CheckoutForm({
+  onSuccess,
+  onError,
+}: {
+  onSuccess: () => void;
+  onError: (msg: string) => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setSubmitting(true);
+    const { error } = await stripe.confirmPayment({
+      elements,
+      redirect: "if_required",
+    });
+    if (error) {
+      onError(error.message ?? "Erro ao processar pagamento.");
+      setSubmitting(false);
+    } else {
+      onSuccess();
+    }
+  }
+
+  return (
+    <form id="stripe-payment-form" onSubmit={handleSubmit}>
+      <PaymentElement
+        options={{
+          layout: "tabs",
+          fields: { billingDetails: { address: { country: "never" } } },
+        }}
+      />
+      <Button
+        type="submit"
+        block
+        variant="outline"
+        className="mt-4 min-h-[48px]"
+        disabled={!stripe || submitting}
+      >
+        {submitting ? "A processar…" : "Confirmar pagamento"}
+      </Button>
+    </form>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function WalletSheet({ open, onClose }: WalletSheetProps) {
+  const [view, setView]                     = useState<WalletView>("list");
+  const [amount, setAmount]                 = useState("");
   const [balance, setBalance]               = useState<number | null>(null);
   const [transactions, setTransactions]     = useState<WalletTransaction[]>([]);
   const [loadingBalance, setLoadingBalance] = useState(false);
-  const [submitting, setSubmitting]         = useState(false);
-  const [topupError, setTopupError]         = useState("");
+  const [clientSecret, setClientSecret]     = useState<string | null>(null);
+  const [stripePromise, setStripePromise]   = useState<Promise<Stripe | null> | null>(null);
+  const [intentError, setIntentError]       = useState("");
+  const [loadingIntent, setLoadingIntent]   = useState(false);
+  const [paymentError, setPaymentError]     = useState("");
+  const [payoutOpen, setPayoutOpen]         = useState(false);
+  const [withdrawOpen, setWithdrawOpen]     = useState(false);
+
+  const parsedAmount = parseFloat(amount.replace(",", ".").replace(/[^\d.]/g, "")) || 0;
+  const canProceed   = parsedAmount >= 10 && parsedAmount <= 500;
 
   const fetchWallet = useCallback(async () => {
     setLoadingBalance(true);
@@ -110,93 +130,83 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
       fetchWallet();
     } else {
       setView("list");
-      setAddMode("credit");
       setAmount("");
-      setNewMethod(EMPTY_FORM);
-      setFormError("");
-      setTopupError("");
+      setClientSecret(null);
+      setIntentError("");
+      setPaymentError("");
     }
   }, [open, fetchWallet]);
 
-  const selectableMethods = useMemo(() => [...QUICK_METHODS, ...methods], [methods]);
-  const selectedMethod    = selectableMethods.find((m) => m.id === selectedMethodId);
-  const parsedAmount      = parseFloat(amount.replace(",", ".").replace(/[^\d.]/g, "")) || 0;
-  const canConfirm        = !!selectedMethod && parsedAmount > 0 && parsedAmount <= 500;
-
-  async function handleConfirm() {
-    if (!canConfirm) return;
-    setSubmitting(true);
-    setTopupError("");
+  async function handleProceedToPayment() {
+    if (!canProceed) return;
+    setLoadingIntent(true);
+    setIntentError("");
     try {
-      const data = await apiRequest<{ balance: number; transaction: WalletTransaction }>(
-        "/wallet/topup",
+      const data = await apiRequest<{ clientSecret: string; publishableKey: string }>(
+        "/wallet/topup/intent",
         { method: "POST", body: JSON.stringify({ amount: parsedAmount }) },
       );
-      setBalance(data.balance);
-      setTransactions((prev) => [data.transaction, ...prev]);
-      setView("success");
+      setClientSecret(data.clientSecret);
+      // Usar a publishableKey que vem do backend (ou fallback para VITE env)
+      const pk = data.publishableKey || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+      setStripePromise(loadStripe(pk));
+      setView("payment");
     } catch (err) {
-      setTopupError(err instanceof Error ? err.message : "Erro ao carregar saldo.");
+      setIntentError(err instanceof Error ? err.message : "Erro ao iniciar pagamento.");
     } finally {
-      setSubmitting(false);
+      setLoadingIntent(false);
     }
   }
 
-  function openAddForm() {
-    setAddMode("credit");
-    setNewMethod({ ...EMPTY_FORM, provider: "visa" });
-    setFormError("");
-    setView("add");
+  function handlePaymentSuccess() {
+    // Aguardar webhook creditar a wallet e recarregar
+    setTimeout(() => fetchWallet(), 2000);
+    setView("success");
   }
 
-  function handleSaveMethod(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const isCardMode = addMode !== "paypal";
-    if (!newMethod.holder.trim()) { setFormError("Indica o titular do método."); return; }
-    if (isCardMode && newMethod.account.trim().length < 4) { setFormError("Número inválido."); return; }
-    if (!isCardMode && !validateEmail(newMethod.email)) { setFormError("E-mail inválido."); return; }
-
-    const nextMethod: PaymentMethod = {
-      id: `${newMethod.provider}-${Date.now()}`,
-      provider: newMethod.provider,
-      masked: buildMaskedLabel(newMethod),
-      expires: isCardMode && newMethod.expires ? newMethod.expires : undefined,
-      description: !isCardMode ? newMethod.email : undefined,
-    };
-    setMethods((prev) => [nextMethod, ...prev]);
-    setSelectedMethodId(nextMethod.id);
-    setNewMethod(EMPTY_FORM);
-    setFormError("");
-    setView("list");
-  }
+  // Botão do rodapé consoante a vista
+  const footer =
+    view === "list" ? (
+      <Button block variant="outline" className="min-h-[48px]" onClick={() => setView("amount")}>
+        Carregar saldo
+      </Button>
+    ) : view === "amount" ? (
+      <div className="space-y-2">
+        {intentError && <p className="text-xs text-red-500 text-center">{intentError}</p>}
+        <div className="flex gap-3">
+          <Button variant="outline" className="flex-1" onClick={() => { setView("list"); setAmount(""); }}>
+            Cancelar
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            disabled={!canProceed || loadingIntent}
+            onClick={handleProceedToPayment}
+          >
+            {loadingIntent ? "A preparar…" : "Continuar"}
+          </Button>
+        </div>
+      </div>
+    ) : view === "payment" ? (
+      <Button variant="outline" className="w-full" onClick={() => setView("amount")}>
+        Voltar
+      </Button>
+    ) : view === "success" ? (
+      <Button variant="outline" className="min-h-[48px] w-full" onClick={() => { setAmount(""); setView("list"); onClose(); }}>
+        Voltar ao perfil
+      </Button>
+    ) : (
+      <Button variant="outline" className="min-h-[48px] w-full" onClick={() => setView("list")}>Voltar</Button>
+    );
 
   return (
+    <>
     <Sheet
       open={open}
       onClose={onClose}
       title={view === "history" ? "Histórico de transações" : "Carteira"}
       height="lg"
-      footer={
-        view === "list" ? (
-          <div className="space-y-2">
-            {topupError && <p className="text-xs text-red-500 text-center">{topupError}</p>}
-            <Button block variant="outline" className="min-h-[48px]" disabled={!canConfirm || submitting} onClick={handleConfirm}>
-              {submitting ? "A processar…" : "Confirmar carregamento"}
-            </Button>
-          </div>
-        ) : view === "add" ? (
-          <div className="flex gap-3">
-            <Button type="button" variant="outline" className="flex-1" onClick={() => { setView("list"); setFormError(""); }}>Cancelar</Button>
-            <Button type="submit" form="wallet-add-method-form" variant="outline" className="flex-1">Guardar método</Button>
-          </div>
-        ) : view === "success" ? (
-          <Button variant="outline" className="min-h-[48px] w-full" onClick={() => { setAmount(""); setView("list"); onClose(); }}>
-            Voltar ao perfil
-          </Button>
-        ) : (
-          <Button variant="outline" className="min-h-[48px] w-full" onClick={() => setView("list")}>Voltar</Button>
-        )
-      }
+      footer={footer}
     >
       <div className="space-y-6">
 
@@ -210,52 +220,103 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                 : <p className="text-3xl font-bold text-gray-900">{formatCurrency(balance ?? 0)}</p>
               }
               {transactions.length > 0 && (
-                <button type="button" className="mt-2 text-xs font-semibold text-primary underline-offset-2 hover:underline" onClick={() => setView("history")}>
+                <button
+                  type="button"
+                  className="mt-2 text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                  onClick={() => setView("history")}
+                >
                   Ver histórico ({transactions.length})
                 </button>
               )}
             </section>
 
-            <div className="space-y-2">
-              <label htmlFor="wallet-amount" className="text-xs font-semibold uppercase text-gray-600">Valor a carregar</label>
-              <div className="relative">
-                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500">€</span>
-                <input
-                  id="wallet-amount"
-                  inputMode="decimal"
-                  placeholder="Ex.: 25"
-                  value={amount}
-                  onChange={(e) => { setAmount(e.target.value.replace(/[^\d.,]/g, "")); setTopupError(""); }}
-                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-10 py-3 text-lg font-semibold text-gray-900 outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 placeholder:text-gray-400"
-                />
-              </div>
-              {parsedAmount > 500 && <p className="text-xs text-red-500">Máximo €500 por carregamento.</p>}
-            </div>
-
-            <section>
-              <p className="mb-3 text-sm font-semibold text-gray-800">Seleciona o método</p>
-              <div className="space-y-3">
-                {selectableMethods.map((method) => (
-                  <button key={method.id} type="button" onClick={() => setSelectedMethodId(method.id)} aria-pressed={selectedMethodId === method.id}
-                    className={cn("flex w-full items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition",
-                      selectedMethodId === method.id ? "border-gray-800 bg-gray-100 shadow-md" : "border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100")}>
-                    <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xs font-semibold uppercase", PROVIDER_META[method.provider].badge)} aria-hidden>
-                      {PROVIDER_META[method.provider].label.slice(0, 3)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900">{PROVIDER_META[method.provider].label}</p>
-                      <p className="text-sm text-gray-600">{method.masked}</p>
-                      {method.description && <p className="text-xs text-gray-500">{method.description}</p>}
-                    </div>
-                    <div className="text-xs text-gray-500 shrink-0">{method.expires ? `Expira ${method.expires}` : "Ativo"}</div>
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-gray-500 text-center">
+                Carrega saldo com cartão, MB Way, Apple Pay ou Google Pay.
+              </p>
+              {(balance ?? 0) >= 1 && (
+                <div className="flex flex-col items-center gap-1">
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-gray-500 underline-offset-2 hover:underline"
+                    onClick={() => setWithdrawOpen(true)}
+                  >
+                    Reembolsar para cartão
                   </button>
-                ))}
-              </div>
-              <button type="button" onClick={openAddForm} className="mt-4 w-full rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-100 transition">
-                Adicionar método
-              </button>
-            </section>
+                  <button
+                    type="button"
+                    className="text-xs text-gray-400 underline-offset-2 hover:underline"
+                    onClick={() => setPayoutOpen(true)}
+                  >
+                    Pedir saque para IBAN
+                  </button>
+                </div>
+              )}
+            </div>
           </>
+        )}
+
+        {/* ── ESCOLHER VALOR ── */}
+        {view === "amount" && (
+          <div className="space-y-4">
+            <p className="text-sm font-semibold text-gray-700">Valor a carregar</p>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500">€</span>
+              <input
+                id="wallet-amount"
+                inputMode="decimal"
+                placeholder="Ex.: 25"
+                value={amount}
+                onChange={(e) => { setAmount(e.target.value.replace(/[^\d.,]/g, "")); setIntentError(""); }}
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-10 py-3 text-lg font-semibold text-gray-900 outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 placeholder:text-gray-400"
+              />
+            </div>
+            {parsedAmount > 500 && <p className="text-xs text-red-500">Máximo €500 por carregamento.</p>}
+            {parsedAmount > 0 && parsedAmount < 10 && <p className="text-xs text-red-500">Mínimo €10 por carregamento.</p>}
+
+            <div className="grid grid-cols-3 gap-2">
+              {[10, 25, 50].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setAmount(String(v))}
+                  className={cn(
+                    "rounded-2xl border px-3 py-2 text-sm font-semibold transition",
+                    parsedAmount === v
+                      ? "border-gray-800 bg-gray-800 text-white"
+                      : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100",
+                  )}
+                >
+                  €{v}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── PAGAMENTO STRIPE ── */}
+        {view === "payment" && clientSecret && stripePromise && (
+          <div className="space-y-4">
+            <p className="text-sm font-semibold text-gray-700">
+              Carregar {formatCurrency(parsedAmount)}
+            </p>
+            {paymentError && (
+              <p className="text-sm text-red-600">{paymentError}</p>
+            )}
+            <Elements
+              stripe={stripePromise}
+              options={{
+                clientSecret,
+                appearance: { theme: "stripe", variables: { colorPrimary: "#111827" } },
+                locale: "pt",
+              }}
+            >
+              <CheckoutForm
+                onSuccess={handlePaymentSuccess}
+                onError={setPaymentError}
+              />
+            </Elements>
+          </div>
         )}
 
         {/* ── HISTÓRICO ── */}
@@ -284,66 +345,6 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
           </section>
         )}
 
-        {/* ── ADICIONAR MÉTODO ── */}
-        {view === "add" && (
-          <form id="wallet-add-method-form" className="space-y-5" onSubmit={handleSaveMethod}>
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase text-gray-600">Tipo de método</p>
-              <div className="grid grid-cols-3 gap-2">
-                {(["credit", "debit", "paypal"] as AddMode[]).map((mode) => (
-                  <button key={mode} type="button"
-                    onClick={() => { setAddMode(mode); setNewMethod((p) => ({ ...p, provider: mode === "paypal" ? "paypal" : p.provider === "paypal" ? "visa" : p.provider })); setFormError(""); }}
-                    className={cn("rounded-2xl border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition",
-                      addMode === mode ? "border-gray-800 bg-gray-800 text-white" : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100")}>
-                    {mode === "credit" ? "Crédito" : mode === "debit" ? "Débito" : "PayPal"}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {addMode !== "paypal" && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase text-gray-600">Bandeira</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {(["visa", "mastercard"] as PaymentProvider[]).map((brand) => (
-                    <button key={brand} type="button" onClick={() => setNewMethod((p) => ({ ...p, provider: brand }))}
-                      className={cn("rounded-2xl border px-4 py-3 text-sm font-semibold transition",
-                        newMethod.provider === brand ? "border-gray-800 bg-gray-100 text-gray-900" : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100")}>
-                      {PROVIDER_META[brand].label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="space-y-2">
-              <label htmlFor="wallet-holder" className="text-xs font-semibold uppercase text-gray-600">Titular</label>
-              <input id="wallet-holder" value={newMethod.holder} onChange={(e) => setNewMethod((p) => ({ ...p, holder: e.target.value }))} placeholder="Nome completo"
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20" />
-            </div>
-            {addMode !== "paypal" ? (
-              <>
-                <div className="space-y-2">
-                  <label htmlFor="wallet-account" className="text-xs font-semibold uppercase text-gray-600">Número do cartão</label>
-                  <input id="wallet-account" inputMode="numeric" value={newMethod.account}
-                    onChange={(e) => setNewMethod((p) => ({ ...p, account: e.target.value.replace(/[^\d]/g, "") }))} placeholder="0000 0000 0000 0000"
-                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20" />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="wallet-expiry" className="text-xs font-semibold uppercase text-gray-600">Validade (MM/AA)</label>
-                  <input id="wallet-expiry" value={newMethod.expires} onChange={(e) => setNewMethod((p) => ({ ...p, expires: e.target.value }))} placeholder="12/26"
-                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20" />
-                </div>
-              </>
-            ) : (
-              <div className="space-y-2">
-                <label htmlFor="wallet-email" className="text-xs font-semibold uppercase text-gray-600">E-mail / Telemóvel</label>
-                <input id="wallet-email" value={newMethod.email} onChange={(e) => setNewMethod((p) => ({ ...p, email: e.target.value }))} placeholder="exemplo@mail.com"
-                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20" />
-              </div>
-            )}
-            {formError && <p className="text-sm font-medium text-red-600">{formError}</p>}
-          </form>
-        )}
-
         {/* ── SUCESSO ── */}
         {view === "success" && (
           <div className="flex flex-col items-center gap-6 py-12 text-center">
@@ -353,11 +354,11 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </div>
-              <p className="mt-4 text-lg font-semibold text-gray-900">Hopon Cash atualizado</p>
-              <p className="text-sm text-gray-600">Saldo disponível imediatamente.</p>
+              <p className="mt-4 text-lg font-semibold text-gray-900">Pagamento recebido</p>
+              <p className="text-sm text-gray-600">O saldo será atualizado em instantes.</p>
               <p className="mt-4 text-3xl font-bold text-gray-900">{formatCurrency(balance ?? 0)}</p>
             </div>
-            <button type="button" className="text-sm font-semibold text-primary underline-offset-2 hover:underline" onClick={() => setView("list")}>
+            <button type="button" className="text-sm font-semibold text-primary underline-offset-2 hover:underline" onClick={() => { setView("list"); setAmount(""); }}>
               Fazer novo carregamento
             </button>
           </div>
@@ -365,17 +366,20 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
 
       </div>
     </Sheet>
+
+    <PayoutRequestSheet
+      open={payoutOpen}
+      onClose={() => setPayoutOpen(false)}
+      balance={balance ?? 0}
+      onSubmitted={fetchWallet}
+    />
+
+    <WithdrawSheet
+      open={withdrawOpen}
+      onClose={() => setWithdrawOpen(false)}
+      balance={balance ?? 0}
+      onSubmitted={fetchWallet}
+    />
+  </>
   );
-}
-
-function buildMaskedLabel(method: AddMethodForm) {
-  if (method.provider === "cash") return "Saldo físico";
-  if (method.provider === "visa" || method.provider === "mastercard") {
-    return `**** **** **** ${method.account.slice(-4) || "0000"}`;
-  }
-  return method.email || "Conta digital";
-}
-
-function validateEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }

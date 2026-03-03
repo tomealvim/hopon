@@ -3,10 +3,14 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { CreateRideFromTemplateDto } from './dto/create-ride-from-template.dto';
+import { GeocodingService } from '../geocoding/geocoding.service';
 
 @Injectable()
 export class SchedulesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly geocodingService: GeocodingService,
+  ) {}
 
   async create(userId: string, dto: CreateScheduleDto) {
     // Verificar se o veículo pertence ao utilizador
@@ -175,6 +179,29 @@ export class SchedulesService {
       );
     }
 
+    // Geocodificar origem e destino do template para criar Location records
+    const [originCoords, destCoords] = await Promise.all([
+      this.geocodingService.geocodeText(template.origin),
+      this.geocodingService.geocodeText(template.destination),
+    ]);
+
+    let originLocationId: string | null = null;
+    let destinationLocationId: string | null = null;
+
+    if (originCoords) {
+      const loc = await this.prisma.location.create({
+        data: { label: template.origin, lat: originCoords.lat, lng: originCoords.lng },
+      });
+      originLocationId = loc.id;
+    }
+
+    if (destCoords) {
+      const loc = await this.prisma.location.create({
+        data: { label: template.destination, lat: destCoords.lat, lng: destCoords.lng },
+      });
+      destinationLocationId = loc.id;
+    }
+
     const ride = await this.prisma.ride.create({
       data: {
         driverId: userId,
@@ -186,6 +213,8 @@ export class SchedulesService {
         price: dto.price ?? template.price ?? null,
         status: 'SCHEDULED',
         scheduleTemplateId: templateId,
+        ...(originLocationId && { originLocationId }),
+        ...(destinationLocationId && { destinationLocationId }),
       },
     });
 

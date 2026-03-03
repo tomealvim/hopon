@@ -7,6 +7,7 @@ import { UpdateRideDto } from './dto/update-ride.dto';
 import { SearchRidesDto } from './dto/search-rides.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { WalletService } from '../wallet/wallet.service';
+import { GeocodingService } from '../geocoding/geocoding.service';
 
 const SEARCH_TTL_MS = 30_000;  // 30s
 const FOR_YOU_TTL_MS = 60_000; // 60s
@@ -17,6 +18,7 @@ export class RidesService {
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly walletService: WalletService,
+    private readonly geocodingService: GeocodingService,
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
@@ -44,20 +46,28 @@ export class RidesService {
       throw new BadRequestException(`Número de lugares disponíveis (${dto.availableSeats}) excede os lugares do veículo (${vehicle.seats})`);
     }
 
-    // Criar registos de Location se houver coordenadas
+    // Criar registos de Location com coordenadas (frontend ou geocoding como fallback)
     let originLocationId: string | null = null;
     let destinationLocationId: string | null = null;
 
-    if (dto.originLat != null && dto.originLng != null) {
+    const originCoords = (dto.originLat != null && dto.originLng != null)
+      ? { lat: dto.originLat, lng: dto.originLng }
+      : await this.geocodingService.geocodeText(dto.origin);
+
+    if (originCoords) {
       const loc = await this.prisma.location.create({
-        data: { label: dto.origin, lat: dto.originLat, lng: dto.originLng, city: dto.city ?? null },
+        data: { label: dto.origin, lat: originCoords.lat, lng: originCoords.lng, city: dto.city ?? null },
       });
       originLocationId = loc.id;
     }
 
-    if (dto.destinationLat != null && dto.destinationLng != null) {
+    const destCoords = (dto.destinationLat != null && dto.destinationLng != null)
+      ? { lat: dto.destinationLat, lng: dto.destinationLng }
+      : await this.geocodingService.geocodeText(dto.destination);
+
+    if (destCoords) {
       const loc = await this.prisma.location.create({
-        data: { label: dto.destination, lat: dto.destinationLat, lng: dto.destinationLng },
+        data: { label: dto.destination, lat: destCoords.lat, lng: destCoords.lng },
       });
       destinationLocationId = loc.id;
     }
@@ -169,12 +179,39 @@ export class RidesService {
     const cached = await this.cache.get<any[]>(cacheKey);
     if (cached) return cached;
 
-    // Obter templates ativos do utilizador
-    const templates = await this.prisma.scheduleTemplate.findMany({
-      where: { userId, active: true },
-    });
+    // Obter templates ativos (condutor) e rotas habituais (passageiro)
+    const [templates, userRoutes] = await Promise.all([
+      this.prisma.scheduleTemplate.findMany({ where: { userId, active: true } }),
+      this.prisma.userRoute.findMany({ where: { userId, active: true } }),
+    ]);
 
-    if (templates.length === 0) {
+    // Normalizar ambos para o mesmo formato de "padrão"
+    type Pattern = {
+      origin: string;
+      originLat?: number | null;
+      originLng?: number | null;
+      destination: string;
+      departTime: string;
+      daysOfWeek: string[];
+    };
+    const patterns: Pattern[] = [
+      ...templates.map((t) => ({
+        origin: t.origin,
+        destination: t.destination,
+        departTime: t.time,
+        daysOfWeek: t.daysOfWeek as string[],
+      })),
+      ...userRoutes.map((r) => ({
+        origin: r.origin,
+        originLat: r.originLat,
+        originLng: r.originLng,
+        destination: r.destination,
+        departTime: r.departTime,
+        daysOfWeek: r.daysOfWeek as string[],
+      })),
+    ];
+
+    if (patterns.length === 0) {
       await this.cache.set(cacheKey, [], FOR_YOU_TTL_MS);
       return [];
     }
@@ -198,22 +235,21 @@ export class RidesService {
 
     const DAY_NAMES = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
 
-    // matchScore acumula pontos por cada template que faz match com a ride
+    // matchScore acumula pontos por cada padrão que faz match com a ride
     const scores = new Map<string, { ride: (typeof rides)[0]; score: number }>();
 
-    for (const template of templates) {
-      const templateDays = template.daysOfWeek as string[];
-      const [th, tm] = template.time.split(':').map(Number);
-      const templateMin = th * 60 + tm;
+    for (const pattern of patterns) {
+      const [ph, pm] = pattern.departTime.split(':').map(Number);
+      const patternMin = ph * 60 + pm;
 
       for (const ride of rides) {
         // Dia da semana
         const rideDay = DAY_NAMES[ride.departureTime.getDay()];
-        if (!templateDays.includes(rideDay)) continue;
+        if (!pattern.daysOfWeek.includes(rideDay)) continue;
 
         // Hora ±30 min
         const rideMin = ride.departureTime.getHours() * 60 + ride.departureTime.getMinutes();
-        const timeDiff = Math.abs(rideMin - templateMin);
+        const timeDiff = Math.abs(rideMin - patternMin);
         if (timeDiff > 30) continue;
 
         // Lugares disponíveis
@@ -222,15 +258,27 @@ export class RidesService {
           .reduce((s, b) => s + b.seats, 0);
         if (ride.availableSeats - booked <= 0) continue;
 
-        // Origem e destino — text overlap (normalizado, sem acentos)
-        if (!this.textOverlap(ride.origin, template.origin)) continue;
-        if (!this.textOverlap(ride.destination, template.destination)) continue;
+        // Origem — GPS (raio 5km) se disponível, senão text overlap
+        const rideHasOriginCoords = ride.originLocation?.lat != null && ride.originLocation?.lng != null;
+        const patternHasOriginCoords = pattern.originLat != null && pattern.originLng != null;
+        if (rideHasOriginCoords && patternHasOriginCoords) {
+          const distKm = this.haversineKm(
+            ride.originLocation!.lat!, ride.originLocation!.lng!,
+            pattern.originLat!, pattern.originLng!,
+          );
+          if (distKm > 5) continue;
+        } else {
+          if (!this.textOverlap(ride.origin, pattern.origin)) continue;
+        }
+
+        // Destino — text overlap (sem coordenadas por agora)
+        if (!this.textOverlap(ride.destination, pattern.destination)) continue;
 
         // Score: mais pontos quanto mais próximo no horário
         const timeScore = 30 - timeDiff;
         const prev = scores.get(ride.id);
         if (prev) {
-          prev.score += timeScore + 10; // +10 por cada template adicional que faz match
+          prev.score += timeScore + 10; // +10 por cada padrão adicional que faz match
         } else {
           scores.set(ride.id, { ride, score: timeScore });
         }
@@ -246,6 +294,16 @@ export class RidesService {
       .map(({ ride, score }) => ({ ...this.toResponse(ride), matchScore: score }));
     await this.cache.set(cacheKey, result, FOR_YOU_TTL_MS);
     return result;
+  }
+
+  private haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
   private textOverlap(a: string, b: string): boolean {
@@ -488,7 +546,7 @@ export class RidesService {
       for (const booking of pendingBookings) {
         await tx.booking.update({ where: { id: booking.id }, data: { status: 'CANCELLED' } });
         if (ride.price != null && Number(ride.price) > 0) {
-          const amount = Number(ride.price) * booking.seats;
+          const amount = (Number(ride.price) + Number(ride.platformFee ?? 0)) * booking.seats;
           let wallet = await tx.wallet.findFirst({ where: { userId: booking.userId } });
           if (!wallet) wallet = await tx.wallet.create({ data: { userId: booking.userId } });
           await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: amount } } });
@@ -591,7 +649,7 @@ export class RidesService {
         try {
           await this.walletService.refund(
             booking.userId,
-            Number(ride.price) * booking.seats,
+            (Number(ride.price) + Number(ride.platformFee ?? 0)) * booking.seats,
             'Boleia cancelada pelo condutor',
             booking.id,
           );
@@ -651,6 +709,9 @@ export class RidesService {
 
     // Deduplicate (se for driver e passenger ao mesmo tempo — improvável mas seguro)
     const driverRideIds = new Set(asDriver.map((r) => r.id));
+    const passengerBookingMap = new Map(
+      asPassenger.map((b) => [b.rideId, b.id]),
+    );
     const passengerRides = asPassenger
       .filter((b) => !driverRideIds.has(b.rideId))
       .map((b) => b.ride);
@@ -662,6 +723,7 @@ export class RidesService {
     return allRides.map((ride) => ({
       ...this.toResponse(ride),
       role: ride.driverId === userId ? 'driver' : 'passenger',
+      myBookingId: passengerBookingMap.get(ride.id) ?? null,
     }));
   }
 

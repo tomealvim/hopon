@@ -27,7 +27,7 @@ Pensa nisto como BlaBlaCar diário, não como Uber.
 | Schedules API | NestJS SchedulesModule | Funcional |
 | Inbox | Backend real + SSE | Sólido |
 | Ratings | Backend + UI | Funcional |
-| Wallet | Backend ledger + UI | Funcional (sem fluxo de pagamento real) |
+| Wallet | Backend ledger + UI | Funcional (sem gateway de pagamento externo) |
 | Geodata | Mapbox autocomplete + Haversine | Funcional |
 | Realtime | SSE (message.new, booking.new) | Funcional |
 
@@ -175,11 +175,13 @@ Pensa nisto como BlaBlaCar diário, não como Uber.
 
 | # | Item | Estado |
 |---|---|---|
-| 5.1 | Fluxo de avaliação pós-viagem | ✅ GET /ratings/pending + SSE ride.completed + botões "Avaliar" em RidesPage |
+| 5.1 | Fluxo de avaliação pós-viagem | ✅ GET /ratings/pending + SSE ride.competed + botões "Avaliar" em RidesPage |
 | 5.2 | Templates de email HTML | ✅ Layout HTML com branding HopOn, estilos inline, 6 templates |
 | 5.3 | Auto-geração de boleias por template (cron) | ✅ @nestjs/schedule cron diário às 06:00, POST /scheduler/trigger para teste |
 | 5.4 | Invalidação de cache nas mutações | ✅ cache.clear() após create/remove/complete em rides.service |
 | 5.5 | Filtros avançados na Discover | ✅ Data, hora, preço máx, lugares, verificados — chips de filtros ativos |
+| 5.6 | No-show flow | ✅ arrivedAt + POST /rides/:id/arrive + PATCH booking NO_SHOW + payout inclui no-shows |
+| 5.7 | Penalização temporal de cancelamento | ✅ >24h=100%, 2–24h=50%, <2h=0% — UI contextual em RidesPage + RequestSeatSheet |
 
 ---
 
@@ -188,7 +190,7 @@ Pensa nisto como BlaBlaCar diário, não como Uber.
 | # | Item | Estado |
 |---|---|---|
 | 6.1 | Deploy Railway (backend) + Vercel (frontend) | ✅ Railway + Vercel configurados, CI/CD automático via push para main |
-| 6.2 | Testes E2E contra produção | ✅ Suite completa 6/6 passou contra Railway; DB verify 19/19 |
+| 6.2 | Testes E2E contra produção | ✅ Suite completa 7/7 passou contra Railway; DB verify 19/19 |
 | 6.3 | Throttler ajustado para testes | ✅ 300 req/min (era 60) — protege contra abuso sem bloquear suite de testes |
 | 6.4 | Cloudflare R2 para avatars em produção | ✅ Bucket criado, env vars no Railway, upload testado end-to-end — `test-avatar-upload.mjs` |
 | 6.5 | Push notifications em produção | ✅ VAPID keys corretas no Railway, `SubscribeDto` fix (`@IsString`), flow end-to-end testado — booking dispara push ao driver |
@@ -209,3 +211,220 @@ npm run test:api:prod         # suite completa contra Railway
 npm run test:db:verify        # DB verify contra localhost
 npm run test:db:verify:prod   # DB verify contra Railway
 ```
+
+---
+
+## Fase 7 — Stripe, Verificação de Identidade, Disputas ✅ CONCLUÍDA
+
+| # | Item | Estado |
+|---|---|---|
+| 7.1 | Stripe Payment Element | ✅ StripeModule + `POST /wallet/topup/intent` + webhook `payment_intent.succeeded` + WalletSheet com Elements |
+| 7.2 | Verificação de identidade (manual) | ✅ Upload doc → admin aprova/rejeita + IdentityVerificationSheet + secção no ProfilePage |
+| 7.3 | Disputas pós-viagem | ✅ DisputesModule + `POST /disputes` + admin resolve com refund opcional + DisputeSheet + botão "Contestar" em HistorySheet |
+
+### Detalhes — 7.1 Stripe
+
+- `POST /wallet/topup/intent` → cria PaymentIntent Stripe → devolve `{ clientSecret, publishableKey }`
+- Frontend: `Elements` + `PaymentElement` (Card, MB Way, Apple Pay, Google Pay automático por país/device)
+- Webhook `POST /stripe/webhook` (raw body via `express.raw()` antes do JSON parser global)
+- Idempotência: `WalletTransaction.reference = pi_xxx` — duplicado ignorado
+- Apple Pay domain verification: `GET /.well-known/apple-developer-merchantid-domain-association` (APPLE_PAY_DOMAIN_ASSOCIATION env var)
+
+### Detalhes — 7.2 Verificação de Identidade
+
+- Schema: `identityDocumentUrl`, `identityDocumentType`, `identityDocumentStatus` (NONE/PENDING/VERIFIED/REJECTED) no User
+- `POST /auth/me/identity-document?type=cc|passport|driving_license` — FileInterceptor 10MB
+- S3 key: `identity/{userId}/{uuid}.{ext}`
+- Admin: `GET /admin/verifications/pending`, `PATCH /admin/users/:id/verify`, `POST /admin/users/:id/verify/reject`
+- Notificação in-app na aprovação e rejeição
+
+### Detalhes — 7.3 Disputas
+
+- Janela de 7 dias após partida, só boleias COMPLETED, só passageiro pode contestar
+- Motivos: WRONG_AMOUNT, NO_SHOW, SAFETY, SERVICE_QUALITY, OTHER
+- Admin: `GET /admin/disputes?status=OPEN`, `PATCH /admin/disputes/:id` (REFUND|DISMISS)
+- Refund credita wallet do passageiro + notificação
+
+### Env vars novas
+```
+# backend/.env
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+APPLE_PAY_DOMAIN_ASSOCIATION=<conteúdo do ficheiro do Stripe Dashboard>
+
+# .env (frontend)
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+```
+
+### Passos de configuração Stripe
+1. Criar conta Stripe → obter `sk_test_` e `pk_test_`
+2. Stripe Dashboard → Developers → Webhooks → Add endpoint → `https://<backend>/api/v1/stripe/webhook` → evento `payment_intent.succeeded` → copiar `whsec_`
+3. Para MB Way: ativar no Dashboard em Portugal
+4. Para Apple Pay: Stripe Dashboard → Settings → Payment methods → Apple Pay → Domain verification → descarregar ficheiro e definir `APPLE_PAY_DOMAIN_ASSOCIATION`
+5. Testar com `4242 4242 4242 4242` (Visa) ou Stripe test cards para MB Way
+
+---
+
+## Fase 8 — Ciclo de Dinheiro Completo
+
+> O Stripe foi integrado (7.1) mas o ciclo ainda tem lacunas: a comissão HopOn não é retida, condutores não podem sacar, e passageiros não podem pedir reembolso do saldo não usado.
+
+| # | Item | Estado |
+|---|---|---|
+| 8.1 | Comissão HopOn retida no payout | ✅ Concluído |
+| 8.2 | Payout aos condutores (saque para IBAN) | ✅ Concluído (MVP manual) |
+| 8.3 | Levantamento de saldo pelos passageiros | ✅ Concluído |
+| 8.4 | Deploy Stripe em produção (Railway + Vercel + webhook) | ⬜ Pendente (aguarda aprovação Stripe) |
+| 8.5 | Pay-per-ride: pagamento direto na reserva | ✅ Concluído — testado 9/9 |
+
+---
+
+### 8.1 — Comissão HopOn retida no payout ✅
+
+**Implementado:**
+- Passageiro paga `(price + platformFee) × seats` ao fazer reserva
+- Condutor recebe `price × seats` ao concluir boleia
+- HopOn retém `platformFee × seats` (diferença fica no sistema)
+- Todos os reembolsos (cancel, declined, pending-on-complete, driver-cancels-ride) corrigidos para devolver `(price + platformFee) × seats`
+
+---
+
+### 8.2 — Payout aos condutores (saque para IBAN) ✅ MVP
+
+**Implementado (Opção A — manual):**
+- `POST /wallet/payout-request { amount, iban }` — reserva saldo imediatamente (PAYOUT_PENDING) e regista pedido
+- `GET /wallet/payout-requests` — histórico do utilizador
+- `GET /admin/payout-requests?status=PENDING` — admin lista pedidos
+- `PATCH /admin/payout-requests/:id { status, adminNote }` — admin aprova/processa/rejeita; rejeição devolve saldo
+- Frontend: botão "Pedir saque para IBAN" na WalletSheet (visível quando saldo ≥ €1) → `PayoutRequestSheet`
+- Notificações in-app ao condutor em cada mudança de estado
+- Modelo `PayoutRequest` no Prisma + migração `20260303000003_add_payout_requests`
+
+**Próxima fase (quando houver volume):** migrar para Stripe Connect Express para transferências automáticas.
+
+---
+
+### 8.3 — Levantamento de saldo pelos passageiros ✅
+
+**Implementado:**
+- `POST /wallet/withdraw { amount }` — valida saldo e créditos Stripe disponíveis
+- Plano de reembolso greedy (mais antigas primeiro) usando `WalletTransaction.reference = pi_xxx`
+- Reembolsos parciais/totais via `stripe.refunds.create({ payment_intent, amount })` — Stripe devolve ao cartão original
+- Debit atómico da wallet + transações `WITHDRAW` (tipo novo) com reference=pi_ para rastreio
+- Frontend: `WithdrawSheet.tsx` (valor, atalhos, success state) + botão "Reembolsar para cartão" na WalletSheet
+- Erros claros: se não há créditos Stripe (saldo ganho como condutor) → sugere pedir saque para IBAN
+
+---
+
+### ⚠️ Para testar localmente (fazer sempre antes de arrancar o backend)
+
+**PowerShell — abrir um terminal separado e correr:**
+```powershell
+# Arrancar o webhook listener do Stripe (manter aberto durante os testes)
+Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Filter "stripe.exe" -Recurse | Select-Object -First 1 | ForEach-Object { & $_.FullName listen --forward-to localhost:3000/api/v1/stripe/webhook }
+```
+
+> O terminal mostra `> Ready! Your webhook signing secret is whsec_...` e fica a ouvir.
+> **Não fechar este terminal** enquanto testares pagamentos — sem ele os topups via Stripe não creditam a wallet.
+
+**Depois noutra janela, arrancar o backend normalmente:**
+```bash
+cd backend && npm run dev
+```
+
+**Testar a integração Stripe (suite completa 9/9):**
+```bash
+cd backend && node tests/test-stripe.mjs
+```
+
+**Cartão de teste:** `4242 4242 4242 4242` · data futura qualquer · CVC qualquer
+
+---
+
+### 8.4 — Deploy Stripe em produção
+
+**Checklist Railway (backend):**
+```
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...   ← novo endpoint de produção no Stripe Dashboard
+```
+
+**Checklist Vercel (frontend):**
+```
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_...
+```
+
+**Webhook de produção:**
+Stripe Dashboard → Developers → Webhooks → Add endpoint
+- URL: `https://hopon-production-5bd2.up.railway.app/api/v1/stripe/webhook`
+- Eventos: `payment_intent.succeeded`
+
+**Apple Pay em produção:**
+Stripe Dashboard → Settings → Payment methods → Apple Pay → Register domain → descarregar ficheiro → `APPLE_PAY_DOMAIN_ASSOCIATION` no Railway
+
+**Ativar conta Stripe (fase protótipo → produção):**
+
+Passo 1 — Buscar keys de TESTE (fazer amanhã, 5 min):
+1. Stripe Dashboard → modo Test ativo (toggle no canto superior esquerdo)
+2. Developers → API keys → copiar `sk_test_...` e `pk_test_...`
+3. Colar em `backend/.env`: `STRIPE_SECRET_KEY=sk_test_...` e `STRIPE_PUBLISHABLE_KEY=pk_test_...`
+4. Criar webhook local: `stripe listen --forward-to localhost:3000/api/v1/stripe/webhook` → copiar `whsec_...` → `STRIPE_WEBHOOK_SECRET=whsec_...`
+5. Testar com cartão `4242 4242 4242 4242`, qualquer data futura, qualquer CVC
+→ **Não é necessário ativar a conta nem ter empresa para este passo.**
+
+Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
+- Ir a "Activate your account" no Stripe Dashboard
+- Selecionar **Individual** (não "Company") — não precisas de empresa constituída
+- Preencher com NIF pessoal (não NIPC), nome próprio, morada pessoal, IBAN pessoal
+- Processo de aprovação: 1-3 dias úteis
+- Só depois disto é que os pagamentos reais chegam à conta bancária
+
+---
+
+## Fase 9 — Matching & Descoberta
+
+| # | Item | Estado |
+|---|---|---|
+| 9.1 | Schedule matching "Para Ti" — passageiros guardam rota habitual | ✅ Concluído |
+| 9.2 | Admin UI — painel web para payout requests, disputas, verificações | ⬜ Pendente |
+| 9.3 | Recurring rides — boleias criadas automaticamente 7 dias à frente | ✅ Concluído |
+| 9.4 | Notificações push melhoradas — lembrete 1h antes | ✅ Concluído |
+
+---
+
+### 9.1 — Schedule Matching "Para Ti" ✅
+
+**Implementado:**
+- Modelo `UserRoute` — passageiro guarda rota habitual sem precisar de veículo (origin, destination, departTime "HH:mm", daysOfWeek)
+- `POST /user-routes` / `GET /user-routes` / `DELETE /user-routes/:id`
+- `findForUser` atualizado: usa **ScheduleTemplate** (driver templates) + **UserRoute** (passenger routes) — normaliza ambos para o mesmo formato de "padrão" e corre o algoritmo de matching único
+- Algoritmo: dia da semana + hora ±30 min + **Haversine 5km** (quando ambos têm GPS) ou text overlap normalizado + score acumulado por padrão
+- `GeocodingService` partilhado (Google Maps API) — geocodifica texto automaticamente em UserRoutes, Rides e Schedules
+- Cache Redis com TTL existente mantida
+- Frontend:
+  - `SaveRouteSheet.tsx` — form: origem (LocationInput Mapbox + botão "Usar localização atual" GPS), destino, hora, dias da semana
+  - "Para Ti" tab: lista das rotas guardadas com botão "Apagar" + botão "+ Adicionar"
+  - Empty state: botão "Guardar rota habitual" (em vez de "vai à aba Rides")
+  - Após guardar/apagar rota: reload automático das sugestões
+
+---
+
+### 9.3 — Recurring rides ✅
+
+**Implementado:**
+- `generateUpcomingRides` cron (06:00 diário, Europe/Lisbon) — cria boleias para os **próximos 7 dias** (era só hoje)
+- Para cada template ativo: itera os 7 dias seguintes, verifica se o dia bate com `daysOfWeek`, verifica duplicado, cria ride com Location GPS (geocoding automático)
+- Notificação ao condutor apenas para o dia de hoje (evita spam para dias futuros)
+- Ignora horas de partida já passadas
+- `POST /scheduler/trigger` — aciona manualmente para testes
+
+### 9.4 — Lembretes 1h antes ✅
+
+**Implementado:**
+- `sendRideReminders` cron (cada 5 minutos) — encontra boleias SCHEDULED que partem entre 55 e 65 min
+- Anti-duplicado via Redis cache: chave `reminder:{rideId}` com TTL 3h
+- Passageiros CONFIRMED recebem: "A tua boleia parte em 1 hora — {origem} → {destino} às {hora}"
+- Condutor recebe (se houver passageiros): "A tua boleia parte em 1 hora — N lugares reservados"
+- `POST /scheduler/trigger-reminders` — aciona manualmente para testes

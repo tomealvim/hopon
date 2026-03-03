@@ -7,10 +7,17 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 export class SchedulerController {
   constructor(private readonly schedulerService: SchedulerService) {}
 
-  /** Endpoint de teste — aciona o cron manualmente (apenas autenticados) */
+  /** Endpoint de teste — aciona o cron de boleias manualmente (apenas autenticados) */
   @Post('trigger')
   async trigger() {
-    await this.schedulerService.generateDailyRides();
+    await this.schedulerService.generateUpcomingRides();
+    return { ok: true };
+  }
+
+  /** Endpoint de teste — aciona o cron de lembretes manualmente (apenas autenticados) */
+  @Post('trigger-reminders')
+  async triggerReminders() {
+    await this.schedulerService.sendRideReminders();
     return { ok: true };
   }
 }

@@ -1,6 +1,7 @@
-import { Controller, Get, Patch, Delete, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Patch, Delete, Param, Body, Query, UseGuards, Request, Post } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { SuspendUserDto } from './dto/suspend-user.dto';
+import { ResolveDisputeDto } from './dto/resolve-dispute.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminGuard } from '../../common/guards/admin.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -46,5 +47,41 @@ export class AdminController {
   @ApiOperation({ summary: 'Remover verificação de um utilizador' })
   unverifyUser(@Param('id') id: string) {
     return this.adminService.unverifyUser(id);
+  }
+
+  @Post('users/:id/verify/reject')
+  @ApiOperation({ summary: 'Rejeitar documento de identidade' })
+  rejectVerification(@Param('id') id: string) {
+    return this.adminService.rejectVerification(id);
+  }
+
+  @Get('verifications/pending')
+  @ApiOperation({ summary: 'Listar utilizadores com verificação pendente' })
+  getPendingVerifications() {
+    return this.adminService.getPendingVerifications();
+  }
+
+  @Get('disputes')
+  @ApiOperation({ summary: 'Listar disputas' })
+  getDisputes(@Query('status') status?: string) {
+    return this.adminService.getDisputes(status);
+  }
+
+  @Patch('disputes/:id')
+  @ApiOperation({ summary: 'Resolver ou descartar uma disputa' })
+  resolveDispute(@Param('id') id: string, @Body() dto: ResolveDisputeDto) {
+    return this.adminService.resolveDispute(id, dto);
+  }
+
+  @Get('payout-requests')
+  @ApiOperation({ summary: 'Listar pedidos de saque' })
+  getPayoutRequests(@Query('status') status?: string) {
+    return this.adminService.getPayoutRequests(status);
+  }
+
+  @Patch('payout-requests/:id')
+  @ApiOperation({ summary: 'Aprovar, processar ou rejeitar pedido de saque' })
+  processPayoutRequest(@Param('id') id: string, @Body() dto: { status: string; adminNote?: string }) {
+    return this.adminService.processPayoutRequest(id, dto);
   }
 }

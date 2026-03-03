@@ -422,6 +422,30 @@ export class AuthService {
     return this.buildUserResponse(user);
   }
 
+  async uploadIdentityDocument(
+    userId: string,
+    file: Express.Multer.File,
+    documentType: string,
+  ) {
+    const docUrl = await this.storageService.uploadIdentityDocument(
+      userId,
+      file.buffer,
+      file.mimetype,
+    );
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        identityDocumentUrl: docUrl,
+        identityDocumentType: documentType,
+        identityDocumentStatus: 'PENDING',
+      },
+      include: { profile: true, vehicles: true },
+    });
+
+    return this.buildUserResponse(user);
+  }
+
   private async generateTokens(user: any, userAgent?: string, ip?: string) {
     try {
       const basePayload = { sub: user.id, email: user.email };

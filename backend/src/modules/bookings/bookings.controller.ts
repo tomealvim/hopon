@@ -13,6 +13,17 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
+  @Post('rides/:rideId/intent')
+  @UseGuards(VerifiedUserGuard)
+  @ApiOperation({ summary: 'Criar PaymentIntent Stripe para pagar boleia diretamente' })
+  createPaymentIntent(
+    @Request() req,
+    @Param('rideId') rideId: string,
+    @Body() body: { seats?: number },
+  ) {
+    return this.bookingsService.createPaymentIntent(req.user.id, rideId, body.seats ?? 1);
+  }
+
   @Post('rides/:rideId')
   @UseGuards(VerifiedUserGuard)
   @ApiOperation({ summary: 'Reservar lugar numa boleia (requer email e telefone verificados)' })

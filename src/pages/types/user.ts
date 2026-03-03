@@ -59,5 +59,7 @@ export interface User {
   vehicles?: Vehicle[];
   activeVehicleId?: string;
   verification?: UserVerification;
+  isIdentityVerified?: boolean;
+  identityDocumentStatus?: string | null;
 }
 

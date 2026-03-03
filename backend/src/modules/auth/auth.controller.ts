@@ -1,7 +1,7 @@
 import {
   Controller, Post, Body, Get, UseGuards, Request, Patch, Headers,
   UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator,
-  HttpCode, HttpStatus,
+  HttpCode, HttpStatus, Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -136,6 +136,27 @@ export class AuthController {
   @ApiOperation({ summary: 'Aceitar política de viagens (passageiro ou condutor)' })
   acceptPolicy(@Request() req, @Body() dto: AcceptPolicyDto) {
     return this.authService.acceptPolicy(req.user.id, dto.role);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('me/identity-document')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Upload de documento de identidade (JPEG/PNG/WebP, máx 10MB)' })
+  @UseInterceptors(FileInterceptor('document', { storage: memoryStorage() }))
+  uploadIdentityDocument(
+    @Request() req,
+    @Query('type') documentType: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }), // 10MB
+          new FileTypeValidator({ fileType: /image\/(jpeg|png|webp)/ }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.authService.uploadIdentityDocument(req.user.id, file, documentType ?? 'cc');
   }
 
   @UseGuards(JwtAuthGuard)

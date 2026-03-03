@@ -15,7 +15,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
-import { json, urlencoded } from 'express';
+import { json, urlencoded, raw } from 'express';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
@@ -24,6 +24,9 @@ async function bootstrap() {
 
   // Usar pino como logger global (JSON em produção, pretty em dev)
   app.useLogger(app.get(Logger));
+
+  // Stripe webhook precisa de raw body ANTES do parser JSON global
+  app.use('/api/v1/stripe/webhook', raw({ type: 'application/json' }));
 
   app.use(json({ limit: '8mb' }));
   app.use(urlencoded({ limit: '8mb', extended: true }));

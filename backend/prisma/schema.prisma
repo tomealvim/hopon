@@ -54,6 +54,14 @@ model User {
   passengerPolicyAcceptedAt DateTime?
   driverPolicyAcceptedAt    DateTime?
 
+  identityDocumentUrl    String?
+  identityDocumentType   String?
+  identityDocumentStatus String?  @default("NONE")
+
+  openedDisputes Dispute[] @relation("OpenedDisputes")
+  payoutRequests PayoutRequest[]
+  userRoutes     UserRoute[]
+
   @@map("users")
 }
 
@@ -213,11 +221,15 @@ model Booking {
   seats     Int           @default(1)
   status    String        @default("PENDING")
 
+  paymentMethod         String  @default("WALLET") // WALLET | STRIPE
+  stripePaymentIntentId String? @unique
+
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
   conversation  Conversation?
   ratings Rating[]
+  disputes      Dispute[]
 
   @@map("bookings")
 }
@@ -381,4 +393,58 @@ model PushSubscription {
 
   @@map("push_subscriptions")
   @@index([userId])
+}
+
+model Dispute {
+  id           String   @id @default(uuid())
+  bookingId    String
+  booking      Booking  @relation(fields: [bookingId], references: [id])
+  openedById   String
+  openedBy     User     @relation("OpenedDisputes", fields: [openedById], references: [id])
+  reason       String
+  description  String
+  status       String   @default("OPEN")
+  resolution   String?
+  refundAmount Float?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("disputes")
+  @@index([bookingId])
+  @@index([status])
+  @@index([openedById])
+}
+
+model UserRoute {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  origin      String
+  originLat   Float?
+  originLng   Float?
+  destination String
+  departTime  String   // "HH:mm"
+  daysOfWeek  Json     // ["segunda","terca",...]
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("user_routes")
+  @@index([userId])
+}
+
+model PayoutRequest {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Float
+  iban      String
+  status    String   @default("PENDING")  // PENDING | APPROVED | PROCESSED | REJECTED
+  adminNote String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payout_requests")
+  @@index([userId])
+  @@index([status])
 }
