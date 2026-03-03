@@ -13,7 +13,7 @@ import { apiRequest } from "./services/api";
 import BottomNav from "./components/ui/BottomNav";
 import AuthPage from "./pages/AuthPage";
 import { hasCompletedOnboarding } from "./pages/OnboardingPage";
-import LandingPage from "./pages/LandingPage";
+import OnboardingPageFull from "./pages/OnboardingPage";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
 import WelcomeSheet from "./components/ui/WelcomeSheet";
 import DiscoverPage from "./pages/DiscoverPage";
@@ -59,7 +59,7 @@ function AppContent() {
   const [initialThreadId, setInitialThreadId] = useState<string | undefined>(undefined);
   const [vehicleSheetTrigger, setVehicleSheetTrigger] = useState(0);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => hasCompletedOnboarding());
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
+  const [authMode] = useState<'login' | 'register'>('register');
   const [showWelcome, setShowWelcome] = useState(false);
   const [profileSheetsOpen, setProfileSheetsOpen] = useState(false);
   const [openDriverPolicy, setOpenDriverPolicy] = useState(false);
@@ -124,10 +124,8 @@ function AppContent() {
 
   if (isLoading) return <Loading message="A inicializar..." />;
   if (!hasSeenOnboarding) return (
-    <LandingPage
-      onStart={(mode) => {
-        setAuthMode(mode);
-        localStorage.setItem('hopon_onboarding_completed', 'true');
+    <OnboardingPageFull
+      onComplete={() => {
         setHasSeenOnboarding(true);
       }}
     />

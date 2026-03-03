@@ -1,224 +1,276 @@
 import { useState } from "react";
-import type { ButtonHTMLAttributes } from "react";
 import PhoneInput, { type Country } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { useAuth } from "../contexts/AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
-import type { UserProfile } from "./types/user";
-import ImageUpload from "../components/ui/ImageUpload";
-import Sheet from "../components/ui/Sheet";
 import AppName from "../components/ui/AppName";
+import Sheet from "../components/ui/Sheet";
+import ImageUpload from "../components/ui/ImageUpload";
 
-type Step = 1 | 2;
+type Step = 1 | 2 | 3 | 4;
 
-const STEP_META: Record<Step, { eyebrow: string; title: string; subtitle: string }> = {
+const STEP_CONFIG: Record<Step, { eyebrow: string; title: string; subtitle: string }> = {
   1: {
     eyebrow: "Identidade",
-    title: "Apresenta-te com confiança",
-    subtitle: "Foto e nome visíveis nas boleias.",
+    title: "Como te chamamos?",
+    subtitle: "O teu nome e foto aparecem nas boleias e no chat.",
   },
   2: {
-    eyebrow: "Contactos & Casa",
-    title: "Mantém-nos por perto",
-    subtitle: "Telemóvel, username e morada principal para sugestões rápidas.",
+    eyebrow: "Contacto",
+    title: "O teu número",
+    subtitle: "Usado para confirmações e alertas de viagem.",
+  },
+  3: {
+    eyebrow: "Localização",
+    title: "Onde é a tua casa?",
+    subtitle: "Usamos como ponto de partida habitual nas sugestões.",
+  },
+  4: {
+    eyebrow: "Pronto",
+    title: "Tudo certo!",
+    subtitle: "Confirma os teus dados antes de entrar.",
   },
 };
 
 export default function ProfileSetupPage() {
   const { updateProfile } = useAuth();
   const { showError } = useNotifications();
+
   const [step, setStep] = useState<Step>(1);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  // Step 1: Dados pessoais
+  // Step 1
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [showAvatarSheet, setShowAvatarSheet] = useState(false);
 
-  // Step 2: Contactos e morada
+  // Step 2
   const [phone, setPhone] = useState<string>("");
   const [country, setCountry] = useState<Country>("PT");
-  const [username, setUsername] = useState("");
+
+  // Step 3
   const [address, setAddress] = useState("");
 
-  const handleNext = () => {
+  const meta = STEP_CONFIG[step];
+  const isLast = step === 4;
+
+  function canAdvance() {
+    if (step === 1) return name.trim().length >= 2;
+    if (step === 2) return phone.trim().length > 4;
+    if (step === 3) return address.trim().length >= 2;
+    return true;
+  }
+
+  function handleNext() {
     if (step === 1 && !name.trim()) {
-      showError("Campo obrigatório", "Indica o teu nome completo.");
+      showError("Campo obrigatório", "Indica o teu nome.");
       return;
     }
-    if (step < 2) {
-      setStep(2);
-    }
-  };
-
-  const handleBack = () => {
-    if (step > 1) {
-      setStep((step - 1) as Step);
-    }
-  };
-
-  const handleFinish = async () => {
-    if (!phone.trim() || !address.trim()) {
-      showError("Campos obrigatórios", "Telemóvel e morada são necessários.");
+    if (step === 2 && !phone.trim()) {
+      showError("Campo obrigatório", "Indica o teu número de telemóvel.");
       return;
     }
+    if (step === 3 && !address.trim()) {
+      showError("Campo obrigatório", "Indica a tua morada.");
+      return;
+    }
+    if (step < 4) setStep((step + 1) as Step);
+  }
 
+  function handleBack() {
+    if (step > 1) setStep((step - 1) as Step);
+  }
+
+  async function handleFinish() {
     setSaving(true);
     setSaveError("");
     try {
-      const profile: Partial<UserProfile> = {
-        name: name.trim(),
-        username: username.trim() || undefined,
-        avatarUrl: avatarUrl || undefined,
-        address: address.trim(),
-        createdAt: new Date().toISOString(),
-      };
-
       await updateProfile({
-        ...profile,
+        name: name.trim(),
+        avatarUrl: avatarUrl || undefined,
         phone: phone.trim(),
+        address: address.trim(),
         setupCompleted: true,
       });
     } catch (err: any) {
-      const msg = err?.message ?? "Erro ao guardar perfil. Tenta novamente.";
-      setSaveError(msg);
+      setSaveError(err?.message ?? "Erro ao guardar perfil. Tenta novamente.");
     } finally {
       setSaving(false);
     }
-  };
-
+  }
 
   return (
-    <div className="relative min-h-screen bg-white text-gray-900 overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-32 -left-10 w-96 h-96 bg-gray-300/10 blur-[160px]" />
-        <div className="absolute top-10 right-0 w-72 h-72 bg-gray-300/8 blur-[160px]" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[34rem] h-[34rem] bg-gray-200/5 blur-[200px]" />
+    <div className="min-h-[100svh] bg-white flex flex-col" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+
+      {/* Progress bar */}
+      <div className="h-1 bg-gray-100">
+        <div
+          className="h-1 bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end transition-all duration-300"
+          style={{ width: `${(step / 4) * 100}%` }}
+        />
       </div>
 
-      <div className="relative z-10 w-full max-w-md mx-auto px-4 py-6 flex flex-col items-center text-center gap-6">
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.5em] text-gray-500">{STEP_META[step].eyebrow}</p>
-          <AppName className="text-4xl font-black text-gray-900" />
-          <p className="text-sm text-gray-600">{STEP_META[step].subtitle}</p>
-        </div>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 pt-5 pb-2">
+        <button
+          type="button"
+          onClick={handleBack}
+          className={step === 1 ? "invisible" : "w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition"}
+          aria-label="Voltar"
+        >
+          ←
+        </button>
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
+          <AppName />
+        </span>
+        <span className="text-xs font-medium text-gray-400">{step}/4</span>
+      </div>
 
-        <StepCard>
-          {step === 1 && (
-            <div className="grid gap-6">
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div
-                  className="w-24 h-24 rounded-full bg-gray-900 text-white flex items-center justify-center text-3xl font-bold overflow-hidden cursor-pointer border-4 border-gray-200 shadow-lg"
-                  onClick={() => setShowAvatarSheet(true)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setShowAvatarSheet(true);
-                    }
-                  }}
-                  aria-label="Adicionar foto de perfil"
-                >
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <span>{name ? name.charAt(0).toUpperCase() : "?"}</span>
-                  )}
+      {/* Content */}
+      <div className="flex-1 flex flex-col justify-center px-6 py-4 max-w-sm mx-auto w-full">
+
+        {/* Labels */}
+        <p className="text-[11px] uppercase tracking-[0.5em] text-gray-400 mb-1">{meta.eyebrow}</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">{meta.title}</h1>
+        <p className="text-sm text-gray-500 mb-8">{meta.subtitle}</p>
+
+        {/* Step 1: Name + Photo */}
+        {step === 1 && (
+          <div className="flex flex-col gap-6">
+            <button
+              type="button"
+              onClick={() => setShowAvatarSheet(true)}
+              className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden mx-auto hover:border-gray-400 transition"
+              aria-label="Adicionar foto"
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <div className="flex flex-col items-center gap-1 text-gray-400">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                  </svg>
+                  <span className="text-[10px] font-medium">Foto</span>
                 </div>
-                <p className="text-[11px] text-gray-500">
-                  Clica para {avatarUrl ? "alterar" : "adicionar"} foto
-                </p>
-              </div>
+              )}
+            </button>
+            {avatarUrl && (
+              <button
+                type="button"
+                className="text-xs text-gray-400 underline text-center -mt-4"
+                onClick={() => setShowAvatarSheet(true)}
+              >
+                Alterar foto
+              </button>
+            )}
 
-              <div className="grid gap-4 text-left">
-                <TextField
-                  id="name"
-                  label="Nome completo *"
-                  placeholder="Ex: João Silva"
-                  hint="Mostra-se em boleias, chats e pedidos."
-                  value={name}
-                  onChange={setName}
-                  autoFocus
-                />
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="grid gap-4 text-left">
-              <div className="grid gap-1.5">
-                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                  Telemóvel *
-                </label>
-                <PhoneInput
-                  international
-                  defaultCountry={country}
-                  country={country}
-                  onCountryChange={(c) => c && setCountry(c)}
-                  value={phone}
-                  onChange={(val) => setPhone(val ?? "")}
-                  className="phone-input-wrapper"
-                />
-                <p className="text-[11px] text-gray-500">
-                  Seleciona o teu país e escreve o número — formatado automaticamente.
-                </p>
-              </div>
-              <TextField
-                id="username"
-                label="Username / apelido público"
-                placeholder="Ex: joaosilva"
-                hint="Opcional — ajuda-te a partilhar o perfil com um @apelido."
-                value={username}
-                onChange={setUsername}
-              />
-              <TextField
-                id="address"
-                label="Morada principal *"
-                placeholder="Ex: Amadora, Quinta da Fonte"
-                hint='Guardamos como atalho "Casa" e sugerimos partidas mais rápidas.'
-                value={address}
-                onChange={setAddress}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                Nome completo *
+              </label>
+              <input
+                type="text"
+                autoFocus
+                placeholder="Ex: João Silva"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && canAdvance() && handleNext()}
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-400"
               />
             </div>
-          )}
-
-        </StepCard>
-
-        {saveError && (
-          <div className="w-full rounded-2xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 text-center">
-            {saveError}
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row gap-3 w-full pt-2">
-          {step > 1 && (
-            <SecondaryActionButton onClick={handleBack} disabled={saving}>
-              Voltar
-            </SecondaryActionButton>
-          )}
-          {step < 2 ? (
-            <PrimaryActionButton onClick={handleNext}>
-              Continuar
-            </PrimaryActionButton>
-          ) : (
-            <PrimaryActionButton onClick={handleFinish} disabled={saving}>
-              {saving ? "A guardar…" : "Concluir"}
-            </PrimaryActionButton>
-          )}
-        </div>
+        {/* Step 2: Phone */}
+        {step === 2 && (
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+              Telemóvel *
+            </label>
+            <PhoneInput
+              international
+              defaultCountry={country}
+              country={country}
+              onCountryChange={(c) => c && setCountry(c)}
+              value={phone}
+              onChange={(val) => setPhone(val ?? "")}
+              className="phone-input-wrapper"
+            />
+            <p className="text-[11px] text-gray-400 mt-1">
+              Seleciona o país e escreve o número — formata automaticamente.
+            </p>
+          </div>
+        )}
 
-        <span className="inline-flex items-center justify-center px-4 py-1 rounded-full border border-gray-200 text-[11px] font-semibold text-gray-600">
-          Passo {step} / 2
-        </span>
+        {/* Step 3: Address */}
+        {step === 3 && (
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+              Morada / Zona *
+            </label>
+            <input
+              type="text"
+              autoFocus
+              placeholder="Ex: Amadora, Quinta da Fonte"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && canAdvance() && handleNext()}
+              className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-400"
+            />
+            <p className="text-[11px] text-gray-400 mt-1">
+              Não precisas de morada exacta — cidade ou zona é suficiente.
+            </p>
+          </div>
+        )}
+
+        {/* Step 4: Confirmation */}
+        {step === 4 && (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-4 bg-gray-50 rounded-2xl p-4 border border-gray-100">
+              <div className="w-14 h-14 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
+                {avatarUrl
+                  ? <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500">{name.charAt(0).toUpperCase()}</div>
+                }
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">{name}</p>
+                <p className="text-sm text-gray-500">{phone}</p>
+                <p className="text-sm text-gray-500">{address}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-400 text-center mt-2">
+              Podes alterar estes dados a qualquer momento no teu perfil.
+            </p>
+
+            {saveError && (
+              <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 text-center">
+                {saveError}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      <Sheet
-        open={showAvatarSheet}
-        onClose={() => setShowAvatarSheet(false)}
-        title="Foto de perfil"
+      {/* Bottom button */}
+      <div
+        className="px-6 pb-8 pt-4 max-w-sm mx-auto w-full"
       >
+        <button
+          type="button"
+          disabled={!canAdvance() || saving}
+          onClick={isLast ? handleFinish : handleNext}
+          className="w-full h-14 rounded-full bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 font-bold text-sm tracking-wide shadow-lg active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gradient-end"
+        >
+          {saving ? "A guardar…" : isLast ? "Entrar na app →" : "Continuar →"}
+        </button>
+      </div>
+
+      {/* Avatar sheet */}
+      <Sheet open={showAvatarSheet} onClose={() => setShowAvatarSheet(false)} title="Foto de perfil">
         <ImageUpload
           onImageSelected={(url) => {
             setAvatarUrl(url);
@@ -229,86 +281,3 @@ export default function ProfileSetupPage() {
     </div>
   );
 }
-
-function StepCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="w-full bg-white/95 text-gray-900 rounded-[28px] p-6 shadow-[0_25px_80px_rgba(0,0,0,0.30)]">
-      {children}
-    </div>
-  );
-}
-
-type TextFieldProps = {
-  id: string;
-  label: string;
-  value: string;
-  placeholder?: string;
-  type?: string;
-  onChange: (value: string) => void;
-  autoFocus?: boolean;
-  hint?: string;
-};
-
-function TextField({
-  id,
-  label,
-  value,
-  type = "text",
-  placeholder,
-  onChange,
-  autoFocus,
-  hint,
-}: TextFieldProps) {
-  const hintId = hint ? `${id}-hint` : undefined;
-  return (
-    <div className="grid gap-1.5">
-      <label htmlFor={id} className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-        {label}
-      </label>
-      <input
-        id={id}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        autoFocus={autoFocus}
-        aria-describedby={hintId}
-        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-400"
-      />
-      {hint && (
-        <p id={hintId} className="text-[11px] text-gray-500">
-          {hint}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function PrimaryActionButton({
-  children,
-  ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button
-      className="w-full md:flex-1 h-12 rounded-2xl bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 font-semibold shadow-[0_8px_24px_rgba(180,120,120,0.2)] transition hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gradient-end focus-visible:ring-offset-white"
-      {...rest}
-    >
-      {children}
-    </button>
-  );
-}
-
-function SecondaryActionButton({
-  children,
-  ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button
-      className="w-full md:flex-1 h-12 rounded-2xl border border-gray-300 text-gray-800 font-semibold transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-400 focus-visible:ring-offset-white"
-      {...rest}
-    >
-      {children}
-    </button>
-  );
-}
-

@@ -9,7 +9,7 @@ const ONBOARDING_STORAGE_KEY = "hopon_onboarding_completed";
 type OnboardingScreen = 1 | 2 | 3 | 4;
 
 interface OnboardingPageProps {
-  onComplete: () => void;
+  onComplete: (mode?: "register" | "login") => void;
 }
 
 export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
@@ -24,7 +24,7 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
       setCurrentScreen((prev) => (prev + 1) as OnboardingScreen);
     } else if (agreedToTerms) {
       localStorage.setItem(ONBOARDING_STORAGE_KEY, "true");
-      onComplete();
+      onComplete("register");
     }
   };
 
