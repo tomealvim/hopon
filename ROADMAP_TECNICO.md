@@ -388,7 +388,7 @@ Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
 | # | Item | Estado |
 |---|---|---|
 | 9.1 | Schedule matching "Para Ti" — passageiros guardam rota habitual | ✅ Concluído |
-| 9.2 | Admin UI — painel web para payout requests, disputas, verificações | ⬜ Pendente |
+| 9.2 | Admin UI — painel web para payout requests, disputas, verificações | ⬜ Pendente (próxima fase) |
 | 9.3 | Recurring rides — boleias criadas automaticamente 7 dias à frente | ✅ Concluído |
 | 9.4 | Notificações push melhoradas — lembrete 1h antes | ✅ Concluído |
 
