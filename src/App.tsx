@@ -59,7 +59,6 @@ function AppContent() {
   const [initialThreadId, setInitialThreadId] = useState<string | undefined>(undefined);
   const [vehicleSheetTrigger, setVehicleSheetTrigger] = useState(0);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => hasCompletedOnboarding());
-  const [authMode] = useState<'login' | 'register'>('register');
   const [showWelcome, setShowWelcome] = useState(false);
   const [profileSheetsOpen, setProfileSheetsOpen] = useState(false);
   const [openDriverPolicy, setOpenDriverPolicy] = useState(false);
@@ -130,7 +129,7 @@ function AppContent() {
       }}
     />
   );
-  if (!user) return <AuthPage onAuthSuccess={() => {}} initialMode={authMode} />;
+  if (!user) return <AuthPage onAuthSuccess={() => {}} />;
   if (!hasCompletedProfile) return <ProfileSetupPage />;
 
   return (
