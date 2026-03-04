@@ -45,7 +45,7 @@ export default function CreateRideFromTemplateSheet({
       onSuccess();
       onClose();
     } catch (err) {
-      showError("Erro", err instanceof Error ? err.message : "Não foi possível criar a boleia.");
+      showError("Erro ao criar boleia", err instanceof Error ? err.message : "Não foi possível criar a boleia. Tenta novamente.");
     } finally {
       setSubmitting(false);
     }

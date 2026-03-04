@@ -102,7 +102,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
       setNotes("");
       setPreferences({ musica: true, falar: true, bagagem: false, animais: false });
     } catch (err) {
-      showError("Erro", err instanceof Error ? err.message : "Não foi possível criar o template.");
+      showError("Erro ao criar template", err instanceof Error ? err.message : "Não foi possível criar o template. Tenta novamente.");
     } finally {
       setSubmitting(false);
     }

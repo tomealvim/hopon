@@ -121,7 +121,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
       return;
     }
     if (!pendingAuth) {
-      showError("Erro", "Recomeça o processo de autenticação.");
+      showError("Sessão expirada", "Recomeça o processo de autenticação.");
       setView('form');
       return;
     }

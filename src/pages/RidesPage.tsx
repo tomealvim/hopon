@@ -239,7 +239,7 @@ export default function RidesPage() {
       await fetchMyRides();
       setOpenSheet(false);
     } catch (err) {
-      showError("Erro", err instanceof Error ? err.message : "Tenta novamente.");
+      showError("Erro ao alterar reserva", err instanceof Error ? err.message : "Tenta novamente.");
     }
   }
 
@@ -289,7 +289,7 @@ export default function RidesPage() {
       setMyRides((prev) => prev.map((r) => (r.id === rideId ? updated : r)));
       setSelectedRide(updated);
     } catch (err) {
-      showError("Erro", err instanceof Error ? err.message : "Tenta novamente.");
+      showError("Erro ao marcar chegada", err instanceof Error ? err.message : "Tenta novamente.");
     }
   }
 
@@ -307,7 +307,7 @@ export default function RidesPage() {
         setSelectedRide(updated);
       }
     } catch (err) {
-      showError("Erro", err instanceof Error ? err.message : "Tenta novamente.");
+      showError("Erro ao marcar falta", err instanceof Error ? err.message : "Tenta novamente.");
     }
   }
 

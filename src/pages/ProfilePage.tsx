@@ -321,7 +321,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       handleCloseVehicle();
     } catch (error) {
       console.error("Erro ao guardar veículo:", error);
-      showError("Erro", "Não foi possível guardar o veículo. Tenta novamente.");
+      showError("Erro ao guardar veículo", error instanceof Error ? error.message : "Não foi possível guardar. Tenta novamente.");
     }
   }
 
@@ -1168,7 +1168,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                   }
                 } catch (error) {
                   console.error("Erro ao remover veículo:", error);
-                  showError("Erro", "Não foi possível remover o veículo. Tenta novamente.");
+                  showError("Erro ao remover veículo", error instanceof Error ? error.message : "Não foi possível remover. Tenta novamente.");
                 }
               }}
             >
