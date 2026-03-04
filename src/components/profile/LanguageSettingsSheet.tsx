@@ -55,7 +55,7 @@ export default function LanguageSettingsSheet({
                 onClick={() => onSelect(option.id)}
                 aria-pressed={isActive}
                 className={`w-full rounded-3xl border-2 bg-gray-50 px-4 py-4 flex items-center justify-between gap-3 text-left transition ${
-                  isActive ? "border-gradient-end shadow-md bg-gray-100" : "border-gray-200 hover:border-gray-300 hover:bg-gray-100"
+                  isActive ? "border-gray-900 shadow-sm bg-gray-50" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -71,7 +71,7 @@ export default function LanguageSettingsSheet({
                 <span
                   aria-hidden
                   className={`w-6 h-6 rounded-full border flex items-center justify-center ${
-                    isActive ? "bg-gradient-end border-gradient-end text-white" : "border-gray-300 text-transparent"
+                    isActive ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300 text-transparent"
                   }`}
                 >
                   <CheckIcon />

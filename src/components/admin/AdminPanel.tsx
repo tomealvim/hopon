@@ -137,7 +137,7 @@ function PayoutRequestsTab() {
             onClick={() => setFilter(s)}
             className={cn(
               "px-3 py-1 rounded-full text-xs font-semibold border transition-colors",
-              filter === s ? "bg-brand text-white border-brand" : "bg-white text-gray-600 border-gray-200"
+              filter === s ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-600 border-gray-200"
             )}
           >
             {s === "PENDING" ? "Pendentes" : s === "APPROVED" ? "Aprovados" : s === "PROCESSED" ? "Processados" : "Rejeitados"}
@@ -207,7 +207,7 @@ function PayoutRequestsTab() {
               {noteFor === item.id && (
                 <div className="flex flex-col gap-2 mt-1">
                   <input
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
                     placeholder="Motivo da rejeição (opcional)"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
@@ -300,7 +300,7 @@ function DisputesTab() {
             onClick={() => setFilter(s)}
             className={cn(
               "px-3 py-1 rounded-full text-xs font-semibold border transition-colors",
-              filter === s ? "bg-brand text-white border-brand" : "bg-white text-gray-600 border-gray-200"
+              filter === s ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-600 border-gray-200"
             )}
           >
             {s === "OPEN" ? "Abertos" : s === "RESOLVED" ? "Resolvidos" : "Descartados"}
@@ -366,14 +366,14 @@ function DisputesTab() {
                       type="number"
                       step="0.01"
                       min="0.01"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
                       placeholder="Valor a reembolsar (€)"
                       value={refundAmt}
                       onChange={(e) => setRefundAmt(e.target.value)}
                     />
                   )}
                   <input
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
                     placeholder="Nota de resolução (opcional)"
                     value={resolution}
                     onChange={(e) => setResolution(e.target.value)}
@@ -550,7 +550,7 @@ export default function AdminPanel({ open, onClose }: Props) {
             className={cn(
               "flex-1 py-2.5 text-sm font-semibold border-b-2 transition-colors",
               tab === key
-                ? "border-brand text-brand"
+                ? "border-gray-900 text-gray-900"
                 : "border-transparent text-gray-400 hover:text-gray-700"
             )}
           >

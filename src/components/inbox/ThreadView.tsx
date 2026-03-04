@@ -52,7 +52,7 @@ export default function ThreadView({
         {messages.map(m => (
           <div key={m.id} className={m.type === "text" ? (m.authorId === meId ? "flex justify-end mb-3" : "flex justify-start mb-3") : "mb-3"}>
             {m.type === "text" ? (
-            <div className={m.authorId === meId ? "max-w-[75%] bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 rounded-2xl px-4 py-2.5" : "max-w-[75%] bg-gray-50 border border-gray-200 text-gray-900 rounded-2xl px-4 py-2.5 shadow-sm"}>
+            <div className={m.authorId === meId ? "max-w-[75%] bg-gray-900 text-white rounded-2xl px-4 py-2.5" : "max-w-[75%] bg-gray-100 border border-gray-200 text-gray-900 rounded-2xl px-4 py-2.5"}>
               <div className="text-sm">{m.text}</div>
               <div className="flex items-center gap-2 mt-1 text-xs opacity-70">
                 {m.authorId && m.authorId !== meId && (
@@ -70,7 +70,7 @@ export default function ThreadView({
 
       <footer className="flex items-center gap-2 px-4 py-3 border-t border-gray-200 bg-white">
         <input
-          className="flex-1 px-4 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-400 disabled:opacity-50"
+          className="flex-1 px-4 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-400 disabled:opacity-50"
           placeholder="Escrever mensagem"
           title="Escrever mensagem"
           value={inputText}
@@ -79,7 +79,7 @@ export default function ThreadView({
           disabled={sending}
         />
         <button
-          className="px-4 py-2.5 bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 font-medium rounded-xl hover:opacity-95 transition disabled:opacity-50"
+          className="px-4 py-2.5 bg-gray-900 text-white font-medium rounded-xl hover:bg-gray-700 transition disabled:opacity-50"
           onClick={handleSend}
           disabled={sending || !inputText.trim()}
         >
@@ -133,12 +133,12 @@ function SystemCardRenderer({
     );
   }
 
-  if (ev.kind === "request_accepted") return <div className="text-center bg-green-500/20 border border-green-500/30 text-green-300 text-xs py-2 px-3 rounded-lg">Pedido aceite ✅</div>;
-  if (ev.kind === "request_declined") return <div className="text-center bg-red-500/20 border border-red-500/30 text-red-300 text-xs py-2 px-3 rounded-lg">Pedido recusado</div>;
-  if (ev.kind === "change_confirmed") return <div className="text-center bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs py-2 px-3 rounded-lg">Alteração confirmada</div>;
-  if (ev.kind === "payment_paid") return <div className="text-center bg-green-500/20 border border-green-500/30 text-green-300 text-xs py-2 px-3 rounded-lg">Pagamento confirmado 💳</div>;
+  if (ev.kind === "request_accepted") return <div className="text-center bg-green-50 border border-green-200 text-green-700 text-xs py-2 px-3 rounded-lg">Pedido aceite</div>;
+  if (ev.kind === "request_declined") return <div className="text-center bg-red-50 border border-red-200 text-red-700 text-xs py-2 px-3 rounded-lg">Pedido recusado</div>;
+  if (ev.kind === "change_confirmed") return <div className="text-center bg-gray-50 border border-gray-200 text-gray-700 text-xs py-2 px-3 rounded-lg">Alteração confirmada</div>;
+  if (ev.kind === "payment_paid") return <div className="text-center bg-green-50 border border-green-200 text-green-700 text-xs py-2 px-3 rounded-lg">Pagamento confirmado</div>;
 
-  return <div className="text-center bg-white/5 border border-white/10 text-white/70 text-xs py-2 px-3 rounded-lg">Atualização</div>;
+  return <div className="text-center bg-gray-50 border border-gray-200 text-gray-600 text-xs py-2 px-3 rounded-lg">Atualização</div>;
 }
 
 function timeAgo(ts: number) {

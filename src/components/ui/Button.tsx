@@ -17,23 +17,24 @@ const base =
   "inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
 /**
- * 3 variantes de botão na app:
- * - primary: ação principal destacada (ex.: "Começar" no onboarding) — gradiente suave
- * - outline: todas as ações normais (Cancelar, Guardar, Continuar, Adicionar, Pedir boleia, etc.) — fundo branco, borda cinzenta
- * - danger: ações destrutivas (Terminar sessão, Apagar conta, Remover em confirmações) — vermelho
- * (secondary/ghost: para fundos escuros, usar apenas em contextos específicos.)
+ * Variantes de botão:
+ * - primary: ação principal (CTA) — fundo preto, texto branco
+ * - secondary: ação secundária em contexto claro — fundo cinzento, texto preto
+ * - outline: ação secundária — borda cinzenta, texto preto, fundo branco
+ * - ghost: ação terciária — transparente, texto cinzento escuro
+ * - danger: ações destrutivas — vermelho
  */
 const variants: Record<Variant, string> = {
   primary:
-    "bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 font-semibold shadow-[0_8px_24px_rgba(180,120,120,0.2)] hover:shadow-[0_12px_28px_rgba(180,120,120,0.25)] hover:opacity-95 active:opacity-90 focus-visible:ring-gradient-end focus-visible:ring-offset-2",
+    "bg-gray-900 text-white font-semibold hover:bg-gray-700 active:bg-gray-800 focus-visible:ring-gray-900 focus-visible:ring-offset-2",
   secondary:
-    "bg-white/10 text-white border border-white/20 hover:bg-white/20 hover:border-white/30 hover:shadow-lg hover:shadow-white/10 focus-visible:ring-white/50 ring-offset-black backdrop-blur-md",
+    "bg-gray-100 text-gray-900 border border-gray-200 hover:bg-gray-200 hover:border-gray-300 focus-visible:ring-gray-400 ring-offset-white",
   outline:
-    "bg-white border border-gray-300 text-gray-800 hover:bg-gray-50 hover:border-gray-400 focus-visible:ring-gray-400 ring-offset-white",
+    "bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 hover:border-gray-400 focus-visible:ring-gray-400 ring-offset-white",
   ghost:
-    "bg-transparent text-white hover:bg-white/10 hover:backdrop-blur-sm focus-visible:ring-white/50 ring-offset-black",
+    "bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-400 ring-offset-white",
   danger:
-    "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/30 focus-visible:ring-red-500 ring-offset-black",
+    "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 ring-offset-white",
 };
 
 const sizes: Record<Size, string> = {

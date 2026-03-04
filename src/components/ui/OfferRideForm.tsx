@@ -304,7 +304,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
         <label htmlFor={`${id}-origem`} className="block text-xs font-semibold text-gray-600 mb-1">De onde?</label>
         <LocationInput
           id={`${id}-origem`}
-          className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-900/40"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-900/40"
           placeholder="Ex.: Estoril, estação, rua…"
           value={values.origem}
           lat={values.origemLat}
@@ -322,7 +322,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
         <label htmlFor={`${id}-destino`} className="block text-xs font-semibold text-gray-600 mb-1">Para onde?</label>
         <LocationInput
           id={`${id}-destino`}
-          className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-900/40"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-900/40"
           placeholder="Ex.: Lisboa, campus, morada…"
           value={values.destino}
           lat={values.destinoLat}
@@ -341,7 +341,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
           <label htmlFor={`${id}-data`} className="block text-xs font-semibold text-gray-600 mb-1">Dia</label>
           <input
             id={`${id}-data`}
-            className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
             type="date"
             value={values.data}
             onChange={(e) => set("data", e.target.value)}
@@ -365,7 +365,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
         <label htmlFor={`${id}-lugares`} className="block text-xs font-semibold text-gray-600 mb-1">Lugares disponíveis</label>
         <input
           id={`${id}-lugares`}
-          className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
           type="number"
           min={1}
           max={6}
@@ -462,10 +462,10 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
             min="0"
             step="0.10"
             className={cn(
-              "w-full px-3 py-2.5 border bg-white text-gray-900 rounded-xl outline-none focus:ring-2 focus:ring-[#FF719A]/20",
+              "w-full px-3 py-2.5 border bg-white text-gray-900 rounded-xl outline-none focus:ring-2 focus:ring-gray-900/10",
               touched.price && errors.price
                 ? "border-red-400 focus:border-red-400"
-                : "border-gray-200 focus:border-[#FF719A]"
+                : "border-gray-200 focus:border-gray-900"
             )}
             placeholder={selectedRoute ? `Sugestão: €${selectedRoute.breakdown.pricePerSeat.toFixed(2)}` : "0.00"}
             value={values.price ?? ""}
@@ -491,7 +491,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
             <input
               id={`${id}-aceita`}
               type="checkbox"
-              className="w-4 h-4 rounded border-white/30 bg-white/5"
+              className="w-4 h-4 rounded border-white/30 bg-white"
               checked={values.aceitaDesvios}
               onChange={(e) => set("aceitaDesvios", e.target.checked)}
             />
@@ -507,7 +507,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
           <label htmlFor={`${id}-desvio`} className="block text-xs font-semibold text-gray-600 mb-1">Desvio máx. (min)</label>
           <input
             id={`${id}-desvio`}
-            className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-white rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
             type="range"
             min={0}
             max={60}
@@ -529,7 +529,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
         <label htmlFor={`${id}-ponto`} className="block text-xs font-semibold text-gray-600 mb-1">Ponto de encontro</label>
         <input
           id={`${id}-ponto`}
-          className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-900/40"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-900/40"
           placeholder="Ex.: estação de Cascais, portaria, etc."
           value={values.pontoEncontro}
           onChange={(e) => set("pontoEncontro", e.target.value)}
@@ -543,7 +543,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
           <input
             id={`${id}-recorrente`}
             type="checkbox"
-            className="w-4 h-4 rounded border-white/30 bg-white/5"
+            className="w-4 h-4 rounded border-white/30 bg-white"
             checked={values.recorrente}
             onChange={(e) => set("recorrente", e.target.checked)}
           />
@@ -562,8 +562,8 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
                   className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
                     checked
-                      ? "bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 border-transparent"
-                      : "bg-white/5 text-gray-900 border-gray-200 hover:bg-white/10"
+                      ? "bg-gray-900 text-white border-transparent"
+                      : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
                   )}
                   aria-pressed={checked}
                   onClick={() => {
@@ -587,7 +587,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
         <label htmlFor={`${id}-obs`} className="block text-xs font-semibold text-gray-600 mb-1">Observações</label>
         <textarea
           id={`${id}-obs`}
-          className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 resize-none placeholder:text-gray-900/40"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 resize-none placeholder:text-gray-900/40"
           rows={3}
           placeholder="Ex.: trago mochila grande, prefiro silêncio, etc."
           value={values.observacoes}
@@ -609,7 +609,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
           <label key={key} className="flex items-center gap-2 text-sm text-gray-900">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-white/30 bg-white/5"
+              className="w-4 h-4 rounded border-white/30 bg-white"
               checked={values.preferencias[key]}
               onChange={(e) => setPref(key, e.target.checked)}
             />

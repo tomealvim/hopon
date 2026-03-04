@@ -404,7 +404,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       <section className="mt-6 mb-4 mx-4">
         <div className="flex items-center gap-4">
           {/* Avatar */}
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gradient-start via-gradient-mid to-gradient-end text-gray-900 flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden shadow-md ring-2 ring-gray-200" aria-hidden>
+          <div className="w-16 h-16 rounded-full bg-gray-900 text-white flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden ring-2 ring-gray-200" aria-hidden>
             {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initials(name)}</span>}
           </div>
 
@@ -416,7 +416,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             {/* Badge de verificação - só texto "Verificado", sem emojis */}
             {(verification.email || verification.phone) && (
               <div className="flex items-center gap-2 mt-1.5">
-                <span className="text-xs text-emerald-700 flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 ring-1 ring-emerald-500/40">
+                <span className="text-xs text-green-700 flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full bg-green-50 ring-1 ring-green-200">
                   ✓ Verificado
                 </span>
               </div>
@@ -471,10 +471,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           <>
             {/* Próxima boleia - card simples */}
             {primaryRide && (
-              <div className="rounded-2xl bg-gradient-to-br from-gradient-start via-gradient-mid to-gradient-end text-gray-900 px-4 py-3 mb-3 shadow-md ring-1 ring-black/5 animate-fade-in">
-                <p className="text-xs uppercase tracking-wide text-gray-700 font-semibold">Próxima boleia</p>
+              <div className="rounded-2xl bg-gray-900 text-white px-4 py-3 mb-3 shadow-sm animate-fade-in">
+                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">Próxima boleia</p>
                 <p className="text-base font-bold mt-0.5">{primaryRide.block.title ?? "Boleia"}</p>
-                <p className="text-sm text-gray-800 mt-0.5">
+                <p className="text-sm text-gray-300 mt-0.5">
                   {getDayLabel(primaryRide.day)} · {primaryRide.block.start}–{primaryRide.block.end}
                 </p>
               </div>
@@ -662,9 +662,9 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
 
       {/* ========== ADMIN (apenas visível para admins) ========== */}
       {user?.isAdmin && (
-        <nav className="bg-white border border-brand/30 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Admin">
-          <div className="px-4 py-3 bg-brand/5 border-b border-brand/20">
-            <h3 className="text-xs font-bold text-brand uppercase tracking-wide">Administração</h3>
+        <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Admin">
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">Administração</h3>
           </div>
           <ListRow label="Painel Admin" onClick={() => setOpenAdminPanel(true)} />
         </nav>
@@ -691,7 +691,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         <div className="grid gap-6">
           {/* Foto */}
           <div className="flex flex-col items-center gap-3 pb-6 border-b border-gray-200">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-gradient-start via-gradient-mid to-gradient-end text-gray-900 flex items-center justify-center text-3xl font-bold overflow-hidden shadow-lg ring-4 ring-primary/10" aria-label="Foto de perfil">
+            <div className="w-28 h-28 rounded-full bg-gray-900 text-white flex items-center justify-center text-3xl font-bold overflow-hidden ring-4 ring-gray-100" aria-label="Foto de perfil">
               {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initials(name)}</span>}
             </div>
             <div className="flex flex-col items-center gap-2">

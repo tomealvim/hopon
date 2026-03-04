@@ -106,7 +106,7 @@ export default function ProfileSetupPage() {
       {/* Progress bar */}
       <div className="h-1 bg-gray-100">
         <div
-          className="h-1 bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end transition-all duration-300"
+          className="h-1 bg-gray-900 transition-all duration-300"
           style={{ width: `${(step / 4) * 100}%` }}
         />
       </div>
@@ -263,7 +263,7 @@ export default function ProfileSetupPage() {
           type="button"
           disabled={!canAdvance() || saving}
           onClick={isLast ? handleFinish : handleNext}
-          className="w-full h-14 rounded-full bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 font-bold text-sm tracking-wide shadow-lg active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gradient-end"
+          className="w-full h-14 rounded-full bg-gray-900 text-white font-bold text-sm tracking-wide shadow-sm active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-900"
         >
           {saving ? "A guardar…" : isLast ? "Entrar na app →" : "Continuar →"}
         </button>

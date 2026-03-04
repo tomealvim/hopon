@@ -107,11 +107,11 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
           disabled={isFinalScreen && !agreedToTerms}
           className={cn(
             "flex items-center justify-center font-semibold text-gray-900 transition shadow-md",
-            "bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end",
+            "bg-gray-900 text-white",
             isFinalScreen ? "px-8 h-14 rounded-full text-sm uppercase tracking-[0.15em]" : "px-6 h-14 rounded-full text-[15px]",
             "active:scale-95",
             "disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gradient-end focus-visible:ring-offset-white"
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-900 focus-visible:ring-offset-white"
           )}
           aria-label={isFinalScreen ? "Começar" : "Seguinte"}
         >
@@ -254,7 +254,7 @@ function Screen4({
 function BenefitItem({ text }: { text: string }) {
   return (
     <div className="flex items-center gap-3 rounded-full bg-gray-50 border border-gray-200 px-4 py-3 shadow-sm">
-      <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-semibold bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 shadow-md">
+      <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-semibold bg-gray-900 text-white">
         ✓
       </div>
       <span className="text-base text-gray-900 font-medium">{text}</span>

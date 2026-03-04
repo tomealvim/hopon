@@ -88,7 +88,7 @@ export default function PublicProfileSheet({ userId, open, onClose }: Props) {
                 className="w-16 h-16 rounded-full object-cover shadow"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gradient-start via-gradient-mid to-gradient-end flex items-center justify-center text-xl font-bold text-gray-900 shadow">
+              <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center text-xl font-bold text-white">
                 {initials}
               </div>
             )}

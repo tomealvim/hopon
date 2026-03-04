@@ -50,7 +50,7 @@ export default function EntityCard({
             </Button>
           )}
           {onSecondary && (
-            <Button block variant="secondary" onClick={onSecondary}>
+            <Button block variant="outline" onClick={onSecondary}>
               {secondaryLabel}
             </Button>
           )}

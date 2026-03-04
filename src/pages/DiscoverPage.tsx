@@ -307,7 +307,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                       <h2 className="text-sm font-bold text-gray-800">As tuas rotas</h2>
                       <button
                         type="button"
-                        className="text-xs text-brand font-semibold"
+                        className="text-xs text-gray-900 font-semibold"
                         onClick={() => setOpenSaveRoute(true)}
                       >
                         + Adicionar
@@ -476,7 +476,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         height="lg"
         footer={
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={() => setOpenDetail(false)}>
+            <Button variant="outline" className="flex-1" onClick={() => setOpenDetail(false)}>
               Fechar
             </Button>
             {detailRide && detailRide.driverId !== user?.id && detailRide.remainingSeats > 0 && (
@@ -497,16 +497,18 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         {!detailLoading && detailRide && (
           <div className="grid gap-4 p-1">
             <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-              <div className="flex items-start gap-2">
-                <span className="text-lg">📍</span>
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 w-5 h-5 rounded-full bg-gray-900 flex-shrink-0 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-white" />
+                </div>
                 <div>
                   <div className="text-xs text-gray-500">Origem</div>
                   <div className="font-semibold text-sm text-gray-900">{detailRide.origin}</div>
                 </div>
               </div>
-              <div className="h-px bg-gray-100" />
-              <div className="flex items-start gap-2">
-                <span className="text-lg">🎯</span>
+              <div className="ml-2.5 h-4 w-px bg-gray-300" />
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 w-5 h-5 rounded-full border-2 border-gray-900 flex-shrink-0" />
                 <div>
                   <div className="text-xs text-gray-500">Destino</div>
                   <div className="font-semibold text-sm text-gray-900">{detailRide.destination}</div>
@@ -561,7 +563,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                     {detailRide.driver.profile?.username && (
                       <div className="text-xs text-gray-500">@{detailRide.driver.profile.username}</div>
                     )}
-                    <div className="text-[10px] text-blue-500 mt-0.5">Ver perfil →</div>
+                    <div className="text-[10px] text-gray-500 mt-0.5">Ver perfil →</div>
                   </div>
                 </button>
                 {detailRide.driverId !== user?.id && (

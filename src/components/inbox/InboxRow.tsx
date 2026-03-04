@@ -24,7 +24,7 @@ export default function InboxRow({
         {subtitle && <div className="text-xs text-gray-600 mt-0.5">{subtitle}</div>}
       </div>
       <div className="flex items-center gap-2 ml-3">
-        {cta && <span className="text-xs font-medium text-gray-900 px-2 py-1 bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end rounded">{cta}</span>}
+        {cta && <span className="text-xs font-medium text-white px-2 py-1 bg-gray-900 rounded">{cta}</span>}
         {unread && unread > 0 && (
           <span className="min-w-5 h-5 flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full px-1.5" aria-label={`${unread} mensagens não lidas`}>
             {unread}
