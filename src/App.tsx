@@ -174,7 +174,7 @@ function AppContent() {
                   <div className="text-xs font-semibold text-gray-900">{user?.profile?.name || "Perfil"}</div>
                   <div className="text-[10px] text-gray-500">Ver perfil</div>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gradient-start via-gradient-mid to-gradient-end text-gray-900 flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-gray-200">
+                <div className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-bold">
                   {user?.profile?.name?.charAt(0).toUpperCase() || "U"}
                 </div>
               </button>

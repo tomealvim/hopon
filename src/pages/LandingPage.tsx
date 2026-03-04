@@ -124,7 +124,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
           <p className="text-sm text-gray-500 mb-8">Junta-te a quem já está a poupar nas viagens diárias.</p>
           <button
             onClick={() => onStart("register")}
-            className="w-full h-14 rounded-full bg-gradient-to-r from-[#FFD6A5] via-[#FFAEC0] to-[#FF719A] text-gray-900 text-sm font-bold shadow-md active:scale-95 transition-transform"
+            className="w-full h-14 rounded-full bg-gray-900 text-white text-sm font-bold shadow-sm active:scale-95 transition-transform"
           >
             Começar agora →
           </button>

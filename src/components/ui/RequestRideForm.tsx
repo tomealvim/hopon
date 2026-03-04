@@ -123,7 +123,7 @@ export default function RequestRideForm({ initial, onCancel, onSubmit }: Request
         <label htmlFor={`${id}-origem`} className="block text-xs font-semibold text-gray-600 mb-1">De onde?</label>
         <input
           id={`${id}-origem`}
-          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-400"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-400"
           placeholder="Ex.: Estoril, estação, rua…"
           value={values.origem}
           onChange={e=>set("origem", e.target.value)}
@@ -137,7 +137,7 @@ export default function RequestRideForm({ initial, onCancel, onSubmit }: Request
         <label htmlFor={`${id}-destino`} className="block text-xs font-semibold text-gray-600 mb-1">Para onde?</label>
         <input
           id={`${id}-destino`}
-          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-400"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-400"
           placeholder="Ex.: ULisboa Ciências, campus, morada…"
           value={values.destino}
           onChange={e=>set("destino", e.target.value)}
@@ -151,7 +151,7 @@ export default function RequestRideForm({ initial, onCancel, onSubmit }: Request
         <label htmlFor={`${id}-data`} className="block text-xs font-semibold text-gray-600 mb-1">Dia</label>
         <input
           id={`${id}-data`}
-          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
           type="date"
           value={values.data}
           onChange={e=>set("data", e.target.value)}
@@ -192,7 +192,7 @@ export default function RequestRideForm({ initial, onCancel, onSubmit }: Request
           <label htmlFor={`${id}-passageiros`} className="block text-xs font-semibold text-gray-600 mb-1">Passageiros</label>
           <input
             id={`${id}-passageiros`}
-            className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
             type="number"
             min={1}
             max={6}
@@ -208,7 +208,7 @@ export default function RequestRideForm({ initial, onCancel, onSubmit }: Request
           <label htmlFor={`${id}-urgencia`} className="block text-xs font-semibold text-gray-600 mb-1">Urgência</label>
           <select
             id={`${id}-urgencia`}
-            className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
             value={values.urgencia}
             onChange={e=>set("urgencia", e.target.value as "baixa" | "media" | "alta")}
           >
@@ -238,7 +238,7 @@ export default function RequestRideForm({ initial, onCancel, onSubmit }: Request
             <label htmlFor={`${id}-desvio`} className="block text-xs font-semibold text-gray-600 mb-1">Desvio máx. (min)</label>
             <input
               id={`${id}-desvio`}
-              className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
+              className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
               type="range"
               min={0}
               max={60}
@@ -260,7 +260,7 @@ export default function RequestRideForm({ initial, onCancel, onSubmit }: Request
         <label htmlFor={`${id}-orcamento`} className="block text-xs font-semibold text-gray-600 mb-1">Orçamento máx. (€)</label>
         <input
           id={`${id}-orcamento`}
-          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-400"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-400"
           type="number"
           min={0}
           step={0.5}
@@ -277,7 +277,7 @@ export default function RequestRideForm({ initial, onCancel, onSubmit }: Request
         <label htmlFor={`${id}-contacto`} className="block text-xs font-semibold text-gray-600 mb-1">Contacto</label>
         <input
           id={`${id}-contacto`}
-          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-400"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-400"
           placeholder="Telefone ou email"
           value={values.contacto}
           onChange={e=>set("contacto", e.target.value)}
@@ -331,7 +331,7 @@ export default function RequestRideForm({ initial, onCancel, onSubmit }: Request
         <label htmlFor={`${id}-obs`} className="block text-xs font-semibold text-gray-600 mb-1">Observações</label>
         <textarea
           id={`${id}-obs`}
-          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 resize-none placeholder:text-gray-400"
+          className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 resize-none placeholder:text-gray-400"
           rows={3}
           placeholder="Ex.: preciso de ajuda com bagagem, tenho horário flexível, etc."
           value={values.observacoes}

@@ -187,7 +187,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
           <input
             id={`${id}-origem`}
             type="text"
-            className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-900/40"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-900/40"
             placeholder="Ex.: Estoril, estação, rua…"
             value={origin}
             onChange={(e) => setOrigin(e.target.value)}
@@ -198,7 +198,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
           <input
             id={`${id}-destino`}
             type="text"
-            className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-900/40"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-900/40"
             placeholder="Ex.: ULisboa Ciências, campus…"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
@@ -216,7 +216,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
               type="number"
               min={1}
               max={8}
-              className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20"
+              className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
               value={availableSeats}
               onChange={(e) => setAvailableSeats(parseInt(e.target.value, 10) || 1)}
             />
@@ -230,7 +230,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
               type="text"
               inputMode="decimal"
               placeholder="0"
-              className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl placeholder:text-gray-900/40"
+              className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl placeholder:text-gray-900/40"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
             />
@@ -239,7 +239,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
             <label className="flex items-center gap-2 text-sm text-gray-900">
               <input
                 type="checkbox"
-                className="w-4 h-4 rounded border-white/30 bg-white/5"
+                className="w-4 h-4 rounded border-white/30 bg-white"
                 checked={acceptDetours}
                 onChange={(e) => setAcceptDetours(e.target.checked)}
               />
@@ -270,7 +270,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
           <input
             id={`${id}-ponto`}
             type="text"
-            className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 placeholder:text-gray-900/40"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-900/40"
             placeholder="Ex.: estação de Cascais, portaria"
             value={meetingPoint}
             onChange={(e) => setMeetingPoint(e.target.value)}
@@ -289,8 +289,8 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
                   className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
                     checked
-                      ? "bg-gradient-to-r from-gradient-start via-gradient-mid to-gradient-end text-gray-900 border-transparent"
-                      : "bg-white/5 text-gray-900 border-gray-200 hover:bg-white/10"
+                      ? "bg-gray-900 text-white border-transparent"
+                      : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
                   )}
                   aria-pressed={checked}
                   onClick={() => toggleDay(value)}
@@ -307,7 +307,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
           <textarea
             id={`${id}-obs`}
             rows={2}
-            className="w-full px-3 py-2.5 border border-gray-200 bg-white/5 text-gray-900 rounded-xl outline-none focus:border-[#FF719A] focus:ring-2 focus:ring-[#FF719A]/20 resize-none placeholder:text-gray-900/40"
+            className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 resize-none placeholder:text-gray-900/40"
             placeholder="Ex.: trago mochila grande, prefiro silêncio"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -318,19 +318,19 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
           <legend className="block text-xs font-semibold text-gray-600 mb-1">Preferências</legend>
           <div className="grid grid-cols-2 gap-2">
             <label className="flex items-center gap-2 text-sm text-gray-900">
-              <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white/5" checked={preferences.musica} onChange={(e) => setPref("musica", e.target.checked)} />
+              <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white" checked={preferences.musica} onChange={(e) => setPref("musica", e.target.checked)} />
               Música
             </label>
             <label className="flex items-center gap-2 text-sm text-gray-900">
-              <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white/5" checked={preferences.falar} onChange={(e) => setPref("falar", e.target.checked)} />
+              <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white" checked={preferences.falar} onChange={(e) => setPref("falar", e.target.checked)} />
               Conversa
             </label>
             <label className="flex items-center gap-2 text-sm text-gray-900">
-              <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white/5" checked={preferences.bagagem} onChange={(e) => setPref("bagagem", e.target.checked)} />
+              <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white" checked={preferences.bagagem} onChange={(e) => setPref("bagagem", e.target.checked)} />
               Bagagem
             </label>
             <label className="flex items-center gap-2 text-sm text-gray-900">
-              <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white/5" checked={preferences.animais} onChange={(e) => setPref("animais", e.target.checked)} />
+              <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white" checked={preferences.animais} onChange={(e) => setPref("animais", e.target.checked)} />
               Animais
             </label>
           </div>

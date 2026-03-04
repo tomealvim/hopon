@@ -203,23 +203,15 @@ body {
   display: none;
 }
 
-/* ===== glassmorphism avançado ===== */
+/* ===== cards limpos ===== */
 .glass-card {
-  background: linear-gradient(
-    135deg, 
-    rgba(255, 255, 255, 0.9) 0%, 
-    rgba(255, 255, 255, 0.7) 100%
-  );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.06);
 }
 
 .glass-card-subtle {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
@@ -259,10 +251,10 @@ html {
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(255, 226, 159, 0.3);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
   }
   50% {
-    box-shadow: 0 0 40px rgba(255, 113, 154, 0.5);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.12);
   }
 }
 
