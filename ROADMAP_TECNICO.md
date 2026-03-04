@@ -441,3 +441,70 @@ Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
 - Passageiros CONFIRMED recebem: "A tua boleia parte em 1 hora — {origem} → {destino} às {hora}"
 - Condutor recebe (se houver passageiros): "A tua boleia parte em 1 hora — N lugares reservados"
 - `POST /scheduler/trigger-reminders` — aciona manualmente para testes
+
+---
+
+## Fase 10 — Design & Infraestrutura Beta
+
+| # | Item | Estado |
+|---|---|---|
+| 10.1 | Redesign white + preto minimal | ✅ Concluído |
+| 10.2 | Migrar frontend Vercel → Railway | ⏳ A configurar |
+| 10.3 | Reset DB (limpar dados de teste) | ⏳ Pendente |
+| 10.4 | Configurar domínio personalizado | ⏳ Opcional |
+
+---
+
+### 10.1 — Redesign white + preto minimal ✅
+
+- Eliminados todos os gradientes (botões, FAB, avatares, badges, inputs)
+- Paleta: branco `#FFFFFF` + preto `#111827` como único acento
+- Botão primary: preto sólido + texto branco (antes: gradiente beige→mauve)
+- Badges com fundo sólido e alto contraste (antes: transparências white/10 invisíveis)
+- BottomNav FAB: preto sólido
+- DiscoverTopBar: underline no tab ativo, sem pills
+- Mensagens próprias no inbox: preto sólido
+- Focus rings: cinzento escuro (antes: rosa #FF719A)
+- Commits: `design: redesign white + preto minimal`
+
+---
+
+### 10.2 — Migrar frontend Vercel → Railway ⏳
+
+**Objetivo:** tudo numa plataforma só — menos contas, menos configs, logs centralizados.
+
+**`railway.json` criado na raiz do repo:**
+```json
+{
+  "build": { "builder": "NIXPACKS", "buildCommand": "npm ci && npm run build" },
+  "deploy": { "startCommand": "npx serve -s dist -l $PORT" }
+}
+```
+
+**Passos para concluir:**
+1. Railway Dashboard → projeto HopOn → **New Service** → **GitHub Repo** → `hopon`
+2. Root Directory: deixar vazio (raiz `/`)
+3. Adicionar env vars de build (ver secção abaixo)
+4. Deploy → aguardar build
+5. Settings → Networking → **Generate Domain** para URL público
+6. Vercel Dashboard → Settings → **Delete Project**
+7. Atualizar `VITE_API_URL` se o URL do backend mudar
+
+**Env vars obrigatórias no serviço frontend do Railway:**
+```
+VITE_API_URL=https://hopon-production-5bd2.up.railway.app/api/v1
+VITE_MAPBOX_TOKEN=pk.xxx...
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_xxx...
+```
+
+---
+
+### 10.3 — Reset DB (limpar dados de teste) ⏳
+
+Railway Dashboard → serviço **PostgreSQL** → aba **Query**:
+
+```sql
+TRUNCATE TABLE "User" CASCADE;
+```
+
+Apaga tudo em cascata (utilizadores, boleias, reservas, wallets, mensagens, notificações). Schema mantém-se intacto.
