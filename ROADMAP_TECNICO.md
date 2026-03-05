@@ -567,3 +567,115 @@ Apaga tudo em cascata (utilizadores, boleias, reservas, wallets, mensagens, noti
 - Key gerada no Apple Developer Portal
 
 > ⚠️ Apple Sign-In é obrigatório nas App Stores se a app oferecer outros social logins. Para PWA/web é opcional.
+
+---
+
+## Fase 12 — App Store (iOS) + Google Play (Android)
+
+> O projeto já tem Capacitor configurado. Os scripts `cap:ios` e `cap:android` já existem no `package.json`.
+
+| # | Item | Estado |
+|---|---|---|
+| 12.1 | Preparar assets nativos (ícones + splash) | ⏳ Pendente |
+| 12.2 | Adaptar UI para safe areas (notch, home bar) | ⏳ Pendente |
+| 12.3 | Push notifications nativas (Capacitor) | ⏳ Pendente |
+| 12.4 | Política de privacidade + Termos de uso | ⏳ Pendente |
+| 12.5 | Submeter na App Store (iOS) | ⏳ Pendente |
+| 12.6 | Submeter no Google Play (Android) | ⏳ Pendente |
+
+---
+
+### Pré-requisitos e custos
+
+| Requisito | Custo | Notas |
+|---|---|---|
+| Apple Developer Account | **$99/ano** | Obrigatório para iOS. Partilhado com Apple Sign-In (Fase 11) |
+| Google Play Developer Account | **$25 (taxa única)** | Obrigatório para Android |
+| Mac com Xcode | — | Obrigatório para build iOS. Não é possível fazer build iOS no Windows |
+| Android Studio | Grátis | Para build Android (também funciona no Windows) |
+
+---
+
+### 12.1 — Assets nativos
+
+- Ícone: **1024×1024px** PNG sem transparência (iOS) e vários tamanhos (Android)
+- Splash screen: fundo branco com logo centrado
+- Ferramenta recomendada: `@capacitor/assets` — gera todos os tamanhos automaticamente a partir de 1 ficheiro
+
+```bash
+npm install @capacitor/assets --save-dev
+npx capacitor-assets generate
+```
+
+---
+
+### 12.2 — Safe areas
+
+Adicionar ao CSS global para respeitar notch e home bar:
+```css
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+```
+
+E no `capacitor.config.ts`:
+```ts
+ios: { contentInset: 'always' }
+```
+
+---
+
+### 12.3 — Push notifications nativas
+
+Substituir o web-push atual por `@capacitor/push-notifications` para notificações nativas iOS/Android:
+```bash
+npm install @capacitor/push-notifications
+```
+- iOS: requer certificado APNs no Apple Developer Portal
+- Android: usa Firebase Cloud Messaging (FCM) — criar projeto no Firebase
+
+---
+
+### 12.4 — Política de privacidade + Termos de uso
+
+**Obrigatório em ambas as stores.** Sem estes documentos a submissão é rejeitada.
+- Hospedar numa página pública (ex: `hopon.pt/privacy`, `hopon.pt/terms`)
+- Incluir: dados recolhidos, uso, retenção, RGPD, contacto
+
+---
+
+### 12.5 — Submeter na App Store (iOS)
+
+1. Xcode → abrir projeto: `npx cap open ios`
+2. Product → Archive → Distribute App → App Store Connect
+3. App Store Connect → criar app → preencher metadados:
+   - Nome, descrição, palavras-chave
+   - Screenshots (6.7" iPhone obrigatório)
+   - Categoria: Travel ou Transportation
+   - Política de privacidade URL
+4. Submeter para review — **1 a 7 dias úteis**
+
+> ⚠️ A Apple rejeita apps sem funcionalidade real ou que sejam só PWA wrapper. A HopOn tem funcionalidade nativa suficiente.
+
+---
+
+### 12.6 — Submeter no Google Play (Android)
+
+1. Build: `npx cap build android` ou Android Studio → Generate Signed Bundle
+2. Google Play Console → criar app → preencher ficha:
+   - Descrição, screenshots, ícone
+   - Categoria: Travel & Local
+   - Política de privacidade URL
+3. Criar release no track "Internal testing" primeiro → depois "Production"
+4. Review inicial: **alguns dias** (reviews seguintes são mais rápidas)
+
+---
+
+### Ordem recomendada
+
+1. Implementar Fase 11 (Apple Sign-In) — obrigatório pela Apple se houver Google login
+2. Criar Apple Developer Account
+3. Build iOS num Mac → submeter
+4. Build Android → submeter no Google Play
+5. Aguardar aprovações
