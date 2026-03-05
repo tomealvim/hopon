@@ -453,6 +453,20 @@ Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
 | 10.3 | Reset DB (limpar dados de teste) | ✅ Concluído |
 | 10.4 | Configurar domínio personalizado | ⏳ Opcional |
 
+### Testar no telemóvel (PWA) — recomendado
+
+Instalar como PWA para ter experiência idêntica a app nativa (sem barra do browser):
+
+**iPhone:**
+1. Abrir `hopon.up.railway.app` no **Safari**
+2. Botão de partilha (⬆️) → **"Adicionar ao ecrã inicial"**
+
+**Android:**
+1. Abrir `hopon.up.railway.app` no **Chrome**
+2. Menu `⋮` → **"Adicionar ao ecrã inicial"** (ou aceitar o banner automático)
+
+A app fica no ecrã inicial com ícone próprio e abre em fullscreen — sem barra do browser.
+
 ---
 
 ### 10.1 — Redesign white + preto minimal ✅
