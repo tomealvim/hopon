@@ -744,3 +744,116 @@ npm install @capacitor/push-notifications
 6. Build iOS num Mac → Internal TestFlight → submeter para App Store
 7. Build Android → Internal testing no Play Console → submeter para Production
 8. Aguardar aprovações (fazer em paralelo — não há dependência entre as duas)
+
+---
+
+## Fase 13 — Segurança (antes do lançamento público)
+
+> Análise feita em Março 2026. O estado geral é bom para beta, mas há 3 problemas a corrigir antes de abrir ao público.
+
+| # | Item | Prioridade | Estado |
+|---|---|---|---|
+| 13.1 | Google Vision API key exposta no frontend | 🔴 Crítico | ⏳ Pendente |
+| 13.2 | Adicionar Helmet.js ao backend | 🟡 Importante | ⏳ Pendente |
+| 13.3 | Desativar Swagger em produção | 🟡 Importante | ⏳ Pendente |
+
+---
+
+### O que já está bem (não tocar)
+
+- ✅ **bcrypt** nas passwords — hashing seguro com salt
+- ✅ **JWT + refresh tokens** — autenticação stateless com rotação de tokens
+- ✅ **OTP** — verificação de email por código de uso único
+- ✅ **Rate limiting** — 60 req/min global, 5/15min em auth, 3/15min em OTP
+- ✅ **CORS** restrito ao domínio do frontend
+- ✅ **ValidationPipe** com `whitelist + forbidNonWhitelisted` — rejeita campos desconhecidos
+- ✅ **Prisma** — queries parametrizadas, imune a SQL injection
+- ✅ **Stripe webhook** com verificação de assinatura (`whsec_`)
+- ✅ **Sentry** para monitorização de erros em produção
+- ✅ **ALLOW_TEST_VERIFY** protegido por env var — não funciona sem a flag ativa
+
+---
+
+### 13.1 — Google Vision API key exposta no frontend 🔴
+
+**Problema:**
+O ficheiro `src/config/google.ts` tem a key hardcoded:
+```ts
+export const GOOGLE_VISION_API_KEY = "***REMOVED-GOOGLE-API-KEY***";
+```
+Esta key fica visível no bundle JS compilado — qualquer pessoa pode ver no DevTools do browser e usar a quota do Google Cloud (que custa dinheiro).
+
+**Pesquisar antes de implementar:**
+- Google Cloud Console → APIs & Services → Credentials → editar a key → "Application restrictions" → HTTP referrers → adicionar `hopon.up.railway.app/*`
+- Isto limita a key a só funcionar quando o pedido vem do domínio da app — mesmo que alguém copie a key, não consegue usar noutro sítio
+
+**Solução alternativa (mais segura):**
+- Mover a chamada à Google Vision API para o backend (NestJS)
+- Frontend envia a imagem para `POST /api/v1/schedule/scan` → backend chama a Vision API com a key em env var
+- Key nunca sai do servidor
+
+**Recomendação:** fazer as duas coisas — restringir no Google Console agora (5 min) e mover para o backend quando houver tempo.
+
+---
+
+### 13.2 — Helmet.js no backend 🟡
+
+**Problema:**
+O backend não tem Helmet — faltam headers de segurança HTTP que os browsers esperam:
+- `X-Frame-Options` — previne clickjacking (a app ser embutida num iframe malicioso)
+- `X-Content-Type-Options` — previne MIME sniffing
+- `Strict-Transport-Security` — força HTTPS
+- `Content-Security-Policy` — controla de onde a app pode carregar recursos
+
+**Implementação (5 minutos):**
+```bash
+cd backend && npm install helmet
+```
+
+Em `backend/src/main.ts`, adicionar antes do `app.enableCors()`:
+```ts
+import helmet from 'helmet';
+app.use(helmet());
+```
+
+**Pesquisar antes de implementar:**
+- Verificar se o Helmet conflitua com o Swagger UI (às vezes o CSP bloqueia os assets do Swagger)
+- Se conflituar: `app.use(helmet({ contentSecurityPolicy: false }))` resolve
+
+---
+
+### 13.3 — Desativar Swagger em produção 🟡
+
+**Problema:**
+`/api/docs` está acessível publicamente em produção (`hopon-production-5bd2.up.railway.app/api/docs`), expondo toda a estrutura da API — endpoints, parâmetros, modelos de dados. Facilita ataques direcionados.
+
+**Implementação:**
+Em `backend/src/main.ts`, envolver o setup do Swagger com verificação de ambiente:
+```ts
+if (process.env.NODE_ENV !== 'production') {
+  const config = new DocumentBuilder()...
+  SwaggerModule.setup('api/docs', app, document);
+}
+```
+
+Ou proteger com password básica usando `express-basic-auth`:
+```bash
+npm install express-basic-auth
+```
+```ts
+import basicAuth from 'express-basic-auth';
+app.use('/api/docs', basicAuth({ users: { admin: process.env.SWAGGER_PASSWORD }, challenge: true }));
+```
+
+**Recomendação:** desativar em produção é mais simples e mais seguro. Swagger só é necessário em desenvolvimento local.
+
+---
+
+### Resumo — o que fazer e quando
+
+| Quando | Ação |
+|---|---|
+| **Antes de lançar ao público** | Corrigir os 3 itens acima |
+| **Agora (5 min)** | Restringir Google Vision key por domínio no Google Cloud Console |
+| **Próxima sessão de código** | Helmet.js + desativar Swagger em produção |
+| **Quando houver tempo** | Mover chamada Vision API para o backend |
