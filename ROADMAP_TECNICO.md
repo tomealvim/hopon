@@ -450,7 +450,7 @@ Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
 |---|---|---|
 | 10.1 | Redesign white + preto minimal | ✅ Concluído |
 | 10.2 | Migrar frontend Vercel → Railway | ✅ Concluído — hopon.up.railway.app |
-| 10.3 | Reset DB (limpar dados de teste) | ⏳ Pendente |
+| 10.3 | Reset DB (limpar dados de teste) | ✅ Concluído |
 | 10.4 | Configurar domínio personalizado | ⏳ Opcional |
 
 ---
