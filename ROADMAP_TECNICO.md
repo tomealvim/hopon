@@ -647,35 +647,100 @@ npm install @capacitor/push-notifications
 
 ### 12.5 — Submeter na App Store (iOS)
 
-1. Xcode → abrir projeto: `npx cap open ios`
-2. Product → Archive → Distribute App → App Store Connect
-3. App Store Connect → criar app → preencher metadados:
-   - Nome, descrição, palavras-chave
-   - Screenshots (6.7" iPhone obrigatório)
-   - Categoria: Travel ou Transportation
-   - Política de privacidade URL
-4. Submeter para review — **1 a 7 dias úteis**
+**Tempo de review: 1 a 7 dias úteis** (às vezes mais rápido, raramente mais lento)
 
-> ⚠️ A Apple rejeita apps sem funcionalidade real ou que sejam só PWA wrapper. A HopOn tem funcionalidade nativa suficiente.
+**Processo:**
+1. Xcode → abrir projeto: `npx cap open ios`
+2. Definir Bundle ID (ex: `pt.hopon.app`) e versão (ex: 1.0.0)
+3. Product → Archive → Distribute App → App Store Connect
+4. App Store Connect (`appstoreconnect.apple.com`) → My Apps → criar nova app
+5. Preencher obrigatoriamente:
+   - **Nome da app** (max 30 chars): "HopOn"
+   - **Subtítulo** (max 30 chars): ex. "Carpooling para estudantes"
+   - **Descrição** (max 4000 chars)
+   - **Palavras-chave** (max 100 chars): "carpooling, boleia, partilha, viagem"
+   - **Screenshots**: obrigatório 6.7" (iPhone 15 Pro Max) — pelo menos 3 imagens
+   - **Categoria principal**: Travel
+   - **URL da política de privacidade**: obrigatório
+   - **Classificação etária**: preencher questionário (provavelmente 4+)
+6. Submeter para review
+
+**Causas comuns de rejeição pela Apple:**
+- Sem Apple Sign-In (se tiver Google/Facebook login) — **Guideline 4.8**
+- Política de privacidade em falta ou URL inválido
+- App crashar durante o review
+- Funcionalidade bloqueada (ex: precisar de conta de teste e não fornecer credenciais ao reviewer)
+- UI com elementos quebrados ou texto placeholder
+- Pagamentos fora do sistema Apple (para bens digitais) — **a HopOn é carpooling (serviço físico) por isso está isenta**
+- Screenshots que não correspondem à app real
+
+> ⚠️ Fornecer sempre conta de teste no campo "Notes for App Review" com email e password para o reviewer conseguir entrar.
+
+**Atualizações futuras:**
+- Cada atualização passa pelo mesmo processo de review
+- Demora tipicamente menos (1-3 dias) para apps já aprovadas
+- Bugs críticos podem ser corrigidos com "Expedited Review" (pedido especial, não garantido)
 
 ---
 
 ### 12.6 — Submeter no Google Play (Android)
 
-1. Build: `npx cap build android` ou Android Studio → Generate Signed Bundle
-2. Google Play Console → criar app → preencher ficha:
-   - Descrição, screenshots, ícone
-   - Categoria: Travel & Local
-   - Política de privacidade URL
-3. Criar release no track "Internal testing" primeiro → depois "Production"
-4. Review inicial: **alguns dias** (reviews seguintes são mais rápidas)
+**Tempo de review: horas a 3 dias** (primeira submissão pode demorar mais)
+
+**Processo:**
+1. Build: Android Studio → Build → Generate Signed Bundle/APK → Android App Bundle (.aab)
+   - Criar keystore na primeira vez e **guardar em local seguro** — sem ela não podes atualizar a app
+2. Google Play Console (`play.google.com/console`) → criar app
+3. Preencher obrigatoriamente:
+   - **Título**: "HopOn"
+   - **Descrição curta** (max 80 chars)
+   - **Descrição longa** (max 4000 chars)
+   - **Screenshots**: mínimo 2 (telemóvel), recomendado 4-8
+   - **Ícone**: 512×512px
+   - **Feature graphic**: 1024×500px (banner)
+   - **Categoria**: Travel & Local
+   - **URL da política de privacidade**: obrigatório
+   - **Classificação de conteúdo**: preencher questionário
+4. Criar release:
+   - **Internal testing** primeiro → partilhar com testers pelo email
+   - Depois **Closed testing (Alpha)** → **Open testing (Beta)** → **Production**
+   - Não ir direto para Production na primeira vez
+
+**Causas comuns de rejeição pelo Google Play:**
+- Política de privacidade em falta
+- Permissões declaradas que a app não usa (ex: câmara sem justificação)
+- App que crashar
+- Metadados enganosos (screenshots que não correspondem à app)
+- Conteúdo restrito sem aviso de classificação
+
+> ⚠️ A keystore do Android é **irreversível** — se a perderes não podes publicar atualizações na mesma listagem. Guardar em 2+ locais seguros (ex: password manager + cloud encriptada).
+
+**Atualizações futuras:**
+- Reviews seguintes são mais rápidas (horas a 1 dia)
+- O Google tem review automático + humano
+
+---
+
+### Processo de review — resumo comparativo
+
+| | App Store (Apple) | Google Play (Android) |
+|---|---|---|
+| Tempo review inicial | 1–7 dias | Horas a 3 dias |
+| Tempo reviews seguintes | 1–3 dias | Horas a 1 dia |
+| Rigor | Alto — review manual | Médio — automático + humano |
+| Rejeições mais comuns | Apple Sign-In, privacidade, crashes | Privacidade, permissões, metadados |
+| Custo conta | $99/ano | $25 taxa única |
+| Build obrigatório em Mac | Sim (Xcode) | Não (Android Studio no Windows) |
 
 ---
 
 ### Ordem recomendada
 
-1. Implementar Fase 11 (Apple Sign-In) — obrigatório pela Apple se houver Google login
-2. Criar Apple Developer Account
-3. Build iOS num Mac → submeter
-4. Build Android → submeter no Google Play
-5. Aguardar aprovações
+1. Implementar Fase 11 (Google + Apple Sign-In) — Apple exige se houver Google login
+2. Criar Apple Developer Account ($99/ano)
+3. Criar Google Play Developer Account ($25)
+4. Preparar política de privacidade e termos de uso (hospedar online)
+5. Preparar screenshots em todos os tamanhos
+6. Build iOS num Mac → Internal TestFlight → submeter para App Store
+7. Build Android → Internal testing no Play Console → submeter para Production
+8. Aguardar aprovações (fazer em paralelo — não há dependência entre as duas)
