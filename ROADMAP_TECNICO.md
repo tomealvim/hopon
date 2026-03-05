@@ -522,3 +522,48 @@ TRUNCATE TABLE "User" CASCADE;
 ```
 
 Apaga tudo em cascata (utilizadores, boleias, reservas, wallets, mensagens, notificações). Schema mantém-se intacto.
+
+---
+
+## Fase 11 — Social Login (Google + Apple)
+
+| # | Item | Estado |
+|---|---|---|
+| 11.1 | Google Sign-In | ⏳ Pendente |
+| 11.2 | Apple Sign-In | ⏳ Pendente |
+
+### 11.1 — Google Sign-In
+
+**Backend:**
+- `passport-google-oauth20` + `@nestjs/passport`
+- `GET /auth/google` → redirect para Google
+- `GET /auth/google/callback` → recebe token, cria/encontra user, devolve JWT
+- Env vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
+
+**Frontend:**
+- Botão "Google" na AuthPage liga a `GET /auth/google`
+- Callback redireciona para `/auth/callback?token=xxx` → frontend guarda JWT e entra
+
+**Pré-requisitos:**
+- Google Cloud Console → Credentials → OAuth 2.0 Client ID
+- Adicionar `https://hopon-production-5bd2.up.railway.app/api/v1/auth/google/callback` como Authorized redirect URI
+
+---
+
+### 11.2 — Apple Sign-In
+
+**Backend:**
+- `passport-apple` + certificados Apple
+- `POST /auth/apple/callback` (Apple usa POST, não GET)
+- Env vars: `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`
+
+**Frontend:**
+- Botão "Apple" na AuthPage usa Apple JS SDK ou redireciona para `/auth/apple`
+
+**Pré-requisitos:**
+- Apple Developer Account ($99/ano obrigatório)
+- App ID com "Sign in with Apple" capability
+- Service ID + domínio verificado
+- Key gerada no Apple Developer Portal
+
+> ⚠️ Apple Sign-In é obrigatório nas App Stores se a app oferecer outros social logins. Para PWA/web é opcional.
