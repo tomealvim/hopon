@@ -16,6 +16,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { json, urlencoded, raw } from 'express';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
@@ -45,6 +46,9 @@ async function bootstrap() {
     }),
   );
 
+  // Security headers
+  app.use(helmet({ contentSecurityPolicy: false }));
+
   // CORS — suporta múltiplas origens via FRONTEND_URL (vírgulas)
   const configService = app.get(ConfigService);
   const allowedOrigins = configService
@@ -53,15 +57,17 @@ async function bootstrap() {
     .map((o) => o.trim());
   app.enableCors({ origin: allowedOrigins, credentials: true });
 
-  // Swagger
-  const config = new DocumentBuilder()
-    .setTitle('Hopon API')
-    .setDescription('API do Hopon (MVP)')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  // Swagger — apenas em desenvolvimento
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Hopon API')
+      .setDescription('API do Hopon (MVP)')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   await app.listen(process.env.PORT || 3000);
 }

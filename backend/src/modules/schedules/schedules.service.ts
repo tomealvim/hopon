@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
@@ -10,6 +11,7 @@ export class SchedulesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly geocodingService: GeocodingService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(userId: string, dto: CreateScheduleDto) {
@@ -259,5 +261,33 @@ export class SchedulesService {
       createdAt: schedule.createdAt,
       updatedAt: schedule.updatedAt,
     };
+  }
+
+  async scanImage(imageDataUrl: string): Promise<{ text: string }> {
+    const apiKey = this.configService.get<string>('GOOGLE_VISION_API_KEY');
+    if (!apiKey) throw new BadRequestException('GOOGLE_VISION_API_KEY não configurada');
+
+    const base64Image = imageDataUrl.split(',')[1];
+    if (!base64Image) throw new BadRequestException('Imagem inválida');
+
+    const url = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [{
+          image: { content: base64Image },
+          features: [{ type: 'TEXT_DETECTION', maxResults: 1 }],
+        }],
+      }),
+    });
+
+    if (!response.ok) throw new BadRequestException('Erro na Google Vision API');
+
+    const data = await response.json();
+    const text = data.responses?.[0]?.textAnnotations?.[0]?.description;
+    if (!text) throw new BadRequestException('Nenhum texto encontrado na imagem');
+
+    return { text };
   }
 }

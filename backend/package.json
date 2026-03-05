@@ -52,6 +52,7 @@
     "cache-manager": "^7.2.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "helmet": "^8.1.0",
     "libphonenumber-js": "^1.12.29",
     "nestjs-pino": "^4.6.0",
     "passport": "^0.7.0",

@@ -3,6 +3,7 @@ import { SchedulesService } from './schedules.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { CreateRideFromTemplateDto } from './dto/create-ride-from-template.dto';
+import { ScanImageDto } from './dto/scan-image.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { VerifiedUserGuard } from '../../common/guards/verified-user.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -42,6 +43,12 @@ export class SchedulesController {
   @ApiOperation({ summary: 'Eliminar template de horário' })
   remove(@Request() req, @Param('id') id: string) {
     return this.schedulesService.remove(req.user.id, id);
+  }
+
+  @Post('scan-image')
+  @ApiOperation({ summary: 'Extrair texto de imagem de horário (OCR via Google Vision)' })
+  scanImage(@Body() dto: ScanImageDto) {
+    return this.schedulesService.scanImage(dto.imageDataUrl);
   }
 
   @Post(':id/create-ride')
