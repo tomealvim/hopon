@@ -1006,7 +1006,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           </p>
           <div className="text-left bg-red-500/20 rounded-xl p-4 border border-red-500/30">
             <p className="text-sm font-semibold text-red-700 mb-2"><strong>Será apagado:</strong></p>
-            <ul className="text-sm text-red-200 space-y-1 list-disc list-inside">
+            <ul className="text-sm text-red-800 space-y-1 list-disc list-inside">
               <li>Perfil e dados pessoais</li>
               <li>Histórico de boleias</li>
               <li>Mensagens e conversas</li>
