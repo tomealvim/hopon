@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { apiRequest } from "../services/api";
+import { useAuth } from "./AuthContext";
 import { useSSE } from "./SSEContext";
 import { useNotifications } from "./NotificationContext";
 
@@ -42,6 +43,7 @@ const AppNotificationsContext = createContext<AppNotificationsContextValue>({
 export function AppNotificationsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(false);
+  const { user, isLoading: authLoading } = useAuth();
   const { subscribe } = useSSE();
   const { showInfo } = useNotifications();
   const fetchedRef = useRef(false);
@@ -56,11 +58,17 @@ export function AppNotificationsProvider({ children }: { children: ReactNode }) 
   }, []);
 
   useEffect(() => {
+    if (!user) {
+      fetchedRef.current = false;
+      setNotifications([]);
+      return;
+    }
+    if (authLoading) return;
     if (fetchedRef.current) return;
     fetchedRef.current = true;
     setLoading(true);
     refresh().finally(() => setLoading(false));
-  }, [refresh]);
+  }, [authLoading, user, refresh]);
 
   // Escutar eventos SSE de nova notificação
   useEffect(() => {
