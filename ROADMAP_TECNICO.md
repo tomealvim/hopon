@@ -867,3 +867,46 @@ app.use('/api/docs', basicAuth({ users: { admin: process.env.SWAGGER_PASSWORD },
 | **Agora (5 min)** | Restringir Google Vision key por domínio no Google Cloud Console |
 | **Próxima sessão de código** | Helmet.js + desativar Swagger em produção |
 | **Quando houver tempo** | Mover chamada Vision API para o backend |
+
+---
+
+## Fase 14 — Sistema de Verificação Completo
+
+> Mínimo obrigatório para plataforma de ridesharing séria. Sem isto não é seguro lançar ao público.
+
+### 14.1 — Backend: Carta de Condução + Validações
+
+| # | Item | Estado |
+|---|---|---|
+| 14.1.1 | Adicionar campos ao schema Prisma: `driverLicenseUrl`, `driverLicenseStatus` (NONE/PENDING/APPROVED/REJECTED), `driverLicenseCcNumber` (nº CC que aparece na carta) | ⬜ Por fazer |
+| 14.1.2 | Migração manual da DB (Railway + local) | ⬜ Por fazer |
+| 14.1.3 | Endpoint `POST /auth/me/driver-license` — upload de imagem + campo `ccNumber` obrigatório | ⬜ Por fazer |
+| 14.1.4 | Guard em `POST /vehicles` — bloquear se `driverLicenseStatus !== 'APPROVED'` | ⬜ Por fazer |
+| 14.1.5 | Endpoint admin `PATCH /admin/users/:id/driver-license` — aprovar/rejeitar com nota | ⬜ Por fazer |
+
+### 14.2 — Backend: Verificação de Telemóvel
+
+| # | Item | Estado |
+|---|---|---|
+| 14.2.1 | Infraestrutura OTP já existe (`/auth/otp/send` + `/auth/otp/verify`). Integrar envio SMS via Twilio ou SMS77 | ⬜ Por fazer |
+| 14.2.2 | Rate limiting no envio de OTP por SMS (já existe para email) | ⬜ Por fazer |
+
+### 14.3 — Frontend: UI de Verificação
+
+| # | Item | Estado |
+|---|---|---|
+| 14.3.1 | Página/secção "O meu perfil — Verificação" com estado visual de cada item (email, telemóvel, carta de condução) | ⬜ Por fazer |
+| 14.3.2 | Upload de carta de condução com campo de nº CC obrigatório + mensagem explicativa ("O nº do CC deve ser visível na carta") | ⬜ Por fazer |
+| 14.3.3 | Formulário de adicionar veículo: mostrar aviso e bloquear submit se carta não aprovada | ⬜ Por fazer |
+| 14.3.4 | Badge de verificação no perfil público (condutor verificado) | ⬜ Por fazer |
+
+### Lógica de verificação resumida
+
+| Requisito | Obrigatório para |
+|---|---|
+| Email verificado | Qualquer ação na plataforma |
+| Telemóvel verificado | Fazer booking como passageiro |
+| Carta de condução aprovada (com nº CC) | Adicionar veículo + oferecer boleia |
+
+### Porquê o nº CC na carta?
+O nº do Cartão de Cidadão deve aparecer na foto da carta de condução para cruzar identidades — impede que alguém use a carta de outra pessoa. Admin valida manualmente a correspondência.
