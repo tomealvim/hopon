@@ -529,24 +529,34 @@ Apaga tudo em cascata (utilizadores, boleias, reservas, wallets, mensagens, noti
 
 | # | Item | Estado |
 |---|---|---|
-| 11.1 | Google Sign-In | ⏳ Pendente |
-| 11.2 | Apple Sign-In | ⏳ Pendente |
+| 11.1 | Google Sign-In | ✅ Concluído |
+| 11.2 | Apple Sign-In | ⏳ Pendente (App Store obrigatório; requer Apple Developer Account $99/ano) |
 
-### 11.1 — Google Sign-In
+### 11.1 — Google Sign-In ✅
 
-**Backend:**
-- `passport-google-oauth20` + `@nestjs/passport`
-- `GET /auth/google` → redirect para Google
-- `GET /auth/google/callback` → recebe token, cria/encontra user, devolve JWT
-- Env vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
+**Implementado:**
+- `passport-google-oauth20` + `GoogleStrategy` em `auth/strategies/google.strategy.ts`
+- `GET /auth/google` → redirect OAuth para o Google
+- `GET /auth/google/callback` → find-or-create user → redirect para `FRONTEND_URL/auth/callback?token=...&refresh=...`
+- Email marcado como verificado automaticamente (o Google já verificou)
+- Se conta com mesmo email já existe → liga o `googleId` e importa avatar do Google (se ainda não tiver)
+- `AuthContext` deteta `?token=&refresh=` no URL ao carregar, guarda no localStorage e limpa a URL
+- Botão Google com logo SVG multicolor na AuthPage; botão Apple removido
 
-**Frontend:**
-- Botão "Google" na AuthPage liga a `GET /auth/google`
-- Callback redireciona para `/auth/callback?token=xxx` → frontend guarda JWT e entra
+**Env vars obrigatórias:**
+```
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_CALLBACK_URL=https://hopon-production-5bd2.up.railway.app/api/v1/auth/google/callback
+```
 
-**Pré-requisitos:**
-- Google Cloud Console → Credentials → OAuth 2.0 Client ID
-- Adicionar `https://hopon-production-5bd2.up.railway.app/api/v1/auth/google/callback` como Authorized redirect URI
+**Configurar no Google Cloud Console:**
+1. console.cloud.google.com → APIs & Services → Credentials → Create OAuth 2.0 Client ID
+2. Application type: **Web application**
+3. Authorized redirect URIs:
+   - `http://localhost:3000/api/v1/auth/google/callback` (local)
+   - `https://hopon-production-5bd2.up.railway.app/api/v1/auth/google/callback` (produção)
+4. Copiar Client ID e Client Secret → `backend/.env` + Railway env vars
 
 ---
 
@@ -747,15 +757,15 @@ npm install @capacitor/push-notifications
 
 ---
 
-## Fase 13 — Segurança (antes do lançamento público)
+## Fase 13 — Segurança (antes do lançamento público) ✅ CONCLUÍDA
 
 > Análise feita em Março 2026. O estado geral é bom para beta, mas há 3 problemas a corrigir antes de abrir ao público.
 
 | # | Item | Prioridade | Estado |
 |---|---|---|---|
-| 13.1 | Google Vision API key exposta no frontend | 🔴 Crítico | ⏳ Pendente |
-| 13.2 | Adicionar Helmet.js ao backend | 🟡 Importante | ⏳ Pendente |
-| 13.3 | Desativar Swagger em produção | 🟡 Importante | ⏳ Pendente |
+| 13.1 | Google Vision API key exposta no frontend | 🔴 Crítico | ✅ Movida para backend |
+| 13.2 | Adicionar Helmet.js ao backend | 🟡 Importante | ✅ Concluído |
+| 13.3 | Desativar Swagger em produção | 🟡 Importante | ✅ Concluído |
 
 ---
 

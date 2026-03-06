@@ -44,9 +44,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Carregar utilizador do localStorage ao iniciar
+  // Carregar utilizador do localStorage ao iniciar (+ tratar callback OAuth Google)
   useEffect(() => {
     const checkAuth = async () => {
+      // Verificar se voltámos de um callback OAuth (Google)
+      const params = new URLSearchParams(window.location.search);
+      const oauthToken = params.get("token");
+      const oauthRefresh = params.get("refresh");
+      if (oauthToken && oauthRefresh) {
+        localStorage.setItem(STORAGE_KEY_TOKEN, oauthToken);
+        localStorage.setItem(STORAGE_KEY_REFRESH, oauthRefresh);
+        // Limpar os tokens da URL para não ficarem no histórico
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+
       const token = localStorage.getItem(STORAGE_KEY_TOKEN);
       if (!token) {
         setIsLoading(false);
@@ -54,7 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        // Chamar endpoint /me para obter dados frescos
         const userData = await apiRequest<User>("/auth/me");
         setUser(userData);
       } catch (err) {

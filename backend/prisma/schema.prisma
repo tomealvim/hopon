@@ -62,6 +62,8 @@ model User {
   payoutRequests PayoutRequest[]
   userRoutes     UserRoute[]
 
+  googleId String? @unique
+
   @@map("users")
 }
 

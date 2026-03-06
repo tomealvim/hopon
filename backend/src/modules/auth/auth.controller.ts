@@ -1,11 +1,14 @@
 import {
   Controller, Post, Body, Get, UseGuards, Request, Patch, Headers,
   UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator,
-  HttpCode, HttpStatus, Query,
+  HttpCode, HttpStatus, Query, Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { Throttle } from '@nestjs/throttler';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
+import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -21,7 +24,10 @@ import { AcceptPolicyDto } from './dto/accept-policy.dto';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Post('register')
   @Throttle({ default: { ttl: 900_000, limit: 200 } }) // 200 registos / 15 min por IP (suite de testes usa ~50)
@@ -157,6 +163,29 @@ export class AuthController {
     file: Express.Multer.File,
   ) {
     return this.authService.uploadIdentityDocument(req.user.id, file, documentType ?? 'cc');
+  }
+
+  @Get('google')
+  @SkipThrottle()
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Iniciar login com Google (OAuth redirect)' })
+  googleAuth() {
+    // Passport trata do redirect para o Google
+  }
+
+  @Get('google/callback')
+  @SkipThrottle()
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Callback OAuth do Google' })
+  async googleCallback(@Request() req, @Res() res: Response) {
+    const { accessToken, refreshToken } = req.user as { accessToken: string; refreshToken: string };
+    const frontendUrl = this.configService
+      .get<string>('FRONTEND_URL', 'http://localhost:5173')
+      .split(',')[0]
+      .trim();
+    return res.redirect(
+      `${frontendUrl}/auth/callback?token=${accessToken}&refresh=${refreshToken}`,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

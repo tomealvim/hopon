@@ -261,22 +261,22 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
                     ou continua com
                     <span className="flex-1 h-px bg-gray-200" />
                   </div>
-                  <div className="grid gap-2">
-                    <button
-                      type="button"
-                      className="w-full h-10 rounded-2xl border border-gray-200 text-gray-800 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
-                    >
-                      <span className="w-5 h-5 rounded-full bg-[#34A853] text-white text-xs font-bold flex items-center justify-center">G</span>
-                      Google
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full h-10 rounded-2xl border border-gray-200 text-gray-800 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
-                    >
-                      <span className="w-5 h-5 rounded-full bg-black text-white text-xs font-bold flex items-center justify-center">A</span>
-                      Apple
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const apiBase = import.meta.env.VITE_API_URL?.replace('/api/v1', '') ?? 'http://localhost:3000';
+                      window.location.href = `${apiBase}/api/v1/auth/google`;
+                    }}
+                    className="w-full h-10 rounded-2xl border border-gray-200 text-gray-800 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">
+                      <path fill="#EA4335" d="M24 9.5c3.1 0 5.9 1.1 8.1 2.9l6-6C34.5 3.1 29.5 1 24 1 14.6 1 6.6 6.7 3.2 14.8l7 5.4C11.8 13.8 17.4 9.5 24 9.5z"/>
+                      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.9 6.8-16.9z"/>
+                      <path fill="#FBBC05" d="M10.2 28.8c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8l-7-5.4C1.6 16.9 1 20.4 1 24s.6 7.1 2.2 10.2l7-5.4z"/>
+                      <path fill="#34A853" d="M24 47c5.5 0 10.1-1.8 13.5-4.9l-7.4-5.7c-1.8 1.2-4.2 2-6.1 2-6.6 0-12.2-4.3-14.2-10.6l-7 5.4C6.6 41.3 14.6 47 24 47z"/>
+                    </svg>
+                    Continuar com Google
+                  </button>
                 </div>
 
                 <div className="mt-4 pt-4 text-center border-t border-gray-100 space-y-2">

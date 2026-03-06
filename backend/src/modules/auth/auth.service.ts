@@ -3,7 +3,8 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
-  } from '@nestjs/common';
+} from '@nestjs/common';
+import type { Profile } from 'passport-google-oauth20';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -391,6 +392,58 @@ export class AuthService {
       data: { emailVerifiedAt: new Date() },
     });
     return this.getMe(userId);
+  }
+
+  async findOrCreateGoogleUser(profile: Profile) {
+    const email = profile.emails?.[0]?.value;
+    if (!email) throw new BadRequestException('Email não disponível na conta Google');
+
+    const googleId = profile.id;
+    const name = profile.displayName || profile.name?.givenName || 'Utilizador';
+    const avatarUrl = profile.photos?.[0]?.value ?? null;
+
+    // Tentar encontrar por googleId
+    let user = await this.prisma.user.findUnique({
+      where: { googleId },
+      include: { profile: true, vehicles: true },
+    });
+
+    if (!user) {
+      // Tentar encontrar por email (utilizador existente — ligar conta Google)
+      const existing = await this.prisma.user.findUnique({
+        where: { email },
+        include: { profile: true, vehicles: true },
+      });
+
+      if (existing) {
+        user = await this.prisma.user.update({
+          where: { id: existing.id },
+          data: {
+            googleId,
+            // Se ainda não verificou o email, marcar como verificado (Google já verificou)
+            emailVerifiedAt: existing.emailVerifiedAt ?? new Date(),
+            // Importar avatar do Google se ainda não tiver um
+            ...(avatarUrl && !existing.profile?.avatarUrl
+              ? { profile: { update: { avatarUrl } } }
+              : {}),
+          },
+          include: { profile: true, vehicles: true },
+        });
+      } else {
+        // Criar novo utilizador — Google já verificou o email
+        user = await this.prisma.user.create({
+          data: {
+            email,
+            googleId,
+            emailVerifiedAt: new Date(),
+            profile: { create: { name, avatarUrl } },
+          },
+          include: { profile: true, vehicles: true },
+        });
+      }
+    }
+
+    return this.generateTokens(user);
   }
 
   async acceptPolicy(userId: string, role: 'passenger' | 'driver') {
