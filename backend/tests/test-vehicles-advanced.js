@@ -89,6 +89,18 @@ async function run() {
     assert(Array.isArray(res.data) && res.data.length === 0, "Lista dever ser vazia");
   });
 
+  await step("POST /vehicles sem carta aprovada deve devolver 403", async () => {
+    const res = await request("POST", "/vehicles", { brand: "Tesla", model: "Model 3" }, userToken);
+    assert(!res.ok && res.status === 403, `Deveria devolver 403 sem carta aprovada, recebeu ${res.status}`);
+  });
+
+  await step("Aprovar carta de condução via endpoint de teste", async () => {
+    const res = await request("POST", "/auth/test/approve-driver-license", null, userToken);
+    assert(res.ok, `Aprovação de carta falhou (${res.status}): ${JSON.stringify(res.data)}`);
+    const res2 = await request("POST", "/auth/test/approve-driver-license", null, otherUserToken);
+    assert(res2.ok, `Aprovação de carta (user2) falhou (${res2.status})`);
+  });
+
   await step("POST /vehicles sem brand deve falhar", async () => {
     const res = await request(
       "POST",

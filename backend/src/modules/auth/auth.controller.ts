@@ -216,4 +216,12 @@ export class AuthController {
   verifyEmailForTest(@Request() req) {
     return this.authService.verifyEmailForTest(req.user.id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('test/approve-driver-license')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '[Só testes] Aprovar carta de condução (ALLOW_TEST_VERIFY=1)' })
+  approveDriverLicenseForTest(@Request() req) {
+    return this.authService.approveDriverLicenseForTest(req.user.id);
+  }
 }

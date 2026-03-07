@@ -394,6 +394,26 @@ export class AuthService {
     return this.getMe(userId);
   }
 
+  /**
+   * Apenas para testes da API: aprova a carta de condução do utilizador.
+   * Só ativo quando ALLOW_TEST_VERIFY=1.
+   */
+  async approveDriverLicenseForTest(userId: string) {
+    const v = this.configService.get<string>('ALLOW_TEST_VERIFY');
+    const enabled = v === '1' || String(v).trim() === '1' || v === 'true';
+    if (!enabled) {
+      throw new BadRequestException('Endpoint apenas disponível em ambiente de testes (ALLOW_TEST_VERIFY=1)');
+    }
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        driverLicenseStatus: 'APPROVED',
+        driverLicenseCcNumber: 'TEST_CC',
+      },
+    });
+    return this.getMe(userId);
+  }
+
   async findOrCreateGoogleUser(profile: Profile) {
     const email = profile.emails?.[0]?.value;
     if (!email) throw new BadRequestException('Email não disponível na conta Google');
