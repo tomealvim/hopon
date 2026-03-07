@@ -1066,9 +1066,9 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 16.1.1 | Guardar polilinha da rota no `Ride` (JSON de coordenadas lat/lng) via Google Directions API — calculada uma vez na criação, cacheada em Redis | ⬜ Por fazer |
-| 16.1.2 | Algoritmo ponto-a-segmento: calcular distância mínima de um ponto (pickup/dropoff do passageiro) a cada segmento da polilinha do condutor — sem chamada de API externa | ⬜ Por fazer |
-| 16.1.3 | Threshold configurável: ≤500m = "na rota", 500m–2km = "pequeno desvio", >2km = "fora da rota" | ⬜ Por fazer |
+| 16.1.1 | Guardar polilinha da rota no `Ride` (JSON de coordenadas lat/lng) via Google Directions API — calculada uma vez na criação, cacheada em Redis | ✅ Concluído |
+| 16.1.2 | Algoritmo ponto-a-segmento: calcular distância mínima de um ponto (pickup/dropoff do passageiro) a cada segmento da polilinha do condutor — sem chamada de API externa | ✅ Concluído |
+| 16.1.3 | Threshold configurável: ≤500m = "na rota", 500m–2km = "pequeno desvio", >2km = "fora da rota" | ✅ Concluído |
 | 16.1.4 | Score de sobreposição em % — mostrar "Rota 87% compatível" no card do Discover | ⬜ Por fazer |
 | 16.1.5 | Atualizar `GET /rides/for-you` para usar sobreposição de corredor em vez de só Haversine ponto-a-ponto | ⬜ Por fazer |
 
@@ -1081,10 +1081,10 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 16.1b.1 | No `POST /bookings`, calcular distância do pickup do passageiro à polilinha do condutor | ⬜ Por fazer |
-| 16.1b.2 | Incluir `detourMeters` e `detourMinutes` (estimativa) na notificação de pedido ao condutor | ⬜ Por fazer |
-| 16.1b.3 | UI do condutor na notificação/sheet de pedido: mostrar "X min de desvio · Xm fora da rota" com mapa thumbnail | ⬜ Por fazer |
-| 16.1b.4 | Se na rota + instantBooking → skip aceite manual, confirmar direto | ⬜ Por fazer |
+| 16.1b.1 | No `POST /bookings`, calcular distância do pickup do passageiro à polilinha do condutor | ✅ Concluído |
+| 16.1b.2 | Incluir `detourMeters` na notificação de pedido ao condutor: "na rota" / "Xm desvio" / "Xkm fora" | ✅ Concluído |
+| 16.1b.3 | Badge verde/âmbar/vermelho no card de reserva pendente do condutor (RidesPage) | ✅ Concluído |
+| 16.1b.4 | Se na rota + `instantBooking=true` → auto-CONFIRMED sem aceite manual | ✅ Concluído |
 
 #### 16.1c — Script de matching contínuo (background dispatcher)
 
@@ -1092,11 +1092,11 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 16.1c.1 | Cron (de hora a hora, horário nobre) — cruzar todos os UserRoutes ativos com todos os ScheduleTemplates ativos por sobreposição de corredor | ⬜ Por fazer |
-| 16.1c.2 | Deduplicação obrigatória via Redis: chave `match:{passengerId}:{driverId}:{scheduleId}` com TTL 24h — nunca notificar o mesmo par mais do que 1x/dia | ⬜ Por fazer |
-| 16.1c.3 | Push + in-app ao passageiro: "João passa a 500m de ti às 8h15 amanhã, mesmo destino — queres pedir lugar?" | ⬜ Por fazer |
-| 16.1c.4 | Push + in-app ao condutor (quando há passageiro com rota compatível sem boleia): "Ana tem rota compatível com a tua Mon-Sex às 8h — boleia com 1 lugar disponível" | ⬜ Por fazer |
-| 16.1c.5 | `POST /scheduler/trigger-matching` — trigger manual para testes | ⬜ Por fazer |
+| 16.1c.1 | Cron (7h e 17h diário) — cruzar todos os UserRoutes ativos com todos os ScheduleTemplates ativos: sobreposição de dias + hora ±45min + corredor 1500m | ✅ Concluído |
+| 16.1c.2 | Deduplicação obrigatória via Redis: chave `match:{passengerId}:{driverId}:{scheduleId}` com TTL 24h — nunca notificar o mesmo par mais do que 1x/dia | ✅ Concluído |
+| 16.1c.3 | In-app ao passageiro: "João passa perto de ti X-feira às 8h15 no trajeto A → B. Queres pedir lugar?" | ✅ Concluído |
+| 16.1c.4 | Push + in-app ao condutor (quando há passageiro com rota compatível sem boleia) | ⬜ Por fazer (baixa prioridade) |
+| 16.1c.5 | `POST /scheduler/trigger-matching` — trigger manual para testes | ✅ Concluído |
 
 ### 16.2 — "Disponível agora" — modo instantâneo
 

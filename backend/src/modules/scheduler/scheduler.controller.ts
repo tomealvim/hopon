@@ -20,4 +20,11 @@ export class SchedulerController {
     await this.schedulerService.sendRideReminders();
     return { ok: true };
   }
+
+  /** Endpoint de teste — aciona o cron de matching de rotas manualmente (apenas autenticados) */
+  @Post('trigger-matching')
+  async triggerMatching() {
+    await this.schedulerService.matchUserRoutesWithTemplates();
+    return { ok: true };
+  }
 }

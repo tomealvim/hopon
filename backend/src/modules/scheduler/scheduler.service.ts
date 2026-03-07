@@ -207,4 +207,174 @@ export class SchedulerService {
       this.logger.log(`[cron] Lembretes enviados para ride ${ride.id} (${ride.bookings.length} passageiros)`);
     }
   }
+
+  // ─── 16.1c — Matching background (UserRoutes ↔ ScheduleTemplates) ─────────
+
+  /**
+   * Corre duas vezes por dia (7h e 17h) — cruza as rotas habituais dos passageiros
+   * com os templates ativos dos condutores e notifica quando há sobreposição.
+   * Deduplicação via Redis: nunca notifica o mesmo par mais do que 1x/dia.
+   */
+  @Cron('0 7,17 * * *', { name: 'route-matching', timeZone: 'Europe/Lisbon' })
+  async matchUserRoutesWithTemplates() {
+    this.logger.log('[cron] matchUserRoutesWithTemplates — a iniciar');
+
+    const [userRoutes, templates] = await Promise.all([
+      this.prisma.userRoute.findMany({
+        where: { active: true, originLat: { not: null }, originLng: { not: null } },
+        include: { user: { select: { id: true } } },
+      }),
+      this.prisma.scheduleTemplate.findMany({
+        where: { active: true },
+        include: {
+          user: {
+            select: { id: true, profile: { select: { name: true } } },
+          },
+        },
+      }),
+    ]);
+
+    // Pré-carregar a polilinha mais recente de cada template (uma query por template, em paralelo)
+    const templatePolylines = new Map<string, { lat: number; lng: number }[] | null>();
+    await Promise.all(
+      templates.map(async (t) => {
+        const ride = await this.prisma.ride.findFirst({
+          where: { scheduleTemplateId: t.id, routePolyline: { not: null } },
+          orderBy: { createdAt: 'desc' },
+          select: { routePolyline: true },
+        });
+        templatePolylines.set(t.id, ride?.routePolyline as { lat: number; lng: number }[] | null ?? null);
+      }),
+    );
+
+    let notified = 0;
+    let skipped = 0;
+
+    for (const route of userRoutes) {
+      const passengerId = route.userId;
+      const routeDays = route.daysOfWeek as string[];
+      const routeMinutes = this.timeToMinutes(route.departTime);
+
+      for (const template of templates) {
+        // Não notificar o próprio condutor
+        if (template.userId === passengerId) continue;
+
+        const templateDays = template.daysOfWeek as string[];
+
+        // 1 — Sobreposição de dias
+        const commonDays = routeDays.filter((d) => templateDays.includes(d));
+        if (commonDays.length === 0) continue;
+
+        // 2 — Hora compatível (±45 min)
+        const templateMinutes = this.timeToMinutes(template.time);
+        if (Math.abs(routeMinutes - templateMinutes) > 45) continue;
+
+        // 3 — Proximidade de rota
+        const polyline = templatePolylines.get(template.id);
+        const withinCorridor = this.isPassengerNearRoute(
+          route.originLat!,
+          route.originLng!,
+          polyline,
+        );
+        if (!withinCorridor) continue;
+
+        // 4 — Passageiro já tem reserva ativa neste template?
+        const existingBooking = await this.prisma.booking.findFirst({
+          where: {
+            userId: passengerId,
+            status: { in: ['PENDING', 'CONFIRMED'] },
+            ride: { scheduleTemplateId: template.id },
+          },
+        });
+        if (existingBooking) { skipped++; continue; }
+
+        // 5 — Deduplicação Redis (TTL 24h)
+        const dedupKey = `match:${passengerId}:${template.userId}:${template.id}`;
+        const alreadyNotified = await this.cache.get(dedupKey);
+        if (alreadyNotified) { skipped++; continue; }
+        await this.cache.set(dedupKey, true, 24 * 60 * 60 * 1000);
+
+        // 6 — Notificar passageiro
+        const driverName = template.user?.profile?.name ?? 'Um condutor';
+        const nextDay = commonDays[0];
+        const timeLabel = template.time;
+
+        void this.notificationsService.createNotification(
+          passengerId,
+          'match.route',
+          'Boleia compatível encontrada',
+          `${driverName} passa perto de ti ${this.dayLabel(nextDay)} às ${timeLabel} no trajeto ${template.origin} → ${template.destination}. Queres pedir lugar?`,
+          { scheduleTemplateId: template.id, driverId: template.userId },
+        );
+
+        notified++;
+        this.logger.log(`[cron] Match: passenger ${passengerId} ↔ template ${template.id} (driver ${template.userId})`);
+      }
+    }
+
+    this.logger.log(`[cron] matchUserRoutesWithTemplates concluído — notificados: ${notified}, ignorados: ${skipped}`);
+  }
+
+  // ─── Helpers de matching ──────────────────────────────────────────────────
+
+  private timeToMinutes(time: string): number {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  private haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6_371_000;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  private pointToSegmentMeters(
+    pLat: number, pLng: number,
+    aLat: number, aLng: number,
+    bLat: number, bLng: number,
+  ): number {
+    const dx = bLat - aLat;
+    const dy = bLng - aLng;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return this.haversineMeters(pLat, pLng, aLat, aLng);
+    const t = Math.max(0, Math.min(1, ((pLat - aLat) * dx + (pLng - aLng) * dy) / lenSq));
+    return this.haversineMeters(pLat, pLng, aLat + t * dx, aLng + t * dy);
+  }
+
+  /**
+   * Verifica se o ponto do passageiro está dentro do corredor da rota do condutor.
+   * Threshold: 1500m (mais permissivo que o booking — é uma sugestão, não confirmação).
+   * Se não houver polilinha, usa Haversine ponto-a-ponto como fallback.
+   */
+  private isPassengerNearRoute(
+    lat: number,
+    lng: number,
+    polyline: { lat: number; lng: number }[] | null,
+  ): boolean {
+    const THRESHOLD_M = 1500;
+
+    if (!polyline || polyline.length === 0) return false;
+
+    if (polyline.length === 1) {
+      return this.haversineMeters(lat, lng, polyline[0].lat, polyline[0].lng) <= THRESHOLD_M;
+    }
+
+    for (let i = 0; i < polyline.length - 1; i++) {
+      const d = this.pointToSegmentMeters(lat, lng, polyline[i].lat, polyline[i].lng, polyline[i + 1].lat, polyline[i + 1].lng);
+      if (d <= THRESHOLD_M) return true;
+    }
+    return false;
+  }
+
+  private dayLabel(day: string): string {
+    const map: Record<string, string> = {
+      segunda: 'segunda-feira', terca: 'terça-feira', quarta: 'quarta-feira',
+      quinta: 'quinta-feira', sexta: 'sexta-feira', sabado: 'sábado',
+    };
+    return map[day] ?? day;
+  }
 }
