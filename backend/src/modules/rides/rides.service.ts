@@ -489,6 +489,42 @@ export class RidesService {
     return this.toResponse(ride);
   }
 
+  async onTheWay(driverId: string, rideId: string) {
+    const ride = await this.prisma.ride.findUnique({
+      where: { id: rideId },
+      include: { bookings: true },
+    });
+
+    if (!ride) throw new NotFoundException('Boleia não encontrada');
+    if (ride.driverId !== driverId) throw new ForbiddenException('Não tens permissão para gerir esta boleia');
+    if (ride.status !== 'SCHEDULED') throw new BadRequestException('A boleia não está em estado SCHEDULED');
+    if (ride.onTheWayAt) throw new BadRequestException('Já anunciaste que estás a caminho para esta boleia');
+
+    const minsUntil = (ride.departureTime.getTime() - Date.now()) / 60_000;
+    if (minsUntil > 120) throw new BadRequestException('Só podes anunciar "a caminho" até 2 horas antes da partida');
+
+    await this.prisma.ride.update({
+      where: { id: rideId },
+      data: { onTheWayAt: new Date() },
+    });
+
+    const confirmedPassengerIds = ride.bookings
+      .filter((b) => b.status === 'CONFIRMED')
+      .map((b) => b.userId);
+
+    if (confirmedPassengerIds.length > 0) {
+      void this.notificationsService.notifyDriverOnTheWay(
+        rideId,
+        ride.origin,
+        ride.destination,
+        ride.departureTime,
+        confirmedPassengerIds,
+      );
+    }
+
+    return { message: 'Passageiros notificados que estás a caminho.' };
+  }
+
   async arrive(driverId: string, rideId: string) {
     const ride = await this.prisma.ride.findUnique({
       where: { id: rideId },
@@ -771,6 +807,7 @@ export class RidesService {
       platformFee: ride.platformFee ?? null,
       status: ride.status,
       arrivedAt: ride.arrivedAt ?? null,
+      onTheWayAt: ride.onTheWayAt ?? null,
       vehicle: ride.vehicle
         ? {
             id: ride.vehicle.id,

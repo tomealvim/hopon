@@ -210,6 +210,32 @@ export class NotificationsService {
     }
   }
 
+  async notifyDriverOnTheWay(
+    rideId: string,
+    origin: string,
+    destination: string,
+    departureTime: Date,
+    passengerUserIds: string[],
+  ) {
+    if (passengerUserIds.length === 0) return;
+
+    const depMin = departureTime.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Lisbon' });
+    const title = 'Condutor a caminho!';
+    const body = `O teu condutor está a caminho para a boleia ${origin} → ${destination} (${depMin}). Prepara-te para sair!`;
+
+    for (const userId of passengerUserIds) {
+      void this.createNotification(userId, 'ride.on_the_way', title, body, {
+        rideId,
+        origin,
+        destination,
+      });
+    }
+
+    for (const userId of passengerUserIds) {
+      this.eventsService.emit(userId, 'ride.on_the_way', { rideId, origin, destination });
+    }
+  }
+
   async notifyRideCancelled(
     rideId: string,
     rideOrigin: string,

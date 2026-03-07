@@ -11,7 +11,6 @@ import { SSEProvider } from "./contexts/SSEContext";
 import { AppNotificationsProvider } from "./contexts/AppNotificationsContext";
 import { apiRequest } from "./services/api";
 import BottomNav from "./components/ui/BottomNav";
-import AuthPage from "./pages/AuthPage";
 import { hasCompletedOnboarding } from "./pages/OnboardingPage";
 import OnboardingPageFull from "./pages/OnboardingPage";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
@@ -140,8 +139,7 @@ function AppContent() {
       }}
     />
   );
-  if (!user) return <AuthPage onAuthSuccess={() => {}} />;
-  if (!hasCompletedProfile) return <ProfileSetupPage />;
+  if (user && !hasCompletedProfile) return <ProfileSetupPage />;
 
   return (
     <div className="min-h-[100svh] overflow-x-hidden bg-white">
@@ -210,7 +208,7 @@ function AppContent() {
       </main>
 
       {!hideBottomNav && (
-        <BottomNav current={tab} onChange={setTab} onPlus={() => setOpenComposer(true)} />
+        <BottomNav current={tab} onChange={setTab} onPlus={user ? () => setOpenComposer(true) : () => setTab("profile")} />
       )}
 
       {/* Composer do "+" */}

@@ -169,6 +169,13 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   }
 
   function handleOpenBooking(rideId: string) {
+    if (!user) {
+      showError(
+        "Sessão necessária",
+        "Inicia sessão ou cria uma conta para reservar boleias. Vai ao separador Perfil."
+      );
+      return;
+    }
     if (!user?.verification?.email) {
       showError(
         "Email não confirmado",

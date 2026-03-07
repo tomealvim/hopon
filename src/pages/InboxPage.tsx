@@ -81,6 +81,16 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
     }
   }, [meId, addMessage]);
 
+  if (!user) {
+    return (
+      <main className="relative min-h-screen px-4 pb-32 flex flex-col items-center justify-center bg-white text-gray-900 overflow-hidden">
+        <div className="text-4xl mb-4">💬</div>
+        <p className="text-sm font-semibold text-gray-800 mb-1">As tuas mensagens aparecem aqui</p>
+        <p className="text-xs text-gray-500 text-center">Inicia sessão para ver as tuas conversas com condutores e passageiros</p>
+      </main>
+    );
+  }
+
   if (initialThreadId && !hasOpenedInitialThread.current && !openThreadId) {
     const thread = threads.find(t => t.id === initialThreadId);
     if (!thread) {

@@ -280,6 +280,19 @@ export default function RidesPage() {
     }
   }
 
+  // --- On the way (driver) ---
+  async function handleOnTheWay(rideId: string) {
+    try {
+      await apiRequest(`/rides/${rideId}/on-the-way`, { method: "POST" });
+      showSuccess("Passageiros notificados!", "Os passageiros confirmados foram avisados que estás a caminho.");
+      const updated = await apiRequest<ApiRide>(`/rides/${rideId}`);
+      setMyRides((prev) => prev.map((r) => (r.id === rideId ? updated : r)));
+      setSelectedRide(updated);
+    } catch (err) {
+      showError("Erro", err instanceof Error ? err.message : "Tenta novamente.");
+    }
+  }
+
   // --- Arrive at meeting point (driver) ---
   async function handleArriveAtMeetingPoint(rideId: string) {
     try {
@@ -314,6 +327,16 @@ export default function RidesPage() {
   const isLoading = hydrating || ridesLoading || bookingsLoading;
   const pendingBookingsForRide = (ride: ApiRide) =>
     (ride.bookings ?? []).filter((b) => b.status === "PENDING");
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 pb-32 bg-white text-gray-900">
+        <div className="text-4xl mb-4">🚗</div>
+        <p className="text-sm font-semibold text-gray-800 mb-1">As tuas viagens aparecem aqui</p>
+        <p className="text-xs text-gray-500 text-center">Inicia sessão para ver e gerir as tuas boleias e reservas</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -477,6 +500,14 @@ export default function RidesPage() {
                   Ver reservas ({(selectedRide.bookings ?? []).filter((b) => b.status === "PENDING").length})
                 </Button>
               )}
+              {selectedRide.status === "SCHEDULED" && !selectedRide.onTheWayAt && (selectedRide.bookings ?? []).some((b) => b.status === "CONFIRMED") && (() => {
+                const minsUntil = (new Date(selectedRide.departureTime).getTime() - now) / 60_000;
+                return minsUntil <= 120 ? (
+                  <Button className="flex-1" onClick={() => handleOnTheWay(selectedRide.id)}>
+                    Estou a caminho
+                  </Button>
+                ) : null;
+              })()}
               {selectedRide.status === "SCHEDULED" && (selectedRide.bookings ?? []).some((b) => b.status === "CONFIRMED") && (
                 <Button className="flex-1" onClick={() => handleArriveAtMeetingPoint(selectedRide.id)}>
                   Estou no ponto
@@ -612,9 +643,16 @@ export default function RidesPage() {
                       const isNoShow = b.status === "NO_SHOW";
                       return (
                         <div key={b.id} className="flex items-center justify-between text-sm text-gray-900">
-                          <span className={isNoShow ? "line-through text-gray-400" : ""}>
-                            {b.user?.profile?.name ?? b.user?.email ?? "Passageiro"} · {b.seats} lugar{b.seats > 1 ? "es" : ""}
-                          </span>
+                          <div>
+                            <span className={isNoShow ? "line-through text-gray-400" : ""}>
+                              {b.user?.profile?.name ?? b.user?.email ?? "Passageiro"} · {b.seats} lugar{b.seats > 1 ? "es" : ""}
+                            </span>
+                            {b.user?.phone && !isNoShow && (
+                              <a href={`tel:${b.user.phone}`} className="block text-xs text-blue-600 font-medium mt-0.5">
+                                {b.user.phone}
+                              </a>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2 ml-2 shrink-0">
                             {!isNoShow && selectedRide.status === "IN_PROGRESS" && (
                               <button
@@ -679,7 +717,7 @@ export default function RidesPage() {
             {selectedBooking.ride.driver && (
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
                 <div className="text-xs text-gray-500 mb-1">Condutor</div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-1">
                   <div className="font-semibold text-sm text-gray-900">
                     {selectedBooking.ride.driver.profile?.name ?? selectedBooking.ride.driver.email}
                   </div>
@@ -689,6 +727,14 @@ export default function RidesPage() {
                     </span>
                   )}
                 </div>
+                {selectedBooking.status === "CONFIRMED" && selectedBooking.ride.driver.phone && (
+                  <a href={`tel:${selectedBooking.ride.driver.phone}`} className="text-xs text-blue-600 font-medium">
+                    {selectedBooking.ride.driver.phone}
+                  </a>
+                )}
+                {selectedBooking.status === "CONFIRMED" && !selectedBooking.ride.driver.phone && (
+                  <p className="text-xs text-gray-400">Condutor sem telemóvel registado</p>
+                )}
               </div>
             )}
             {selectedBooking.ride.vehicle && (

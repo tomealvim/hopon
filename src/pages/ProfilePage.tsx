@@ -21,6 +21,7 @@ import DriverLicenseSheet from "../components/profile/DriverLicenseSheet";
 import AdminPanel from "../components/admin/AdminPanel";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { TERMS_LAST_UPDATED, TERMS_SECTIONS, TERMS_TITLE } from "../data/terms";
+import AuthPage from "./AuthPage";
 import {
   flattenSchedule,
   getDayLabel,
@@ -394,6 +395,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
     }
   }
 
+  if (!user) {
+    return <AuthPage onAuthSuccess={() => {}} />;
+  }
+
   return (
     <div className="relative min-h-screen pb-32 bg-white text-gray-900 overflow-hidden">
       {/* Blur effects coloridos */}
@@ -428,23 +433,6 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           </div>
         </div>
         
-        {/* Aviso de verificação - botão "Verificar email" (telemóvel fica off por agora) */}
-        {!verification.email && (
-          <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-            <p className="text-sm font-semibold text-amber-900 mb-2 break-words">
-              Completa a verificação para ganhar confiança
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => openVerification("email")}
-                className="h-9 px-3 text-sm font-medium rounded-xl border border-amber-300 bg-white text-amber-900 hover:bg-amber-50 transition"
-              >
-                Verificar email
-              </button>
-            </div>
-          </div>
-        )}
       </section>
 
       {/* ========== BLOCO 1: O MEU HORÁRIO ========== */}
@@ -503,83 +491,159 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       </section>
 
       {/* ========== VERIFICAÇÃO ========== */}
-      <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
-        <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">Verificação</h2>
-        <div className="space-y-2">
+      {(() => {
+        const dlStatus = user?.verification?.driverLicense ?? "NONE";
+        const idStatus = user?.verification?.identity ?? "NONE";
+        const emailDone = !!verification.email;
+        const dlDone = dlStatus === "APPROVED";
+        const idDone = idStatus === "VERIFIED";
+        const verifiedCount = (emailDone ? 1 : 0) + (dlDone ? 1 : 0) + (idDone ? 1 : 0);
+        const totalCount = 3;
 
-          {/* Carta de condução */}
-          <button
-            type="button"
-            className="w-full flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-left hover:bg-gray-100 transition"
-            onClick={() => setOpenDriverLicenseSheet(true)}
-          >
+        function VerifRow({
+          icon, label, description, descColor, onClick, badge, disabled,
+        }: {
+          icon: string; label: string; description: string; descColor: string;
+          onClick?: () => void; badge?: string; disabled?: boolean;
+        }) {
+          const inner = (
             <div className="flex items-center gap-3">
               <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0",
-                user?.verification?.driverLicense === "APPROVED" ? "bg-emerald-100 text-emerald-700" :
-                user?.verification?.driverLicense === "PENDING" ? "bg-amber-100 text-amber-700" :
-                user?.verification?.driverLicense === "REJECTED" ? "bg-red-100 text-red-700" :
-                "bg-gray-200 text-gray-500"
+                "w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0",
+                icon === "✓" ? "bg-emerald-100 text-emerald-700" :
+                icon === "…" ? "bg-amber-100 text-amber-700" :
+                icon === "✗" ? "bg-red-100 text-red-700" :
+                "bg-gray-100 text-gray-400"
               )}>
-                {user?.verification?.driverLicense === "APPROVED" ? "✓" : "!"}
+                {icon}
               </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Carta de condução</p>
-                <p className={cn("text-xs",
-                  user?.verification?.driverLicense === "APPROVED" ? "text-emerald-600" :
-                  user?.verification?.driverLicense === "PENDING" ? "text-amber-600" :
-                  user?.verification?.driverLicense === "REJECTED" ? "text-red-600" :
-                  "text-gray-500"
-                )}>
-                  {user?.verification?.driverLicense === "APPROVED" ? "Verificada" :
-                   user?.verification?.driverLicense === "PENDING" ? "Em análise" :
-                   user?.verification?.driverLicense === "REJECTED" ? "Rejeitada — envia novamente" :
-                   "Necessária para oferecer boleias"}
-                </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-gray-900">{label}</p>
+                  {badge && (
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200">{badge}</span>
+                  )}
+                </div>
+                <p className={cn("text-xs mt-0.5", descColor)}>{description}</p>
               </div>
+              {onClick && !disabled && (
+                <svg className="text-gray-300 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              )}
             </div>
-            <svg className="text-gray-400 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
-            </svg>
-          </button>
+          );
+          if (onClick && !disabled) {
+            return (
+              <button
+                type="button"
+                className="w-full text-left rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 hover:bg-gray-100 transition"
+                onClick={onClick}
+              >
+                {inner}
+              </button>
+            );
+          }
+          return (
+            <div className="w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3">
+              {inner}
+            </div>
+          );
+        }
 
-          {/* Identidade */}
-          {user?.verification?.identity !== "VERIFIED" && (
-            <button
-              type="button"
-              className="w-full flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-left hover:bg-gray-100 transition"
-              onClick={() => setOpenIdentitySheet(true)}
-            >
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0",
-                  user?.verification?.identity === "PENDING" ? "bg-amber-100 text-amber-700" :
-                  user?.verification?.identity === "REJECTED" ? "bg-red-100 text-red-700" :
-                  "bg-gray-200 text-gray-500"
-                )}>
-                  {user?.verification?.identity === "PENDING" ? "…" : "!"}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Identidade</p>
-                  <p className={cn("text-xs",
-                    user?.verification?.identity === "PENDING" ? "text-amber-600" :
-                    user?.verification?.identity === "REJECTED" ? "text-red-600" :
-                    "text-gray-500"
-                  )}>
-                    {user?.verification?.identity === "PENDING" ? "Em análise" :
-                     user?.verification?.identity === "REJECTED" ? "Rejeitada — envia novamente" :
-                     "Opcional — aumenta a confiança"}
-                  </p>
-                </div>
+        return (
+          <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
+            {/* Cabeçalho com progresso */}
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Verificação</h2>
+              <span className={cn(
+                "text-xs font-semibold",
+                verifiedCount === totalCount ? "text-emerald-600" : "text-gray-400"
+              )}>
+                {verifiedCount}/{totalCount}
+              </span>
+            </div>
+
+            {/* Barra de progresso */}
+            <div className="h-1.5 bg-gray-100 rounded-full mb-4 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  verifiedCount === totalCount ? "bg-emerald-500" : "bg-gray-800"
+                )}
+                style={{ width: `${(verifiedCount / totalCount) * 100}%` }}
+              />
+            </div>
+
+            <div className="space-y-2">
+
+              {/* Email */}
+              <VerifRow
+                icon={emailDone ? "✓" : "!"}
+                label="Email"
+                description={emailDone ? "Verificado — podes reservar boleias" : "Necessário para reservar e publicar boleias"}
+                descColor={emailDone ? "text-emerald-600" : "text-amber-600"}
+                onClick={!emailDone ? () => openVerification("email") : undefined}
+              />
+
+              {/* Telemóvel */}
+              <VerifRow
+                icon={verification.phone ? "✓" : "–"}
+                label="Telemóvel"
+                description={verification.phone ? "Verificado — contacto direto ativo" : "Para contacto direto em boleias confirmadas"}
+                descColor={verification.phone ? "text-emerald-600" : "text-gray-400"}
+                badge={!verification.phone ? "Em breve" : undefined}
+                disabled
+              />
+
+              {/* Carta de condução */}
+              <VerifRow
+                icon={dlDone ? "✓" : dlStatus === "PENDING" ? "…" : dlStatus === "REJECTED" ? "✗" : "!"}
+                label="Carta de condução"
+                description={
+                  dlDone ? "Aprovada — podes oferecer boleias" :
+                  dlStatus === "PENDING" ? "Em análise pela equipa HopOn" :
+                  dlStatus === "REJECTED" ? "Rejeitada — clica para enviares novamente" :
+                  "Obrigatória para publicares boleias como condutor"
+                }
+                descColor={
+                  dlDone ? "text-emerald-600" :
+                  dlStatus === "PENDING" ? "text-amber-600" :
+                  dlStatus === "REJECTED" ? "text-red-600" :
+                  "text-gray-500"
+                }
+                onClick={() => setOpenDriverLicenseSheet(true)}
+              />
+
+              {/* Identidade */}
+              <VerifRow
+                icon={idDone ? "✓" : idStatus === "PENDING" ? "…" : idStatus === "REJECTED" ? "✗" : "–"}
+                label="Cartão de Cidadão / Passaporte"
+                description={
+                  idDone ? "Identidade confirmada — badge de confiança ativo" :
+                  idStatus === "PENDING" ? "Em análise pela equipa HopOn" :
+                  idStatus === "REJECTED" ? "Rejeitado — clica para enviares novamente" :
+                  "Opcional — aumenta a confiança de condutores e passageiros"
+                }
+                descColor={
+                  idDone ? "text-emerald-600" :
+                  idStatus === "PENDING" ? "text-amber-600" :
+                  idStatus === "REJECTED" ? "text-red-600" :
+                  "text-gray-400"
+                }
+                onClick={() => setOpenIdentitySheet(true)}
+              />
+
+            </div>
+
+            {verifiedCount === totalCount && (
+              <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700 font-semibold text-center">
+                Perfil totalmente verificado
               </div>
-              <svg className="text-gray-400 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </button>
-          )}
-
-        </div>
-      </section>
+            )}
+          </section>
+        );
+      })()}
 
       {/* ========== BLOCO 2: CARRO EM USO ========== */}
       <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">

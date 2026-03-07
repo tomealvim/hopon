@@ -6,11 +6,29 @@
 
 ## Conceito do produto
 
-**HopOn é uma plataforma de carpooling de partilha de custos.**
+**HopOn é uma plataforma de carpooling diário de partilha de custos — o substituto real dos transportes públicos.**
 
-O condutor divide os custos reais da viagem (gasolina + portagens) pelos passageiros — não ganha dinheiro, divide despesa. O diferencial é o algoritmo de matching: cada utilizador define o seu horário habitual (ScheduleTemplate), e as boleias que batem certo aparecem automaticamente em "Para Ti".
+O objetivo não é ser uma BlaBlaCar (viagens longas ocasionais). O objetivo é substituir o autocarro, o metro e o carro individual em trajetos recorrentes de trabalho e universidade — viagens curtas a médias, feitas todos os dias, com pessoas que partilham rotas semelhantes.
 
-Pensa nisto como BlaBlaCar diário, não como Uber.
+**O que somos:**
+- Carpooling diário: Lisboa → trabalho, casa → faculdade, subúrbio → centro
+- Trajetos recorrentes e horários fixos — não viagens espontâneas
+- Público: trabalhadores, estudantes universitários, qualquer pessoa com rotina de deslocação
+- Modelo de custo-partilha: condutor divide gasolina + portagens, não lucra
+
+**O que não somos:**
+- Uber/Bolt (taxi on-demand com motoristas profissionais)
+- BlaBlaCar (viagens longas, esporádicas, intercidades)
+- Transporte escolar ou charter
+
+**O diferencial técnico:**
+O sistema tem de ser tão fiável quanto um autocarro — o passageiro tem de poder confiar que o condutor aparece. Isto significa matching inteligente por rota + horário, política de cancelamento rigorosa, e comunicação direta entre condutor e passageiro.
+
+**Referências de mercado:**
+- **BlaBlaDaily** (BlaBlaCar tentou, recuou em vários mercados — espaço em aberto)
+- **Karos** (França, commute carpooling — modelo mais próximo)
+- **Waze Carpool** (Google, EUA — integrado com navegação)
+- **Scoop** (EUA, workplace carpooling)
 
 ---
 
@@ -900,10 +918,15 @@ Não é urgente — o Prisma escala bem até dezenas de milhares de utilizadores
 
 ### 14.2 — Backend: Verificação de Telemóvel
 
+> **Importante:** o telemóvel verificado é obrigatório para fazer booking como passageiro.
+> Razão: condutor e passageiro precisam de se contactar diretamente (atrasos, local de encontro, etc.).
+> A infraestrutura OTP já existe — falta apenas ligar a um provider de SMS.
+
 | # | Item | Estado |
 |---|---|---|
-| 14.2.1 | Infraestrutura OTP já existe (`/auth/otp/send` + `/auth/otp/verify`). Integrar envio SMS via Twilio ou SMS77 | ⬜ Por fazer |
-| 14.2.2 | Rate limiting no envio de OTP por SMS (já existe para email) | ⬜ Por fazer |
+| 14.2.1 | Integrar envio SMS via **Twilio** (ou alternativa mais barata quando houver volume) — substituir o `logger.log` atual no `sendOtp` para `channel=phone` pelo envio real de SMS | ⬜ Por fazer (pago — adiar para quando houver beta users) |
+| 14.2.2 | Rate limiting no envio de OTP por SMS (já existe para email — reutilizar) | ⬜ Por fazer |
+| 14.2.3 | Guard em `POST /bookings` — bloquear se `phoneVerifiedAt` for null (com mensagem clara a pedir verificação) | ⬜ Por fazer |
 
 ### 14.3 — Frontend: UI de Verificação
 
@@ -936,3 +959,178 @@ ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "driverLicenseAdminNote" TEXT;
 
 ### Porquê o nº CC na carta?
 O nº do Cartão de Cidadão deve aparecer na foto da carta de condução para cruzar identidades — impede que alguém use a carta de outra pessoa. Admin valida manualmente a correspondência.
+
+---
+
+## Fase 15 — Experiência de Commute Diário
+
+> Peças essenciais que têm de existir para que o matching da Fase 16 resulte em experiências reais de commute — sem estas, mesmo o melhor matching parte na execução.
+
+### 15.0 — Contacto entre condutor e passageiro
+
+| # | Item | Estado |
+|---|---|---|
+| 15.0.1 | Após reserva CONFIRMED, mostrar telemóvel do condutor ao passageiro (e vice-versa) nas sheets de detalhe | ✅ Concluído |
+| 15.0.2 | Link `tel:` clicável para ligar diretamente | ✅ Concluído |
+| 15.0.3 | Só mostrar após CONFIRMED — nunca antes (privacidade) | ✅ Concluído |
+
+### 15.1 — "A caminho" — alerta de chegada ao passageiro
+
+| # | Item | Estado |
+|---|---|---|
+| 15.1.1 | Endpoint `POST /rides/:id/on-the-way` — driver anuncia que está a caminho | ✅ Concluído |
+| 15.1.2 | Push notification + in-app para passageiros confirmados: "João está a caminho — parte em ~X min" | ✅ Concluído |
+| 15.1.3 | Botão "Estou a caminho" no card do driver (visível só quando boleia parte em ≤2h e status SCHEDULED) | ✅ Concluído |
+| 15.1.4 | Guardar `onTheWayAt` no modelo Ride para evitar spam (só permite 1x por boleia) | ✅ Concluído |
+
+### 15.2 — Reservas recorrentes pelo passageiro
+
+| # | Item | Estado |
+|---|---|---|
+| 15.2.1 | Passageiro pode "subscrever" um ScheduleTemplate de condutor — reserva automática cada vez que é criada uma boleia desse template | ⬜ Por fazer |
+| 15.2.2 | Modelo `RecurringBooking` — (passengerId, scheduleId, estado ACTIVE/PAUSED/CANCELLED) | ⬜ Por fazer |
+| 15.2.3 | Cron de geração de boleias (já existe) verifica RecurringBookings ativos e cria reserva automática | ⬜ Por fazer |
+| 15.2.4 | UI: botão "Reservar sempre" no card de boleia do Discover | ⬜ Por fazer |
+
+### 15.3 — Ponto de encontro específico
+
+| # | Item | Estado |
+|---|---|---|
+| 15.3.1 | Campo `meetingPoint` (texto livre) no modelo `Ride` | ⬜ Por fazer |
+| 15.3.2 | Condutor define ponto de encontro ao publicar boleia (ex: "Junto ao Pingo Doce da Av. X") | ⬜ Por fazer |
+| 15.3.3 | Mostrar ponto de encontro na sheet de detalhe da reserva (passageiro) após CONFIRMED | ⬜ Por fazer |
+
+### 15.4 — Impacto ambiental e poupança
+
+| # | Item | Estado |
+|---|---|---|
+| 15.4.1 | Calcular CO₂ poupado por viagem: `distanceKm × 0.12 kg/km × (passengers / (passengers+1))` | ⬜ Por fazer |
+| 15.4.2 | Calcular poupança em €: custo de carro solo vs custo partilhado | ⬜ Por fazer |
+| 15.4.3 | Secção "Impacto" no ProfilePage: "X kg CO₂ poupados · €Y economizados este mês" | ⬜ Por fazer |
+
+---
+
+## Fase 15b — Fiabilidade (Commute First)
+
+> Para substituir transportes públicos, a plataforma tem de ser tão fiável quanto um autocarro. Cancelar a 20 minutos é inaceitável — a pessoa fica sem ir trabalhar.
+
+### 15b.1 — Política de cancelamento mais rigorosa
+
+A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens longas ocasionais. Para commutes diários precisa de ser muito mais apertada.
+
+| # | Item | Estado |
+|---|---|---|
+| 15.1.1 | Novos thresholds: >2h=100%, 30min–2h=50%, <30min=0% | ⬜ Por fazer |
+| 15.1.2 | Aplicar à UI existente (RidesPage + RequestSeatSheet) | ⬜ Por fazer |
+| 15.1.3 | Backend: atualizar lógica de reembolso em `bookings.service.ts` | ⬜ Por fazer |
+
+### 15b.2 — Taxa de fiabilidade no perfil
+
+| # | Item | Estado |
+|---|---|---|
+| 15.2.1 | Calcular % de viagens não canceladas nos últimos 30 dias por utilizador | ⬜ Por fazer |
+| 15.2.2 | Mostrar no perfil público: "98% de fiabilidade · 47 viagens" | ⬜ Por fazer |
+| 15.2.3 | Badge "Condutor fiável" (≥95% nos últimos 30 dias, mínimo 10 viagens) | ⬜ Por fazer |
+
+### 15b.3 — Penalização por cancelamentos repetidos
+
+| # | Item | Estado |
+|---|---|---|
+| 15.3.1 | Contar cancelamentos de última hora (<30min) por utilizador no mês corrente | ⬜ Por fazer |
+| 15.3.2 | Ao 3.º cancelamento de última hora: aviso por notificação in-app + email | ⬜ Por fazer |
+| 15.3.3 | Ao 5.º: suspensão temporária de 7 dias de publicar boleias (admin pode anular) | ⬜ Por fazer |
+
+### 15b.4 — Reserva instantânea (auto-accept)
+
+> O fluxo atual de "condutor aceita manualmente" é bom para desconhecidos ocasionais mas péssimo para commute diário — adiciona fricção e latência.
+
+| # | Item | Estado |
+|---|---|---|
+| 15.4.1 | Campo `instantBooking boolean` no modelo `Ride` | ⬜ Por fazer |
+| 15.4.2 | Toggle na UI do condutor ao publicar boleia: "Reserva instantânea" (on por defeito) | ⬜ Por fazer |
+| 15.4.3 | Se `instantBooking=true`: booking passa diretamente a CONFIRMED sem espera | ⬜ Por fazer |
+| 15.4.4 | Card de boleia no Discover mostra raio "Instantânea" quando ativo | ⬜ Por fazer |
+
+---
+
+## Fase 16 — Smart Matching (Daily Hardcore)
+
+> O objetivo é que o utilizador abra a app e veja imediatamente "João passa a 500m de ti às 8h15 amanhã, mesmo destino". Sem pesquisar. Sem fricção. Como um autocarro inteligente.
+
+### 16.1 — Route corridor matching (waypoints)
+
+> O matching atual é ponto-a-ponto (origem → destino). Para commutes, o que interessa é sobreposição de rota — se vou de Benfica para o Marquês, posso apanhar alguém em Campo de Ourique.
+
+| # | Item | Estado |
+|---|---|---|
+| 16.1.1 | Guardar polilinha da rota no `Ride` (serializada como JSON de coordenadas) via Google Directions API | ⬜ Por fazer |
+| 16.1.2 | Algoritmo de sobreposição: calcular se a rota do passageiro (ponto A → ponto B) fica dentro de X metros de algum ponto da polilinha do condutor | ⬜ Por fazer |
+| 16.1.3 | Score de sobreposição em % — mostrar "Rota 87% compatível" no card | ⬜ Por fazer |
+| 16.1.4 | Atualizar `GET /rides/for-you` para usar sobreposição em vez de só Haversine ponto-a-ponto | ⬜ Por fazer |
+
+### 16.2 — "Disponível agora" — modo instantâneo
+
+> Para quando alguém sai agora e quer apanhar alguém no caminho, ou quando o passageiro precisa de uma boleia em 20 minutos.
+
+| # | Item | Estado |
+|---|---|---|
+| 16.2.1 | Condutor pode publicar boleia "agora" com departurTime = now + X min | ⬜ Por fazer |
+| 16.2.2 | Feed "Disponível agora" no Discover — boleias que partem nas próximas 2h | ⬜ Por fazer |
+| 16.2.3 | Push notification proativa: "Pedro está a 3km de ti e vai para o teu destino em 15 min" | ⬜ Por fazer |
+
+### 16.3 — Arranjos recorrentes (driver ↔ passenger committed)
+
+> O nível máximo de fiabilidade: condutor e passageiro comprometem-se mutuamente para uma série de dias. Como ter o teu próprio boleia privado de segunda a sexta.
+
+| # | Item | Estado |
+|---|---|---|
+| 16.3.1 | Modelo `RecurringArrangement` — par (driverId, passengerId), rota, dias, hora, estado (ACTIVE/PAUSED/ENDED) | ⬜ Por fazer |
+| 16.3.2 | Interface para propor arranjo após viagem confirmada: "Repetir esta boleia Mon-Sex às 8h?" | ⬜ Por fazer |
+| 16.3.3 | Criação automática de boleias + reservas para os dias do arranjo (sem confirmar manualmente) | ⬜ Por fazer |
+| 16.3.4 | Cancelamento de arranjo com aviso de 48h mínimo | ⬜ Por fazer |
+
+### 16.4 — Match requests (passageiro publica necessidade)
+
+> Inverter o fluxo: em vez de só condutores publicarem boleias, passageiros publicam "Preciso de boleia Mon-Sex 8h, Almada → Setúbal". Sistema notifica condutores com rota compatível.
+
+| # | Item | Estado |
+|---|---|---|
+| 16.4.1 | Modelo `RideRequest` — passageiro define rota, horário, dias, estado (OPEN/MATCHED/CLOSED) | ⬜ Por fazer |
+| 16.4.2 | `POST /ride-requests` + `GET /ride-requests` + `DELETE /ride-requests/:id` | ⬜ Por fazer |
+| 16.4.3 | Cron diário: cruzar RideRequests abertas com novos ScheduleTemplates de condutores | ⬜ Por fazer |
+| 16.4.4 | Push notification ao condutor: "Ana precisa de boleia na tua rota Mon-Sex às 8h" | ⬜ Por fazer |
+| 16.4.5 | Feed de "Pedidos de boleia na minha rota" para condutores na aba Rides | ⬜ Por fazer |
+
+### 16.5 — Smart home feed
+
+> O Discover atual é uma lista de boleias que o user tem de pesquisar. O objetivo é que seja proativo — a app sabe a rotina do user e sugere sem pesquisar.
+
+| # | Item | Estado |
+|---|---|---|
+| 16.5.1 | Feed personalizado baseado em UserRoutes + horário habitual — aparece ao abrir a app | ⬜ Por fazer |
+| 16.5.2 | Secção "Para amanhã" — boleias que batem com a rota do user no dia seguinte | ⬜ Por fazer |
+| 16.5.3 | Secção "Habituais" — condutores com quem o user já viajou e têm boleia disponível | ⬜ Por fazer |
+| 16.5.4 | Ordenação por score composto: sobreposição de rota + fiabilidade do condutor + reviews + distância ao passageiro | ⬜ Por fazer |
+
+### 16.6 — Comunidades (empresa / faculdade)
+
+> Grupos fechados onde só entra quem tem email do domínio ou convite. Aumenta confiança porque condutor e passageiro são colegas.
+
+| # | Item | Estado |
+|---|---|---|
+| 16.6.1 | Modelo `Community` — nome, domínio de email (ex: `@iscte.pt`), tipo (UNIVERSITY/WORKPLACE/OPEN) | ⬜ Por fazer |
+| 16.6.2 | Auto-join por domínio de email na verificação (quem tem email `@iscte.pt` entra na comunidade ISCTE) | ⬜ Por fazer |
+| 16.6.3 | Filtro "Só da minha comunidade" no Discover | ⬜ Por fazer |
+| 16.6.4 | Condutor pode publicar boleia só para a comunidade | ⬜ Por fazer |
+
+### Prioridade de implementação da Fase 16
+
+```
+1. 15.1 + 15.4 (cancelamento rigoroso + reserva instantânea) — base de fiabilidade
+2. 16.1 (route corridor matching) — diferencial técnico principal
+3. 16.5 (smart home feed) — experiência diária
+4. 16.4 (ride requests) — inverter o fluxo
+5. 16.2 (disponível agora) — modo instantâneo
+6. 16.3 (arranjos recorrentes) — relações de longo prazo
+7. 16.6 (comunidades) — crescimento orgânico
+```

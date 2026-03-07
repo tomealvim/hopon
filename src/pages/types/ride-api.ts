@@ -39,6 +39,7 @@ export interface ApiRideBooking {
   user?: {
     id: string;
     email: string;
+    phone?: string | null;
     profile?: { name: string; username?: string; avatarUrl?: string } | null;
   } | null;
 }
@@ -63,6 +64,7 @@ export interface ApiRide {
   createdAt?: string;
   updatedAt?: string;
   arrivedAt?: string | null;
+  onTheWayAt?: string | null;
   /** Presente em respostas de /rides/for-you — pontuação de relevância */
   matchScore?: number;
 }

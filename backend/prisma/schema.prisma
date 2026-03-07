@@ -172,6 +172,7 @@ model Ride {
   status         String    @default("SCHEDULED")
 
   arrivedAt      DateTime?   // condutor marcou chegada ao ponto de encontro
+  onTheWayAt     DateTime?   // condutor anunciou que está a caminho
 
   scheduleTemplateId String?
   scheduleTemplate   ScheduleTemplate? @relation(fields: [scheduleTemplateId], references: [id], onDelete: SetNull)

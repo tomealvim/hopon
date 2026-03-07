@@ -74,6 +74,14 @@ export class RidesController {
     return this.ridesService.remove(req.user.id, id);
   }
 
+  @Post(':id/on-the-way')
+  @UseGuards(JwtAuthGuard, VerifiedUserGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Condutor anuncia que está a caminho — notifica passageiros confirmados' })
+  onTheWay(@Request() req, @Param('id') id: string) {
+    return this.ridesService.onTheWay(req.user.id, id);
+  }
+
   @Post(':id/arrive')
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()
