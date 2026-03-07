@@ -124,6 +124,70 @@ export class AdminService {
     return { message: `Verificação de ${targetId} rejeitada.` };
   }
 
+  async getPendingDriverLicenses() {
+    const users = await this.prisma.user.findMany({
+      where: { driverLicenseStatus: 'PENDING' },
+      select: {
+        id: true,
+        email: true,
+        driverLicenseUrl: true,
+        driverLicenseStatus: true,
+        driverLicenseCcNumber: true,
+        createdAt: true,
+        profile: { select: { name: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+    return users.map((u) => ({
+      id: u.id,
+      email: u.email,
+      name: u.profile?.name,
+      driverLicenseUrl: u.driverLicenseUrl,
+      driverLicenseStatus: u.driverLicenseStatus,
+      driverLicenseCcNumber: u.driverLicenseCcNumber,
+      createdAt: u.createdAt,
+    }));
+  }
+
+  async approveDriverLicense(targetId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: targetId } });
+    if (!user) throw new NotFoundException('Utilizador não encontrado.');
+    if (user.driverLicenseStatus !== 'PENDING') {
+      throw new BadRequestException('Carta de condução não está pendente de verificação.');
+    }
+    await this.prisma.user.update({
+      where: { id: targetId },
+      data: { driverLicenseStatus: 'APPROVED', driverLicenseAdminNote: null },
+    });
+    void this.notificationsService.createNotification(
+      targetId,
+      'driver_license.approved',
+      'Carta de condução verificada',
+      'A tua carta de condução foi verificada com sucesso. Já podes adicionar veículos e oferecer boleias.',
+    );
+    return { message: `Carta de condução de ${targetId} aprovada.` };
+  }
+
+  async rejectDriverLicense(targetId: string, adminNote?: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: targetId } });
+    if (!user) throw new NotFoundException('Utilizador não encontrado.');
+    await this.prisma.user.update({
+      where: { id: targetId },
+      data: {
+        driverLicenseStatus: 'REJECTED',
+        driverLicenseAdminNote: adminNote ?? null,
+      },
+    });
+    const noteText = adminNote ? ` Motivo: ${adminNote}` : '';
+    void this.notificationsService.createNotification(
+      targetId,
+      'driver_license.rejected',
+      'Carta de condução rejeitada',
+      `O teu documento foi rejeitado.${noteText} Por favor, envia um documento válido e legível.`,
+    );
+    return { message: `Carta de condução de ${targetId} rejeitada.` };
+  }
+
   async getDisputes(status?: string) {
     const where = status ? { status } : {};
     const disputes = await (this.prisma as any).dispute.findMany({

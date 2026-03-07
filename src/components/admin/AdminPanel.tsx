@@ -4,7 +4,7 @@ import { Button } from "../ui/Button";
 import { cn } from "../../utils/cn";
 import { apiRequest } from "../../services/api";
 
-type AdminTab = "saques" | "disputas" | "verificacoes";
+type AdminTab = "saques" | "disputas" | "verificacoes" | "cartas";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -523,6 +523,137 @@ function VerificationsTab() {
   );
 }
 
+// ── Driver Licenses Tab ───────────────────────────────────────────────────────
+
+interface PendingDriverLicense {
+  id: string;
+  email: string;
+  name?: string;
+  driverLicenseUrl?: string | null;
+  driverLicenseStatus: string;
+  driverLicenseCcNumber?: string | null;
+  createdAt: string;
+}
+
+function DriverLicensesTab() {
+  const [items, setItems] = useState<PendingDriverLicense[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [acting, setActing] = useState<string | null>(null);
+  const [imgOpen, setImgOpen] = useState<string | null>(null);
+  const [rejectFor, setRejectFor] = useState<string | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await apiRequest<PendingDriverLicense[]>("/admin/driver-licenses/pending");
+      setItems(data);
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function approve(id: string) {
+    setActing(id);
+    try {
+      await apiRequest(`/admin/users/${id}/driver-license/approve`, { method: "PATCH" });
+      await load();
+    } finally {
+      setActing(null);
+    }
+  }
+
+  async function reject(id: string) {
+    setActing(id);
+    try {
+      await apiRequest(`/admin/users/${id}/driver-license/reject`, {
+        method: "PATCH",
+        body: JSON.stringify({ adminNote: rejectNote || undefined }),
+      });
+      await load();
+    } finally {
+      setActing(null);
+      setRejectFor(null);
+      setRejectNote("");
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {loading ? (
+        <div className="py-8 text-center text-sm text-gray-400">A carregar…</div>
+      ) : items.length === 0 ? (
+        <div className="py-8 text-center text-sm text-gray-400">Nenhuma carta pendente.</div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {items.map((item) => (
+            <div key={item.id} className="border border-gray-200 rounded-xl p-4 flex flex-col gap-2">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{item.name ?? item.email}</p>
+                  <p className="text-xs text-gray-500">{item.email}</p>
+                </div>
+                <StatusBadge status={item.driverLicenseStatus} />
+              </div>
+
+              <div className="text-xs text-gray-600 flex flex-col gap-0.5">
+                {item.driverLicenseCcNumber && (
+                  <span>Nº CC declarado: <strong className="font-mono">{item.driverLicenseCcNumber}</strong></span>
+                )}
+                <span>{fmtDate(item.createdAt)}</span>
+              </div>
+
+              {item.driverLicenseUrl && (
+                <button
+                  className="w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-50 hover:opacity-80 transition"
+                  onClick={() => setImgOpen(item.driverLicenseUrl!)}
+                >
+                  <img src={item.driverLicenseUrl} alt="Carta de condução" className="w-full max-h-40 object-contain" />
+                  <p className="text-xs text-gray-500 py-1">Clica para ampliar</p>
+                </button>
+              )}
+
+              {rejectFor !== item.id ? (
+                <div className="flex gap-2 mt-1">
+                  <Button size="sm" className="flex-1" disabled={acting === item.id} onClick={() => approve(item.id)}>
+                    Aprovar
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1" disabled={acting === item.id} onClick={() => { setRejectFor(item.id); setRejectNote(""); }}>
+                    Rejeitar
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 mt-1 border-t border-gray-100 pt-2">
+                  <input
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+                    placeholder="Motivo da rejeição (opcional)"
+                    value={rejectNote}
+                    onChange={(e) => setRejectNote(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" className="flex-1" onClick={() => { setRejectFor(null); setRejectNote(""); }}>Cancelar</Button>
+                    <Button size="sm" className="flex-1" disabled={acting === item.id} onClick={() => reject(item.id)}>Confirmar rejeição</Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {imgOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={() => setImgOpen(null)}>
+          <img src={imgOpen} alt="Carta de condução" className="max-w-full max-h-full rounded-xl" />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── AdminPanel ───────────────────────────────────────────────────────────────
 
 type Props = {
@@ -533,6 +664,7 @@ type Props = {
 const TABS: { key: AdminTab; label: string }[] = [
   { key: "saques", label: "Saques" },
   { key: "disputas", label: "Disputas" },
+  { key: "cartas", label: "Cartas" },
   { key: "verificacoes", label: "Identidade" },
 ];
 
@@ -561,6 +693,7 @@ export default function AdminPanel({ open, onClose }: Props) {
 
       {tab === "saques" && <PayoutRequestsTab />}
       {tab === "disputas" && <DisputesTab />}
+      {tab === "cartas" && <DriverLicensesTab />}
       {tab === "verificacoes" && <VerificationsTab />}
     </Sheet>
   );

@@ -870,6 +870,19 @@ app.use('/api/docs', basicAuth({ users: { admin: process.env.SWAGGER_PASSWORD },
 
 ---
 
+## Nota futura — Migração do Prisma
+
+> Para não esquecer quando o projeto escalar.
+
+O Prisma é a escolha certa para o estado atual. Se o projeto atingir volume alto (milhões de queries/dia), considerar:
+- Migrar queries complexas para `prisma.$queryRaw` (SQL direto, mais controlo)
+- Ou migrar o ORM para **TypeORM** (mais maduro, mais configurável em escala)
+- Apps muito grandes (Netflix, Uber) usam query builders como **Knex** ou SQL direto
+
+Não é urgente — o Prisma escala bem até dezenas de milhares de utilizadores sem problemas.
+
+---
+
 ## Fase 14 — Sistema de Verificação Completo
 
 > Mínimo obrigatório para plataforma de ridesharing séria. Sem isto não é seguro lançar ao público.
@@ -878,11 +891,12 @@ app.use('/api/docs', basicAuth({ users: { admin: process.env.SWAGGER_PASSWORD },
 
 | # | Item | Estado |
 |---|---|---|
-| 14.1.1 | Adicionar campos ao schema Prisma: `driverLicenseUrl`, `driverLicenseStatus` (NONE/PENDING/APPROVED/REJECTED), `driverLicenseCcNumber` (nº CC que aparece na carta) | ⬜ Por fazer |
-| 14.1.2 | Migração manual da DB (Railway + local) | ⬜ Por fazer |
-| 14.1.3 | Endpoint `POST /auth/me/driver-license` — upload de imagem + campo `ccNumber` obrigatório | ⬜ Por fazer |
-| 14.1.4 | Guard em `POST /vehicles` — bloquear se `driverLicenseStatus !== 'APPROVED'` | ⬜ Por fazer |
-| 14.1.5 | Endpoint admin `PATCH /admin/users/:id/driver-license` — aprovar/rejeitar com nota | ⬜ Por fazer |
+| 14.1.1 | Adicionar campos ao schema Prisma: `driverLicenseUrl`, `driverLicenseStatus` (NONE/PENDING/APPROVED/REJECTED), `driverLicenseCcNumber`, `driverLicenseAdminNote` | ✅ Concluído |
+| 14.1.2 | Migração manual da DB (local) | ✅ Concluído (`20260307000001_add_driver_license`) |
+| 14.1.3 | Endpoint `POST /auth/me/driver-license?ccNumber=` — upload de imagem + campo `ccNumber` obrigatório | ✅ Concluído |
+| 14.1.4 | Guard em `POST /vehicles` — bloquear se `driverLicenseStatus !== 'APPROVED'` | ✅ Concluído |
+| 14.1.5 | Endpoints admin: `GET /admin/driver-licenses/pending`, `PATCH /admin/users/:id/driver-license/approve`, `PATCH /admin/users/:id/driver-license/reject` | ✅ Concluído |
+| 14.1.6 | `buildUserResponse` inclui `verification.driverLicense` e `verification.identity` | ✅ Concluído |
 
 ### 14.2 — Backend: Verificação de Telemóvel
 
@@ -895,10 +909,22 @@ app.use('/api/docs', basicAuth({ users: { admin: process.env.SWAGGER_PASSWORD },
 
 | # | Item | Estado |
 |---|---|---|
-| 14.3.1 | Página/secção "O meu perfil — Verificação" com estado visual de cada item (email, telemóvel, carta de condução) | ⬜ Por fazer |
-| 14.3.2 | Upload de carta de condução com campo de nº CC obrigatório + mensagem explicativa ("O nº do CC deve ser visível na carta") | ⬜ Por fazer |
-| 14.3.3 | Formulário de adicionar veículo: mostrar aviso e bloquear submit se carta não aprovada | ⬜ Por fazer |
-| 14.3.4 | Badge de verificação no perfil público (condutor verificado) | ⬜ Por fazer |
+| 14.3.1 | Secção "Verificação" unificada no ProfilePage — estado visual de carta de condução + identidade | ✅ Concluído |
+| 14.3.2 | `DriverLicenseSheet.tsx` — upload com campo nº CC obrigatório + explicação + estado (NONE/PENDING/APPROVED/REJECTED) | ✅ Concluído |
+| 14.3.3 | Guard no backend em `POST /vehicles` bloqueia sem carta aprovada (erro 403 com mensagem clara) | ✅ Concluído |
+| 14.3.4 | Admin Panel — nova aba "Cartas" com lightbox, nº CC declarado, aprovar/rejeitar com nota | ✅ Concluído |
+| 14.3.5 | Tipos `UserVerification` e `User` atualizados no frontend | ✅ Concluído |
+| 14.3.6 | Badge de verificação no perfil público (condutor verificado) | ⬜ Por fazer |
+
+### Migração Railway (produção)
+
+Após fazer deploy, correr no Railway Dashboard → PostgreSQL → Query:
+```sql
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "driverLicenseUrl" TEXT;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "driverLicenseStatus" TEXT NOT NULL DEFAULT 'NONE';
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "driverLicenseCcNumber" TEXT;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "driverLicenseAdminNote" TEXT;
+```
 
 ### Lógica de verificação resumida
 

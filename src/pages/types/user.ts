@@ -49,6 +49,8 @@ export interface Vehicle {
 export interface UserVerification {
   email: boolean;
   phone: boolean;
+  driverLicense?: string; // NONE | PENDING | APPROVED | REJECTED
+  identity?: string;      // NONE | PENDING | VERIFIED | REJECTED
 }
 
 export interface User {
@@ -61,6 +63,8 @@ export interface User {
   verification?: UserVerification;
   isIdentityVerified?: boolean;
   identityDocumentStatus?: string | null;
+  driverLicenseStatus?: string | null;
+  driverLicenseAdminNote?: string | null;
   isAdmin?: boolean;
 }
 

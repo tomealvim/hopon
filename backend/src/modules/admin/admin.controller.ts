@@ -61,6 +61,24 @@ export class AdminController {
     return this.adminService.getPendingVerifications();
   }
 
+  @Get('driver-licenses/pending')
+  @ApiOperation({ summary: 'Listar cartas de condução pendentes de verificação' })
+  getPendingDriverLicenses() {
+    return this.adminService.getPendingDriverLicenses();
+  }
+
+  @Patch('users/:id/driver-license/approve')
+  @ApiOperation({ summary: 'Aprovar carta de condução' })
+  approveDriverLicense(@Param('id') id: string) {
+    return this.adminService.approveDriverLicense(id);
+  }
+
+  @Patch('users/:id/driver-license/reject')
+  @ApiOperation({ summary: 'Rejeitar carta de condução com nota opcional' })
+  rejectDriverLicense(@Param('id') id: string, @Body() dto: { adminNote?: string }) {
+    return this.adminService.rejectDriverLicense(id, dto.adminNote);
+  }
+
   @Get('disputes')
   @ApiOperation({ summary: 'Listar disputas' })
   getDisputes(@Query('status') status?: string) {

@@ -17,6 +17,7 @@ import VerificationSheet from "../components/profile/VerificationSheet";
 import RatingsSheet from "../components/profile/RatingsSheet";
 import HistorySheet from "../components/profile/HistorySheet";
 import IdentityVerificationSheet from "../components/profile/IdentityVerificationSheet";
+import DriverLicenseSheet from "../components/profile/DriverLicenseSheet";
 import AdminPanel from "../components/admin/AdminPanel";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { TERMS_LAST_UPDATED, TERMS_SECTIONS, TERMS_TITLE } from "../data/terms";
@@ -72,6 +73,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
   const [verificationSheetOpen, setVerificationSheetOpen] = useState(false);
   const [verificationChannel, setVerificationChannel] = useState<"email" | "phone" | null>(null);
   const [openIdentitySheet, setOpenIdentitySheet] = useState(false);
+  const [openDriverLicenseSheet, setOpenDriverLicenseSheet] = useState(false);
   const [openAdminPanel, setOpenAdminPanel] = useState(false);
   const [copiedReferral, setCopiedReferral] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
@@ -211,6 +213,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       openVehicleList ||
       verificationSheetOpen ||
       openIdentitySheet ||
+      openDriverLicenseSheet ||
       openAdminPanel;
 
     onSheetStateChange?.(isAnySheetOpen);
@@ -231,6 +234,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
     openVehicleList,
     verificationSheetOpen,
     openIdentitySheet,
+    openDriverLicenseSheet,
     openAdminPanel,
     onSheetStateChange,
   ]);
@@ -498,36 +502,84 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         )}
       </section>
 
-      {/* ========== VERIFICAÇÃO DE IDENTIDADE ========== */}
-      {(user?.identityDocumentStatus !== "VERIFIED") && (
-        <section
-          className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up cursor-pointer hover:bg-gray-50 transition"
-          onClick={() => setOpenIdentitySheet(true)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenIdentitySheet(true); } }}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-1">
-                Verificação de identidade
-              </h2>
-              {(!user?.identityDocumentStatus || user.identityDocumentStatus === "NONE") && (
-                <p className="text-xs text-gray-500">Verifica a tua identidade para aumentar a confiança na plataforma.</p>
-              )}
-              {user?.identityDocumentStatus === "PENDING" && (
-                <p className="text-xs text-amber-600 font-medium">Documento em análise — aguarda confirmação.</p>
-              )}
-              {user?.identityDocumentStatus === "REJECTED" && (
-                <p className="text-xs text-red-600 font-medium">Documento rejeitado — envia um novo.</p>
-              )}
+      {/* ========== VERIFICAÇÃO ========== */}
+      <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
+        <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">Verificação</h2>
+        <div className="space-y-2">
+
+          {/* Carta de condução */}
+          <button
+            type="button"
+            className="w-full flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-left hover:bg-gray-100 transition"
+            onClick={() => setOpenDriverLicenseSheet(true)}
+          >
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0",
+                user?.verification?.driverLicense === "APPROVED" ? "bg-emerald-100 text-emerald-700" :
+                user?.verification?.driverLicense === "PENDING" ? "bg-amber-100 text-amber-700" :
+                user?.verification?.driverLicense === "REJECTED" ? "bg-red-100 text-red-700" :
+                "bg-gray-200 text-gray-500"
+              )}>
+                {user?.verification?.driverLicense === "APPROVED" ? "✓" : "!"}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Carta de condução</p>
+                <p className={cn("text-xs",
+                  user?.verification?.driverLicense === "APPROVED" ? "text-emerald-600" :
+                  user?.verification?.driverLicense === "PENDING" ? "text-amber-600" :
+                  user?.verification?.driverLicense === "REJECTED" ? "text-red-600" :
+                  "text-gray-500"
+                )}>
+                  {user?.verification?.driverLicense === "APPROVED" ? "Verificada" :
+                   user?.verification?.driverLicense === "PENDING" ? "Em análise" :
+                   user?.verification?.driverLicense === "REJECTED" ? "Rejeitada — envia novamente" :
+                   "Necessária para oferecer boleias"}
+                </p>
+              </div>
             </div>
-            <svg className="text-gray-400 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <svg className="text-gray-400 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
             </svg>
-          </div>
-        </section>
-      )}
+          </button>
+
+          {/* Identidade */}
+          {user?.verification?.identity !== "VERIFIED" && (
+            <button
+              type="button"
+              className="w-full flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-left hover:bg-gray-100 transition"
+              onClick={() => setOpenIdentitySheet(true)}
+            >
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0",
+                  user?.verification?.identity === "PENDING" ? "bg-amber-100 text-amber-700" :
+                  user?.verification?.identity === "REJECTED" ? "bg-red-100 text-red-700" :
+                  "bg-gray-200 text-gray-500"
+                )}>
+                  {user?.verification?.identity === "PENDING" ? "…" : "!"}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Identidade</p>
+                  <p className={cn("text-xs",
+                    user?.verification?.identity === "PENDING" ? "text-amber-600" :
+                    user?.verification?.identity === "REJECTED" ? "text-red-600" :
+                    "text-gray-500"
+                  )}>
+                    {user?.verification?.identity === "PENDING" ? "Em análise" :
+                     user?.verification?.identity === "REJECTED" ? "Rejeitada — envia novamente" :
+                     "Opcional — aumenta a confiança"}
+                  </p>
+                </div>
+              </div>
+              <svg className="text-gray-400 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </button>
+          )}
+
+        </div>
+      </section>
 
       {/* ========== BLOCO 2: CARRO EM USO ========== */}
       <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
@@ -1262,6 +1314,13 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         open={openIdentitySheet}
         onClose={() => setOpenIdentitySheet(false)}
         currentStatus={user?.identityDocumentStatus}
+      />
+      <DriverLicenseSheet
+        open={openDriverLicenseSheet}
+        onClose={() => setOpenDriverLicenseSheet(false)}
+        currentStatus={user?.verification?.driverLicense}
+        adminNote={user?.driverLicenseAdminNote}
+        onUploaded={() => { /* o AuthContext fará refresh do user */ }}
       />
       <AdminPanel open={openAdminPanel} onClose={() => setOpenAdminPanel(false)} />
       </div>

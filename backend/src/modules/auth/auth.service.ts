@@ -499,6 +499,35 @@ export class AuthService {
     return this.buildUserResponse(user);
   }
 
+  async uploadDriverLicense(
+    userId: string,
+    file: Express.Multer.File,
+    ccNumber: string,
+  ) {
+    if (!ccNumber || ccNumber.trim().length < 4) {
+      throw new BadRequestException('O número do Cartão de Cidadão é obrigatório.');
+    }
+
+    const docUrl = await this.storageService.uploadDriverLicense(
+      userId,
+      file.buffer,
+      file.mimetype,
+    );
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        driverLicenseUrl: docUrl,
+        driverLicenseStatus: 'PENDING',
+        driverLicenseCcNumber: ccNumber.trim(),
+        driverLicenseAdminNote: null,
+      },
+      include: { profile: true, vehicles: true },
+    });
+
+    return this.buildUserResponse(user);
+  }
+
   private async generateTokens(user: any, userAgent?: string, ip?: string) {
     try {
       const basePayload = { sub: user.id, email: user.email };
@@ -589,6 +618,8 @@ export class AuthService {
       verification: {
         email: !!rest.emailVerifiedAt,
         phone: !!rest.phoneVerifiedAt,
+        driverLicense: rest.driverLicenseStatus ?? 'NONE',
+        identity: rest.identityDocumentStatus ?? 'NONE',
       },
       policy: {
         passengerAcceptedAt: rest.passengerPolicyAcceptedAt ?? null,

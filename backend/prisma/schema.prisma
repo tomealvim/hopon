@@ -58,6 +58,11 @@ model User {
   identityDocumentType   String?
   identityDocumentStatus String?  @default("NONE")
 
+  driverLicenseUrl      String?
+  driverLicenseStatus   String?  @default("NONE")  // NONE | PENDING | APPROVED | REJECTED
+  driverLicenseCcNumber String?  // nº CC visível na carta (para cruzar identidades)
+  driverLicenseAdminNote String? // nota do admin em caso de rejeição
+
   openedDisputes Dispute[] @relation("OpenedDisputes")
   payoutRequests PayoutRequest[]
   userRoutes     UserRoute[]

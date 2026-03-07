@@ -145,6 +145,27 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('me/driver-license')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Upload de carta de condução com nº CC (JPEG/PNG/WebP, máx 10MB)' })
+  @UseInterceptors(FileInterceptor('document', { storage: memoryStorage() }))
+  uploadDriverLicense(
+    @Request() req,
+    @Query('ccNumber') ccNumber: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /image\/(jpeg|png|webp)/ }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.authService.uploadDriverLicense(req.user.id, file, ccNumber ?? '');
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('me/identity-document')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Upload de documento de identidade (JPEG/PNG/WebP, máx 10MB)' })

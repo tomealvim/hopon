@@ -84,4 +84,33 @@ export class StorageService {
     this.logger.log(`Identity document uploaded: ${url}`);
     return url;
   }
+
+  async uploadDriverLicense(
+    userId: string,
+    buffer: Buffer,
+    mimeType: string,
+  ): Promise<string> {
+    if (!this.enabled) {
+      throw new ServiceUnavailableException(
+        'Upload de documentos não está configurado neste servidor.',
+      );
+    }
+
+    const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
+    const uuid = randomUUID();
+    const key = `driver-license/${userId}/${uuid}.${ext}`;
+
+    await this.client!.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: mimeType,
+      }),
+    );
+
+    const url = `${this.publicUrl}/${key}`;
+    this.logger.log(`Driver license uploaded: ${url}`);
+    return url;
+  }
 }

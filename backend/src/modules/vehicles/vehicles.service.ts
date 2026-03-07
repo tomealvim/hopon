@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
@@ -28,6 +28,17 @@ export class VehiclesService {
   }
 
   async create(userId: string, dto: CreateVehicleDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { driverLicenseStatus: true },
+    });
+
+    if (!user || user.driverLicenseStatus !== 'APPROVED') {
+      throw new ForbiddenException(
+        'Precisas de ter a carta de condução verificada para adicionar um veículo. Vai ao teu perfil → Verificação.',
+      );
+    }
+
     const vehicle = await this.prisma.vehicle.create({
       data: {
         userId,
