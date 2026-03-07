@@ -422,6 +422,11 @@ async function run() {
     console.error("❌ Falha no GET /vehicles inicial:", err.message);
   }
 
+  // 21b) Aprovar carta de condução (necessário para criar veículos)
+  try {
+    await request("POST", "/auth/test/approve-driver-license", null, accessToken);
+  } catch { /* ignorar se ALLOW_TEST_VERIFY não estiver ativo */ }
+
   // 22) POST /vehicles - criar veículo
   total++;
   try {

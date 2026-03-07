@@ -83,6 +83,8 @@ async function registerAndVerifyUser(suffix) {
 }
 
 async function createVehicle(token, suffix) {
+  // Aprovar carta de condução antes de criar veículo
+  await request("POST", "/auth/test/approve-driver-license", null, token);
   const res = await request(
     "POST",
     "/vehicles",

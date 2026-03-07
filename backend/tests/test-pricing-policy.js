@@ -89,6 +89,9 @@ async function run() {
   const driver = await registerAndVerify("driver");
   const passenger = await registerAndVerify("passenger");
 
+  // Aprovar carta de condução antes de criar veículo
+  await request("POST", "/auth/test/approve-driver-license", null, driver.token);
+
   // Criar veículo para o condutor
   const vehicleRes = await request("POST", "/vehicles", {
     brand: "Toyota",
