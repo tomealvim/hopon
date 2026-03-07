@@ -72,6 +72,15 @@ export class RidesService {
       destinationLocationId = loc.id;
     }
 
+    // Buscar polilinha da rota (uma vez, guardada na DB para matching futuro)
+    let routePolyline: { lat: number; lng: number }[] | null = null;
+    if (originCoords && destCoords) {
+      routePolyline = await this.geocodingService.getRoutePolyline(
+        originCoords.lat, originCoords.lng,
+        destCoords.lat, destCoords.lng,
+      );
+    }
+
     const ride = await this.prisma.ride.create({
       data: {
         driverId: userId,
@@ -88,6 +97,7 @@ export class RidesService {
         ...(dto.routeDurationMin != null && { routeDurationMin: dto.routeDurationMin }),
         ...(dto.routeTollCost != null && { routeTollCost: dto.routeTollCost }),
         ...(dto.platformFee != null && { platformFee: dto.platformFee }),
+        ...(routePolyline && { routePolyline }),
       },
       include: {
         vehicle: {
@@ -845,6 +855,7 @@ export class RidesService {
       routeDurationMin: ride.routeDurationMin ?? null,
       routeTollCost: ride.routeTollCost ?? null,
       platformFee: ride.platformFee ?? null,
+      routePolyline: ride.routePolyline ?? null,
       status: ride.status,
       arrivedAt: ride.arrivedAt ?? null,
       onTheWayAt: ride.onTheWayAt ?? null,

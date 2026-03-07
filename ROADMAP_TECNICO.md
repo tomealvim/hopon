@@ -1020,25 +1020,25 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 15.1.1 | Novos thresholds: >2h=100%, 30min–2h=50%, <30min=0% | ⬜ Por fazer |
-| 15.1.2 | Aplicar à UI existente (RidesPage + RequestSeatSheet) | ⬜ Por fazer |
-| 15.1.3 | Backend: atualizar lógica de reembolso em `bookings.service.ts` | ⬜ Por fazer |
+| 15.1.1 | Novos thresholds: >2h=100%, 30min–2h=50%, <30min=0% | ✅ Concluído |
+| 15.1.2 | Aplicar à UI existente (RidesPage + RequestSeatSheet) | ✅ Concluído |
+| 15.1.3 | Backend: atualizar lógica de reembolso em `bookings.service.ts` | ✅ Concluído |
 
 ### 15b.2 — Taxa de fiabilidade no perfil
 
 | # | Item | Estado |
 |---|---|---|
-| 15.2.1 | Calcular % de viagens não canceladas nos últimos 30 dias por utilizador | ⬜ Por fazer |
-| 15.2.2 | Mostrar no perfil público: "98% de fiabilidade · 47 viagens" | ⬜ Por fazer |
-| 15.2.3 | Badge "Condutor fiável" (≥95% nos últimos 30 dias, mínimo 10 viagens) | ⬜ Por fazer |
+| 15.2.1 | Calcular % de viagens não canceladas nos últimos 30 dias por utilizador | ✅ Concluído |
+| 15.2.2 | Mostrar no perfil público: "98% de fiabilidade · 47 viagens" | ✅ Concluído |
+| 15.2.3 | Badge "Condutor fiável" (≥95% nos últimos 30 dias, mínimo 10 viagens) | ✅ Concluído |
 
 ### 15b.3 — Penalização por cancelamentos repetidos
 
 | # | Item | Estado |
 |---|---|---|
-| 15.3.1 | Contar cancelamentos de última hora (<30min) por utilizador no mês corrente | ⬜ Por fazer |
-| 15.3.2 | Ao 3.º cancelamento de última hora: aviso por notificação in-app + email | ⬜ Por fazer |
-| 15.3.3 | Ao 5.º: suspensão temporária de 7 dias de publicar boleias (admin pode anular) | ⬜ Por fazer |
+| 15.3.1 | Contar cancelamentos de última hora (<2h) por utilizador nos últimos 30 dias — rolling window via `lateCancelCount` + `lateCancelWindowStart` | ✅ Concluído |
+| 15.3.2 | Ao 3.º cancelamento: suspensão automática (`suspendedAt`) — impedido de criar boleias | ✅ Concluído |
+| 15.3.3 | Ao 5.º: notificação in-app + email (low priority) | ⬜ Por fazer |
 
 ### 15b.4 — Reserva instantânea (auto-accept)
 
@@ -1057,16 +1057,46 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 > O objetivo é que o utilizador abra a app e veja imediatamente "João passa a 500m de ti às 8h15 amanhã, mesmo destino". Sem pesquisar. Sem fricção. Como um autocarro inteligente.
 
-### 16.1 — Route corridor matching (waypoints)
+### 16.1 — Route corridor matching + desvio inteligente
 
 > O matching atual é ponto-a-ponto (origem → destino). Para commutes, o que interessa é sobreposição de rota — se vou de Benfica para o Marquês, posso apanhar alguém em Campo de Ourique.
+> Além disso, a lógica "na rota vs fora da rota" determina se uma reserva pode ser auto-confirmada ou precisa de aceite manual do condutor com informação do desvio.
+
+#### 16.1a — Polilinha e sobreposição
 
 | # | Item | Estado |
 |---|---|---|
-| 16.1.1 | Guardar polilinha da rota no `Ride` (serializada como JSON de coordenadas) via Google Directions API | ⬜ Por fazer |
-| 16.1.2 | Algoritmo de sobreposição: calcular se a rota do passageiro (ponto A → ponto B) fica dentro de X metros de algum ponto da polilinha do condutor | ⬜ Por fazer |
-| 16.1.3 | Score de sobreposição em % — mostrar "Rota 87% compatível" no card | ⬜ Por fazer |
-| 16.1.4 | Atualizar `GET /rides/for-you` para usar sobreposição em vez de só Haversine ponto-a-ponto | ⬜ Por fazer |
+| 16.1.1 | Guardar polilinha da rota no `Ride` (JSON de coordenadas lat/lng) via Google Directions API — calculada uma vez na criação, cacheada em Redis | ⬜ Por fazer |
+| 16.1.2 | Algoritmo ponto-a-segmento: calcular distância mínima de um ponto (pickup/dropoff do passageiro) a cada segmento da polilinha do condutor — sem chamada de API externa | ⬜ Por fazer |
+| 16.1.3 | Threshold configurável: ≤500m = "na rota", 500m–2km = "pequeno desvio", >2km = "fora da rota" | ⬜ Por fazer |
+| 16.1.4 | Score de sobreposição em % — mostrar "Rota 87% compatível" no card do Discover | ⬜ Por fazer |
+| 16.1.5 | Atualizar `GET /rides/for-you` para usar sobreposição de corredor em vez de só Haversine ponto-a-ponto | ⬜ Por fazer |
+
+#### 16.1b — Desvio inteligente no booking
+
+> A lógica "na rota vs fora da rota" determina o fluxo de reserva:
+> - **Na rota** (≤500m) + `instantBooking=true` → auto-CONFIRMED sem intervenção do condutor
+> - **Pequeno desvio** (500m–2km) → notificação ao condutor com info do desvio: "Ana pede lugar — ponto de encontro fica 850m fora da tua rota, desvio ~4 min. Aceitar?"
+> - **Fora da rota** (>2km) → condutor aceita/recusa; passageiro vê aviso "boleia requer desvio"
+
+| # | Item | Estado |
+|---|---|---|
+| 16.1b.1 | No `POST /bookings`, calcular distância do pickup do passageiro à polilinha do condutor | ⬜ Por fazer |
+| 16.1b.2 | Incluir `detourMeters` e `detourMinutes` (estimativa) na notificação de pedido ao condutor | ⬜ Por fazer |
+| 16.1b.3 | UI do condutor na notificação/sheet de pedido: mostrar "X min de desvio · Xm fora da rota" com mapa thumbnail | ⬜ Por fazer |
+| 16.1b.4 | Se na rota + instantBooking → skip aceite manual, confirmar direto | ⬜ Por fazer |
+
+#### 16.1c — Script de matching contínuo (background dispatcher)
+
+> Cron que corre em background cruzando UserRoutes dos passageiros com ScheduleTemplates dos condutores. Notifica ambos proativamente quando há sobreposição — sem o utilizador pesquisar nada.
+
+| # | Item | Estado |
+|---|---|---|
+| 16.1c.1 | Cron (de hora a hora, horário nobre) — cruzar todos os UserRoutes ativos com todos os ScheduleTemplates ativos por sobreposição de corredor | ⬜ Por fazer |
+| 16.1c.2 | Deduplicação obrigatória via Redis: chave `match:{passengerId}:{driverId}:{scheduleId}` com TTL 24h — nunca notificar o mesmo par mais do que 1x/dia | ⬜ Por fazer |
+| 16.1c.3 | Push + in-app ao passageiro: "João passa a 500m de ti às 8h15 amanhã, mesmo destino — queres pedir lugar?" | ⬜ Por fazer |
+| 16.1c.4 | Push + in-app ao condutor (quando há passageiro com rota compatível sem boleia): "Ana tem rota compatível com a tua Mon-Sex às 8h — boleia com 1 lugar disponível" | ⬜ Por fazer |
+| 16.1c.5 | `POST /scheduler/trigger-matching` — trigger manual para testes | ⬜ Por fazer |
 
 ### 16.2 — "Disponível agora" — modo instantâneo
 

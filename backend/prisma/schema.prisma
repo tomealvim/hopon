@@ -170,6 +170,7 @@ model Ride {
   routeDurationMin Int?
   routeTollCost    Float?
   platformFee      Float?
+  routePolyline    Json?    // array de {lat,lng} — calculado via Google Directions na criação
 
   status         String    @default("SCHEDULED")
 

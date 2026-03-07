@@ -43,11 +43,19 @@ export class SchedulerService {
       const templateDays = template.daysOfWeek as string[];
       const [hours, minutes] = template.time.split(':').map(Number);
 
-      // Geocodificar uma vez por template (cache implícita via Promise.all)
+      // Geocodificar + polilinha uma vez por template (reutilizar para todos os dias)
       const [originCoords, destCoords] = await Promise.all([
         this.geocodingService.geocodeText(template.origin),
         this.geocodingService.geocodeText(template.destination),
       ]);
+
+      let templatePolyline: { lat: number; lng: number }[] | null = null;
+      if (originCoords && destCoords) {
+        templatePolyline = await this.geocodingService.getRoutePolyline(
+          originCoords.lat, originCoords.lng,
+          destCoords.lat, destCoords.lng,
+        );
+      }
 
       for (let d = 0; d < DAYS_AHEAD; d++) {
         const date = new Date();
@@ -109,6 +117,7 @@ export class SchedulerService {
               scheduleTemplateId: template.id,
               ...(originLocationId && { originLocationId }),
               ...(destinationLocationId && { destinationLocationId }),
+              ...(templatePolyline && { routePolyline: templatePolyline }),
             },
           });
 
