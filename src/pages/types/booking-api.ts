@@ -25,6 +25,7 @@ export interface ApiBooking {
     driver?: {
       id: string;
       email: string;
+      phone?: string | null;
       isIdentityVerified?: boolean;
       profile?: { name: string; username?: string; avatarUrl?: string } | null;
     } | null;

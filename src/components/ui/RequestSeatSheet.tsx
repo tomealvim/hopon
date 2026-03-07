@@ -8,13 +8,15 @@ import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-
 type Props = {
   open: boolean;
   onClose: () => void;
-  onConfirm: (opts?: { message?: string; stripePaymentIntentId?: string }) => void;
+  onConfirm: (opts?: { message?: string; stripePaymentIntentId?: string; pickupLat?: number; pickupLng?: number }) => void;
   offerTitle: string;
   rideId: string;
   price?: number | null;
   platformFee?: number | null;
   seats?: number;
   departureTime?: string | null;
+  pickupLat?: number | null;
+  pickupLng?: number | null;
 };
 
 // ── Stripe checkout embed ─────────────────────────────────────────────────────
@@ -82,6 +84,8 @@ export default function RequestSeatSheet({
   platformFee,
   seats = 1,
   departureTime: _departureTime,
+  pickupLat,
+  pickupLng,
 }: Props) {
   const [message, setMessage]               = useState("");
   const [walletBalance, setWalletBalance]   = useState<number | null>(null);
@@ -125,7 +129,10 @@ export default function RequestSeatSheet({
 
   // ── Wallet path ───────────────────────────────────────────────────────────
   function handleWalletPay() {
-    onConfirm({ message: message.trim() || undefined });
+    onConfirm({
+      message: message.trim() || undefined,
+      ...(pickupLat != null && pickupLng != null && { pickupLat, pickupLng }),
+    });
     setMessage("");
   }
 
@@ -151,7 +158,11 @@ export default function RequestSeatSheet({
   }
 
   function handleStripeSuccess() {
-    onConfirm({ message: message.trim() || undefined, stripePaymentIntentId: paymentIntentId! });
+    onConfirm({
+      message: message.trim() || undefined,
+      stripePaymentIntentId: paymentIntentId!,
+      ...(pickupLat != null && pickupLng != null && { pickupLat, pickupLng }),
+    });
     setMessage("");
   }
 

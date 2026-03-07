@@ -578,6 +578,23 @@ export default function RidesPage() {
                           Pendente
                         </span>
                       </div>
+                      {b.detourMeters != null && (
+                        <div className={`mb-3 rounded-lg px-3 py-2 text-xs font-medium flex items-center gap-1.5 ${
+                          b.detourMeters <= 500
+                            ? "bg-green-50 border border-green-200 text-green-700"
+                            : b.detourMeters <= 2000
+                            ? "bg-amber-50 border border-amber-200 text-amber-700"
+                            : "bg-red-50 border border-red-200 text-red-700"
+                        }`}>
+                          {b.detourMeters <= 500 ? (
+                            <>✓ Ponto de embarque na tua rota</>
+                          ) : b.detourMeters <= 2000 ? (
+                            <>⚠ Desvio de ~{b.detourMeters}m da tua rota</>
+                          ) : (
+                            <>{(b.detourMeters / 1000).toFixed(1)}km fora da tua rota</>
+                          )}
+                        </div>
+                      )}
                       <div className="flex gap-2">
                         <Button variant="secondary" className="flex-1" onClick={() => handleBookingStatus(b.id, "DECLINED")}>
                           Recusar

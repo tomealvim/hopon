@@ -11,7 +11,7 @@ export interface ApiLocation {
 export interface ApiRideDriver {
   id: string;
   email?: string;
-  phone?: string;
+  phone?: string | null;
   isIdentityVerified?: boolean;
   profile?: {
     name: string;
@@ -36,6 +36,9 @@ export interface ApiRideBooking {
   seats: number;
   status: string;
   createdAt: string;
+  pickupLat?: number | null;
+  pickupLng?: number | null;
+  detourMeters?: number | null;
   user?: {
     id: string;
     email: string;
@@ -65,6 +68,8 @@ export interface ApiRide {
   updatedAt?: string;
   arrivedAt?: string | null;
   onTheWayAt?: string | null;
+  instantBooking?: boolean;
+  routePolyline?: { lat: number; lng: number }[] | null;
   /** Presente em respostas de /rides/for-you — pontuação de relevância */
   matchScore?: number;
 }

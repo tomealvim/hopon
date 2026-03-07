@@ -856,6 +856,7 @@ export class RidesService {
       routeTollCost: ride.routeTollCost ?? null,
       platformFee: ride.platformFee ?? null,
       routePolyline: ride.routePolyline ?? null,
+      instantBooking: ride.instantBooking ?? false,
       status: ride.status,
       arrivedAt: ride.arrivedAt ?? null,
       onTheWayAt: ride.onTheWayAt ?? null,

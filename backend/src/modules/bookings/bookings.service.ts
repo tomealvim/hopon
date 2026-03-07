@@ -14,6 +14,56 @@ function getRefundFraction(departureTime: Date): number {
   return 0.0;                         // <30min — sem reembolso
 }
 
+// ── Algoritmo de desvio de rota ────────────────────────────────────────────
+
+function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6_371_000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function pointToSegmentMeters(
+  pLat: number, pLng: number,
+  aLat: number, aLng: number,
+  bLat: number, bLng: number,
+): number {
+  const dx = bLat - aLat;
+  const dy = bLng - aLng;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) return haversineMeters(pLat, pLng, aLat, aLng);
+  const t = Math.max(0, Math.min(1, ((pLat - aLat) * dx + (pLng - aLng) * dy) / lenSq));
+  return haversineMeters(pLat, pLng, aLat + t * dx, aLng + t * dy);
+}
+
+/** Distância mínima (metros) de um ponto a uma polilinha de rota. */
+function pointToPolylineMeters(
+  lat: number,
+  lng: number,
+  polyline: { lat: number; lng: number }[],
+): number {
+  if (polyline.length === 0) return Infinity;
+  if (polyline.length === 1) return haversineMeters(lat, lng, polyline[0].lat, polyline[0].lng);
+  let min = Infinity;
+  for (let i = 0; i < polyline.length - 1; i++) {
+    const d = pointToSegmentMeters(lat, lng, polyline[i].lat, polyline[i].lng, polyline[i + 1].lat, polyline[i + 1].lng);
+    if (d < min) min = d;
+  }
+  return min;
+}
+
+/** Label de desvio para notificações (português). */
+function detourLabel(meters: number): string {
+  if (meters <= 500) return 'na rota';
+  if (meters <= 2000) return `${Math.round(meters)}m fora da rota (pequeno desvio)`;
+  return `${(meters / 1000).toFixed(1)}km fora da rota`;
+}
+
 @Injectable()
 export class BookingsService {
   constructor(
@@ -126,16 +176,35 @@ export class BookingsService {
         if (piUsed) throw new BadRequestException('Este pagamento já foi utilizado numa reserva.');
       }
 
+      // Calcular desvio de rota se o passageiro forneceu ponto de embarque
+      let detourMeters: number | null = null;
+      let isOnRoute = false;
+      if (
+        dto.pickupLat != null &&
+        dto.pickupLng != null &&
+        ride.routePolyline != null
+      ) {
+        const polyline = ride.routePolyline as { lat: number; lng: number }[];
+        detourMeters = Math.round(pointToPolylineMeters(dto.pickupLat, dto.pickupLng, polyline));
+        isOnRoute = detourMeters <= 500;
+      }
+
+      // Auto-confirmar se instantBooking ativo e passageiro está na rota (≤500m)
+      const autoConfirm = ride.instantBooking && isOnRoute;
+
       return tx.booking.create({
         data: {
           rideId,
           userId,
           seats: dto.seats,
-          status: 'PENDING',
+          status: autoConfirm ? 'CONFIRMED' : 'PENDING',
           ...(dto.stripePaymentIntentId && {
             paymentMethod: 'STRIPE',
             stripePaymentIntentId: dto.stripePaymentIntentId,
           }),
+          ...(dto.pickupLat != null && { pickupLat: dto.pickupLat }),
+          ...(dto.pickupLng != null && { pickupLng: dto.pickupLng }),
+          ...(detourMeters != null && { detourMeters }),
         },
         include: {
           ride: {
@@ -181,26 +250,44 @@ export class BookingsService {
     }
 
     const passengerName = booking.user?.profile?.name ?? booking.user?.email ?? 'Passageiro';
+    const detourMeters = (booking as any).detourMeters as number | null;
+    const isAutoConfirmed = booking.status === 'CONFIRMED';
 
-    // Notificar o driver via SSE que tem uma nova reserva
-    this.eventsService.emit(booking.ride.driverId, 'booking.new', {
-      bookingId: booking.id,
-      rideId,
-      passengerId: userId,
-      passengerName,
-      seats: booking.seats,
-      origin: booking.ride.origin,
-      destination: booking.ride.destination,
-    });
+    if (isAutoConfirmed) {
+      // Passageiro na rota + instantBooking → notificar condutor que foi auto-confirmado
+      void this.notificationsService.createNotification(
+        booking.ride.driverId,
+        'booking.new',
+        'Reserva confirmada automaticamente',
+        `${passengerName} reservou ${booking.seats} lugar(es) — ponto de embarque na tua rota.`,
+        { bookingId: booking.id, rideId },
+      );
+    } else {
+      // Notificar o driver via SSE que tem uma nova reserva
+      const detourSuffix = detourMeters != null
+        ? ` — ${detourLabel(detourMeters)}`
+        : '';
 
-    // Notificação in-app para o driver
-    void this.notificationsService.createNotification(
-      booking.ride.driverId,
-      'booking.new',
-      'Nova reserva',
-      `${passengerName} reservou ${booking.seats} lugar(es) em ${booking.ride.origin} → ${booking.ride.destination}`,
-      { bookingId: booking.id, rideId },
-    );
+      this.eventsService.emit(booking.ride.driverId, 'booking.new', {
+        bookingId: booking.id,
+        rideId,
+        passengerId: userId,
+        passengerName,
+        seats: booking.seats,
+        origin: booking.ride.origin,
+        destination: booking.ride.destination,
+        detourMeters: detourMeters ?? null,
+      });
+
+      // Notificação in-app para o driver com info de desvio
+      void this.notificationsService.createNotification(
+        booking.ride.driverId,
+        'booking.new',
+        'Nova reserva',
+        `${passengerName} quer ${booking.seats} lugar(es) em ${booking.ride.origin} → ${booking.ride.destination}${detourSuffix}`,
+        { bookingId: booking.id, rideId, detourMeters: detourMeters ?? undefined },
+      );
+    }
 
     // Notificar driver por email (assíncrono via queue)
     void this.notificationsService.queueBookingCreatedEmail(
@@ -504,6 +591,9 @@ export class BookingsService {
               : null,
           }
         : null,
+      pickupLat: booking.pickupLat ?? null,
+      pickupLng: booking.pickupLng ?? null,
+      detourMeters: booking.detourMeters ?? null,
       createdAt: booking.createdAt,
       updatedAt: booking.updatedAt,
       conversationId: conversationId ?? null,
