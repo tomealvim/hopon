@@ -281,6 +281,9 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                                 label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`,
                                 tone: seatsLeft >= 3 ? "success" : "warning",
                               },
+                              ...(ride.instantBooking
+                                ? [{ label: "Instantânea", tone: "success" as const }]
+                                : []),
                               ...(ride.driver?.isIdentityVerified
                                 ? [{ label: "Verificado", tone: "success" as const }]
                                 : []),
@@ -383,6 +386,9 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                               label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`,
                               tone: seatsLeft >= 3 ? "success" : "warning",
                             },
+                            ...(ride.instantBooking
+                              ? [{ label: "Instantânea", tone: "success" as const }]
+                              : []),
                             ...(ride.driver?.isIdentityVerified
                               ? [{ label: "Verificado", tone: "success" as const }]
                               : []),

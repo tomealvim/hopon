@@ -23,6 +23,7 @@ export type OfferRideFormValues = {
   routeDurationMin?: number;
   routeTollCost?: number;
   platformFee?: number;
+  instantBooking: boolean;
   aceitaDesvios: boolean;
   desvioMaxMin: number; // minutos
   pontoEncontro?: string;
@@ -81,6 +82,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
     hora: initial?.hora ?? "08:00",
     lugares: initial?.lugares ?? 3,
     price: initial?.price ?? undefined,
+    instantBooking: initial?.instantBooking ?? true,
     aceitaDesvios: initial?.aceitaDesvios ?? true,
     desvioMaxMin: initial?.desvioMaxMin ?? 10,
     pontoEncontro: initial?.pontoEncontro ?? "",
@@ -485,6 +487,21 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
 
       {/* Aceita desvios */}
       <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">Reserva instantânea</label>
+          <div className="flex items-center gap-2">
+            <input
+              id={`${id}-instant`}
+              type="checkbox"
+              className="w-4 h-4 rounded border-white/30 bg-white"
+              checked={values.instantBooking}
+              onChange={(e) => set("instantBooking", e.target.checked)}
+            />
+            <label htmlFor={`${id}-instant`} className="text-sm font-medium text-gray-900">
+              {values.instantBooking ? "Sim — passageiros na rota confirmados automaticamente" : "Não — aceito manualmente cada pedido"}
+            </label>
+          </div>
+        </div>
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1">Aceita desvios?</label>
           <div className="flex items-center gap-2">

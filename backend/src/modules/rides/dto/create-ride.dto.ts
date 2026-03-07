@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsDateString, IsInt, Min, Max, IsOptional, IsNumber, Min as MinNumber } from 'class-validator';
+import { IsString, IsDateString, IsInt, Min, Max, IsOptional, IsNumber, IsBoolean, Min as MinNumber } from 'class-validator';
 
 export class CreateRideDto {
   @ApiProperty({ example: 'Toyota' })
@@ -78,5 +78,10 @@ export class CreateRideDto {
   @IsNumber()
   @MinNumber(0)
   platformFee?: number;
+
+  @ApiPropertyOptional({ example: true, description: 'Reserva instantânea — passageiros na rota são confirmados automaticamente' })
+  @IsOptional()
+  @IsBoolean()
+  instantBooking?: boolean;
 }
 

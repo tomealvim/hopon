@@ -241,28 +241,51 @@ export class NotificationsService {
     rideOrigin: string,
     rideDestination: string,
     rideDepartureTime: Date,
-    affectedUserIds: string[],
+    confirmedUserIds: string[],
+    pendingUserIds: string[] = [],
   ) {
-    if (affectedUserIds.length === 0) {
-      return;
-    }
+    const allIds = [...new Set([...confirmedUserIds, ...pendingUserIds])];
+    if (allIds.length === 0) return;
 
     const users = await this.prisma.user.findMany({
-      where: { id: { in: affectedUserIds } },
+      where: { id: { in: allIds } },
       include: { profile: true },
     });
 
     this.logger.log(
-      `Boleia cancelada: ${rideOrigin} → ${rideDestination} (${rideDepartureTime.toISOString()})`,
+      `Boleia cancelada: ${rideOrigin} → ${rideDestination} — ${confirmedUserIds.length} confirmados, ${pendingUserIds.length} pendentes`,
     );
-    this.logger.log(`Notificando ${users.length} utilizador(es) afetado(s):`);
 
+    const route = `${rideOrigin} → ${rideDestination}`;
+    const timeStr = rideDepartureTime.toLocaleTimeString('pt-PT', {
+      hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Lisbon',
+    });
     const departureTime = rideDepartureTime.toISOString();
 
     for (const user of users) {
       const userName = user.profile?.name || user.email;
-      this.logger.log(`  - ${userName} (${user.email})`);
+      const isConfirmed = confirmedUserIds.includes(user.id);
 
+      // In-app + push (urgente para confirmados, normal para pendentes)
+      if (isConfirmed) {
+        void this.createNotification(
+          user.id,
+          'ride.cancelled_confirmed',
+          'Boleia cancelada',
+          `A tua boleia ${route} às ${timeStr} foi cancelada pelo condutor. O teu pagamento será reembolsado.`,
+          { rideId, origin: rideOrigin, destination: rideDestination },
+        );
+      } else {
+        void this.createNotification(
+          user.id,
+          'ride.cancelled_pending',
+          'Pedido de lugar cancelado',
+          `A boleia ${route} às ${timeStr} foi cancelada. O teu pedido foi removido.`,
+          { rideId },
+        );
+      }
+
+      // Email para todos
       const payload: RideCancelledEmailPayload = {
         userEmail: user.email,
         userName,

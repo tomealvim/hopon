@@ -98,6 +98,7 @@ export class RidesService {
         ...(dto.routeTollCost != null && { routeTollCost: dto.routeTollCost }),
         ...(dto.platformFee != null && { platformFee: dto.platformFee }),
         ...(routePolyline && { routePolyline }),
+        instantBooking: dto.instantBooking ?? false,
       },
       include: {
         vehicle: {
@@ -696,7 +697,9 @@ export class RidesService {
       }
     }
 
-    // Notificar utilizadores afetados
+    // Notificar utilizadores afetados (confirmados recebem push urgente, pendentes recebem in-app normal)
+    const confirmedUserIds = confirmedBookings.map((b) => b.userId);
+    const pendingUserIds   = pendingBookings.map((b) => b.userId);
     if (affectedUserIds.length > 0) {
       try {
         await this.notificationsService.notifyRideCancelled(
@@ -704,7 +707,8 @@ export class RidesService {
           ride.origin,
           ride.destination,
           ride.departureTime,
-          affectedUserIds,
+          confirmedUserIds,
+          pendingUserIds,
         );
       } catch (error) {
         console.error('Erro ao enviar notificações de cancelamento:', error);

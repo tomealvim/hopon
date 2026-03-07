@@ -99,6 +99,7 @@ function AppContent() {
         routeDurationMin: vals.routeDurationMin,
         routeTollCost: vals.routeTollCost,
         platformFee: vals.platformFee,
+        instantBooking: vals.instantBooking,
       }),
     });
     showSuccess("Boleia criada!", `${vals.origem} → ${vals.destino}`);
