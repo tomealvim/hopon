@@ -422,14 +422,23 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             {name && <h1 className="text-lg font-bold text-gray-900 truncate drop-shadow-sm">{name}</h1>}
             {visibleEmail && <p className="text-sm text-gray-700 truncate">{visibleEmail}</p>}
             
-            {/* Badge de verificação - só texto "Verificado", sem emojis */}
-            {(verification.email || verification.phone) && (
-              <div className="flex items-center gap-2 mt-1.5">
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              {(verification.email || verification.phone) && (
                 <span className="text-xs text-green-700 flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full bg-green-50 ring-1 ring-green-200">
                   ✓ Verificado
                 </span>
-              </div>
-            )}
+              )}
+              {user?.reliability?.score !== null && user?.reliability?.score !== undefined && (
+                <span className={cn(
+                  "text-xs font-semibold px-2 py-0.5 rounded-full ring-1",
+                  user.reliability.score >= 95 ? "text-emerald-700 bg-emerald-50 ring-emerald-200" :
+                  user.reliability.score >= 80 ? "text-blue-700 bg-blue-50 ring-blue-200" :
+                  "text-amber-700 bg-amber-50 ring-amber-200"
+                )}>
+                  {user.reliability.score}% fiabilidade
+                </span>
+              )}
+            </div>
           </div>
         </div>
         

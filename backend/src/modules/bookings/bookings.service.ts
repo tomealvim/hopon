@@ -9,9 +9,9 @@ import { StripeService } from '../stripe/stripe.service';
 
 function getRefundFraction(departureTime: Date): number {
   const hoursUntil = (departureTime.getTime() - Date.now()) / 3_600_000;
-  if (hoursUntil > 24) return 1.0;
-  if (hoursUntil > 2) return 0.5;
-  return 0.0;
+  if (hoursUntil > 2) return 1.0;    // >2h — reembolso total
+  if (hoursUntil > 0.5) return 0.5;  // 30min–2h — reembolso 50%
+  return 0.0;                         // <30min — sem reembolso
 }
 
 @Injectable()
@@ -390,7 +390,7 @@ export class BookingsService {
         const description =
           refundFraction === 1.0
             ? 'Cancelamento de reserva (reembolso total)'
-            : 'Cancelamento de reserva (reembolso 50% — cancelamento com menos de 24h)';
+            : 'Cancelamento de reserva (reembolso 50% — cancelamento entre 30min e 2h antes)';
         let wallet = await tx.wallet.findFirst({ where: { userId } });
         if (!wallet) wallet = await tx.wallet.create({ data: { userId } });
         await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: refundAmount } } });

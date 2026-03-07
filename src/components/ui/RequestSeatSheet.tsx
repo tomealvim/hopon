@@ -288,15 +288,15 @@ export default function RequestSeatSheet({
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 grid gap-1">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Política de cancelamento</p>
                 <div className="flex justify-between text-xs text-gray-700">
-                  <span>Mais de 24h antes da partida</span>
+                  <span>Mais de 2h antes da partida</span>
                   <span className="font-semibold text-green-700">Reembolso total</span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-700">
-                  <span>Entre 2h e 24h antes</span>
+                  <span>Entre 30min e 2h antes</span>
                   <span className="font-semibold text-amber-700">Reembolso 50%</span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-700">
-                  <span>Menos de 2h antes</span>
+                  <span>Menos de 30 minutos antes</span>
                   <span className="font-semibold text-red-700">Sem reembolso</span>
                 </div>
               </div>

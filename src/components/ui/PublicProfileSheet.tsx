@@ -15,6 +15,7 @@ interface PublicProfile {
   totalRides: number;
   avgRating: number | null;
   totalRatings: number;
+  reliability?: { score: number | null; label: string; totalRides: number; cancelledRides: number } | null;
   recentRatings: {
     score: number;
     comment: string | null;
@@ -134,6 +135,38 @@ export default function PublicProfileSheet({ userId, open, onClose }: Props) {
               <span className="text-[10px] text-gray-500 text-center mt-0.5">Avaliações</span>
             </div>
           </div>
+
+          {/* Fiabilidade */}
+          {profile.reliability && (
+            <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fiabilidade (30 dias)</span>
+                <span className={
+                  profile.reliability.score === null ? "text-xs text-gray-400" :
+                  profile.reliability.score >= 95 ? "text-xs font-bold text-emerald-600" :
+                  profile.reliability.score >= 80 ? "text-xs font-bold text-blue-600" :
+                  "text-xs font-bold text-amber-600"
+                }>
+                  {profile.reliability.score !== null ? `${profile.reliability.score}%` : "—"} · {profile.reliability.label}
+                </span>
+              </div>
+              {profile.reliability.score !== null && (
+                <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className={
+                      profile.reliability.score >= 95 ? "h-full bg-emerald-500 rounded-full" :
+                      profile.reliability.score >= 80 ? "h-full bg-blue-500 rounded-full" :
+                      "h-full bg-amber-500 rounded-full"
+                    }
+                    style={{ width: `${profile.reliability.score}%` }}
+                  />
+                </div>
+              )}
+              <p className="text-[10px] text-gray-400 mt-1">
+                {profile.reliability.totalRides} viagens · {profile.reliability.cancelledRides} canceladas
+              </p>
+            </div>
+          )}
 
           {/* Avaliações recentes */}
           {profile.recentRatings.length > 0 && (

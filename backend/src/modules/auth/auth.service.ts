@@ -131,7 +131,25 @@ export class AuthService {
       throw new UnauthorizedException('Utilizador não encontrado');
     }
 
-    return this.buildUserResponse(user);
+    const base = this.buildUserResponse(user);
+
+    // Calcular fiabilidade como condutor (últimos 30 dias)
+    const since = new Date(Date.now() - 30 * 24 * 3_600_000);
+    const [completedRides, cancelledRides] = await Promise.all([
+      this.prisma.ride.count({ where: { driverId: userId, status: 'COMPLETED', departureTime: { gte: since } } }),
+      this.prisma.ride.count({ where: { driverId: userId, status: 'CANCELLED', cancelledAt: { gte: since } } }),
+    ]);
+    const totalDriverRides = completedRides + cancelledRides;
+    const reliabilityScore = totalDriverRides >= 3 ? Math.round((completedRides / totalDriverRides) * 100) : null;
+    const reliabilityLabel = reliabilityScore === null ? 'Novo condutor'
+      : reliabilityScore >= 98 ? 'Excelente'
+      : reliabilityScore >= 90 ? 'Bom'
+      : reliabilityScore >= 75 ? 'Regular' : 'Baixo';
+
+    return {
+      ...base,
+      reliability: { score: reliabilityScore, label: reliabilityLabel, totalRides: totalDriverRides, cancelledRides },
+    };
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto) {

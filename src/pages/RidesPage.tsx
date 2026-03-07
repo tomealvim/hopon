@@ -702,12 +702,12 @@ export default function RidesPage() {
             {(selectedBooking.status === "PENDING" || selectedBooking.status === "CONFIRMED") && selectedBooking.ride.price != null && selectedBooking.ride.price > 0 && (() => {
               const hoursUntil = (new Date(selectedBooking.ride.departureTime).getTime() - Date.now()) / 3_600_000;
               const policyText =
-                hoursUntil > 24
+                hoursUntil > 2
                   ? "Reembolso total se cancelares agora"
-                  : hoursUntil > 2
-                    ? "Reembolso de 50% se cancelares agora (menos de 24h)"
-                    : "Sem reembolso — partida em menos de 2h";
-              const tone = hoursUntil > 24 ? "text-green-700 border-green-200 bg-green-50" : hoursUntil > 2 ? "text-amber-700 border-amber-200 bg-amber-50" : "text-red-700 border-red-200 bg-red-50";
+                  : hoursUntil > 0.5
+                    ? "Reembolso de 50% se cancelares agora (entre 30min e 2h antes)"
+                    : "Sem reembolso — partida em menos de 30 minutos";
+              const tone = hoursUntil > 2 ? "text-green-700 border-green-200 bg-green-50" : hoursUntil > 0.5 ? "text-amber-700 border-amber-200 bg-amber-50" : "text-red-700 border-red-200 bg-red-50";
               return (
                 <div className={`p-3 rounded-xl border text-xs ${tone}`}>
                   <span className="font-semibold">Política de cancelamento: </span>{policyText}

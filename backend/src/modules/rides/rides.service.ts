@@ -642,46 +642,37 @@ export class RidesService {
   async remove(userId: string, rideId: string) {
     await this.ensureRideOwnership(userId, rideId);
 
-    // Verificar se há reservas confirmadas
     const ride = await this.prisma.ride.findUnique({
       where: { id: rideId },
       include: { bookings: true },
     });
 
-    if (!ride) {
-      throw new NotFoundException('Boleia não encontrada');
-    }
+    if (!ride) throw new NotFoundException('Boleia não encontrada');
 
     const confirmedBookings = ride.bookings.filter((b) => b.status === 'CONFIRMED');
+    const pendingBookings   = ride.bookings.filter((b) => b.status === 'PENDING');
+    const affectedUserIds   = [...new Set(ride.bookings.map((b) => b.userId))];
 
-    if (confirmedBookings.length > 0) {
-      throw new BadRequestException('Não é possível cancelar uma boleia com reservas confirmadas. Cancele primeiro as reservas.');
-    }
+    const now = new Date();
+    const minsUntil = (ride.departureTime.getTime() - now.getTime()) / 60_000;
+    const isLateCancel = minsUntil < 120; // cancelamento de última hora: <2h antes
 
-    // Identificar todos os utilizadores que tinham reservas (mesmo canceladas)
-    // para notificá-los antes de apagar
-    const affectedUserIds = [...new Set(ride.bookings.map((b) => b.userId))];
+    // Soft-delete: marcar ride como CANCELLED
+    await this.prisma.ride.update({
+      where: { id: rideId },
+      data: { status: 'CANCELLED', cancelledAt: now },
+    });
 
-    // Notificar utilizadores afetados (não bloqueia se falhar)
-    if (affectedUserIds.length > 0) {
-      try {
-        await this.notificationsService.notifyRideCancelled(
-          rideId,
-          ride.origin,
-          ride.destination,
-          ride.departureTime,
-          affectedUserIds,
-        );
-      } catch (error) {
-        // Log do erro mas não bloqueia o cancelamento
-        console.error('Erro ao enviar notificações de cancelamento:', error);
-      }
-    }
+    // Marcar todas as reservas como CANCELLED
+    await this.prisma.booking.updateMany({
+      where: { rideId, status: { in: ['PENDING', 'CONFIRMED'] } },
+      data: { status: 'CANCELLED' },
+    });
 
-    // Reembolsar reservas pendentes (já foram debitadas)
+    // Reembolsar reservas pagas (PENDING e CONFIRMED)
+    const bookingsToRefund = [...pendingBookings, ...confirmedBookings];
     if (ride.price != null && Number(ride.price) > 0) {
-      const pendingBookings = ride.bookings.filter((b) => b.status === 'PENDING');
-      for (const booking of pendingBookings) {
+      for (const booking of bookingsToRefund) {
         try {
           await this.walletService.refund(
             booking.userId,
@@ -695,18 +686,54 @@ export class RidesService {
       }
     }
 
-    // Apagar todas as reservas primeiro (devido ao ON DELETE RESTRICT)
-    // Só apagamos se não houver CONFIRMED (já validado acima)
-    await this.prisma.booking.deleteMany({
-      where: { rideId },
-    });
+    // Notificar utilizadores afetados
+    if (affectedUserIds.length > 0) {
+      try {
+        await this.notificationsService.notifyRideCancelled(
+          rideId,
+          ride.origin,
+          ride.destination,
+          ride.departureTime,
+          affectedUserIds,
+        );
+      } catch (error) {
+        console.error('Erro ao enviar notificações de cancelamento:', error);
+      }
+    }
 
-    // Agora podemos apagar a boleia
-    await this.prisma.ride.delete({
-      where: { id: rideId },
-    });
+    // Rastrear cancelamentos de última hora e auto-suspender se necessário
+    if (isLateCancel) {
+      const driver = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { lateCancelCount: true, lateCancelWindowStart: true },
+      });
 
-    // Invalidar cache para a ride removida não aparecer nos resultados
+      if (driver) {
+        const windowStart = driver.lateCancelWindowStart;
+        const windowExpired = !windowStart || (now.getTime() - windowStart.getTime()) > 30 * 24 * 3_600_000;
+
+        const newCount = windowExpired ? 1 : driver.lateCancelCount + 1;
+        const newWindowStart = windowExpired ? now : windowStart;
+
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: {
+            lateCancelCount: newCount,
+            lateCancelWindowStart: newWindowStart,
+            // Auto-suspender ao 3.º cancelamento de última hora em 30 dias
+            ...(newCount >= 3 && {
+              suspendedAt: now,
+              suspensionReason: `Suspensão automática: ${newCount} cancelamentos de última hora (<2h) em 30 dias`,
+            }),
+          },
+        });
+
+        if (newCount >= 3) {
+          console.warn(`[RidesService] Utilizador ${userId} auto-suspenso após ${newCount} cancelamentos de última hora`);
+        }
+      }
+    }
+
     void this.cache.clear();
 
     return { message: 'Boleia cancelada com sucesso' };
@@ -761,6 +788,19 @@ export class RidesService {
       role: ride.driverId === userId ? 'driver' : 'passenger',
       myBookingId: passengerBookingMap.get(ride.id) ?? null,
     }));
+  }
+
+  async getReliabilityScore(userId: string): Promise<{ score: number | null; totalRides: number; cancelledRides: number; label: string }> {
+    const since = new Date(Date.now() - 30 * 24 * 3_600_000);
+    const [completed, cancelled] = await Promise.all([
+      this.prisma.ride.count({ where: { driverId: userId, status: 'COMPLETED', departureTime: { gte: since } } }),
+      this.prisma.ride.count({ where: { driverId: userId, status: 'CANCELLED', cancelledAt: { gte: since } } }),
+    ]);
+    const total = completed + cancelled;
+    if (total < 3) return { score: null, totalRides: total, cancelledRides: cancelled, label: 'Novo condutor' };
+    const score = Math.round((completed / total) * 100);
+    const label = score >= 98 ? 'Excelente' : score >= 90 ? 'Bom' : score >= 75 ? 'Regular' : 'Baixo';
+    return { score, totalRides: total, cancelledRides: cancelled, label };
   }
 
   private async ensureRideOwnership(userId: string, rideId: string) {

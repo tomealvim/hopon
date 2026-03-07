@@ -18,6 +18,8 @@ model User {
   isAdmin            Boolean   @default(false)
   suspendedAt        DateTime?
   suspensionReason   String?
+  lateCancelCount       Int       @default(0)   // cancelamentos de última hora (<2h) no período atual
+  lateCancelWindowStart DateTime?               // início da janela de 30 dias para lateCancelCount
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -173,6 +175,7 @@ model Ride {
 
   arrivedAt      DateTime?   // condutor marcou chegada ao ponto de encontro
   onTheWayAt     DateTime?   // condutor anunciou que está a caminho
+  cancelledAt    DateTime?   // quando foi cancelada (soft-delete)
 
   scheduleTemplateId String?
   scheduleTemplate   ScheduleTemplate? @relation(fields: [scheduleTemplateId], references: [id], onDelete: SetNull)

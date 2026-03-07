@@ -53,6 +53,13 @@ export interface UserVerification {
   identity?: string;      // NONE | PENDING | VERIFIED | REJECTED
 }
 
+export interface UserReliability {
+  score: number | null;   // 0-100, null = menos de 3 viagens
+  label: string;          // 'Excelente' | 'Bom' | 'Regular' | 'Baixo' | 'Novo condutor'
+  totalRides: number;
+  cancelledRides: number;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -66,5 +73,6 @@ export interface User {
   driverLicenseStatus?: string | null;
   driverLicenseAdminNote?: string | null;
   isAdmin?: boolean;
+  reliability?: UserReliability;
 }
 
