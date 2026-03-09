@@ -386,6 +386,12 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                               label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`,
                               tone: seatsLeft >= 3 ? "success" : "warning",
                             },
+                            ...(ride.overlapPct != null
+                              ? [{
+                                  label: `Rota ${ride.overlapPct}% compatível`,
+                                  tone: ride.overlapPct >= 70 ? "success" : ride.overlapPct >= 40 ? "warning" : "neutral" as const,
+                                }]
+                              : []),
                             ...(ride.instantBooking
                               ? [{ label: "Instantânea", tone: "success" as const }]
                               : []),

@@ -202,6 +202,8 @@ export class RidesService {
       originLat?: number | null;
       originLng?: number | null;
       destination: string;
+      destinationLat?: number | null;
+      destinationLng?: number | null;
       departTime: string;
       daysOfWeek: string[];
     };
@@ -217,6 +219,8 @@ export class RidesService {
         originLat: r.originLat,
         originLng: r.originLng,
         destination: r.destination,
+        destinationLat: (r as any).destinationLat ?? null,
+        destinationLng: (r as any).destinationLng ?? null,
         departTime: r.departTime,
         daysOfWeek: r.daysOfWeek as string[],
       })),
@@ -246,8 +250,8 @@ export class RidesService {
 
     const DAY_NAMES = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
 
-    // matchScore acumula pontos por cada padrão que faz match com a ride
-    const scores = new Map<string, { ride: (typeof rides)[0]; score: number }>();
+    // matchScore e overlapPct acumulam por cada padrão que faz match com a ride
+    const scores = new Map<string, { ride: (typeof rides)[0]; score: number; overlapPct: number }>();
 
     for (const pattern of patterns) {
       const [ph, pm] = pattern.departTime.split(':').map(Number);
@@ -269,29 +273,62 @@ export class RidesService {
           .reduce((s, b) => s + b.seats, 0);
         if (ride.availableSeats - booked <= 0) continue;
 
-        // Origem — GPS (raio 5km) se disponível, senão text overlap
-        const rideHasOriginCoords = ride.originLocation?.lat != null && ride.originLocation?.lng != null;
+        // Polilinha do condutor (JSON armazenado)
+        const polyline = ride.routePolyline
+          ? (ride.routePolyline as unknown as { lat: number; lng: number }[])
+          : null;
+
         const patternHasOriginCoords = pattern.originLat != null && pattern.originLng != null;
-        if (rideHasOriginCoords && patternHasOriginCoords) {
-          const distKm = this.haversineKm(
-            ride.originLocation!.lat!, ride.originLocation!.lng!,
-            pattern.originLat!, pattern.originLng!,
+        const patternHasDestCoords = pattern.destinationLat != null && pattern.destinationLng != null;
+
+        // Origem — corredor se polilinha disponível, senão GPS 5km, senão text overlap
+        if (polyline && polyline.length > 0 && patternHasOriginCoords) {
+          const distOrigin = this.minDistToPolylineM(
+            pattern.originLat!, pattern.originLng!, polyline,
           );
-          if (distKm > 5) continue;
+          if (distOrigin > 2000) continue; // fora de corredor de 2km
         } else {
-          if (!this.textOverlap(ride.origin, pattern.origin)) continue;
+          const rideHasOriginCoords = ride.originLocation?.lat != null && ride.originLocation?.lng != null;
+          if (rideHasOriginCoords && patternHasOriginCoords) {
+            const distKm = this.haversineKm(
+              ride.originLocation!.lat!, ride.originLocation!.lng!,
+              pattern.originLat!, pattern.originLng!,
+            );
+            if (distKm > 5) continue;
+          } else {
+            if (!this.textOverlap(ride.origin, pattern.origin)) continue;
+          }
         }
 
-        // Destino — text overlap (sem coordenadas por agora)
-        if (!this.textOverlap(ride.destination, pattern.destination)) continue;
+        // Destino — corredor se polilinha + coords disponíveis, senão text overlap
+        if (polyline && polyline.length > 0 && patternHasDestCoords) {
+          const distDest = this.minDistToPolylineM(
+            pattern.destinationLat!, pattern.destinationLng!, polyline,
+          );
+          if (distDest > 2000) continue;
+        } else {
+          if (!this.textOverlap(ride.destination, pattern.destination)) continue;
+        }
 
-        // Score: mais pontos quanto mais próximo no horário
+        // Calcular overlapPct se temos coords de origem e destino do passageiro
+        let overlapPct = 0;
+        if (polyline && polyline.length > 0 && patternHasOriginCoords && patternHasDestCoords) {
+          overlapPct = this.calcOverlapPct(
+            pattern.originLat!, pattern.originLng!,
+            pattern.destinationLat!, pattern.destinationLng!,
+            polyline,
+          );
+        }
+
+        // Score: tempo + overlap
         const timeScore = 30 - timeDiff;
+        const overlapBonus = Math.round(overlapPct * 0.7); // até 70 pontos extra por 100% overlap
         const prev = scores.get(ride.id);
         if (prev) {
-          prev.score += timeScore + 10; // +10 por cada padrão adicional que faz match
+          prev.score += timeScore + overlapBonus + 10;
+          if (overlapPct > prev.overlapPct) prev.overlapPct = overlapPct;
         } else {
-          scores.set(ride.id, { ride, score: timeScore });
+          scores.set(ride.id, { ride, score: timeScore + overlapBonus, overlapPct });
         }
       }
     }
@@ -302,9 +339,68 @@ export class RidesService {
           b.score - a.score ||
           a.ride.departureTime.getTime() - b.ride.departureTime.getTime(),
       )
-      .map(({ ride, score }) => ({ ...this.toResponse(ride), matchScore: score }));
+      .map(({ ride, score, overlapPct }) => ({
+        ...this.toResponse(ride),
+        matchScore: score,
+        ...(overlapPct > 0 ? { overlapPct: Math.round(overlapPct) } : {}),
+      }));
     await this.cache.set(cacheKey, result, FOR_YOU_TTL_MS);
     return result;
+  }
+
+  /**
+   * Distância mínima (metros) de um ponto a uma polilinha (segmentos consecutivos).
+   */
+  private minDistToPolylineM(
+    lat: number, lng: number,
+    polyline: { lat: number; lng: number }[],
+  ): number {
+    if (polyline.length === 0) return Infinity;
+    if (polyline.length === 1) return this.haversineM(lat, lng, polyline[0].lat, polyline[0].lng);
+    let minDist = Infinity;
+    for (let i = 0; i < polyline.length - 1; i++) {
+      const d = this.pointToSegmentM(lat, lng, polyline[i].lat, polyline[i].lng, polyline[i + 1].lat, polyline[i + 1].lng);
+      if (d < minDist) minDist = d;
+    }
+    return minDist;
+  }
+
+  /**
+   * Distância ponto-a-segmento em metros (projeção perpendicular).
+   */
+  private pointToSegmentM(pLat: number, pLng: number, aLat: number, aLng: number, bLat: number, bLng: number): number {
+    const dx = bLat - aLat;
+    const dy = bLng - aLng;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return this.haversineM(pLat, pLng, aLat, aLng);
+    const t = Math.max(0, Math.min(1, ((pLat - aLat) * dx + (pLng - aLng) * dy) / lenSq));
+    return this.haversineM(pLat, pLng, aLat + t * dx, aLng + t * dy);
+  }
+
+  /**
+   * Score de sobreposição em % (0–100):
+   * Amostra 20 pontos ao longo da rota do passageiro (interpolação linear)
+   * e verifica quantos ficam a ≤500m da polilinha do condutor.
+   */
+  private calcOverlapPct(
+    originLat: number, originLng: number,
+    destLat: number, destLng: number,
+    polyline: { lat: number; lng: number }[],
+  ): number {
+    const SAMPLES = 20;
+    const THRESHOLD_M = 500;
+    let inside = 0;
+    for (let i = 0; i < SAMPLES; i++) {
+      const t = i / (SAMPLES - 1);
+      const sLat = originLat + t * (destLat - originLat);
+      const sLng = originLng + t * (destLng - originLng);
+      if (this.minDistToPolylineM(sLat, sLng, polyline) <= THRESHOLD_M) inside++;
+    }
+    return (inside / SAMPLES) * 100;
+  }
+
+  private haversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    return this.haversineKm(lat1, lng1, lat2, lng2) * 1000;
   }
 
   private haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {

@@ -13,12 +13,22 @@ export class UserRoutesService {
   async create(userId: string, dto: CreateUserRouteDto) {
     let originLat = dto.originLat ?? null;
     let originLng = dto.originLng ?? null;
+    let destinationLat = dto.destinationLat ?? null;
+    let destinationLng = dto.destinationLng ?? null;
 
     if (originLat == null || originLng == null) {
       const coords = await this.geocodingService.geocodeText(dto.origin);
       if (coords) {
         originLat = coords.lat;
         originLng = coords.lng;
+      }
+    }
+
+    if (destinationLat == null || destinationLng == null) {
+      const coords = await this.geocodingService.geocodeText(dto.destination);
+      if (coords) {
+        destinationLat = coords.lat;
+        destinationLng = coords.lng;
       }
     }
 
@@ -29,6 +39,8 @@ export class UserRoutesService {
         originLat,
         originLng,
         destination: dto.destination,
+        destinationLat,
+        destinationLng,
         departTime: dto.departTime,
         daysOfWeek: dto.daysOfWeek,
       },

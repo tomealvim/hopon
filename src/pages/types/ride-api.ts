@@ -72,4 +72,6 @@ export interface ApiRide {
   routePolyline?: { lat: number; lng: number }[] | null;
   /** Presente em respostas de /rides/for-you — pontuação de relevância */
   matchScore?: number;
+  /** Sobreposição de rota em % (0–100) — presente quando calculável */
+  overlapPct?: number;
 }

@@ -436,10 +436,12 @@ model UserRoute {
   id          String   @id @default(uuid())
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  origin      String
-  originLat   Float?
-  originLng   Float?
-  destination String
+  origin         String
+  originLat      Float?
+  originLng      Float?
+  destination    String
+  destinationLat Float?
+  destinationLng Float?
   departTime  String   // "HH:mm"
   daysOfWeek  Json     // ["segunda","terca",...]
   active      Boolean  @default(true)

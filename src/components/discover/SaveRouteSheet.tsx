@@ -47,7 +47,9 @@ export default function SaveRouteSheet({ open, onClose, onSaved }: Props) {
   const [originLabel,   setOriginLabel]   = useState("");
   const [originLat,     setOriginLat]     = useState<number | undefined>();
   const [originLng,     setOriginLng]     = useState<number | undefined>();
-  const [destination,   setDestination]   = useState("");
+  const [destLabel,     setDestLabel]     = useState("");
+  const [destLat,       setDestLat]       = useState<number | undefined>();
+  const [destLng,       setDestLng]       = useState<number | undefined>();
   const [departTime,    setDepartTime]    = useState("");
   const [days,          setDays]          = useState<string[]>(["segunda","terca","quarta","quinta","sexta"]);
   const [loading,       setLoading]       = useState(false);
@@ -56,7 +58,7 @@ export default function SaveRouteSheet({ open, onClose, onSaved }: Props) {
   const [error,         setError]         = useState("");
   const [done,          setDone]          = useState(false);
 
-  const canSubmit = originLabel.trim() && destination.trim() && departTime && days.length > 0 && !loading;
+  const canSubmit = originLabel.trim() && destLabel.trim() && departTime && days.length > 0 && !loading;
 
   function handleOriginSelect(loc: LocationValue) {
     setOriginLabel(loc.label);
@@ -106,11 +108,25 @@ export default function SaveRouteSheet({ open, onClose, onSaved }: Props) {
     );
   }
 
+  function handleDestSelect(loc: LocationValue) {
+    setDestLabel(loc.label);
+    setDestLat(loc.lat);
+    setDestLng(loc.lng);
+  }
+
+  function handleDestLabelChange(label: string) {
+    setDestLabel(label);
+    setDestLat(undefined);
+    setDestLng(undefined);
+  }
+
   function reset() {
     setOriginLabel("");
     setOriginLat(undefined);
     setOriginLng(undefined);
-    setDestination("");
+    setDestLabel("");
+    setDestLat(undefined);
+    setDestLng(undefined);
     setDepartTime("");
     setDays(["segunda","terca","quarta","quinta","sexta"]);
     setError("");
@@ -134,7 +150,9 @@ export default function SaveRouteSheet({ open, onClose, onSaved }: Props) {
           origin: originLabel.trim(),
           originLat,
           originLng,
-          destination: destination.trim(),
+          destination: destLabel.trim(),
+          destinationLat: destLat,
+          destinationLng: destLng,
           departTime,
           daysOfWeek: days,
         }),
@@ -206,12 +224,14 @@ export default function SaveRouteSheet({ open, onClose, onSaved }: Props) {
           {/* Destino */}
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Destino</label>
-            <input
-              type="text"
+            <LocationInput
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
               placeholder="Ex: Porto, Estação de Campanhã"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
+              value={destLabel}
+              lat={destLat}
+              lng={destLng}
+              onLabelChange={handleDestLabelChange}
+              onLocationSelect={handleDestSelect}
             />
           </div>
 
