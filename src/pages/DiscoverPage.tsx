@@ -389,7 +389,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                             ...(ride.overlapPct != null
                               ? [{
                                   label: `Rota ${ride.overlapPct}% compatível`,
-                                  tone: ride.overlapPct >= 70 ? "success" : ride.overlapPct >= 40 ? "warning" : "neutral" as const,
+                                  tone: (ride.overlapPct >= 70 ? "success" : ride.overlapPct >= 40 ? "warning" : "neutral") as "success" | "warning" | "neutral",
                                 }]
                               : []),
                             ...(ride.instantBooking
