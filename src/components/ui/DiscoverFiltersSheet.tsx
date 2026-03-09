@@ -20,7 +20,14 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply }
   }, [open, initial]);
 
   function update<K extends keyof DiscoverFilters>(k: K, v: DiscoverFilters[K]) {
-    setF(prev => ({ ...prev, [k]: v }));
+    setF(prev => {
+      const next = { ...prev, [k]: v };
+      // Se o utilizador define uma hora sem data, auto-definir hoje
+      if ((k === "departFrom" || k === "departTo") && v && !next.date) {
+        next.date = new Date().toISOString().slice(0, 10);
+      }
+      return next;
+    });
   }
 
   function clearAll() {

@@ -13,6 +13,7 @@ import { apiRequest } from "./services/api";
 import BottomNav from "./components/ui/BottomNav";
 import { hasCompletedOnboarding } from "./pages/OnboardingPage";
 import OnboardingPageFull from "./pages/OnboardingPage";
+import AuthPage from "./pages/AuthPage";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
 import WelcomeSheet from "./components/ui/WelcomeSheet";
 import DiscoverPage from "./pages/DiscoverPage";
@@ -140,7 +141,8 @@ function AppContent() {
       }}
     />
   );
-  if (user && !hasCompletedProfile) return <ProfileSetupPage />;
+  if (!user) return <AuthPage />;
+  if (!hasCompletedProfile) return <ProfileSetupPage />;
 
   return (
     <div className="min-h-[100svh] overflow-x-hidden bg-white">
