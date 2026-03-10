@@ -291,9 +291,9 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
                 onClick={() => {
                   const link = `${window.location.origin}/join/${selectedCommunity.inviteCode}`;
                   if ("share" in navigator) {
-                    navigator.share({ title: selectedCommunity.name, text: `Junta-te à comunidade ${selectedCommunity.name} no HopOn`, url: link });
+                    (navigator as any).share({ title: selectedCommunity.name, text: `Junta-te à comunidade ${selectedCommunity.name} no HopOn`, url: link });
                   } else {
-                    navigator.clipboard.writeText(link);
+                    (navigator as any).clipboard.writeText(link);
                   }
                 }}>
                 {"share" in navigator ? "Partilhar" : "Copiar link"}
