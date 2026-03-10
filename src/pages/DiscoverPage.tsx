@@ -430,7 +430,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                   </div>
                 ) : (() => {
                   const tomorrow = forYouRides.filter((r) => r.section === "tomorrow");
-                  const familiar = forYouRides.filter((r) => r.section === "familiar" && r.section !== "tomorrow");
+                  const familiar = forYouRides.filter((r) => r.section === "familiar");
                   const thisWeek = forYouRides.filter((r) => r.section === "this_week");
 
                   function RideCard({ ride }: { ride: ApiRide }) {
