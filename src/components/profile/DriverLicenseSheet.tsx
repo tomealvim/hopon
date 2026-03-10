@@ -128,7 +128,7 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
         {canUpload && !done && (
           <section className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-700 space-y-1">
             <p className="font-semibold">Porque pedimos a carta de condução?</p>
-            <p>Confirmar que es condutor habilitado e cruzar a tua identidade com o numero de CC visivel na carta — impede que alguem use documentos de outra pessoa.</p>
+            <p>Confirmar que es condutor habilitado e cruzar a tua identidade com o numero de CC visivel na carta - impede que alguem use documentos de outra pessoa.</p>
           </section>
         )}
 

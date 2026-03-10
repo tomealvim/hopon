@@ -206,7 +206,7 @@ export default function ProfileSetupPage() {
               className="phone-input-wrapper"
             />
             <p className="text-[11px] text-gray-400 mt-1">
-              Seleciona o país e escreve o número — formata automaticamente.
+              Seleciona o país e escreve o número - formata automaticamente.
             </p>
           </div>
         )}
@@ -278,7 +278,7 @@ export default function ProfileSetupPage() {
             {locError && <p className="text-xs text-red-500">{locError}</p>}
             {homeLat && homeLng && (
               <p className="text-[11px] text-green-600 font-medium">
-                ✓ Localização confirmada — vamos usá-la para sugerir boleias perto de ti.
+                ✓ Localização confirmada - vamos usá-la para sugerir boleias perto de ti.
               </p>
             )}
             {homeAddress && !homeLat && (

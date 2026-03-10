@@ -379,7 +379,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
         {touched.lugares && errors.lugares && <div className="text-xs text-red-600 mt-1">{errors.lugares}</div>}
       </div>
 
-      {/* Calculadora de custo — Rotas reais */}
+      {/* Calculadora de custo -Rotas reais */}
       <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 grid gap-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Custo da viagem</p>
 
@@ -454,7 +454,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
             Preço por lugar (€)
             {selectedRoute && (
               <span className="ml-1 font-normal text-gray-400">
-                — máx. €{selectedRoute.breakdown.suggestedMaxPrice.toFixed(2)}
+                - máx. €{selectedRoute.breakdown.suggestedMaxPrice.toFixed(2)}
               </span>
             )}
           </label>
@@ -498,7 +498,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
               onChange={(e) => set("instantBooking", e.target.checked)}
             />
             <label htmlFor={`${id}-instant`} className="text-sm font-medium text-gray-900">
-              {values.instantBooking ? "Sim — passageiros na rota confirmados automaticamente" : "Não — aceito manualmente cada pedido"}
+              {values.instantBooking ? "Sim - passageiros na rota confirmados automaticamente" : "Não - aceito manualmente cada pedido"}
             </label>
           </div>
         </div>

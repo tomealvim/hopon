@@ -644,7 +644,7 @@ export default function RidesPage() {
                   {remainingS > 0 ? (
                     <div className="text-2xl font-mono font-bold text-amber-800">{mm}:{ss}</div>
                   ) : (
-                    <div className="text-sm font-semibold text-amber-800">Tempo esgotado — podes concluir a viagem</div>
+                    <div className="text-sm font-semibold text-amber-800">Tempo esgotado - podes concluir a viagem</div>
                   )}
                 </div>
               );
@@ -723,7 +723,7 @@ export default function RidesPage() {
                   ? "Reembolso total se cancelares agora"
                   : hoursUntil > 0.5
                     ? "Reembolso de 50% se cancelares agora (entre 30min e 2h antes)"
-                    : "Sem reembolso — partida em menos de 30 minutos";
+                    : "Sem reembolso - partida em menos de 30 minutos";
               const tone = hoursUntil > 2 ? "text-green-700 border-green-200 bg-green-50" : hoursUntil > 0.5 ? "text-amber-700 border-amber-200 bg-amber-50" : "text-red-700 border-red-200 bg-red-50";
               return (
                 <div className={`p-3 rounded-xl border text-xs ${tone}`}>

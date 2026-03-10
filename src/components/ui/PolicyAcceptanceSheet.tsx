@@ -15,7 +15,7 @@ type Props = {
 
 const POLICY_CONTENT = {
   passenger: {
-    title: "Política de viagens — Passageiro",
+    title: "Política de viagens - Passageiro",
     sections: [
       {
         heading: "Cancelamento",
@@ -40,7 +40,7 @@ const POLICY_CONTENT = {
     ],
   },
   driver: {
-    title: "Política de viagens — Condutor",
+    title: "Política de viagens - Condutor",
     sections: [
       {
         heading: "Cancelamento",

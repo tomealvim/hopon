@@ -590,7 +590,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
               <VerifRow
                 icon={emailDone ? "✓" : "!"}
                 label="Email"
-                description={emailDone ? "Verificado — podes reservar boleias" : "Necessário para reservar e publicar boleias"}
+                description={emailDone ? "Verificado - podes reservar boleias" : "Necessário para reservar e publicar boleias"}
                 descColor={emailDone ? "text-emerald-600" : "text-amber-600"}
                 onClick={!emailDone ? () => openVerification("email") : undefined}
               />
@@ -599,7 +599,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
               <VerifRow
                 icon={verification.phone ? "✓" : "–"}
                 label="Telemóvel"
-                description={verification.phone ? "Verificado — contacto direto ativo" : "Para contacto direto em boleias confirmadas"}
+                description={verification.phone ? "Verificado - contacto direto ativo" : "Para contacto direto em boleias confirmadas"}
                 descColor={verification.phone ? "text-emerald-600" : "text-gray-400"}
                 badge={!verification.phone ? "Em breve" : undefined}
                 disabled
@@ -610,9 +610,9 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                 icon={dlDone ? "✓" : dlStatus === "PENDING" ? "…" : dlStatus === "REJECTED" ? "✗" : "!"}
                 label="Carta de condução"
                 description={
-                  dlDone ? "Aprovada — podes oferecer boleias" :
+                  dlDone ? "Aprovada - podes oferecer boleias" :
                   dlStatus === "PENDING" ? "Em análise pela equipa HopOn" :
-                  dlStatus === "REJECTED" ? "Rejeitada — clica para enviares novamente" :
+                  dlStatus === "REJECTED" ? "Rejeitada - clica para enviares novamente" :
                   "Obrigatória para publicares boleias como condutor"
                 }
                 descColor={
@@ -629,10 +629,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                 icon={idDone ? "✓" : idStatus === "PENDING" ? "…" : idStatus === "REJECTED" ? "✗" : "–"}
                 label="Cartão de Cidadão / Passaporte"
                 description={
-                  idDone ? "Identidade confirmada — badge de confiança ativo" :
+                  idDone ? "Identidade confirmada - badge de confiança ativo" :
                   idStatus === "PENDING" ? "Em análise pela equipa HopOn" :
-                  idStatus === "REJECTED" ? "Rejeitado — clica para enviares novamente" :
-                  "Opcional — aumenta a confiança de condutores e passageiros"
+                  idStatus === "REJECTED" ? "Rejeitado - clica para enviares novamente" :
+                  "Opcional - aumenta a confiança de condutores e passageiros"
                 }
                 descColor={
                   idDone ? "text-emerald-600" :

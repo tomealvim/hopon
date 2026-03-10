@@ -235,7 +235,7 @@ export default function RequestSeatSheet({
         {view === "stripe" && clientSecret && stripePromise && (
           <div className="space-y-4">
             <p className="text-sm font-semibold text-gray-700">
-              {offerTitle} — €{totalCost.toFixed(2)}
+              {offerTitle} - €{totalCost.toFixed(2)}
             </p>
             {stripePayError && <p className="text-sm text-red-600">{stripePayError}</p>}
             <Elements
