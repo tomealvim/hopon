@@ -5,6 +5,7 @@ import { Cache } from 'cache-manager';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { GeocodingService } from '../geocoding/geocoding.service';
+import { RideRequestsService } from '../ride-requests/ride-requests.service';
 
 const DAY_NAMES = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
 
@@ -19,6 +20,7 @@ export class SchedulerService {
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly geocodingService: GeocodingService,
+    private readonly rideRequestsService: RideRequestsService,
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
@@ -376,5 +378,103 @@ export class SchedulerService {
       quinta: 'quinta-feira', sexta: 'sexta-feira', sabado: 'sábado',
     };
     return map[day] ?? day;
+  }
+
+  // ─── 16.4 — Match ride requests com schedule templates ───────────────────
+
+  /**
+   * Corre diariamente às 9h — cruza pedidos de boleia abertos (RideRequest)
+   * com templates de condutores ativos (ScheduleTemplate).
+   * Notifica condutores quando há passageiro à procura na sua rota.
+   * Deduplicação via Redis: nunca notificar o mesmo par mais de 1x/dia.
+   */
+  @Cron('0 9 * * *', { name: 'ride-request-matching', timeZone: 'Europe/Lisbon' })
+  async matchRideRequestsWithTemplates() {
+    this.logger.log('[cron] matchRideRequestsWithTemplates — a iniciar');
+
+    const [rideRequests, templates] = await Promise.all([
+      this.rideRequestsService.findAllOpen(),
+      this.prisma.scheduleTemplate.findMany({
+        where: { active: true },
+        include: { user: { include: { profile: true } } },
+      }),
+    ]);
+
+    this.logger.log(`[cron] ${rideRequests.length} pedidos abertos, ${templates.length} templates ativos`);
+
+    let notified = 0;
+    let skipped = 0;
+
+    for (const request of rideRequests) {
+      const requestDays = request.daysOfWeek as string[];
+      const [rh, rm] = request.departTime.split(':').map(Number);
+      const requestMin = rh * 60 + rm;
+
+      for (const template of templates) {
+        // Não notificar o próprio passageiro se também for condutor
+        if (template.userId === request.passengerId) continue;
+
+        // Sobreposição de dias
+        const templateDays = template.daysOfWeek as string[];
+        const sharedDays = requestDays.filter((d) => templateDays.includes(d));
+        if (sharedDays.length === 0) continue;
+
+        // Compatibilidade horária ±45 min
+        const [th, tm] = template.time.split(':').map(Number);
+        const templateMin = th * 60 + tm;
+        if (Math.abs(requestMin - templateMin) > 45) continue;
+
+        // Proximidade geográfica (corredor 2km) — se temos coords
+        if (
+          request.originLat != null && request.originLng != null &&
+          template.user // template não tem coords diretas — usar text overlap como fallback
+        ) {
+          // Texto de origem/destino deve ter alguma sobreposição
+          const origMatch = this.textOverlap(request.origin, template.origin);
+          const destMatch = this.textOverlap(request.destination, template.destination);
+          if (!origMatch && !destMatch) continue;
+        }
+
+        // Deduplicação Redis
+        const dedupKey = `rr:${request.passengerId}:${template.userId}:${template.id}`;
+        const alreadySent = await this.cache.get(dedupKey);
+        if (alreadySent) { skipped++; continue; }
+        await this.cache.set(dedupKey, true, 24 * 60 * 60 * 1000);
+
+        // Notificar o condutor
+        const passengerName = request.passenger?.profile?.name ?? 'Um passageiro';
+        const dayLabels = sharedDays.slice(0, 3).map((d) => this.dayLabel(d)).join(', ');
+
+        void this.notificationsService.createNotification(
+          template.userId,
+          'ride_request.match',
+          'Passageiro procura boleia na tua rota',
+          `${passengerName} procura boleia ${request.origin} → ${request.destination} às ${request.departTime} (${dayLabels})`,
+          {
+            rideRequestId: request.id,
+            passengerId: request.passengerId,
+            origin: request.origin,
+            destination: request.destination,
+            departTime: request.departTime,
+            note: request.note,
+          },
+        );
+
+        notified++;
+      }
+    }
+
+    this.logger.log(`[cron] matchRideRequestsWithTemplates concluído — notificados: ${notified}, ignorados: ${skipped}`);
+  }
+
+  /** Trigger manual para testes */
+  async triggerRideRequestMatching() {
+    return this.matchRideRequestsWithTemplates();
+  }
+
+  private textOverlap(a: string, b: string): boolean {
+    const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    const na = norm(a); const nb = norm(b);
+    return na.includes(nb) || nb.includes(na);
   }
 }

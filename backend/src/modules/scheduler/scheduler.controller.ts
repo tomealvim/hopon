@@ -27,4 +27,11 @@ export class SchedulerController {
     await this.schedulerService.matchUserRoutesWithTemplates();
     return { ok: true };
   }
+
+  /** Endpoint de teste — aciona o matching de ride requests manualmente */
+  @Post('trigger-ride-requests')
+  async triggerRideRequests() {
+    await this.schedulerService.triggerRideRequestMatching();
+    return { ok: true };
+  }
 }

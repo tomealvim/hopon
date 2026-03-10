@@ -16,6 +16,57 @@ import type { ApiRide, ApiRideBooking } from "./types/ride-api";
 import type { ApiBooking } from "./types/booking-api";
 import type { ApiSchedule } from "./types/schedule-api";
 
+type RideRequestItem = {
+  id: string;
+  origin: string;
+  destination: string;
+  departTime: string;
+  daysOfWeek: string[];
+  note?: string;
+  passenger?: { profile?: { name?: string; avatarUrl?: string } | null; email?: string } | null;
+};
+
+function RideRequestsForDriver() {
+  const [requests, setRequests] = useState<RideRequestItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    apiRequest<RideRequestItem[]>("/ride-requests/for-driver")
+      .then((data) => setRequests(Array.isArray(data) ? data : []))
+      .catch(() => setRequests([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return null;
+  if (requests.length === 0) return null;
+
+  return (
+    <section className="pb-6">
+      <h2 className="text-sm font-bold text-gray-900 mb-1">Pedidos na minha rota</h2>
+      <p className="text-xs text-gray-500 mb-3">Passageiros que procuram boleia no teu trajeto habitual</p>
+      <div className="flex flex-col gap-2">
+        {requests.map((r) => {
+          const name = r.passenger?.profile?.name ?? r.passenger?.email ?? "Passageiro";
+          return (
+            <div key={r.id} className="flex items-start gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+              <div className="mt-0.5 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-700 shrink-0">
+                {name.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900">{name}</p>
+                <p className="text-xs text-gray-700 truncate">{r.origin} - {r.destination}</p>
+                <p className="text-xs text-gray-500">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
+                {r.note && <p className="text-xs text-gray-400 mt-0.5 italic">{r.note}</p>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 interface PendingRating {
   bookingId: string;
   role: "driver" | "passenger";
@@ -473,6 +524,11 @@ export default function RidesPage() {
                     })}
                 </div>
               </section>
+            )}
+
+            {/* Pedidos de boleia na minha rota (condutor) */}
+            {!isLoading && schedules.length > 0 && (
+              <RideRequestsForDriver />
             )}
 
           </div>

@@ -68,6 +68,7 @@ model User {
   openedDisputes Dispute[] @relation("OpenedDisputes")
   payoutRequests PayoutRequest[]
   userRoutes     UserRoute[]
+  rideRequests   RideRequest[]
 
   googleId String? @unique
 
@@ -454,6 +455,33 @@ model UserRoute {
 
   @@map("user_routes")
   @@index([userId])
+}
+
+model RideRequest {
+  id          String   @id @default(uuid())
+  passengerId String
+  passenger   User     @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+
+  origin         String
+  originLat      Float?
+  originLng      Float?
+  destination    String
+  destinationLat Float?
+  destinationLng Float?
+
+  departTime  String   // "HH:mm"
+  daysOfWeek  Json     // ["segunda","terca",...]
+
+  status    String   @default("OPEN")  // OPEN | CLOSED
+  note      String?  // mensagem opcional ao condutor
+
+  expiresAt DateTime // auto-fecha após 30 dias
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ride_requests")
+  @@index([passengerId])
+  @@index([status])
 }
 
 model PayoutRequest {

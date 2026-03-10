@@ -18,6 +18,7 @@ import { defaultFilters } from "./types/discover";
 import type { ApiRide } from "./types/ride-api";
 import PublicProfileSheet from "../components/ui/PublicProfileSheet";
 import SaveRouteSheet from "../components/discover/SaveRouteSheet";
+import RideRequestSheet from "../components/discover/RideRequestSheet";
 
 type DiscoverPageProps = {
   onOpenInbox?: (threadId?: string) => void;
@@ -79,7 +80,13 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   const [routesLoaded, setRoutesLoaded]     = useState(false);
   const [openSaveRoute, setOpenSaveRoute]   = useState(false);
 
-  // Carregar rotas habituais + boleias sugeridas proativamente ao montar
+  // Pedidos de boleia do passageiro
+  type RideRequest = { id: string; origin: string; destination: string; departTime: string; daysOfWeek: string[]; note?: string; expiresAt: string; status: string };
+  const [rideRequests, setRideRequests]         = useState<RideRequest[]>([]);
+  const [requestsLoaded, setRequestsLoaded]     = useState(false);
+  const [openRideRequest, setOpenRideRequest]   = useState(false);
+
+  // Carregar rotas habituais + boleias sugeridas + pedidos proativamente ao montar
   useEffect(() => {
     if (!routesLoaded) {
       apiRequest<UserRoute[]>("/user-routes")
@@ -93,6 +100,11 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         .catch(() => setForYouRides([]))
         .finally(() => setForYouLoading(false));
     }
+    if (!requestsLoaded) {
+      apiRequest<RideRequest[]>("/ride-requests")
+        .then((data) => { setRideRequests(Array.isArray(data) ? data : []); setRequestsLoaded(true); })
+        .catch(() => setRequestsLoaded(true));
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -105,6 +117,22 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
     setRoutesLoaded(false);
     setForYouLoaded(false);
     setOpenSaveRoute(false);
+  }
+
+  function handleRequestSaved() {
+    setRequestsLoaded(false);
+    setOpenRideRequest(false);
+    // reload
+    apiRequest<RideRequest[]>("/ride-requests")
+      .then((data) => { setRideRequests(Array.isArray(data) ? data : []); setRequestsLoaded(true); })
+      .catch(() => setRequestsLoaded(true));
+  }
+
+  async function handleDeleteRequest(id: string) {
+    try {
+      await apiRequest(`/ride-requests/${id}`, { method: "DELETE" });
+      setRideRequests((prev) => prev.filter((r) => r.id !== id));
+    } catch { /* ignore */ }
   }
 
   // Helper — converte os filtros em query params para o backend
@@ -340,6 +368,47 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                   </div>
                 )}
 
+                {/* Pedidos de boleia do passageiro */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-sm font-bold text-gray-800">Os teus pedidos</h2>
+                    <button type="button" className="text-xs text-gray-900 font-semibold" onClick={() => setOpenRideRequest(true)}>
+                      + Publicar pedido
+                    </button>
+                  </div>
+                  {rideRequests.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-gray-200 px-4 py-4 text-center">
+                      <p className="text-sm text-gray-500 mb-2">Nenhum pedido ativo</p>
+                      <button
+                        type="button"
+                        className="text-xs font-semibold text-gray-900 underline underline-offset-2"
+                        onClick={() => setOpenRideRequest(true)}
+                      >
+                        Publicar pedido de boleia
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {rideRequests.map((r) => (
+                        <div key={r.id} className="flex items-start justify-between bg-gray-50 rounded-xl px-4 py-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{r.origin} - {r.destination}</p>
+                            <p className="text-xs text-gray-500">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
+                            {r.note && <p className="text-xs text-gray-400 mt-0.5 italic truncate">{r.note}</p>}
+                          </div>
+                          <button
+                            type="button"
+                            className="text-xs text-red-500 font-semibold ml-4 shrink-0 mt-0.5"
+                            onClick={() => handleDeleteRequest(r.id)}
+                          >
+                            Fechar
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {forYouLoading ? (
                   <div className="flex flex-col gap-6">
                     {["Para amanhã", "Esta semana"].map((label) => (
@@ -512,6 +581,12 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         open={openSaveRoute}
         onClose={() => setOpenSaveRoute(false)}
         onSaved={handleRouteSaved}
+      />
+
+      <RideRequestSheet
+        open={openRideRequest}
+        onClose={() => setOpenRideRequest(false)}
+        onSaved={handleRequestSaved}
       />
 
       {/* Detail sheet */}
