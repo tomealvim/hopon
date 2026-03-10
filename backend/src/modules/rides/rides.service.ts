@@ -190,11 +190,20 @@ export class RidesService {
     const cached = await this.cache.get<any[]>(cacheKey);
     if (cached) return cached;
 
-    // Obter templates ativos (condutor) e rotas habituais (passageiro)
-    const [templates, userRoutes] = await Promise.all([
+    // Obter templates, rotas habituais e condutores familiares (viagens passadas confirmadas)
+    const [templates, userRoutes, pastBookings] = await Promise.all([
       this.prisma.scheduleTemplate.findMany({ where: { userId, active: true } }),
       this.prisma.userRoute.findMany({ where: { userId, active: true } }),
+      this.prisma.booking.findMany({
+        where: { userId, status: 'CONFIRMED' },
+        include: { ride: { select: { driverId: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
     ]);
+
+    // IDs de condutores com quem o user já viajou
+    const familiarDriverIds = new Set(pastBookings.map((b) => b.ride.driverId));
 
     // Normalizar ambos para o mesmo formato de "padrão"
     type Pattern = {
@@ -226,18 +235,20 @@ export class RidesService {
       })),
     ];
 
-    if (patterns.length === 0) {
-      await this.cache.set(cacheKey, [], FOR_YOU_TTL_MS);
-      return [];
-    }
-
-    // Boleias futuras SCHEDULED que não são do próprio utilizador
+    // Boleias futuras SCHEDULED que não são do próprio utilizador (até 7 dias)
     const now = new Date();
+    const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const tomorrowEnd = new Date(tomorrow);
+    tomorrowEnd.setHours(23, 59, 59, 999);
+
     const rides = await this.prisma.ride.findMany({
       where: {
         status: 'SCHEDULED',
         driverId: { not: userId },
-        departureTime: { gte: now },
+        departureTime: { gte: now, lte: in7Days },
       },
       include: {
         vehicle: { include: { user: { include: { profile: true } } } },
@@ -248,10 +259,27 @@ export class RidesService {
       },
     });
 
+    if (patterns.length === 0 && familiarDriverIds.size === 0) {
+      await this.cache.set(cacheKey, [], FOR_YOU_TTL_MS);
+      return [];
+    }
+
     const DAY_NAMES = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
 
     // matchScore e overlapPct acumulam por cada padrão que faz match com a ride
-    const scores = new Map<string, { ride: (typeof rides)[0]; score: number; overlapPct: number }>();
+    const scores = new Map<string, { ride: (typeof rides)[0]; score: number; overlapPct: number; familiar: boolean }>();
+
+    // Pré-popular com condutores familiares (score base = 5)
+    for (const ride of rides) {
+      if (familiarDriverIds.has(ride.driverId)) {
+        const booked = ride.bookings
+          .filter((b) => b.status === 'CONFIRMED' || b.status === 'PENDING')
+          .reduce((s, b) => s + b.seats, 0);
+        if (ride.availableSeats - booked > 0) {
+          scores.set(ride.id, { ride, score: 5, overlapPct: 0, familiar: true });
+        }
+      }
+    }
 
     for (const pattern of patterns) {
       const [ph, pm] = pattern.departTime.split(':').map(Number);
@@ -320,15 +348,17 @@ export class RidesService {
           );
         }
 
-        // Score: tempo + overlap
+        // Score: tempo + overlap + bónus condutor familiar
         const timeScore = 30 - timeDiff;
         const overlapBonus = Math.round(overlapPct * 0.7); // até 70 pontos extra por 100% overlap
+        const familiarBonus = familiarDriverIds.has(ride.driverId) ? 20 : 0;
         const prev = scores.get(ride.id);
         if (prev) {
           prev.score += timeScore + overlapBonus + 10;
           if (overlapPct > prev.overlapPct) prev.overlapPct = overlapPct;
+          prev.familiar = prev.familiar || familiarDriverIds.has(ride.driverId);
         } else {
-          scores.set(ride.id, { ride, score: timeScore + overlapBonus, overlapPct });
+          scores.set(ride.id, { ride, score: timeScore + overlapBonus + familiarBonus, overlapPct, familiar: familiarDriverIds.has(ride.driverId) });
         }
       }
     }
@@ -339,11 +369,18 @@ export class RidesService {
           b.score - a.score ||
           a.ride.departureTime.getTime() - b.ride.departureTime.getTime(),
       )
-      .map(({ ride, score, overlapPct }) => ({
-        ...this.toResponse(ride),
-        matchScore: score,
-        ...(overlapPct > 0 ? { overlapPct: Math.round(overlapPct) } : {}),
-      }));
+      .map(({ ride, score, overlapPct, familiar }) => {
+        const dep = ride.departureTime;
+        const isTomorrow = dep >= tomorrow && dep <= tomorrowEnd;
+        const section: 'tomorrow' | 'familiar' | 'this_week' =
+          isTomorrow ? 'tomorrow' : familiar ? 'familiar' : 'this_week';
+        return {
+          ...this.toResponse(ride),
+          matchScore: score,
+          section,
+          ...(overlapPct > 0 ? { overlapPct: Math.round(overlapPct) } : {}),
+        };
+      });
     await this.cache.set(cacheKey, result, FOR_YOU_TTL_MS);
     return result;
   }

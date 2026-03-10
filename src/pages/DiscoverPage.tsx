@@ -79,15 +79,13 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   const [routesLoaded, setRoutesLoaded]     = useState(false);
   const [openSaveRoute, setOpenSaveRoute]   = useState(false);
 
+  // Carregar rotas habituais + boleias sugeridas proativamente ao montar
   useEffect(() => {
-    if (tab !== "for-you") return;
-    // Carregar rotas habituais
     if (!routesLoaded) {
       apiRequest<UserRoute[]>("/user-routes")
         .then((data) => { setUserRoutes(Array.isArray(data) ? data : []); setRoutesLoaded(true); })
         .catch(() => setRoutesLoaded(true));
     }
-    // Carregar boleias sugeridas
     if (!forYouLoaded) {
       setForYouLoading(true);
       apiRequest<ApiRide[]>("/rides/for-you")
@@ -95,7 +93,8 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         .catch(() => setForYouRides([]))
         .finally(() => setForYouLoading(false));
     }
-  }, [tab, forYouLoaded, routesLoaded]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleRouteDeleted(id: string) {
     setUserRoutes((prev) => prev.filter((r) => r.id !== id));
@@ -315,11 +314,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <h2 className="text-sm font-bold text-gray-800">As tuas rotas</h2>
-                      <button
-                        type="button"
-                        className="text-xs text-gray-900 font-semibold"
-                        onClick={() => setOpenSaveRoute(true)}
-                      >
+                      <button type="button" className="text-xs text-gray-900 font-semibold" onClick={() => setOpenSaveRoute(true)}>
                         + Adicionar
                       </button>
                     </div>
@@ -334,10 +329,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                             type="button"
                             className="text-xs text-red-500 font-semibold ml-4 shrink-0"
                             onClick={async () => {
-                              try {
-                                await apiRequest(`/user-routes/${r.id}`, { method: "DELETE" });
-                                handleRouteDeleted(r.id);
-                              } catch { /* ignore */ }
+                              try { await apiRequest(`/user-routes/${r.id}`, { method: "DELETE" }); handleRouteDeleted(r.id); } catch { /* ignore */ }
                             }}
                           >
                             Apagar
@@ -348,13 +340,16 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                   </div>
                 )}
 
-                <h2 className="text-sm font-bold text-gray-800 mt-1 mb-2">
-                  Boleias para ti
-                  {forYouRides.length > 0 && ` (${forYouRides.length})`}
-                </h2>
                 {forYouLoading ? (
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                    {Array.from({ length: 3 }).map((_, i) => <EntityCardSkeleton key={i} />)}
+                  <div className="flex flex-col gap-6">
+                    {["Para amanhã", "Esta semana"].map((label) => (
+                      <div key={label}>
+                        <div className="h-4 w-28 bg-gray-100 rounded mb-3 animate-pulse" />
+                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                          {Array.from({ length: 2 }).map((_, i) => <EntityCardSkeleton key={i} />)}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : forYouRides.length === 0 ? (
                   <div className="text-center py-12 px-4">
@@ -362,59 +357,91 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                     <p className="text-sm text-gray-600 max-w-[300px] mx-auto mb-6">
                       Guarda a tua rota habitual e vemos boleias que batem certo com o teu horário.
                     </p>
-                    <Button onClick={() => setOpenSaveRoute(true)}>
-                      Guardar rota habitual
-                    </Button>
+                    <Button onClick={() => setOpenSaveRoute(true)}>Guardar rota habitual</Button>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                    {forYouRides.map((ride) => {
-                      const dep = new Date(ride.departureTime);
-                      const dateStr = dep.toLocaleDateString("pt-PT", { weekday: "short", day: "numeric", month: "short" });
-                      const timeStr = dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
-                      const driverName = ride.driver?.profile?.name ?? ride.driver?.email ?? "Condutor";
-                      const seatsLeft = ride.remainingSeats;
-                      return (
-                        <EntityCard
-                          key={ride.id}
-                          title={`${ride.origin} → ${ride.destination}`}
-                          subtitle={`${dateStr}, ${timeStr}`}
-                          meta={`Condutor: ${driverName}`}
-                          badges={[
-                            { label: "Para ti", tone: "brand" },
-                            {
-                              label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`,
-                              tone: seatsLeft >= 3 ? "success" : "warning",
-                            },
-                            ...(ride.overlapPct != null
-                              ? [{
-                                  label: `Rota ${ride.overlapPct}% compatível`,
-                                  tone: (ride.overlapPct >= 70 ? "success" : ride.overlapPct >= 40 ? "warning" : "neutral") as "success" | "warning" | "neutral",
-                                }]
-                              : []),
-                            ...(ride.instantBooking
-                              ? [{ label: "Instantânea", tone: "success" as const }]
-                              : []),
-                            ...(ride.driver?.isIdentityVerified
-                              ? [{ label: "Verificado", tone: "success" as const }]
-                              : []),
-                            ...(ride.price != null && ride.price > 0
-                              ? [{ label: `€${ride.price.toFixed(0)}/lugar` }]
-                              : []),
-                          ]}
-                          avatar={{
-                            src: ride.driver?.profile?.avatarUrl ?? undefined,
-                            initials: driverName.slice(0, 2).toUpperCase(),
-                          }}
-                          primaryLabel="Reservar"
-                          secondaryLabel="Detalhes"
-                          onPrimary={() => handleOpenBooking(ride.id)}
-                          onSecondary={() => openRideDetail(ride.id)}
-                        />
-                      );
-                    })}
-                  </div>
-                )}
+                ) : (() => {
+                  const tomorrow = forYouRides.filter((r) => r.section === "tomorrow");
+                  const familiar = forYouRides.filter((r) => r.section === "familiar" && r.section !== "tomorrow");
+                  const thisWeek = forYouRides.filter((r) => r.section === "this_week");
+
+                  function RideCard({ ride }: { ride: ApiRide }) {
+                    const dep = new Date(ride.departureTime);
+                    const dateStr = dep.toLocaleDateString("pt-PT", { weekday: "short", day: "numeric", month: "short" });
+                    const timeStr = dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+                    const driverName = ride.driver?.profile?.name ?? ride.driver?.email ?? "Condutor";
+                    const seatsLeft = ride.remainingSeats;
+                    return (
+                      <EntityCard
+                        key={ride.id}
+                        title={`${ride.origin} → ${ride.destination}`}
+                        subtitle={`${dateStr}, ${timeStr} - ${driverName}`}
+                        badges={[
+                          { label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`, tone: seatsLeft >= 3 ? "success" : "warning" },
+                          ...(ride.overlapPct != null
+                            ? [{ label: `${ride.overlapPct}% compatível`, tone: (ride.overlapPct >= 70 ? "success" : ride.overlapPct >= 40 ? "warning" : "neutral") as "success" | "warning" | "neutral" }]
+                            : []),
+                          ...(ride.instantBooking ? [{ label: "Instantânea", tone: "success" as const }] : []),
+                          ...(ride.driver?.isIdentityVerified ? [{ label: "Verificado", tone: "success" as const }] : []),
+                          ...(ride.price != null && ride.price > 0 ? [{ label: `€${ride.price.toFixed(0)}/lugar` }] : []),
+                        ]}
+                        avatar={{ src: ride.driver?.profile?.avatarUrl ?? undefined, initials: driverName.slice(0, 2).toUpperCase() }}
+                        primaryLabel="Reservar"
+                        secondaryLabel="Detalhes"
+                        onPrimary={() => handleOpenBooking(ride.id)}
+                        onSecondary={() => openRideDetail(ride.id)}
+                      />
+                    );
+                  }
+
+                  return (
+                    <div className="flex flex-col gap-6">
+                      {tomorrow.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-base">🌅</span>
+                            <h2 className="text-sm font-bold text-gray-900">Para amanhã</h2>
+                            <span className="text-xs text-gray-400 font-medium">{tomorrow.length} boleia{tomorrow.length !== 1 ? "s" : ""}</span>
+                          </div>
+                          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                            {tomorrow.map((ride) => <RideCard key={ride.id} ride={ride} />)}
+                          </div>
+                        </div>
+                      )}
+
+                      {familiar.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-base">🤝</span>
+                            <h2 className="text-sm font-bold text-gray-900">Condutores habituais</h2>
+                            <span className="text-xs text-gray-400 font-medium">já viajaste com eles</span>
+                          </div>
+                          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                            {familiar.map((ride) => <RideCard key={ride.id} ride={ride} />)}
+                          </div>
+                        </div>
+                      )}
+
+                      {thisWeek.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-base">📅</span>
+                            <h2 className="text-sm font-bold text-gray-900">Esta semana</h2>
+                            <span className="text-xs text-gray-400 font-medium">{thisWeek.length} boleia{thisWeek.length !== 1 ? "s" : ""}</span>
+                          </div>
+                          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                            {thisWeek.map((ride) => <RideCard key={ride.id} ride={ride} />)}
+                          </div>
+                        </div>
+                      )}
+
+                      {userRoutes.length === 0 && (
+                        <button type="button" onClick={() => setOpenSaveRoute(true)} className="w-full rounded-2xl border-2 border-dashed border-gray-200 py-4 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700 transition">
+                          + Guardar rota habitual para sugestões mais precisas
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
               </>
             )}
 

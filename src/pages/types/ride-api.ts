@@ -70,8 +70,10 @@ export interface ApiRide {
   onTheWayAt?: string | null;
   instantBooking?: boolean;
   routePolyline?: { lat: number; lng: number }[] | null;
-  /** Presente em respostas de /rides/for-you — pontuação de relevância */
+  /** Presente em respostas de /rides/for-you - pontuação de relevância */
   matchScore?: number;
-  /** Sobreposição de rota em % (0–100) — presente quando calculável */
+  /** Sobreposição de rota em % (0-100) - presente quando calculável */
   overlapPct?: number;
+  /** Secção no smart feed: tomorrow | familiar | this_week */
+  section?: 'tomorrow' | 'familiar' | 'this_week';
 }
