@@ -63,7 +63,7 @@ export default function ProfileSetupPage() {
   function canAdvance() {
     if (step === 1) return name.trim().length >= 2;
     if (step === 2) return phone.trim().length > 4;
-    if (step === 3) return homeAddress.trim().length >= 2;
+    if (step === 3) return homeLat != null && homeLng != null;
     return true;
   }
 
@@ -76,8 +76,8 @@ export default function ProfileSetupPage() {
       showError("Campo obrigatório", "Indica o teu número de telemóvel.");
       return;
     }
-    if (step === 3 && !homeAddress.trim()) {
-      showError("Campo obrigatório", "Indica a tua zona de residência.");
+    if (step === 3 && (homeLat == null || homeLng == null)) {
+      showError("Localização necessária", "Usa a localização atual ou seleciona uma morada da lista.");
       return;
     }
     if (step < 4) setStep((step + 1) as Step);
@@ -282,8 +282,8 @@ export default function ProfileSetupPage() {
               </p>
             )}
             {homeAddress && !homeLat && (
-              <p className="text-[11px] text-gray-400">
-                Seleciona uma sugestão da lista para confirmar as coordenadas.
+              <p className="text-[11px] text-amber-600 font-medium">
+                Seleciona uma sugestão da lista para confirmar a localização.
               </p>
             )}
           </div>
