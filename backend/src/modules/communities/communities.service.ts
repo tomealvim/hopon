@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateCommunityDto } from './dto/create-community.dto';
 import { randomBytes } from 'crypto';
 
 @Injectable()
 export class CommunitiesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   private generateInviteCode(): string {
     return randomBytes(4).toString('hex').toUpperCase(); // ex: "A3F9C2B1"
@@ -69,6 +73,12 @@ export class CommunitiesService {
     const community = await this.prisma.community.findUnique({ where: { inviteCode } });
     if (!community) throw new NotFoundException('Código de convite inválido');
 
+    const requester = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true },
+    });
+    const requesterName = requester?.profile?.name ?? requester?.email ?? 'Alguém';
+
     const existing = await this.prisma.communityMember.findUnique({
       where: { communityId_userId: { communityId: community.id, userId } },
     });
@@ -76,11 +86,21 @@ export class CommunitiesService {
       if (existing.status === 'APPROVED') throw new ConflictException('Já és membro desta comunidade');
       if (existing.status === 'PENDING') throw new ConflictException('O teu pedido já está pendente');
       // REJECTED — allow re-apply
+      const newStatus = community.requiresApproval ? 'PENDING' : 'APPROVED';
       await this.prisma.communityMember.update({
         where: { id: existing.id },
-        data: { status: community.requiresApproval ? 'PENDING' : 'APPROVED', joinedAt: community.requiresApproval ? null : new Date() },
+        data: { status: newStatus, joinedAt: newStatus === 'APPROVED' ? new Date() : null },
       });
-      return { status: community.requiresApproval ? 'PENDING' : 'APPROVED' };
+      if (newStatus === 'PENDING') {
+        void this.notificationsService.createNotification(
+          community.ownerId,
+          'community.join_request',
+          `Novo pedido em ${community.name}`,
+          `${requesterName} quer entrar na comunidade.`,
+          { communityId: community.id, userId },
+        );
+      }
+      return { status: newStatus };
     }
 
     const status = community.requiresApproval ? 'PENDING' : 'APPROVED';
@@ -93,6 +113,17 @@ export class CommunitiesService {
         joinedAt: status === 'APPROVED' ? new Date() : null,
       },
     });
+
+    if (status === 'PENDING') {
+      void this.notificationsService.createNotification(
+        community.ownerId,
+        'community.join_request',
+        `Novo pedido em ${community.name}`,
+        `${requesterName} quer entrar na comunidade.`,
+        { communityId: community.id, userId },
+      );
+    }
+
     return { status, communityName: community.name };
   }
 
