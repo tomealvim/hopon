@@ -28,6 +28,7 @@ import { StripeModule } from './modules/stripe/stripe.module';
 import { DisputesModule } from './modules/disputes/disputes.module';
 import { UserRoutesModule } from './modules/user-routes/user-routes.module';
 import { RideRequestsModule } from './modules/ride-requests/ride-requests.module';
+import { CommunitiesModule } from './modules/communities/communities.module';
 
 // Garantir que o .env seja sempre o da pasta backend (mesmo ao correr a partir da raiz do repo)
 const backendEnv = join(__dirname, '..', '.env');
@@ -98,6 +99,7 @@ const backendEnv = join(__dirname, '..', '.env');
     DisputesModule,
     UserRoutesModule,
     RideRequestsModule,
+    CommunitiesModule,
   ],
 })
 export class AppModule {}

@@ -36,9 +36,13 @@ export type DiscoverFilters = {
 
   // Ordenação
   sort: "recommended" | "nearby" | "earliest" | "shortest" | "rating";
-  
+
   // UI Chips
   chips: string[];
+
+  // Filtro de comunidade
+  communityId?: string;
+  communityName?: string;
 };
 
 export const defaultFilters: DiscoverFilters = {

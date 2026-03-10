@@ -72,6 +72,9 @@ model User {
 
   googleId String? @unique
 
+  ownedCommunities  Community[]       @relation("CommunityOwner")
+  communityMemberships CommunityMember[]
+
   @@map("users")
 }
 
@@ -498,4 +501,41 @@ model PayoutRequest {
   @@map("payout_requests")
   @@index([userId])
   @@index([status])
+}
+
+model Community {
+  id               String   @id @default(uuid())
+  name             String
+  description      String?
+  logoUrl          String?
+  ownerId          String
+  owner            User     @relation("CommunityOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  inviteCode       String   @unique
+  requiresApproval Boolean  @default(true)
+  domain           String?  // domínio de email opcional (ex: "iscte.pt")
+  members          CommunityMember[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("communities")
+  @@index([ownerId])
+  @@index([inviteCode])
+}
+
+model CommunityMember {
+  id          String    @id @default(uuid())
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        String    @default("MEMBER")   // OWNER | MEMBER
+  status      String    @default("PENDING")  // PENDING | APPROVED | REJECTED
+  joinedAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([communityId, userId])
+  @@map("community_members")
+  @@index([userId])
+  @@index([communityId, status])
 }

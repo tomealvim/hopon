@@ -18,6 +18,7 @@ import RatingsSheet from "../components/profile/RatingsSheet";
 import HistorySheet from "../components/profile/HistorySheet";
 import IdentityVerificationSheet from "../components/profile/IdentityVerificationSheet";
 import DriverLicenseSheet from "../components/profile/DriverLicenseSheet";
+import CommunitiesSheet from "../components/profile/CommunitiesSheet";
 import AdminPanel from "../components/admin/AdminPanel";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { TERMS_LAST_UPDATED, TERMS_SECTIONS, TERMS_TITLE } from "../data/terms";
@@ -75,6 +76,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
   const [verificationChannel, setVerificationChannel] = useState<"email" | "phone" | null>(null);
   const [openIdentitySheet, setOpenIdentitySheet] = useState(false);
   const [openDriverLicenseSheet, setOpenDriverLicenseSheet] = useState(false);
+  const [openCommunities, setOpenCommunities] = useState(false);
   const [openAdminPanel, setOpenAdminPanel] = useState(false);
   const [copiedReferral, setCopiedReferral] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
@@ -215,6 +217,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       verificationSheetOpen ||
       openIdentitySheet ||
       openDriverLicenseSheet ||
+      openCommunities ||
       openAdminPanel;
 
     onSheetStateChange?.(isAnySheetOpen);
@@ -236,6 +239,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
     verificationSheetOpen,
     openIdentitySheet,
     openDriverLicenseSheet,
+    openCommunities,
     openAdminPanel,
     onSheetStateChange,
   ]);
@@ -653,6 +657,23 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           </section>
         );
       })()}
+
+      {/* ========== COMUNIDADES ========== */}
+      <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Comunidades</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Empresa, faculdade ou grupo de confiança</p>
+          </div>
+          <button
+            type="button"
+            className="text-xs font-semibold text-gray-900"
+            onClick={() => setOpenCommunities(true)}
+          >
+            Ver
+          </button>
+        </div>
+      </section>
 
       {/* ========== BLOCO 2: CARRO EM USO ========== */}
       <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
@@ -1395,6 +1416,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         adminNote={user?.driverLicenseAdminNote}
         onUploaded={() => { /* o AuthContext fará refresh do user */ }}
       />
+      <CommunitiesSheet open={openCommunities} onClose={() => setOpenCommunities(false)} />
       <AdminPanel open={openAdminPanel} onClose={() => setOpenAdminPanel(false)} />
       </div>
     </div>

@@ -500,6 +500,15 @@ export class RidesService {
       where.OR = [{ price: null }, { price: { lte: dto.maxPrice } }];
     }
 
+    // Filtro de comunidade: só boleias de condutores aprovados nessa comunidade
+    if (dto.communityId) {
+      const members = await this.prisma.communityMember.findMany({
+        where: { communityId: dto.communityId, status: 'APPROVED' },
+        select: { userId: true },
+      });
+      where.driverId = { in: members.map((m) => m.userId) };
+    }
+
     // Pesquisa por proximidade: filtrar por IDs de rides cujo origin está dentro do raio
     if (dto.lat != null && dto.lng != null) {
       const radiusKm = dto.radius ?? 10;

@@ -86,6 +86,11 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   const [requestsLoaded, setRequestsLoaded]     = useState(false);
   const [openRideRequest, setOpenRideRequest]   = useState(false);
 
+  // Comunidades do utilizador (para filtro rápido)
+  type CommunityChip = { id: string; name: string };
+  const [userCommunities, setUserCommunities] = useState<CommunityChip[]>([]);
+  const [communitiesLoaded, setCommunitiesLoaded] = useState(false);
+
   // Carregar rotas habituais + boleias sugeridas + pedidos proativamente ao montar
   useEffect(() => {
     if (!routesLoaded) {
@@ -104,6 +109,11 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
       apiRequest<RideRequest[]>("/ride-requests")
         .then((data) => { setRideRequests(Array.isArray(data) ? data : []); setRequestsLoaded(true); })
         .catch(() => setRequestsLoaded(true));
+    }
+    if (!communitiesLoaded) {
+      apiRequest<CommunityChip[]>("/communities/mine")
+        .then((data) => { setUserCommunities(Array.isArray(data) ? data : []); setCommunitiesLoaded(true); })
+        .catch(() => setCommunitiesLoaded(true));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -142,6 +152,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
     if (f.destination?.trim()) params.set("destination", f.destination.trim());
     if (f.minSeats > 1) params.set("minSeats", String(f.minSeats));
     if (f.maxPrice != null) params.set("maxPrice", String(f.maxPrice));
+    if (f.communityId) params.set("communityId", f.communityId);
     if (f.date) {
       const from = f.departFrom ? `${f.date}T${f.departFrom}:00` : `${f.date}T00:00:00`;
       const to   = f.departTo   ? `${f.date}T${f.departTo}:59`   : `${f.date}T23:59:59`;
@@ -160,7 +171,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
       .catch(() => setApiRides([]))
       .finally(() => setApiRidesLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, filters.origin, filters.destination, filters.minSeats, filters.maxPrice, filters.date, filters.departFrom, filters.departTo]);
+  }, [tab, filters.origin, filters.destination, filters.minSeats, filters.maxPrice, filters.date, filters.departFrom, filters.departTo, filters.communityId]);
 
   // Abrir detalhe
   async function openRideDetail(rideId: string) {
@@ -244,6 +255,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   if (filters.minSeats > 1) filterChips.push({ label: `${filters.minSeats}+ lugares`, clear: () => setFilters(f => ({ ...f, minSeats: 1 })) });
   if (filters.maxPrice != null) filterChips.push({ label: `≤ €${filters.maxPrice}`, clear: () => setFilters(f => ({ ...f, maxPrice: undefined })) });
   if (filters.verified) filterChips.push({ label: "Verificados", clear: () => setFilters(f => ({ ...f, verified: false })) });
+  if (filters.communityId && filters.communityName) filterChips.push({ label: `Comunidade: ${filters.communityName}`, clear: () => setFilters(f => ({ ...f, communityId: undefined, communityName: undefined })) });
 
   return (
     <>
@@ -268,6 +280,28 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                       >
                         {chip.label}
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {/* Chips de comunidade */}
+                {userCommunities.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto scrollbar-none py-1 -mx-4 px-4">
+                    {userCommunities.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setFilters(f => f.communityId === c.id
+                          ? { ...f, communityId: undefined, communityName: undefined }
+                          : { ...f, communityId: c.id, communityName: c.name }
+                        )}
+                        className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                          filters.communityId === c.id
+                            ? "bg-gray-900 text-white border-gray-900"
+                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
+                        }`}
+                      >
+                        {c.name}
                       </button>
                     ))}
                   </div>

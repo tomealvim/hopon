@@ -56,5 +56,10 @@ export class SearchRidesDto {
   @IsNumber()
   @Min(0)
   maxPrice?: number;
+
+  @ApiPropertyOptional({ description: 'Filtrar só boleias de condutores na mesma comunidade' })
+  @IsOptional()
+  @IsString()
+  communityId?: string;
 }
 
