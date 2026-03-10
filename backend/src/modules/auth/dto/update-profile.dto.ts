@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, Length, IsEmail, IsBoolean } from 'class-validator';
+import { IsOptional, IsString, Length, IsEmail, IsBoolean, IsNumber } from 'class-validator';
 import { IsValidPhoneNumber } from '../../../common/decorators/is-valid-phone-number.decorator';
 
 export class UpdateProfileDto {
@@ -43,5 +43,20 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsBoolean()
   setupCompleted?: boolean;
+
+  @ApiPropertyOptional({ example: 'Amadora, Quinta da Fonte' })
+  @IsOptional()
+  @IsString()
+  homeAddress?: string;
+
+  @ApiPropertyOptional({ example: 38.7169 })
+  @IsOptional()
+  @IsNumber()
+  homeLat?: number;
+
+  @ApiPropertyOptional({ example: -9.1399 })
+  @IsOptional()
+  @IsNumber()
+  homeLng?: number;
 }
 

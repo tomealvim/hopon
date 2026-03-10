@@ -6,6 +6,7 @@ import { useNotifications } from "../contexts/NotificationContext";
 import AppName from "../components/ui/AppName";
 import Sheet from "../components/ui/Sheet";
 import ImageUpload from "../components/ui/ImageUpload";
+import { LocationInput, type LocationValue } from "../components/ui/LocationInput";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -23,7 +24,7 @@ const STEP_CONFIG: Record<Step, { eyebrow: string; title: string; subtitle: stri
   3: {
     eyebrow: "Localização",
     title: "Onde é a tua casa?",
-    subtitle: "Usamos como ponto de partida habitual nas sugestões.",
+    subtitle: "Usamos para te sugerir boleias perto de ti. Não partilhamos a morada exacta com ninguém.",
   },
   4: {
     eyebrow: "Pronto",
@@ -50,7 +51,11 @@ export default function ProfileSetupPage() {
   const [country, setCountry] = useState<Country>("PT");
 
   // Step 3
-  const [address, setAddress] = useState("");
+  const [homeAddress, setHomeAddress] = useState("");
+  const [homeLat, setHomeLat] = useState<number | undefined>();
+  const [homeLng, setHomeLng] = useState<number | undefined>();
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState("");
 
   const meta = STEP_CONFIG[step];
   const isLast = step === 4;
@@ -58,7 +63,7 @@ export default function ProfileSetupPage() {
   function canAdvance() {
     if (step === 1) return name.trim().length >= 2;
     if (step === 2) return phone.trim().length > 4;
-    if (step === 3) return address.trim().length >= 2;
+    if (step === 3) return homeAddress.trim().length >= 2;
     return true;
   }
 
@@ -71,8 +76,8 @@ export default function ProfileSetupPage() {
       showError("Campo obrigatório", "Indica o teu número de telemóvel.");
       return;
     }
-    if (step === 3 && !address.trim()) {
-      showError("Campo obrigatório", "Indica a tua morada.");
+    if (step === 3 && !homeAddress.trim()) {
+      showError("Campo obrigatório", "Indica a tua zona de residência.");
       return;
     }
     if (step < 4) setStep((step + 1) as Step);
@@ -90,7 +95,9 @@ export default function ProfileSetupPage() {
         name: name.trim(),
         avatarUrl: avatarUrl || undefined,
         phone: phone.trim(),
-        address: address.trim(),
+        homeAddress: homeAddress.trim(),
+        homeLat,
+        homeLng,
         setupCompleted: true,
       });
     } catch (err: any) {
@@ -204,24 +211,81 @@ export default function ProfileSetupPage() {
           </div>
         )}
 
-        {/* Step 3: Address */}
+        {/* Step 3: Home location */}
         {step === 3 && (
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-              Morada / Zona *
-            </label>
-            <input
-              type="text"
-              autoFocus
-              placeholder="Ex: Amadora, Quinta da Fonte"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && canAdvance() && handleNext()}
-              className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-400"
-            />
-            <p className="text-[11px] text-gray-400 mt-1">
-              Não precisas de morada exacta — cidade ou zona é suficiente.
-            </p>
+          <div className="flex flex-col gap-3">
+            {/* Botão usar localização atual */}
+            <button
+              type="button"
+              disabled={locating}
+              onClick={async () => {
+                if (!navigator.geolocation) { setLocError("O teu browser não suporta geolocalização."); return; }
+                setLocating(true); setLocError("");
+                navigator.geolocation.getCurrentPosition(
+                  async (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    setHomeLat(latitude); setHomeLng(longitude);
+                    // Tentar geocodificação reversa via Mapbox
+                    const token = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
+                    if (token) {
+                      try {
+                        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${token}&language=pt&types=address,place,neighborhood&limit=1`);
+                        const data = await res.json();
+                        const label = data.features?.[0]?.place_name ?? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                        setHomeAddress(label);
+                      } catch { setHomeAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`); }
+                    } else {
+                      setHomeAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                    }
+                    setLocating(false);
+                  },
+                  (err) => {
+                    setLocating(false);
+                    setLocError(err.code === err.PERMISSION_DENIED ? "Permissão de localização negada." : "Não foi possível obter a localização.");
+                  },
+                  { enableHighAccuracy: true, timeout: 8000 }
+                );
+              }}
+              className="w-full h-12 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center gap-2 text-sm font-semibold text-gray-600 hover:border-gray-900 hover:text-gray-900 transition disabled:opacity-50"
+            >
+              {locating ? (
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4" /></svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+              )}
+              {locating ? "A localizar…" : "Usar a minha localização atual"}
+            </button>
+
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400">ou escreve</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Zona / Morada</label>
+              <LocationInput
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-400"
+                placeholder="Ex: Amadora, Quinta da Fonte"
+                value={homeAddress}
+                lat={homeLat}
+                lng={homeLng}
+                onLabelChange={(label) => { setHomeAddress(label); setHomeLat(undefined); setHomeLng(undefined); setLocError(""); }}
+                onLocationSelect={(loc: LocationValue) => { setHomeAddress(loc.label); setHomeLat(loc.lat); setHomeLng(loc.lng); setLocError(""); }}
+              />
+            </div>
+
+            {locError && <p className="text-xs text-red-500">{locError}</p>}
+            {homeLat && homeLng && (
+              <p className="text-[11px] text-green-600 font-medium">
+                ✓ Localização confirmada — vamos usá-la para sugerir boleias perto de ti.
+              </p>
+            )}
+            {homeAddress && !homeLat && (
+              <p className="text-[11px] text-gray-400">
+                Seleciona uma sugestão da lista para confirmar as coordenadas.
+              </p>
+            )}
           </div>
         )}
 
@@ -238,7 +302,7 @@ export default function ProfileSetupPage() {
               <div>
                 <p className="font-semibold text-gray-900">{name}</p>
                 <p className="text-sm text-gray-500">{phone}</p>
-                <p className="text-sm text-gray-500">{address}</p>
+                <p className="text-sm text-gray-500">{homeAddress}</p>
               </div>
             </div>
 

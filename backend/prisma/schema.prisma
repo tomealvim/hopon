@@ -101,6 +101,10 @@ model Profile {
   schedule       Json?
   setupCompleted Boolean  @default(false)
 
+  homeAddress    String?
+  homeLat        Float?
+  homeLng        Float?
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

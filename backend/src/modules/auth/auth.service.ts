@@ -175,6 +175,9 @@ export class AuthService {
     if (dto.contactEmail !== undefined) profileData.contactEmail = dto.contactEmail;
     if (dto.schedule !== undefined) profileData.schedule = dto.schedule;
     if (dto.setupCompleted === true) profileData.setupCompleted = true;
+    if (dto.homeAddress !== undefined) profileData.homeAddress = dto.homeAddress;
+    if (dto.homeLat !== undefined) profileData.homeLat = dto.homeLat;
+    if (dto.homeLng !== undefined) profileData.homeLng = dto.homeLng;
 
     const hasProfileUpdate = Object.keys(profileData).length > 0;
     const hasUserUpdates = dto.phone !== undefined;
