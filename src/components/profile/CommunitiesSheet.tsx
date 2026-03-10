@@ -290,13 +290,13 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
                 className="flex-1 text-xs font-semibold bg-gray-900 text-white px-3 py-2 rounded-lg"
                 onClick={() => {
                   const link = `${window.location.origin}/join/${selectedCommunity.inviteCode}`;
-                  if (navigator.share) {
+                  if ("share" in navigator) {
                     navigator.share({ title: selectedCommunity.name, text: `Junta-te à comunidade ${selectedCommunity.name} no HopOn`, url: link });
                   } else {
                     navigator.clipboard.writeText(link);
                   }
                 }}>
-                {navigator.share ? "Partilhar" : "Copiar link"}
+                {"share" in navigator ? "Partilhar" : "Copiar link"}
               </button>
               <button type="button"
                 className="text-xs text-gray-400 hover:text-gray-700 px-3 py-2 border border-gray-200 rounded-lg"
