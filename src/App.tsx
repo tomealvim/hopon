@@ -28,6 +28,7 @@ import AppName from "./components/ui/AppName";
 import NotificationsSheet from "./components/ui/NotificationsSheet";
 import PolicyAcceptanceSheet from "./components/ui/PolicyAcceptanceSheet";
 import CommunitiesSheet from "./components/profile/CommunitiesSheet";
+import RideRequestSheet from "./components/discover/RideRequestSheet";
 
 export type Tab = "discover" | "rides" | "inbox" | "profile";
 
@@ -57,6 +58,7 @@ function AppContent() {
 
   const [openComposer, setOpenComposer] = useState(false);
   const [openOffer, setOpenOffer] = useState(false);
+  const [openRideRequest, setOpenRideRequest] = useState(false);
   const [initialThreadId, setInitialThreadId] = useState<string | undefined>(undefined);
   const [vehicleSheetTrigger, setVehicleSheetTrigger] = useState(0);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => hasCompletedOnboarding());
@@ -241,6 +243,12 @@ function AppContent() {
           >
             Template de viagem (recorrente)
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => { setOpenComposer(false); setOpenRideRequest(true); }}
+          >
+            Pedir boleia (publicar necessidade)
+          </Button>
         </div>
       </Sheet>
 
@@ -281,6 +289,13 @@ function AppContent() {
         onClose={() => setShowWelcome(false)}
         onGoToProfile={() => { setShowWelcome(false); setTab('profile'); }}
         onGoToRides={() => { setShowWelcome(false); setTab('rides'); }}
+      />
+
+      {/* Pedir boleia — publicar necessidade de passageiro */}
+      <RideRequestSheet
+        open={openRideRequest}
+        onClose={() => setOpenRideRequest(false)}
+        onSaved={() => setOpenRideRequest(false)}
       />
 
       {/* Deep link /join/:code — abre sheet de comunidade diretamente */}

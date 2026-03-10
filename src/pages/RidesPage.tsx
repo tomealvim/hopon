@@ -116,6 +116,8 @@ export default function RidesPage() {
   const { showSuccess, showError } = useNotifications();
   const { subscribe } = useSSE();
 
+  const [ridesTab, setRidesTab] = useState<"driver" | "passenger">("driver");
+
   // --- Driver rides ---
   const [myRides, setMyRides] = useState<ApiRide[]>([]);
   const [ridesLoading, setRidesLoading] = useState(false);
@@ -396,6 +398,28 @@ export default function RidesPage() {
         <div className="relative z-10 px-4">
           <div className="mx-auto max-w-mobile md:max-w-tablet lg:max-w-desktop">
 
+            {/* Tab selector: Condutor / Passageiro */}
+            <div className="flex gap-6 pt-4 pb-2 border-b border-gray-100 mb-4">
+              {(["driver", "passenger"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setRidesTab(t)}
+                  className={`relative pb-3 text-sm font-semibold transition-colors ${
+                    ridesTab === t ? "text-gray-900" : "text-gray-400 hover:text-gray-700"
+                  }`}
+                >
+                  {t === "driver" ? "Condutor" : "Passageiro"}
+                  {ridesTab === t && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {ridesTab === "driver" && (
+            <>
+
             {/* Calendário */}
             <section className="pt-4 pb-6">
               <h2 className="text-sm font-bold text-gray-900 mb-3">Próximas boleias</h2>
@@ -490,45 +514,61 @@ export default function RidesPage() {
               </section>
             )}
 
-            {/* As minhas reservas (passageiro) */}
-            {!isLoading && myBookings.filter((b) => b.status !== "CANCELLED" && b.status !== "DECLINED").length > 0 && (
-              <section className="pb-6">
-                <h2 className="text-sm font-bold text-gray-900 mb-3">As minhas reservas</h2>
-                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-                  {myBookings
-                    .filter((b) => b.status !== "CANCELLED" && b.status !== "DECLINED")
-                    .map((booking) => {
-                      const pendingForBooking = pendingRatings.find((r) => r.bookingId === booking.id);
-                      return (
-                        <EntityCard
-                          key={booking.id}
-                          title={booking.ride ? `${booking.ride.origin} → ${booking.ride.destination}` : "Boleia"}
-                          subtitle={booking.ride ? formatDateTime(booking.ride.departureTime) : ""}
-                          meta={`${booking.seats} lugar${booking.seats > 1 ? "es" : ""}${booking.ride?.price ? ` · €${(booking.ride.price * booking.seats).toFixed(0)}` : ""}`}
-                          badges={[{ label: STATUS_LABEL[booking.status] ?? booking.status, tone: STATUS_TONE[booking.status] }]}
-                          avatar={{
-                            src: booking.ride?.driver?.profile?.avatarUrl ?? undefined,
-                            initials: (booking.ride?.driver?.profile?.name ?? booking.ride?.driver?.email ?? "?").slice(0, 2).toUpperCase(),
-                          }}
-                          primaryLabel="Detalhes"
-                          onPrimary={() => {
-                            setSelectedBooking(booking);
-                            setSelectedRide(null);
-                            setSheetView("booking");
-                            setOpenSheet(true);
-                          }}
-                          secondaryLabel={pendingForBooking ? "Avaliar condutor" : undefined}
-                          onSecondary={pendingForBooking ? () => { setRatingTarget(pendingForBooking); setOpenRating(true); } : undefined}
-                        />
-                      );
-                    })}
-                </div>
-              </section>
-            )}
-
             {/* Pedidos de boleia na minha rota (condutor) */}
             {!isLoading && schedules.length > 0 && (
               <RideRequestsForDriver />
+            )}
+
+            </>
+            )}
+
+            {ridesTab === "passenger" && (
+            <>
+
+            {/* As minhas reservas (passageiro) */}
+            {!isLoading && myBookings.filter((b) => b.status !== "CANCELLED" && b.status !== "DECLINED").length === 0 ? (
+              <div className="text-center py-12 px-4">
+                <p className="text-sm font-semibold text-gray-800 mb-1">Ainda não tens reservas</p>
+                <p className="text-xs text-gray-500">Vai ao Explorar para encontrar uma boleia.</p>
+              </div>
+            ) : (
+              !isLoading && (
+                <section className="pb-6">
+                  <h2 className="text-sm font-bold text-gray-900 mb-3">As minhas reservas</h2>
+                  <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                    {myBookings
+                      .filter((b) => b.status !== "CANCELLED" && b.status !== "DECLINED")
+                      .map((booking) => {
+                        const pendingForBooking = pendingRatings.find((r) => r.bookingId === booking.id);
+                        return (
+                          <EntityCard
+                            key={booking.id}
+                            title={booking.ride ? `${booking.ride.origin} → ${booking.ride.destination}` : "Boleia"}
+                            subtitle={booking.ride ? formatDateTime(booking.ride.departureTime) : ""}
+                            meta={`${booking.seats} lugar${booking.seats > 1 ? "es" : ""}${booking.ride?.price ? ` · €${(booking.ride.price * booking.seats).toFixed(0)}` : ""}`}
+                            badges={[{ label: STATUS_LABEL[booking.status] ?? booking.status, tone: STATUS_TONE[booking.status] }]}
+                            avatar={{
+                              src: booking.ride?.driver?.profile?.avatarUrl ?? undefined,
+                              initials: (booking.ride?.driver?.profile?.name ?? booking.ride?.driver?.email ?? "?").slice(0, 2).toUpperCase(),
+                            }}
+                            primaryLabel="Detalhes"
+                            onPrimary={() => {
+                              setSelectedBooking(booking);
+                              setSelectedRide(null);
+                              setSheetView("booking");
+                              setOpenSheet(true);
+                            }}
+                            secondaryLabel={pendingForBooking ? "Avaliar condutor" : undefined}
+                            onSecondary={pendingForBooking ? () => { setRatingTarget(pendingForBooking); setOpenRating(true); } : undefined}
+                          />
+                        );
+                      })}
+                  </div>
+                </section>
+              )
+            )}
+
+            </>
             )}
 
           </div>

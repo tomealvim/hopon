@@ -91,6 +91,9 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   const [userCommunities, setUserCommunities] = useState<CommunityChip[]>([]);
   const [communitiesLoaded, setCommunitiesLoaded] = useState(false);
 
+  // Colapsável "As minhas configurações"
+  const [showMyConfig, setShowMyConfig] = useState(false);
+
   // Carregar rotas habituais + boleias sugeridas + pedidos proativamente ao montar
   useEffect(() => {
     if (!routesLoaded) {
@@ -379,74 +382,83 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
             {/* Para Ti */}
             {tab === "for-you" && (
               <>
-                {/* Rotas habituais guardadas */}
-                {userRoutes.length > 0 && (
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-sm font-bold text-gray-800">As tuas rotas</h2>
-                      <button type="button" className="text-xs text-gray-900 font-semibold" onClick={() => setOpenSaveRoute(true)}>
-                        + Adicionar
-                      </button>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {userRoutes.map((r) => (
-                        <div key={r.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{r.origin} → {r.destination}</p>
-                            <p className="text-xs text-gray-500">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
-                          </div>
-                          <button
-                            type="button"
-                            className="text-xs text-red-500 font-semibold ml-4 shrink-0"
-                            onClick={async () => {
-                              try { await apiRequest(`/user-routes/${r.id}`, { method: "DELETE" }); handleRouteDeleted(r.id); } catch { /* ignore */ }
-                            }}
-                          >
-                            Apagar
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Pedidos de boleia do passageiro */}
+                {/* Secção colapsável: rotas + pedidos */}
                 <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-sm font-bold text-gray-800">Os teus pedidos</h2>
-                    <button type="button" className="text-xs text-gray-900 font-semibold" onClick={() => setOpenRideRequest(true)}>
-                      + Publicar pedido
-                    </button>
-                  </div>
-                  {rideRequests.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-gray-200 px-4 py-4 text-center">
-                      <p className="text-sm text-gray-500 mb-2">Nenhum pedido ativo</p>
-                      <button
-                        type="button"
-                        className="text-xs font-semibold text-gray-900 underline underline-offset-2"
-                        onClick={() => setOpenRideRequest(true)}
-                      >
-                        Publicar pedido de boleia
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-2">
-                      {rideRequests.map((r) => (
-                        <div key={r.id} className="flex items-start justify-between bg-gray-50 rounded-xl px-4 py-3">
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{r.origin} - {r.destination}</p>
-                            <p className="text-xs text-gray-500">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
-                            {r.note && <p className="text-xs text-gray-400 mt-0.5 italic truncate">{r.note}</p>}
-                          </div>
-                          <button
-                            type="button"
-                            className="text-xs text-red-500 font-semibold ml-4 shrink-0 mt-0.5"
-                            onClick={() => handleDeleteRequest(r.id)}
-                          >
-                            Fechar
-                          </button>
+                  <button
+                    type="button"
+                    className="flex items-center justify-between w-full py-2"
+                    onClick={() => setShowMyConfig(v => !v)}
+                  >
+                    <span className="text-sm font-semibold text-gray-800">As minhas configurações</span>
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      {userRoutes.length > 0 || rideRequests.length > 0
+                        ? `${userRoutes.length} rota${userRoutes.length !== 1 ? "s" : ""} · ${rideRequests.length} pedido${rideRequests.length !== 1 ? "s" : ""}`
+                        : "Configurar"}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                        className={`transition-transform ${showMyConfig ? "rotate-180" : ""}`}>
+                        <path d="M6 9l6 6 6-6"/>
+                      </svg>
+                    </span>
+                  </button>
+
+                  {showMyConfig && (
+                    <div className="flex flex-col gap-4 mt-2">
+                      {/* Rotas habituais */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Rotas habituais</h3>
+                          <button type="button" className="text-xs text-gray-900 font-semibold" onClick={() => setOpenSaveRoute(true)}>+ Adicionar</button>
                         </div>
-                      ))}
+                        {userRoutes.length === 0 ? (
+                          <div className="rounded-xl border border-dashed border-gray-200 px-4 py-3 text-center">
+                            <p className="text-xs text-gray-500">Nenhuma rota guardada</p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-2">
+                            {userRoutes.map((r) => (
+                              <div key={r.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">{r.origin} - {r.destination}</p>
+                                  <p className="text-xs text-gray-500">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
+                                </div>
+                                <button type="button" className="text-xs text-red-500 font-semibold ml-4 shrink-0"
+                                  onClick={async () => { try { await apiRequest(`/user-routes/${r.id}`, { method: "DELETE" }); handleRouteDeleted(r.id); } catch { /* ignore */ } }}>
+                                  Apagar
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Pedidos de boleia */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Pedidos ativos</h3>
+                          <button type="button" className="text-xs text-gray-900 font-semibold" onClick={() => setOpenRideRequest(true)}>+ Publicar</button>
+                        </div>
+                        {rideRequests.length === 0 ? (
+                          <div className="rounded-xl border border-dashed border-gray-200 px-4 py-3 text-center">
+                            <p className="text-xs text-gray-500">Nenhum pedido ativo</p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-2">
+                            {rideRequests.map((r) => (
+                              <div key={r.id} className="flex items-start justify-between bg-gray-50 rounded-xl px-4 py-3">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">{r.origin} - {r.destination}</p>
+                                  <p className="text-xs text-gray-500">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
+                                  {r.note && <p className="text-xs text-gray-400 mt-0.5 italic truncate">{r.note}</p>}
+                                </div>
+                                <button type="button" className="text-xs text-red-500 font-semibold ml-4 shrink-0 mt-0.5"
+                                  onClick={() => handleDeleteRequest(r.id)}>
+                                  Fechar
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

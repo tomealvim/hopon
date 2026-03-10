@@ -40,7 +40,7 @@ export default function DiscoverTopBar({ active, onChange, onFilter, filterCount
               )}
               onClick={() => onChange(tab)}
             >
-              {tab === "explore" ? "Ofertas" : "Para ti"}
+              {tab === "explore" ? "Explorar" : "Para ti"}
               {active === tab && (
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
               )}

@@ -78,6 +78,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
   const [openDriverLicenseSheet, setOpenDriverLicenseSheet] = useState(false);
   const [openCommunities, setOpenCommunities] = useState(false);
   const [openAdminPanel, setOpenAdminPanel] = useState(false);
+  const [profileSection, setProfileSection] = useState<"overview" | "driver" | "account">("overview");
   const [copiedReferral, setCopiedReferral] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPasswordValue, setNewPasswordValue] = useState("");
@@ -445,10 +446,33 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             </div>
           </div>
         </div>
-        
+
       </section>
 
+      {/* ========== NAVEGAÇÃO RÁPIDA ========== */}
+      <div className="flex gap-1 overflow-x-auto scrollbar-none px-4 mb-4 pb-1">
+        {([
+          { key: "overview", label: "Geral" },
+          { key: "driver", label: "Condutor" },
+          { key: "account", label: "Conta" },
+        ] as const).map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setProfileSection(key)}
+            className={`shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition-colors ${
+              profileSection === key
+                ? "bg-gray-900 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* ========== BLOCO 1: O MEU HORÁRIO ========== */}
+      {profileSection === "driver" && (
       <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
         <div className="flex items-start justify-between mb-3">
           <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
@@ -502,8 +526,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           </>
         )}
       </section>
+      )}
 
       {/* ========== VERIFICAÇÃO ========== */}
+      {profileSection === "overview" && (
       {(() => {
         const dlStatus = user?.verification?.driverLicense ?? "NONE";
         const idStatus = user?.verification?.identity ?? "NONE";
@@ -674,8 +700,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           </button>
         </div>
       </section>
+      )}
 
       {/* ========== BLOCO 2: CARRO EM USO ========== */}
+      {profileSection === "driver" && (
       <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
         <div className="flex items-start justify-between mb-3">
           <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
@@ -741,8 +769,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           </>
         )}
       </section>
+      )}
 
       {/* ========== CONVIDAR AMIGOS (destacado) ========== */}
+      {profileSection === "overview" && (
       <section 
         className="bg-gray-100 border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 cursor-pointer hover:bg-gray-200/80 hover:border-gray-300 transition-all duration-200 active:scale-[0.99] animate-fade-in-up"
         onClick={() => setOpenReferral(true)}
@@ -766,7 +796,18 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         </div>
       </section>
 
+      {/* ========== AJUDA (Geral) ========== */}
+      <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Ajuda Geral">
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide">Histórico & Avaliações</h3>
+        </div>
+        <ListRow label="Histórico de boleias" onClick={() => setOpenHistory(true)} />
+        <ListRow label="Avaliações" onClick={() => setOpenRatings(true)} />
+      </nav>
+      )}
+
       {/* ========== DEFINIÇÕES & AJUDA (lista simples) ========== */}
+      {profileSection === "account" && (
       <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Conta e pagamentos">
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
           <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide">Conta & Pagamentos</h3>
@@ -795,9 +836,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
           <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide">Ajuda</h3>
         </div>
-        <ListRow label="Histórico de boleias" onClick={() => setOpenHistory(true)} />
         <ListRow label="Contacta-nos" onClick={() => setOpenSupport(true)} />
-        <ListRow label="Avaliações" onClick={() => setOpenRatings(true)} />
         <ListRow
           label="Termos e Condições"
           onClick={() => setOpenTerms(true)}
@@ -821,6 +860,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         <ListRow label="Terminar sessão" tone="danger" onClick={() => setOpenLogoutConfirm(true)} />
         <ListRow label="Apagar conta" tone="danger" onClick={() => setOpenDeleteConfirm(true)} />
       </div>
+      )}
 
       {/* Sheet: editar perfil */}
       <Sheet
