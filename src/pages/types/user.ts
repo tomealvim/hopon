@@ -22,7 +22,10 @@ export interface UserProfile {
   username?: string;
   contactEmail?: string;
   avatarUrl?: string;
-  address: string; // morada/zona de partida ou "Casa"
+  address?: string; // legacy — usar homeAddress
+  homeAddress?: string;
+  homeLat?: number;
+  homeLng?: number;
   schedule: UserSchedule;
   createdAt: string;
   setupCompleted?: boolean;
