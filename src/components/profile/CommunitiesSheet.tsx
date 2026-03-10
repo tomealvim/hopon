@@ -25,9 +25,10 @@ type Member = {
 type Props = {
   open: boolean;
   onClose: () => void;
+  initialInviteCode?: string;
 };
 
-export default function CommunitiesSheet({ open, onClose }: Props) {
+export default function CommunitiesSheet({ open, onClose, initialInviteCode }: Props) {
   const [view, setView] = useState<"list" | "create" | "join" | "manage">("list");
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(false);
@@ -49,7 +50,19 @@ export default function CommunitiesSheet({ open, onClose }: Props) {
   const [joinDone, setJoinDone] = useState(false);
 
   useEffect(() => {
-    if (open) loadCommunities();
+    if (open) {
+      loadCommunities();
+      if (initialInviteCode) {
+        setInviteCode(initialInviteCode.toUpperCase());
+        setView("join");
+        setJoinDone(false);
+        // auto-preview
+        apiRequest<any>(`/communities/preview/${initialInviteCode.toUpperCase()}`)
+          .then((data) => setJoinPreview(data))
+          .catch(() => setJoinError("Código inválido ou comunidade não encontrada"));
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   async function loadCommunities() {
@@ -264,17 +277,31 @@ export default function CommunitiesSheet({ open, onClose }: Props) {
         <div className="flex flex-col gap-4 pb-6">
           <button type="button" className="text-xs text-gray-500 self-start" onClick={() => setView("list")}>← Voltar</button>
 
-          {/* Invite code */}
+          {/* Invite link */}
           <div className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
-            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Código de convite</p>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-lg font-bold text-gray-900 tracking-widest">{selectedCommunity.inviteCode}</span>
-              <button type="button" className="text-xs text-gray-500 hover:text-gray-900"
-                onClick={() => navigator.clipboard.writeText(selectedCommunity.inviteCode)}>
-                Copiar
+            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Link de convite</p>
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 mb-2">
+              <span className="text-xs text-gray-500 truncate flex-1 font-mono">
+                {window.location.origin}/join/{selectedCommunity.inviteCode}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <button type="button"
+                className="flex-1 text-xs font-semibold bg-gray-900 text-white px-3 py-2 rounded-lg"
+                onClick={() => {
+                  const link = `${window.location.origin}/join/${selectedCommunity.inviteCode}`;
+                  if (navigator.share) {
+                    navigator.share({ title: selectedCommunity.name, text: `Junta-te à comunidade ${selectedCommunity.name} no HopOn`, url: link });
+                  } else {
+                    navigator.clipboard.writeText(link);
+                  }
+                }}>
+                {navigator.share ? "Partilhar" : "Copiar link"}
               </button>
-              <button type="button" className="text-xs text-gray-400 hover:text-gray-700 ml-auto" onClick={handleRegenCode}>
-                Regenerar
+              <button type="button"
+                className="text-xs text-gray-400 hover:text-gray-700 px-3 py-2 border border-gray-200 rounded-lg"
+                onClick={handleRegenCode}>
+                Novo código
               </button>
             </div>
           </div>
@@ -307,7 +334,7 @@ export default function CommunitiesSheet({ open, onClose }: Props) {
                       )}
                       {m.status === "APPROVED" && m.role !== "OWNER" && (
                         <button type="button" onClick={() => handleRemove(m.userId)}
-                          className="text-xs text-red-500 font-semibold">Remover</button>
+                          className="text-xs text-red-500 font-semibold">Expulsar</button>
                       )}
                     </div>
                   );

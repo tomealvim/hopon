@@ -142,33 +142,56 @@ export class CommunitiesService {
   }
 
   async approveMember(ownerId: string, communityId: string, userId: string) {
-    await this.assertOwner(ownerId, communityId);
+    const community = await this.assertOwner(ownerId, communityId);
     const member = await this.prisma.communityMember.findUnique({
       where: { communityId_userId: { communityId, userId } },
     });
     if (!member) throw new NotFoundException('Membro não encontrado');
-    return this.prisma.communityMember.update({
+    const updated = await this.prisma.communityMember.update({
       where: { id: member.id },
       data: { status: 'APPROVED', joinedAt: new Date() },
     });
+    void this.notificationsService.createNotification(
+      userId,
+      'community.approved',
+      `Entraste em ${community.name}!`,
+      `O teu pedido foi aceite. Já podes ver boleias de colegas no Discover.`,
+      { communityId },
+    );
+    return updated;
   }
 
   async rejectMember(ownerId: string, communityId: string, userId: string) {
-    await this.assertOwner(ownerId, communityId);
+    const community = await this.assertOwner(ownerId, communityId);
     const member = await this.prisma.communityMember.findUnique({
       where: { communityId_userId: { communityId, userId } },
     });
     if (!member) throw new NotFoundException('Membro não encontrado');
-    return this.prisma.communityMember.update({
+    const updated = await this.prisma.communityMember.update({
       where: { id: member.id },
       data: { status: 'REJECTED' },
     });
+    void this.notificationsService.createNotification(
+      userId,
+      'community.rejected',
+      `Pedido recusado`,
+      `O teu pedido para entrar em ${community.name} foi recusado.`,
+      { communityId },
+    );
+    return updated;
   }
 
   async removeMember(ownerId: string, communityId: string, userId: string) {
-    await this.assertOwner(ownerId, communityId);
+    const community = await this.assertOwner(ownerId, communityId);
     if (ownerId === userId) throw new ForbiddenException('O owner não pode sair da comunidade');
     await this.prisma.communityMember.deleteMany({ where: { communityId, userId } });
+    void this.notificationsService.createNotification(
+      userId,
+      'community.removed',
+      `Removido de ${community.name}`,
+      `Foste removido da comunidade pelo owner.`,
+      { communityId },
+    );
     return { ok: true };
   }
 
@@ -212,5 +235,6 @@ export class CommunitiesService {
     const community = await this.prisma.community.findUnique({ where: { id: communityId } });
     if (!community) throw new NotFoundException('Comunidade não encontrada');
     if (community.ownerId !== userId) throw new ForbiddenException('Só o owner pode fazer esta ação');
+    return community;
   }
 }

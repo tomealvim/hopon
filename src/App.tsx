@@ -27,6 +27,7 @@ import OfferRideForm, { type OfferRideFormValues } from "./components/ui/OfferRi
 import AppName from "./components/ui/AppName";
 import NotificationsSheet from "./components/ui/NotificationsSheet";
 import PolicyAcceptanceSheet from "./components/ui/PolicyAcceptanceSheet";
+import CommunitiesSheet from "./components/profile/CommunitiesSheet";
 
 export type Tab = "discover" | "rides" | "inbox" | "profile";
 
@@ -63,6 +64,17 @@ function AppContent() {
   const [profileSheetsOpen, setProfileSheetsOpen] = useState(false);
   const [openDriverPolicy, setOpenDriverPolicy] = useState(false);
   const [pendingOfferValues, setPendingOfferValues] = useState<OfferRideFormValues | null>(null);
+
+  // Deep link: /join/:code
+  const [joinCode, setJoinCode] = useState<string | undefined>(() => {
+    const path = window.location.pathname;
+    const match = path.match(/^\/join\/([A-Z0-9]{6,10})$/i);
+    return match ? match[1].toUpperCase() : undefined;
+  });
+  const [openJoinSheet, setOpenJoinSheet] = useState(() => {
+    const path = window.location.pathname;
+    return /^\/join\/[A-Z0-9]{6,10}$/i.test(path);
+  });
 
   useEffect(() => {
     if (user && hasCompletedProfile && !localStorage.getItem('hopon_welcome_shown')) {
@@ -269,6 +281,18 @@ function AppContent() {
         onClose={() => setShowWelcome(false)}
         onGoToProfile={() => { setShowWelcome(false); setTab('profile'); }}
         onGoToRides={() => { setShowWelcome(false); setTab('rides'); }}
+      />
+
+      {/* Deep link /join/:code — abre sheet de comunidade diretamente */}
+      <CommunitiesSheet
+        open={openJoinSheet}
+        initialInviteCode={joinCode}
+        onClose={() => {
+          setOpenJoinSheet(false);
+          setJoinCode(undefined);
+          // limpar o URL sem recarregar
+          window.history.replaceState(null, "", "/");
+        }}
       />
     </div>
   );
