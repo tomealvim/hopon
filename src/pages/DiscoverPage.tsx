@@ -297,6 +297,11 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                         const timeStr = dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
                         const driverName = ride.driver?.profile?.name ?? ride.driver?.email ?? "Condutor";
                         const seatsLeft = ride.remainingSeats;
+                        const minsUntil = Math.round((dep.getTime() - Date.now()) / 60_000);
+                        const isImminente = minsUntil >= 0 && minsUntil <= 120;
+                        const imminentLabel = minsUntil < 60
+                          ? `Parte em ${minsUntil} min`
+                          : `Parte em ${Math.round(minsUntil / 60)}h`;
                         return (
                           <EntityCard
                             key={ride.id}
@@ -304,6 +309,9 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                             subtitle={`${dateStr}, ${timeStr}`}
                             meta={`Condutor: ${driverName}`}
                             badges={[
+                              ...(isImminente
+                                ? [{ label: imminentLabel, tone: "brand" as const }]
+                                : []),
                               {
                                 label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`,
                                 tone: seatsLeft >= 3 ? "success" : "warning",
