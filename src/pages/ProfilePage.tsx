@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import type { AriaAttributes } from "react";
+import { apiRequest } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage, type LanguageCode } from "../contexts/LanguageContext";
 import { useNotifications } from "../contexts/NotificationContext";
@@ -41,6 +42,57 @@ type PasswordFeedback = {
   message: string;
   tone: "success" | "error";
 };
+
+function ImpactWidget() {
+  const [impact, setImpact] = useState<{
+    co2SavedKg: number;
+    moneySavedEur: number;
+    totalPassengerRides: number;
+    totalPassengersCarried: number;
+  } | null>(null);
+
+  useEffect(() => {
+    apiRequest<typeof impact>("/users/me/impact")
+      .then((data) => setImpact(data))
+      .catch(() => {});
+  }, []);
+
+  if (!impact || (impact.co2SavedKg === 0 && impact.totalPassengerRides === 0 && impact.totalPassengersCarried === 0)) {
+    return null;
+  }
+
+  return (
+    <section className="bg-gray-50 border border-gray-200 rounded-2xl mx-4 mb-4 px-4 py-4 animate-fade-in-up">
+      <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide mb-3">O teu impacto</h3>
+      <div className="grid grid-cols-2 gap-3">
+        {impact.co2SavedKg > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
+            <p className="text-2xl font-bold text-gray-900">{impact.co2SavedKg} kg</p>
+            <p className="text-xs text-gray-500 mt-0.5">CO2 poupado</p>
+          </div>
+        )}
+        {impact.moneySavedEur > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
+            <p className="text-2xl font-bold text-gray-900">€{impact.moneySavedEur.toFixed(0)}</p>
+            <p className="text-xs text-gray-500 mt-0.5">poupado vs. carro</p>
+          </div>
+        )}
+        {impact.totalPassengerRides > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
+            <p className="text-2xl font-bold text-gray-900">{impact.totalPassengerRides}</p>
+            <p className="text-xs text-gray-500 mt-0.5">boleias como passageiro</p>
+          </div>
+        )}
+        {impact.totalPassengersCarried > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
+            <p className="text-2xl font-bold text-gray-900">{impact.totalPassengersCarried}</p>
+            <p className="text-xs text-gray-500 mt-0.5">passageiros transportados</p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSheetTriggerConsumed, onSheetStateChange }: ProfilePageProps) {
   const { user, updateProfile, upsertVehicle, removeVehicle, setActiveVehicle } = useAuth();
@@ -769,6 +821,11 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           </>
         )}
       </section>
+      )}
+
+      {/* ========== IMPACTO AMBIENTAL ========== */}
+      {profileSection === "overview" && (
+      <ImpactWidget />
       )}
 
       {/* ========== CONVIDAR AMIGOS (destacado) ========== */}

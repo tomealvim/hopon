@@ -120,6 +120,7 @@ export class SchedulerService {
               ...(originLocationId && { originLocationId }),
               ...(destinationLocationId && { destinationLocationId }),
               ...(templatePolyline && { routePolyline: templatePolyline }),
+              ...(template.meetingPoint && { meetingPoint: template.meetingPoint }),
             },
           });
 
@@ -135,6 +136,49 @@ export class SchedulerService {
               `A tua boleia ${template.origin} → ${template.destination} às ${template.time} foi publicada para hoje.`,
               { rideId: ride.id, templateId: template.id },
             );
+          }
+
+          // Criar reservas automáticas para passageiros com RecurringBooking ativo neste template
+          const recurringBookings = await this.prisma.recurringBooking.findMany({
+            where: { scheduleTemplateId: template.id, status: 'ACTIVE' },
+            include: { passenger: { include: { profile: true } } },
+          });
+
+          for (const rb of recurringBookings) {
+            // Verificar se o passageiro já tem reserva nesta ride
+            const existingBooking = await this.prisma.booking.findFirst({
+              where: { rideId: ride.id, userId: rb.passengerId },
+            });
+            if (existingBooking) continue;
+
+            // Verificar se há lugares disponíveis
+            const bookedSeats = await this.prisma.booking.aggregate({
+              where: { rideId: ride.id, status: { in: ['PENDING', 'CONFIRMED'] } },
+              _sum: { seats: true },
+            });
+            const usedSeats = bookedSeats._sum.seats ?? 0;
+            if (usedSeats + rb.seats > ride.availableSeats) continue;
+
+            try {
+              await this.prisma.booking.create({
+                data: {
+                  rideId: ride.id,
+                  userId: rb.passengerId,
+                  seats: rb.seats,
+                  status: 'CONFIRMED', // reserva recorrente confirma automaticamente
+                },
+              });
+
+              void this.notificationsService.createNotification(
+                rb.passengerId,
+                'booking.confirmed',
+                'Reserva automática criada',
+                `A tua reserva recorrente para ${ride.origin} → ${ride.destination} às ${template.time} foi criada automaticamente.`,
+                { rideId: ride.id },
+              );
+            } catch (err) {
+              this.logger.error(`[cron] Erro ao criar reserva recorrente para passageiro ${rb.passengerId}: ${err}`);
+            }
           }
         } catch (err) {
           this.logger.error(`[cron] Erro ao criar ride para template ${template.id} dia +${d}: ${err}`);

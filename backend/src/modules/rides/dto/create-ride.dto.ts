@@ -83,5 +83,10 @@ export class CreateRideDto {
   @IsOptional()
   @IsBoolean()
   instantBooking?: boolean;
+
+  @ApiPropertyOptional({ example: 'Junto ao Pingo Doce da Av. República' })
+  @IsOptional()
+  @IsString()
+  meetingPoint?: string;
 }
 

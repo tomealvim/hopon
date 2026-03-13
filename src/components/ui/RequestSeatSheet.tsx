@@ -17,6 +17,7 @@ type Props = {
   departureTime?: string | null;
   pickupLat?: number | null;
   pickupLng?: number | null;
+  meetingPoint?: string | null;
 };
 
 // ── Stripe checkout embed ─────────────────────────────────────────────────────
@@ -86,6 +87,7 @@ export default function RequestSeatSheet({
   departureTime: _departureTime,
   pickupLat,
   pickupLng,
+  meetingPoint,
 }: Props) {
   const [message, setMessage]               = useState("");
   const [walletBalance, setWalletBalance]   = useState<number | null>(null);
@@ -261,6 +263,16 @@ export default function RequestSeatSheet({
             <p className="text-sm text-gray-700">
               Vais pedir lugar em: <span className="font-semibold">{offerTitle}</span>
             </p>
+
+            {meetingPoint && (
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 flex items-start gap-2">
+                <span className="text-base mt-0.5">📍</span>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">Ponto de encontro</p>
+                  <p className="text-sm text-gray-900">{meetingPoint}</p>
+                </div>
+              </div>
+            )}
 
             {hasCost && (
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 grid gap-2">

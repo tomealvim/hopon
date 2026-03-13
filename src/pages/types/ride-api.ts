@@ -69,6 +69,8 @@ export interface ApiRide {
   arrivedAt?: string | null;
   onTheWayAt?: string | null;
   instantBooking?: boolean;
+  meetingPoint?: string | null;
+  scheduleTemplateId?: string | null;
   routePolyline?: { lat: number; lng: number }[] | null;
   /** Presente em respostas de /rides/for-you - pontuação de relevância */
   matchScore?: number;

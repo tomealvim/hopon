@@ -91,6 +91,9 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   const [userCommunities, setUserCommunities] = useState<CommunityChip[]>([]);
   const [communitiesLoaded, setCommunitiesLoaded] = useState(false);
 
+  // Reservas recorrentes ativas (scheduleTemplateIds subscritos)
+  const [myRecurringTemplateIds, setMyRecurringTemplateIds] = useState<Set<string>>(new Set());
+
   // Colapsável "As minhas configurações"
   const [showMyConfig, setShowMyConfig] = useState(false);
 
@@ -118,6 +121,17 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         .then((data) => { setUserCommunities(Array.isArray(data) ? data : []); setCommunitiesLoaded(true); })
         .catch(() => setCommunitiesLoaded(true));
     }
+    // Carregar reservas recorrentes ativas
+    apiRequest<{ id: string; scheduleTemplate: { id: string } | null; status: string }[]>("/recurring-bookings/mine")
+      .then((data) => {
+        const ids = new Set(
+          (Array.isArray(data) ? data : [])
+            .filter((rb) => rb.status === "ACTIVE" && rb.scheduleTemplate)
+            .map((rb) => rb.scheduleTemplate!.id)
+        );
+        setMyRecurringTemplateIds(ids);
+      })
+      .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -226,6 +240,32 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
     }
     setSelectedRideId(rideId);
     setOpenRequestSeat(true);
+  }
+
+  async function handleToggleRecurring(ride: ApiRide) {
+    if (!ride.scheduleTemplateId) return;
+    const isSubscribed = myRecurringTemplateIds.has(ride.scheduleTemplateId);
+    try {
+      if (isSubscribed) {
+        // encontrar o id da subscrição para cancelar
+        const data = await apiRequest<{ id: string; scheduleTemplate: { id: string } | null }[]>("/recurring-bookings/mine");
+        const rb = data.find((r) => r.scheduleTemplate?.id === ride.scheduleTemplateId);
+        if (rb) {
+          await apiRequest(`/recurring-bookings/${rb.id}`, { method: "DELETE" });
+          setMyRecurringTemplateIds((prev) => { const next = new Set(prev); next.delete(ride.scheduleTemplateId!); return next; });
+          showSuccess("Subscrição cancelada", `Não farás mais reservas automáticas para ${ride.origin} → ${ride.destination}.`);
+        }
+      } else {
+        await apiRequest("/recurring-bookings", {
+          method: "POST",
+          body: JSON.stringify({ scheduleTemplateId: ride.scheduleTemplateId, seats: 1 }),
+        });
+        setMyRecurringTemplateIds((prev) => new Set([...prev, ride.scheduleTemplateId!]));
+        showSuccess("Reserva recorrente ativada!", `Serás reservado automaticamente sempre que ${ride.origin} → ${ride.destination} for publicada.`);
+      }
+    } catch (err: any) {
+      showError("Erro", err instanceof Error ? err.message : "Tenta novamente.");
+    }
   }
 
   async function handleConfirmBook(opts?: { message?: string; stripePaymentIntentId?: string }) {
@@ -512,6 +552,12 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                         secondaryLabel="Detalhes"
                         onPrimary={() => handleOpenBooking(ride.id)}
                         onSecondary={() => openRideDetail(ride.id)}
+                        {...(ride.scheduleTemplateId && {
+                          tertiaryLabel: myRecurringTemplateIds.has(ride.scheduleTemplateId)
+                            ? "Cancelar reserva recorrente"
+                            : "Reservar sempre (subscrever)",
+                          onTertiary: () => handleToggleRecurring(ride),
+                        })}
                       />
                     );
                   }
@@ -593,6 +639,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
             price={ride?.price}
             platformFee={(ride as any)?.platformFee}
             seats={1}
+            meetingPoint={ride?.meetingPoint}
           />
         );
       })()}

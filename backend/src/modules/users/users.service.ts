@@ -9,6 +9,58 @@ export class UsersService {
     return this.prisma.user.findMany();
   }
 
+  async getMyImpact(userId: string) {
+    // Boleias completadas como passageiro
+    const passengerBookings = await this.prisma.booking.findMany({
+      where: {
+        userId,
+        status: 'COMPLETED',
+      },
+      include: {
+        ride: { select: { routeDistanceKm: true, price: true } },
+      },
+    });
+
+    // Boleias completadas como condutor
+    const driverRides = await this.prisma.ride.findMany({
+      where: { driverId: userId, status: 'COMPLETED' },
+      select: {
+        routeDistanceKm: true,
+        bookings: { where: { status: 'COMPLETED' }, select: { seats: true } },
+      },
+    });
+
+    // CO2 poupado como passageiro: por cada km que ia de carro próprio, poupa ~120g/km
+    // Carro médio emite ~0.12 kg CO2/km. Como passageiro, o carro já ia de qualquer forma.
+    const passengerKm = passengerBookings
+      .filter((b) => b.ride.routeDistanceKm != null)
+      .reduce((sum, b) => sum + Number(b.ride.routeDistanceKm!) * b.seats, 0);
+
+    const co2SavedKg = Math.round(passengerKm * 0.12);
+
+    // Poupança em € como passageiro: custo de carro próprio (€0.25/km) - custo pago na boleia
+    const moneySavedEur = passengerBookings.reduce((sum, b) => {
+      const drivingCost = (b.ride.routeDistanceKm ?? 0) * 0.25 * b.seats;
+      const paidCost = Number(b.ride.price ?? 0) * b.seats;
+      return sum + Math.max(0, drivingCost - paidCost);
+    }, 0);
+
+    // Viagens como passageiro
+    const totalPassengerRides = passengerBookings.length;
+
+    // Passageiros transportados como condutor
+    const totalPassengersCarried = driverRides.reduce((sum, r) => {
+      return sum + r.bookings.reduce((s, b) => s + b.seats, 0);
+    }, 0);
+
+    return {
+      co2SavedKg,
+      moneySavedEur: Math.round(moneySavedEur * 100) / 100,
+      totalPassengerRides,
+      totalPassengersCarried,
+    };
+  }
+
   async findPublicProfile(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },

@@ -99,6 +99,7 @@ export class RidesService {
         ...(dto.platformFee != null && { platformFee: dto.platformFee }),
         ...(routePolyline && { routePolyline }),
         instantBooking: dto.instantBooking ?? false,
+        ...(dto.meetingPoint && { meetingPoint: dto.meetingPoint }),
       },
       include: {
         vehicle: {
@@ -1003,6 +1004,8 @@ export class RidesService {
       platformFee: ride.platformFee ?? null,
       routePolyline: ride.routePolyline ?? null,
       instantBooking: ride.instantBooking ?? false,
+      meetingPoint: ride.meetingPoint ?? null,
+      scheduleTemplateId: ride.scheduleTemplateId ?? null,
       status: ride.status,
       arrivedAt: ride.arrivedAt ?? null,
       onTheWayAt: ride.onTheWayAt ?? null,

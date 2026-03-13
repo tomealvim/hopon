@@ -68,7 +68,8 @@ model User {
   openedDisputes Dispute[] @relation("OpenedDisputes")
   payoutRequests PayoutRequest[]
   userRoutes     UserRoute[]
-  rideRequests   RideRequest[]
+  rideRequests       RideRequest[]
+  recurringBookings  RecurringBooking[]
 
   googleId String? @unique
 
@@ -180,6 +181,7 @@ model Ride {
   platformFee      Float?
   routePolyline    Json?    // array de {lat,lng} — calculado via Google Directions na criação
   instantBooking   Boolean  @default(false) // reserva auto-confirmada se passageiro estiver na rota
+  meetingPoint     String?  // ponto de encontro definido pelo condutor
 
   status         String    @default("SCHEDULED")
 
@@ -221,8 +223,9 @@ model ScheduleTemplate {
   preferences    Json?     // { musica, falar, bagagem, animais }
   
   active         Boolean   @default(true)
-  
-  rides          Ride[]    // Boleias criadas a partir deste template
+
+  rides              Ride[]    // Boleias criadas a partir deste template
+  recurringBookings  RecurringBooking[]
   
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -501,6 +504,23 @@ model PayoutRequest {
   @@map("payout_requests")
   @@index([userId])
   @@index([status])
+}
+
+model RecurringBooking {
+  id                 String           @id @default(uuid())
+  passengerId        String
+  passenger          User             @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+  scheduleTemplateId String
+  scheduleTemplate   ScheduleTemplate @relation(fields: [scheduleTemplateId], references: [id], onDelete: Cascade)
+  seats              Int              @default(1)
+  status             String           @default("ACTIVE")  // ACTIVE | PAUSED | CANCELLED
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([passengerId, scheduleTemplateId])
+  @@map("recurring_bookings")
+  @@index([passengerId])
+  @@index([scheduleTemplateId, status])
 }
 
 model Community {

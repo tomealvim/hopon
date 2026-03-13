@@ -115,6 +115,7 @@ function AppContent() {
         routeTollCost: vals.routeTollCost,
         platformFee: vals.platformFee,
         instantBooking: vals.instantBooking,
+        ...(vals.pontoEncontro && { meetingPoint: vals.pontoEncontro }),
       }),
     });
     showSuccess("Boleia criada!", `${vals.origem} → ${vals.destino}`);

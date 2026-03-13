@@ -983,30 +983,30 @@ O nº do Cartão de Cidadão deve aparecer na foto da carta de condução para c
 | 15.1.3 | Botão "Estou a caminho" no card do driver (visível só quando boleia parte em ≤2h e status SCHEDULED) | ✅ Concluído |
 | 15.1.4 | Guardar `onTheWayAt` no modelo Ride para evitar spam (só permite 1x por boleia) | ✅ Concluído |
 
-### 15.2 — Reservas recorrentes pelo passageiro
+### 15.2 — Reservas recorrentes pelo passageiro ✅ CONCLUÍDA
 
 | # | Item | Estado |
 |---|---|---|
-| 15.2.1 | Passageiro pode "subscrever" um ScheduleTemplate de condutor — reserva automática cada vez que é criada uma boleia desse template | ⬜ Por fazer |
-| 15.2.2 | Modelo `RecurringBooking` — (passengerId, scheduleId, estado ACTIVE/PAUSED/CANCELLED) | ⬜ Por fazer |
-| 15.2.3 | Cron de geração de boleias (já existe) verifica RecurringBookings ativos e cria reserva automática | ⬜ Por fazer |
-| 15.2.4 | UI: botão "Reservar sempre" no card de boleia do Discover | ⬜ Por fazer |
+| 15.2.1 | Passageiro pode "subscrever" um ScheduleTemplate de condutor — reserva automática cada vez que é criada uma boleia desse template | ✅ Concluído |
+| 15.2.2 | Modelo `RecurringBooking` — (passengerId, scheduleId, estado ACTIVE/PAUSED/CANCELLED) | ✅ Concluído |
+| 15.2.3 | Cron de geração de boleias verifica RecurringBookings ativos e cria reserva automática | ✅ Concluído |
+| 15.2.4 | UI: botão "Reservar sempre" no card "Para Ti" no Discover (toggle ativa/cancela) | ✅ Concluído |
 
-### 15.3 — Ponto de encontro específico
-
-| # | Item | Estado |
-|---|---|---|
-| 15.3.1 | Campo `meetingPoint` (texto livre) no modelo `Ride` | ⬜ Por fazer |
-| 15.3.2 | Condutor define ponto de encontro ao publicar boleia (ex: "Junto ao Pingo Doce da Av. X") | ⬜ Por fazer |
-| 15.3.3 | Mostrar ponto de encontro na sheet de detalhe da reserva (passageiro) após CONFIRMED | ⬜ Por fazer |
-
-### 15.4 — Impacto ambiental e poupança
+### 15.3 — Ponto de encontro específico ✅ CONCLUÍDA
 
 | # | Item | Estado |
 |---|---|---|
-| 15.4.1 | Calcular CO₂ poupado por viagem: `distanceKm × 0.12 kg/km × (passengers / (passengers+1))` | ⬜ Por fazer |
-| 15.4.2 | Calcular poupança em €: custo de carro solo vs custo partilhado | ⬜ Por fazer |
-| 15.4.3 | Secção "Impacto" no ProfilePage: "X kg CO₂ poupados · €Y economizados este mês" | ⬜ Por fazer |
+| 15.3.1 | Campo `meetingPoint` (texto livre) no modelo `Ride` | ✅ Concluído |
+| 15.3.2 | Condutor define ponto de encontro ao publicar boleia | ✅ Concluído — campo já existia no form, agora é enviado e guardado |
+| 15.3.3 | Mostrar ponto de encontro na `RequestSeatSheet` antes de reservar | ✅ Concluído |
+
+### 15.4 — Impacto ambiental e poupança ✅ CONCLUÍDA
+
+| # | Item | Estado |
+|---|---|---|
+| 15.4.1 | Calcular CO₂ poupado: `distanceKm × 0.12 kg/km` por boleia como passageiro | ✅ Concluído |
+| 15.4.2 | Calcular poupança em €: custo carro próprio (€0.25/km) - custo pago na boleia | ✅ Concluído |
+| 15.4.3 | `ImpactWidget` no ProfilePage — CO₂ poupado, € poupados, viagens como passageiro, passageiros transportados | ✅ Concluído |
 
 ---
 
@@ -1040,16 +1040,16 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 | 15.3.2 | Ao 3.º cancelamento: suspensão automática (`suspendedAt`) — impedido de criar boleias | ✅ Concluído |
 | 15.3.3 | Ao 5.º: notificação in-app + email (low priority) | ⬜ Por fazer |
 
-### 15b.4 — Reserva instantânea (auto-accept)
+### 15b.4 — Reserva instantânea (auto-accept) ✅ CONCLUÍDA
 
 > O fluxo atual de "condutor aceita manualmente" é bom para desconhecidos ocasionais mas péssimo para commute diário — adiciona fricção e latência.
 
 | # | Item | Estado |
 |---|---|---|
-| 15.4.1 | Campo `instantBooking boolean` no modelo `Ride` | ⬜ Por fazer |
-| 15.4.2 | Toggle na UI do condutor ao publicar boleia: "Reserva instantânea" (on por defeito) | ⬜ Por fazer |
-| 15.4.3 | Se `instantBooking=true`: booking passa diretamente a CONFIRMED sem espera | ⬜ Por fazer |
-| 15.4.4 | Card de boleia no Discover mostra raio "Instantânea" quando ativo | ⬜ Por fazer |
+| 15.4.1 | Campo `instantBooking boolean` no modelo `Ride` | ✅ Concluído |
+| 15.4.2 | Toggle na UI do condutor ao publicar boleia: "Reserva instantânea" (on por defeito) | ✅ Concluído |
+| 15.4.3 | Se `instantBooking=true` e passageiro na rota (≤500m): booking auto-CONFIRMED | ✅ Concluído |
+| 15.4.4 | Badge "Instantânea" no card de boleia no Discover | ✅ Concluído |
 
 ---
 

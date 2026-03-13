@@ -11,15 +11,18 @@ type Props = {
   badges?: Array<{ label: string; tone?: "neutral" | "brand" | "success" | "warning" | "danger"; }>;
   onPrimary?: () => void;
   onSecondary?: () => void;
+  onTertiary?: () => void;
   primaryLabel?: string;
   secondaryLabel?: string;
+  tertiaryLabel?: string;
 };
 
 export default function EntityCard({
   title, subtitle, meta, avatar, badges,
-  onPrimary, onSecondary,
+  onPrimary, onSecondary, onTertiary,
   primaryLabel = "Pedir",
   secondaryLabel = "Detalhes",
+  tertiaryLabel,
 }: Props) {
   return (
     <Card interactive>
@@ -55,6 +58,14 @@ export default function EntityCard({
             </Button>
           )}
         </div>
+        {onTertiary && tertiaryLabel && (
+          <button
+            onClick={onTertiary}
+            className="mt-2 w-full text-xs text-gray-500 underline underline-offset-2 hover:text-gray-900 transition-colors"
+          >
+            {tertiaryLabel}
+          </button>
+        )}
       </CardFooter>
     </Card>
   );
