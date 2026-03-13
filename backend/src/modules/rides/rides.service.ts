@@ -463,6 +463,35 @@ export class RidesService {
     return na.includes(nb) || nb.includes(na);
   }
 
+  async findAvailableNow() {
+    const now = new Date();
+    const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+
+    const rides = await this.prisma.ride.findMany({
+      where: {
+        status: 'SCHEDULED',
+        departureTime: { gte: now, lte: twoHoursLater },
+      },
+      include: {
+        vehicle: true,
+        driver: { include: { profile: true } },
+        bookings: true,
+        originLocation: true,
+        destinationLocation: true,
+      },
+      orderBy: { departureTime: 'asc' },
+    });
+
+    return rides
+      .filter((r) => {
+        const booked = r.bookings
+          .filter((b) => b.status === 'CONFIRMED' || b.status === 'PENDING')
+          .reduce((sum, b) => sum + b.seats, 0);
+        return booked < r.availableSeats;
+      })
+      .map((r) => this.toResponse(r));
+  }
+
   async search(dto: SearchRidesDto) {
     const cacheKey = `rides:search:${JSON.stringify(
       Object.fromEntries(Object.entries(dto).sort(([a], [b]) => a.localeCompare(b))),

@@ -42,6 +42,12 @@ export class RidesController {
     return this.ridesService.findForUser(req.user.id);
   }
 
+  @Get('available-now')
+  @ApiOperation({ summary: 'Boleias que partem nas próximas 2h com lugares disponíveis' })
+  findAvailableNow() {
+    return this.ridesService.findAvailableNow();
+  }
+
   @Get('history')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

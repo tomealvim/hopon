@@ -70,6 +70,8 @@ model User {
   userRoutes     UserRoute[]
   rideRequests       RideRequest[]
   recurringBookings  RecurringBooking[]
+  driverArrangements    RecurringArrangement[] @relation("DriverArrangements")
+  passengerArrangements RecurringArrangement[] @relation("PassengerArrangements")
 
   googleId String? @unique
 
@@ -226,7 +228,8 @@ model ScheduleTemplate {
 
   rides              Ride[]    // Boleias criadas a partir deste template
   recurringBookings  RecurringBooking[]
-  
+  arrangements       RecurringArrangement[]
+
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -558,4 +561,24 @@ model CommunityMember {
   @@map("community_members")
   @@index([userId])
   @@index([communityId, status])
+}
+
+model RecurringArrangement {
+  id                 String            @id @default(uuid())
+  driverId           String
+  driver             User              @relation("DriverArrangements", fields: [driverId], references: [id], onDelete: Cascade)
+  passengerId        String
+  passenger          User              @relation("PassengerArrangements", fields: [passengerId], references: [id], onDelete: Cascade)
+  scheduleTemplateId String
+  scheduleTemplate   ScheduleTemplate  @relation(fields: [scheduleTemplateId], references: [id], onDelete: Cascade)
+  status             String            @default("PENDING")  // PENDING | ACTIVE | DECLINED | ENDED
+  proposedById       String            // quem propôs (driverId ou passengerId)
+  note               String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@unique([driverId, passengerId, scheduleTemplateId])
+  @@map("recurring_arrangements")
+  @@index([driverId])
+  @@index([passengerId])
 }

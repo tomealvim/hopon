@@ -12,8 +12,9 @@ interface HistoryRide {
   price: number | null;
   role: "driver" | "passenger";
   myBookingId: string | null;
+  scheduleTemplateId?: string | null;
   vehicle: { brand: string; model: string } | null;
-  bookings: { id: string; status: string; seats: number }[];
+  bookings: { id: string; userId: string; status: string; seats: number; user?: { id: string; profile?: { name: string; avatarUrl?: string } | null } | null }[];
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -46,6 +47,11 @@ export default function HistorySheet({ open, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [disputeRide, setDisputeRide] = useState<HistoryRide | null>(null);
   const [disputeBookingId, setDisputeBookingId] = useState<string>("");
+  // Proposta de arranjo recorrente
+  const [proposeRide, setProposeRide] = useState<HistoryRide | null>(null);
+  const [selectedPassengerId, setSelectedPassengerId] = useState<string>("");
+  const [proposeNote, setProposeNote] = useState("");
+  const [proposing, setProposing] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -60,6 +66,22 @@ export default function HistorySheet({ open, onClose }: Props) {
     if (!ride.myBookingId) return;
     setDisputeRide(ride);
     setDisputeBookingId(ride.myBookingId);
+  }
+
+  async function submitProposal() {
+    if (!proposeRide || !selectedPassengerId) return;
+    setProposing(true);
+    try {
+      await apiRequest("/recurring-arrangements", {
+        method: "POST",
+        body: JSON.stringify({ rideId: proposeRide.id, passengerId: selectedPassengerId, note: proposeNote || undefined }),
+      });
+      setProposeRide(null);
+      setSelectedPassengerId("");
+      setProposeNote("");
+    } catch { /* ignore */ } finally {
+      setProposing(false);
+    }
   }
 
   return (
@@ -90,6 +112,7 @@ export default function HistorySheet({ open, onClose }: Props) {
               });
               const timeStr = dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
               const disputeable = canDispute(ride) && ride.role === "passenger" && !!ride.myBookingId;
+              const canPropose = ride.role === "driver" && ride.status === "COMPLETED" && !!ride.scheduleTemplateId && ride.bookings.some((b) => b.status === "COMPLETED");
 
               return (
                 <div key={ride.id} className="px-4 py-3">
@@ -128,6 +151,15 @@ export default function HistorySheet({ open, onClose }: Props) {
                           Contestar
                         </button>
                       )}
+                      {canPropose && (
+                        <button
+                          type="button"
+                          onClick={() => { setProposeRide(ride); setSelectedPassengerId(ride.bookings.find((b) => b.status === "COMPLETED")?.userId ?? ""); }}
+                          className="mt-1 text-[10px] font-semibold text-gray-900 hover:underline"
+                        >
+                          Propor arranjo recorrente
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -144,6 +176,58 @@ export default function HistorySheet({ open, onClose }: Props) {
           bookingId={disputeBookingId}
           rideLabel={`${disputeRide.origin} → ${disputeRide.destination}`}
         />
+      )}
+
+      {proposeRide && (
+        <Sheet
+          open={!!proposeRide}
+          onClose={() => { setProposeRide(null); setSelectedPassengerId(""); setProposeNote(""); }}
+          title="Propor arranjo recorrente"
+          height="md"
+          footer={
+            <button
+              type="button"
+              disabled={!selectedPassengerId || proposing}
+              onClick={submitProposal}
+              className="w-full rounded-2xl bg-gray-900 text-white font-semibold py-3 text-sm disabled:opacity-50"
+            >
+              {proposing ? "A enviar…" : "Enviar proposta"}
+            </button>
+          }
+        >
+          <div className="flex flex-col gap-4 px-4 pt-2">
+            <p className="text-sm text-gray-600">
+              Propõe repetir regularmente a boleia <strong>{proposeRide.origin} - {proposeRide.destination}</strong> com um passageiro. O passageiro receberá uma notificação para aceitar.
+            </p>
+            {proposeRide.bookings.filter((b) => b.status === "COMPLETED").length > 1 && (
+              <div>
+                <label className="text-xs font-semibold text-gray-700 mb-1 block">Passageiro</label>
+                <select
+                  value={selectedPassengerId}
+                  onChange={(e) => setSelectedPassengerId(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white"
+                >
+                  {proposeRide.bookings.filter((b) => b.status === "COMPLETED").map((b) => (
+                    <option key={b.userId} value={b.userId}>
+                      {b.user?.profile?.name ?? b.userId}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div>
+              <label className="text-xs font-semibold text-gray-700 mb-1 block">Nota (opcional)</label>
+              <input
+                type="text"
+                value={proposeNote}
+                onChange={(e) => setProposeNote(e.target.value)}
+                placeholder="Ex: Passo todos os dias às 8h!"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm placeholder-gray-400"
+                maxLength={200}
+              />
+            </div>
+          </div>
+        </Sheet>
       )}
     </>
   );

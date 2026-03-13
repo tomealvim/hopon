@@ -97,6 +97,15 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   // Colapsável "As minhas configurações"
   const [showMyConfig, setShowMyConfig] = useState(false);
 
+  // "Disponível agora" — boleias nas próximas 2h
+  const [nowRides, setNowRides] = useState<ApiRide[]>([]);
+  const [nowLoading, setNowLoading] = useState(false);
+
+  // Arranjos recorrentes (para propor após boleia concluída)
+  type Arrangement = { id: string; status: string; proposedById: string; note?: string; scheduleTemplate: { id: string; origin: string; destination: string; time: string; daysOfWeek: string[] } | null; otherUser: { id: string; name: string; avatarUrl?: string | null } | null };
+  const [arrangements, setArrangements] = useState<{ asDriver: Arrangement[]; asPassenger: Arrangement[] }>({ asDriver: [], asPassenger: [] });
+  const [arrangementsLoaded, setArrangementsLoaded] = useState(false);
+
   // Carregar rotas habituais + boleias sugeridas + pedidos proativamente ao montar
   useEffect(() => {
     if (!routesLoaded) {
@@ -178,6 +187,25 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
     }
     return params;
   }
+
+  // Carregar boleias disponíveis agora ao mudar para tab "now"
+  useEffect(() => {
+    if (tab !== "now") return;
+    setNowLoading(true);
+    apiRequest<ApiRide[]>("/rides/available-now")
+      .then((data) => setNowRides(Array.isArray(data) ? data : []))
+      .catch(() => setNowRides([]))
+      .finally(() => setNowLoading(false));
+  }, [tab]);
+
+  // Carregar arranjos recorrentes (uma vez, quando o user está logado)
+  useEffect(() => {
+    if (!user || arrangementsLoaded) return;
+    apiRequest<{ asDriver: Arrangement[]; asPassenger: Arrangement[] }>("/recurring-arrangements/mine")
+      .then((data) => { setArrangements(data); setArrangementsLoaded(true); })
+      .catch(() => setArrangementsLoaded(true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Carregar boleias ao mudar filtros (só no tab explore)
   useEffect(() => {
@@ -611,6 +639,118 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                     </div>
                   );
                 })()}
+              </>
+            )}
+
+            {/* Agora */}
+            {tab === "now" && (
+              <>
+                <div className="flex items-center justify-between pt-2 pb-3">
+                  <div>
+                    <h2 className="text-base font-bold text-gray-900">Disponível agora</h2>
+                    <p className="text-xs text-gray-500 mt-0.5">Boleias que partem nas próximas 2 horas</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-gray-500 hover:text-gray-800"
+                    onClick={() => {
+                      setNowLoading(true);
+                      apiRequest<ApiRide[]>("/rides/available-now")
+                        .then((data) => setNowRides(Array.isArray(data) ? data : []))
+                        .catch(() => setNowRides([]))
+                        .finally(() => setNowLoading(false));
+                    }}
+                  >
+                    Atualizar
+                  </button>
+                </div>
+
+                {/* Arranjos pendentes — aviso se o passageiro tem proposta por responder */}
+                {arrangements.asPassenger.filter((a) => a.status === "PENDING").map((a) => (
+                  <div key={a.id} className="mb-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                    <p className="text-sm font-semibold text-amber-900 mb-1">Proposta de boleia recorrente</p>
+                    <p className="text-xs text-amber-800 mb-3">
+                      {a.otherUser?.name ?? "O condutor"} quer repetir regularmente {a.scheduleTemplate?.origin} - {a.scheduleTemplate?.destination} ({a.scheduleTemplate?.time}, {(a.scheduleTemplate?.daysOfWeek as string[])?.join(", ")}).
+                      {a.note && ` "${a.note}"`}
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="flex-1 rounded-xl bg-gray-900 text-white text-xs font-semibold py-2"
+                        onClick={async () => {
+                          await apiRequest(`/recurring-arrangements/${a.id}/respond`, { method: "PATCH", body: JSON.stringify({ accept: true }) });
+                          setArrangementsLoaded(false);
+                          setArrangements((prev) => ({
+                            ...prev,
+                            asPassenger: prev.asPassenger.map((x) => x.id === a.id ? { ...x, status: "ACTIVE" } : x),
+                          }));
+                          showSuccess("Arranjo aceite!", "Serás reservado automaticamente nas próximas boleias deste condutor.");
+                        }}
+                      >
+                        Aceitar
+                      </button>
+                      <button
+                        type="button"
+                        className="flex-1 rounded-xl border border-gray-200 text-gray-700 text-xs font-semibold py-2"
+                        onClick={async () => {
+                          await apiRequest(`/recurring-arrangements/${a.id}/respond`, { method: "PATCH", body: JSON.stringify({ accept: false }) });
+                          setArrangements((prev) => ({
+                            ...prev,
+                            asPassenger: prev.asPassenger.filter((x) => x.id !== a.id),
+                          }));
+                        }}
+                      >
+                        Recusar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {nowLoading ? (
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    {Array.from({ length: 3 }).map((_, i) => <EntityCardSkeleton key={i} />)}
+                  </div>
+                ) : nowRides.filter((r) => r.driverId !== user?.id).length === 0 ? (
+                  <div className="text-center py-16 px-4">
+                    <p className="text-5xl mb-4">🕐</p>
+                    <p className="text-xl font-bold text-gray-900 mb-2">Nenhuma boleia nas próximas 2h</p>
+                    <p className="text-sm text-gray-600 max-w-[280px] mx-auto">
+                      Tenta mais tarde ou vê as boleias disponíveis na tab Explorar.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    {nowRides
+                      .filter((ride) => ride.driverId !== user?.id)
+                      .map((ride) => {
+                        const dep = new Date(ride.departureTime);
+                        const minsUntil = Math.max(0, Math.round((dep.getTime() - Date.now()) / 60_000));
+                        const timeLabel = minsUntil < 60
+                          ? `Parte em ${minsUntil} min`
+                          : `Parte em ${Math.round(minsUntil / 60)}h`;
+                        const driverName = ride.driver?.profile?.name ?? ride.driver?.email ?? "Condutor";
+                        const seatsLeft = ride.remainingSeats;
+                        return (
+                          <EntityCard
+                            key={ride.id}
+                            title={`${ride.origin} → ${ride.destination}`}
+                            subtitle={`${dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })} - ${driverName}`}
+                            badges={[
+                              { label: timeLabel, tone: minsUntil < 30 ? "brand" : "warning" },
+                              { label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`, tone: seatsLeft >= 3 ? "success" : "warning" },
+                              ...(ride.instantBooking ? [{ label: "Instantânea", tone: "success" as const }] : []),
+                              ...(ride.price != null && ride.price > 0 ? [{ label: `€${ride.price.toFixed(0)}/lugar` }] : []),
+                            ]}
+                            avatar={{ src: ride.driver?.profile?.avatarUrl ?? undefined, initials: driverName.slice(0, 2).toUpperCase() }}
+                            primaryLabel="Reservar"
+                            secondaryLabel="Detalhes"
+                            onPrimary={() => handleOpenBooking(ride.id)}
+                            onSecondary={() => openRideDetail(ride.id)}
+                          />
+                        );
+                      })}
+                  </div>
+                )}
               </>
             )}
 

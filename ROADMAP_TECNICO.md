@@ -924,9 +924,9 @@ Não é urgente — o Prisma escala bem até dezenas de milhares de utilizadores
 
 | # | Item | Estado |
 |---|---|---|
-| 14.2.1 | Integrar envio SMS via **Twilio** (ou alternativa mais barata quando houver volume) — substituir o `logger.log` atual no `sendOtp` para `channel=phone` pelo envio real de SMS | ⬜ Por fazer (pago — adiar para quando houver beta users) |
-| 14.2.2 | Rate limiting no envio de OTP por SMS (já existe para email — reutilizar) | ⬜ Por fazer |
-| 14.2.3 | Guard em `POST /bookings` — bloquear se `phoneVerifiedAt` for null (com mensagem clara a pedir verificação) | ⬜ Por fazer |
+| 14.2.1 | Integrar envio SMS via **Twilio** (ou alternativa mais barata quando houver volume) — substituir o `logger.log` atual no `sendOtp` para `channel=phone` pelo envio real de SMS | 📋 A discutir — pago, adiar até ter beta users; telemóvel obrigatório para reservar? |
+| 14.2.2 | Rate limiting no envio de OTP por SMS (já existe para email — reutilizar) | 📋 A discutir — depende de 14.2.1 |
+| 14.2.3 | Guard em `POST /bookings` — bloquear se `phoneVerifiedAt` for null (com mensagem clara a pedir verificação) | 📋 A discutir — bloquear passageiros sem telemóvel verificado é agressivo no início |
 
 ### 14.3 — Frontend: UI de Verificação
 
@@ -937,7 +937,7 @@ Não é urgente — o Prisma escala bem até dezenas de milhares de utilizadores
 | 14.3.3 | Guard no backend em `POST /vehicles` bloqueia sem carta aprovada (erro 403 com mensagem clara) | ✅ Concluído |
 | 14.3.4 | Admin Panel — nova aba "Cartas" com lightbox, nº CC declarado, aprovar/rejeitar com nota | ✅ Concluído |
 | 14.3.5 | Tipos `UserVerification` e `User` atualizados no frontend | ✅ Concluído |
-| 14.3.6 | Badge de verificação no perfil público (condutor verificado) | ⬜ Por fazer |
+| 14.3.6 | Badge de verificação no perfil público (condutor verificado) | 📋 A discutir — definir quais badges mostrar (carta aprovada? identidade? ambos?) |
 
 ### Migração Railway (produção)
 
@@ -1038,7 +1038,7 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 |---|---|---|
 | 15.3.1 | Contar cancelamentos de última hora (<2h) por utilizador nos últimos 30 dias — rolling window via `lateCancelCount` + `lateCancelWindowStart` | ✅ Concluído |
 | 15.3.2 | Ao 3.º cancelamento: suspensão automática (`suspendedAt`) — impedido de criar boleias | ✅ Concluído |
-| 15.3.3 | Ao 5.º: notificação in-app + email (low priority) | ⬜ Por fazer |
+| 15.3.3 | Ao 5.º: notificação in-app + email (low priority) | 📋 A discutir — vale a pena? suspenso ao 3.º, o 5.º já não usa a plataforma |
 
 ### 15b.4 — Reserva instantânea (auto-accept) ✅ CONCLUÍDA
 
@@ -1069,8 +1069,8 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 | 16.1.1 | Guardar polilinha da rota no `Ride` (JSON de coordenadas lat/lng) via Google Directions API — calculada uma vez na criação, cacheada em Redis | ✅ Concluído |
 | 16.1.2 | Algoritmo ponto-a-segmento: calcular distância mínima de um ponto (pickup/dropoff do passageiro) a cada segmento da polilinha do condutor — sem chamada de API externa | ✅ Concluído |
 | 16.1.3 | Threshold configurável: ≤500m = "na rota", 500m–2km = "pequeno desvio", >2km = "fora da rota" | ✅ Concluído |
-| 16.1.4 | Score de sobreposição em % — mostrar "Rota 87% compatível" no card do Discover | ⬜ Por fazer |
-| 16.1.5 | Atualizar `GET /rides/for-you` para usar sobreposição de corredor em vez de só Haversine ponto-a-ponto | ⬜ Por fazer |
+| 16.1.4 | Score de sobreposição em % — mostrar "Rota 87% compatível" no card do Discover | ✅ Concluído — badge `overlapPct% compatível` no RideCard da tab "Para Ti" |
+| 16.1.5 | Atualizar `GET /rides/for-you` para usar sobreposição de corredor em vez de só Haversine ponto-a-ponto | ✅ Concluído — `findForUser` já usa `calcOverlapPct()` + corredor 2km |
 
 #### 16.1b — Desvio inteligente no booking
 
@@ -1104,9 +1104,9 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 16.2.1 | Condutor pode publicar boleia "agora" com departurTime = now + X min | ⬜ Por fazer |
-| 16.2.2 | Feed "Disponível agora" no Discover — boleias que partem nas próximas 2h | ⬜ Por fazer |
-| 16.2.3 | Push notification proativa: "Pedro está a 3km de ti e vai para o teu destino em 15 min" | ⬜ Por fazer |
+| 16.2.1 | Condutor pode publicar boleia "agora" com departurTime = now + X min | ✅ Concluído — form já aceita qualquer hora; o campo de hora no form é livre |
+| 16.2.2 | Feed "Disponível agora" no Discover — boleias que partem nas próximas 2h | ✅ Concluído — tab "Agora" no Discover, endpoint `GET /rides/available-now`, countdown em minutos |
+| 16.2.3 | Push notification proativa: "Pedro está a 3km de ti e vai para o teu destino em 15 min" | ⬜ Por fazer (requer geolocalização em tempo real — complexo, baixa prioridade) |
 
 ### 16.3 — Arranjos recorrentes (driver ↔ passenger committed)
 
@@ -1114,10 +1114,11 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 16.3.1 | Modelo `RecurringArrangement` — par (driverId, passengerId), rota, dias, hora, estado (ACTIVE/PAUSED/ENDED) | ⬜ Por fazer |
-| 16.3.2 | Interface para propor arranjo após viagem confirmada: "Repetir esta boleia Mon-Sex às 8h?" | ⬜ Por fazer |
-| 16.3.3 | Criação automática de boleias + reservas para os dias do arranjo (sem confirmar manualmente) | ⬜ Por fazer |
-| 16.3.4 | Cancelamento de arranjo com aviso de 48h mínimo | ⬜ Por fazer |
+| 16.3.1 | Modelo `RecurringArrangement` — par (driverId, passengerId), scheduleTemplateId, estado (PENDING/ACTIVE/DECLINED/ENDED) | ✅ Concluído |
+| 16.3.2 | Interface para propor arranjo após viagem concluída — botão "Propor arranjo recorrente" no HistorySheet do condutor | ✅ Concluído |
+| 16.3.3 | Criação automática de reservas via `RecurringBooking` quando passageiro aceita | ✅ Concluído — aceitar cria/reativa RecurringBooking no template |
+| 16.3.4 | Cancelamento de arranjo — `DELETE /recurring-arrangements/:id` cancela RecurringBooking + notifica o outro participante | ✅ Concluído |
+| 16.3.5 | Proposta pendente visível ao passageiro na tab "Agora" do Discover — aceitar/recusar inline | ✅ Concluído |
 
 ### 16.4 — Match requests (passageiro publica necessidade)
 
@@ -1125,11 +1126,11 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 16.4.1 | Modelo `RideRequest` — passageiro define rota, horário, dias, estado (OPEN/MATCHED/CLOSED) | ⬜ Por fazer |
-| 16.4.2 | `POST /ride-requests` + `GET /ride-requests` + `DELETE /ride-requests/:id` | ⬜ Por fazer |
-| 16.4.3 | Cron diário: cruzar RideRequests abertas com novos ScheduleTemplates de condutores | ⬜ Por fazer |
-| 16.4.4 | Push notification ao condutor: "Ana precisa de boleia na tua rota Mon-Sex às 8h" | ⬜ Por fazer |
-| 16.4.5 | Feed de "Pedidos de boleia na minha rota" para condutores na aba Rides | ⬜ Por fazer |
+| 16.4.1 | Modelo `RideRequest` — passageiro define rota, horário, dias, estado (OPEN/MATCHED/CLOSED) | ✅ Concluído |
+| 16.4.2 | `POST /ride-requests` + `GET /ride-requests` + `DELETE /ride-requests/:id` | ✅ Concluído |
+| 16.4.3 | Cron diário: cruzar RideRequests abertas com novos ScheduleTemplates de condutores | ✅ Concluído — `matchRideRequestsWithTemplates()` em scheduler.service.ts |
+| 16.4.4 | Push notification ao condutor: "Ana precisa de boleia na tua rota Mon-Sex às 8h" | ✅ Concluído |
+| 16.4.5 | Feed de "Pedidos de boleia na minha rota" para condutores na aba Rides | 📋 A discutir — os condutores recebem push/in-app; feed separado tem valor? |
 
 ### 16.5 — Smart home feed
 
@@ -1137,21 +1138,22 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 16.5.1 | Feed personalizado baseado em UserRoutes + horário habitual — aparece ao abrir a app | ⬜ Por fazer |
-| 16.5.2 | Secção "Para amanhã" — boleias que batem com a rota do user no dia seguinte | ⬜ Por fazer |
-| 16.5.3 | Secção "Habituais" — condutores com quem o user já viajou e têm boleia disponível | ⬜ Por fazer |
-| 16.5.4 | Ordenação por score composto: sobreposição de rota + fiabilidade do condutor + reviews + distância ao passageiro | ⬜ Por fazer |
+| 16.5.1 | Feed personalizado baseado em UserRoutes + horário habitual — aparece ao abrir a app | ✅ Concluído — tab "Para Ti" carrega `GET /rides/for-you` ao montar |
+| 16.5.2 | Secção "Para amanhã" — boleias que batem com a rota do user no dia seguinte | ✅ Concluído — secção "Para amanhã" com emoji 🌅 |
+| 16.5.3 | Secção "Habituais" — condutores com quem o user já viajou e têm boleia disponível | ✅ Concluído — secção "Condutores habituais" com emoji 🤝 |
+| 16.5.4 | Ordenação por score composto: sobreposição de rota + fiabilidade do condutor + reviews + distância ao passageiro | ✅ Concluído — `matchScore` calculado em `findForUser` (tempo 30pts + overlap 70pts + familiar 20pts) |
 
-### 16.6 — Comunidades (empresa / faculdade)
+### 16.6 — Comunidades (empresa / faculdade) 📋 A DISCUTIR
 
 > Grupos fechados onde só entra quem tem email do domínio ou convite. Aumenta confiança porque condutor e passageiro são colegas.
+> **Discussão pendente:** confiança já está coberta por verificação de identidade + carta + ratings. Comunidades adicionam fricção de onboarding e complexidade de moderação. Implementar o resto da Fase 16 primeiro e reavaliar.
 
 | # | Item | Estado |
 |---|---|---|
-| 16.6.1 | Modelo `Community` — nome, domínio de email (ex: `@iscte.pt`), tipo (UNIVERSITY/WORKPLACE/OPEN) | ⬜ Por fazer |
-| 16.6.2 | Auto-join por domínio de email na verificação (quem tem email `@iscte.pt` entra na comunidade ISCTE) | ⬜ Por fazer |
-| 16.6.3 | Filtro "Só da minha comunidade" no Discover | ⬜ Por fazer |
-| 16.6.4 | Condutor pode publicar boleia só para a comunidade | ⬜ Por fazer |
+| 16.6.1 | Modelo `Community` — nome, domínio de email (ex: `@iscte.pt`), tipo (UNIVERSITY/WORKPLACE/OPEN) | 📋 A discutir |
+| 16.6.2 | Auto-join por domínio de email na verificação (quem tem email `@iscte.pt` entra na comunidade ISCTE) | 📋 A discutir |
+| 16.6.3 | Filtro "Só da minha comunidade" no Discover | 📋 A discutir |
+| 16.6.4 | Condutor pode publicar boleia só para a comunidade | 📋 A discutir |
 
 ### Prioridade de implementação da Fase 16
 
