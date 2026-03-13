@@ -582,6 +582,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
 
       {/* ========== VERIFICAÇÃO ========== */}
       {profileSection === "overview" && (
+      <>
       {(() => {
         const dlStatus = user?.verification?.driverLicense ?? "NONE";
         const idStatus = user?.verification?.identity ?? "NONE";
@@ -752,6 +753,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           </button>
         </div>
       </section>
+      </>
       )}
 
       {/* ========== BLOCO 2: CARRO EM USO ========== */}
@@ -830,7 +832,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
 
       {/* ========== CONVIDAR AMIGOS (destacado) ========== */}
       {profileSection === "overview" && (
-      <section 
+      <>
+      <section
         className="bg-gray-100 border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 cursor-pointer hover:bg-gray-200/80 hover:border-gray-300 transition-all duration-200 active:scale-[0.99] animate-fade-in-up"
         onClick={() => setOpenReferral(true)}
         role="button"
@@ -861,10 +864,12 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         <ListRow label="Histórico de boleias" onClick={() => setOpenHistory(true)} />
         <ListRow label="Avaliações" onClick={() => setOpenRatings(true)} />
       </nav>
+      </>
       )}
 
       {/* ========== DEFINIÇÕES & AJUDA (lista simples) ========== */}
       {profileSection === "account" && (
+      <>
       <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Conta e pagamentos">
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
           <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide">Conta & Pagamentos</h3>
@@ -917,6 +922,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         <ListRow label="Terminar sessão" tone="danger" onClick={() => setOpenLogoutConfirm(true)} />
         <ListRow label="Apagar conta" tone="danger" onClick={() => setOpenDeleteConfirm(true)} />
       </div>
+      </>
       )}
 
       {/* Sheet: editar perfil */}
