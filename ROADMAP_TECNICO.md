@@ -1170,7 +1170,7 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 |---|---|---|
 | 17.1.1 | Boleia privada para comunidade | ✅ Concluído |
 | 17.1.2 | Badge "Na tua comunidade" nos cards | ✅ Concluído |
-| 17.1.3 | Partilha de link de convite mais proeminente na UI — botão "Convidar" com share nativo do browser | ⬜ Por fazer — crescimento orgânico |
+| 17.1.3 | Partilha de link de convite mais proeminente na UI — botão "Convidar" com share nativo do browser | ✅ Concluído — botão "Convidar para X" em cada card da lista (owners e membros); `navigator.share` com fallback para clipboard + feedback "Link copiado!" |
 
 ### 17.2 — Chat de grupo por boleia
 
