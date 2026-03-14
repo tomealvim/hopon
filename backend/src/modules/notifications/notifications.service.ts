@@ -25,6 +25,23 @@ export class NotificationsService {
 
   // ─── In-app notifications ────────────────────────────────────────────────────
 
+  private static readonly TAB_BY_TYPE: Record<string, string> = {
+    'message.new': 'inbox',
+    'booking.new': 'rides',
+    'booking.confirmed': 'rides',
+    'booking.declined': 'rides',
+    'booking.cancelled': 'rides',
+    'ride.updated': 'rides',
+    'ride.arrived': 'rides',
+    'ride.completed': 'rides',
+    'ride.cancelled': 'rides',
+    'ride.on_the_way': 'rides',
+    'match.found': 'discover',
+    'arrangement.proposed': 'discover',
+    'arrangement.accepted': 'rides',
+    'arrangement.declined': 'rides',
+  };
+
   async createNotification(
     userId: string,
     type: string,
@@ -52,8 +69,9 @@ export class NotificationsService {
       createdAt: notification.createdAt,
     });
 
-    // Push notification (web push) para dispositivos não abertos
-    void this.pushService.sendToUser(userId, title, body, metadata);
+    // Push notification (web push) — inclui tab de destino para navegação ao clicar
+    const tab = NotificationsService.TAB_BY_TYPE[type] ?? 'discover';
+    void this.pushService.sendToUser(userId, title, body, { ...metadata, tab });
 
     return notification;
   }

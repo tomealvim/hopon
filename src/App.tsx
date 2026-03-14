@@ -11,6 +11,7 @@ import { SSEProvider } from "./contexts/SSEContext";
 import { AppNotificationsProvider } from "./contexts/AppNotificationsContext";
 import { apiRequest } from "./services/api";
 import BottomNav from "./components/ui/BottomNav";
+import { usePushNotifications } from "./hooks/usePushNotifications";
 import { hasCompletedOnboarding } from "./pages/OnboardingPage";
 import OnboardingPageFull from "./pages/OnboardingPage";
 import AuthPage from "./pages/AuthPage";
@@ -37,11 +38,27 @@ export type Tab = "discover" | "rides" | "inbox" | "profile";
 function AppContent() {
   const { user, isLoading, hasCompletedProfile, logout } = useAuth();
   const { subscribe } = useSSE();
+  const { isSupported: pushSupported, subscribed: pushSubscribed, subscribe: subscribePush } = usePushNotifications();
   const { showSuccess, showError } = useNotifications();
   const { refresh: refreshInbox } = useInbox();
   const { unreadCount: notifUnread } = useAppNotifications();
-  const [tab, setTab] = useState<Tab>("discover");
+  // Handle ?tab= param set by service worker notification click
+  const [tab, setTab] = useState<Tab>(() => {
+    const param = new URLSearchParams(window.location.search).get("tab");
+    window.history.replaceState(null, "", window.location.pathname);
+    const valid: Tab[] = ["discover", "rides", "inbox", "profile"];
+    return valid.includes(param as Tab) ? (param as Tab) : "discover";
+  });
   const [notifOpen, setNotifOpen] = useState(false);
+
+  // Auto-subscribe push notifications após login (só se ainda não subscrito e permissão não negada)
+  useEffect(() => {
+    if (!user || !hasCompletedProfile) return;
+    if (!pushSupported || pushSubscribed) return;
+    if (typeof Notification !== "undefined" && Notification.permission === "denied") return;
+    const t = setTimeout(() => { subscribePush(); }, 4000);
+    return () => clearTimeout(t);
+  }, [user, hasCompletedProfile, pushSupported, pushSubscribed, subscribePush]);
 
   // 16.2.3 — Partilhar localização GPS com o backend (para matching "agora")
   useEffect(() => {

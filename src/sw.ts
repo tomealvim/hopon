@@ -32,14 +32,17 @@ self.addEventListener('push', (event: PushEvent) => {
 
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close();
+  const tab = (event.notification.data as Record<string, unknown> | undefined)?.tab as string | undefined;
+  const url = tab ? `/?tab=${tab}` : '/';
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
         if ('focus' in client) {
-          return client.focus();
+          (client as WindowClient).navigate(url);
+          return (client as WindowClient).focus();
         }
       }
-      return self.clients.openWindow('/');
+      return self.clients.openWindow(url);
     }),
   );
 });
