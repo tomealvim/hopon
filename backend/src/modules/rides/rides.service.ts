@@ -9,6 +9,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { WalletService } from '../wallet/wallet.service';
 import { GeocodingService } from '../geocoding/geocoding.service';
 import { CommunitiesService } from '../communities/communities.service';
+import { InboxService } from '../inbox/inbox.service';
 
 const SEARCH_TTL_MS = 30_000;  // 30s
 const FOR_YOU_TTL_MS = 60_000; // 60s
@@ -21,6 +22,7 @@ export class RidesService {
     private readonly walletService: WalletService,
     private readonly geocodingService: GeocodingService,
     private readonly communitiesService: CommunitiesService,
+    private readonly inboxService: InboxService,
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
@@ -125,6 +127,9 @@ export class RidesService {
         community: true,
       },
     });
+
+    // Criar conversa de grupo para esta boleia (condutor é o primeiro participante)
+    void this.inboxService.getOrCreateRideGroupConversation(ride.id, userId);
 
     // Invalidar cache de pesquisa para resultados imediatos
     void this.cache.clear();

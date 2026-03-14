@@ -225,7 +225,14 @@ function AppContent() {
             }}
           />
         )}
-        {tab === "rides" && <RidesPage />}
+        {tab === "rides" && (
+          <RidesPage
+            onOpenGroupChat={(threadId) => {
+              setInitialThreadId(threadId);
+              setTab("inbox");
+            }}
+          />
+        )}
         {tab === "inbox" && (
           <InboxPage
             initialThreadId={initialThreadId}

@@ -249,6 +249,11 @@ export class BookingsService {
       console.error('[BookingsService] Erro ao criar conversa:', error);
     }
 
+    // Se auto-confirmado, adicionar passageiro ao grupo da boleia
+    if (booking.status === 'CONFIRMED') {
+      void this.inboxService.addParticipantToGroup(rideId, userId);
+    }
+
     const passengerName = booking.user?.profile?.name ?? booking.user?.email ?? 'Passageiro';
     const detourMeters = (booking as any).detourMeters as number | null;
     const isAutoConfirmed = booking.status === 'CONFIRMED';
@@ -398,6 +403,13 @@ export class BookingsService {
       }
     }
 
+    // Gerir participação no grupo da boleia
+    if (status === 'CONFIRMED') {
+      void this.inboxService.addParticipantToGroup(booking.rideId, booking.userId);
+    } else if (status === 'DECLINED') {
+      void this.inboxService.removeParticipantFromGroup(booking.rideId, booking.userId);
+    }
+
     if (status === 'NO_SHOW') {
       // Notificar passageiro que foi marcado como no-show
       void this.notificationsService.createNotification(
@@ -518,6 +530,11 @@ export class BookingsService {
         user: { include: { profile: true } },
       },
     });
+
+    // Remover passageiro do grupo da boleia se cancelou reserva confirmada
+    if (booking.status === 'CONFIRMED') {
+      void this.inboxService.removeParticipantFromGroup(booking.rideId, userId);
+    }
 
     // Notificar condutor por email (assíncrono via queue)
     if (updatedBooking) {

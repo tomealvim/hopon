@@ -19,6 +19,8 @@ export type Thread = {
   unreadCount: number;
   lastEvent?: { type: "text"; text: string } | { type: "system"; system: SystemEvent };
   meta?: { date?: string };
+  rideId?: string;
+  isGroup?: boolean;
 };
 
 export type Message =

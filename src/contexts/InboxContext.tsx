@@ -44,18 +44,22 @@ function apiConversationToThread(conv: ApiConversation): Thread {
       lastEvent = { type: "text", text: lastMsg.body };
     }
   }
+  const isGroup = !!conv.rideId && !conv.bookingId;
+  const rideLabel = conv.ride
+    ? `${conv.ride.origin} → ${conv.ride.destination}`
+    : "Boleia";
   return {
     id: conv.id,
     kind: "ride",
-    title: conv.ride
-      ? `${conv.ride.origin} → ${conv.ride.destination}`
-      : "Conversa",
+    title: isGroup ? `Grupo - ${rideLabel}` : rideLabel,
     participants: conv.participants.map((p) => p.userId),
     unreadCount: conv.hasUnread ? 1 : 0,
     lastEvent,
     meta: conv.ride
       ? { date: new Date(conv.ride.departureTime).toLocaleDateString("pt-PT") }
       : undefined,
+    rideId: conv.rideId ?? undefined,
+    isGroup,
   };
 }
 
@@ -86,6 +90,7 @@ export interface InboxContextValue {
   sendMessage: (threadId: string, text: string) => Promise<void>;
   markThreadAsRead: (threadId: string) => void;
   getThread: (threadId: string) => Thread | undefined;
+  getGroupThreadByRideId: (rideId: string) => Thread | undefined;
   getMessages: (threadId: string) => Message[];
   loadMessages: (threadId: string) => Promise<void>;
   refresh: () => Promise<void>;
@@ -209,6 +214,11 @@ export function InboxProvider({ children }: { children: ReactNode }) {
     [threads]
   );
 
+  const getGroupThreadByRideId = useCallback(
+    (rideId: string) => threads.find((t) => t.isGroup && t.rideId === rideId),
+    [threads]
+  );
+
   const getMessages = useCallback(
     (threadId: string) => messagesByThread[threadId] ?? [],
     [messagesByThread]
@@ -242,12 +252,13 @@ export function InboxProvider({ children }: { children: ReactNode }) {
       sendMessage,
       markThreadAsRead,
       getThread,
+      getGroupThreadByRideId,
       getMessages,
       loadMessages,
       refresh,
       addMessage,
     }),
-    [threads, messagesByThread, isLoading, sendMessage, markThreadAsRead, getThread, getMessages, loadMessages, refresh, addMessage]
+    [threads, messagesByThread, isLoading, sendMessage, markThreadAsRead, getThread, getGroupThreadByRideId, getMessages, loadMessages, refresh, addMessage]
   );
 
   return <InboxContext.Provider value={value}>{children}</InboxContext.Provider>;

@@ -7,9 +7,10 @@ import { VerifiedUserGuard } from '../../common/guards/verified-user.guard';
 import { WalletModule } from '../wallet/wallet.module';
 import { GeocodingModule } from '../geocoding/geocoding.module';
 import { CommunitiesModule } from '../communities/communities.module';
+import { InboxModule } from '../inbox/inbox.module';
 
 @Module({
-  imports: [PrismaModule, NotificationsModule, WalletModule, GeocodingModule, CommunitiesModule],
+  imports: [PrismaModule, NotificationsModule, WalletModule, GeocodingModule, CommunitiesModule, InboxModule],
   controllers: [RidesController],
   providers: [RidesService, VerifiedUserGuard],
   exports: [RidesService],

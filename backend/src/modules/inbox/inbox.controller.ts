@@ -27,4 +27,9 @@ export class InboxController {
   markAsRead(@Request() req: any, @Param('id') id: string) {
     return this.inboxService.markAsRead(req.user.id, id);
   }
+
+  @Get('group/:rideId')
+  getGroupConversation(@Request() req: any, @Param('rideId') rideId: string) {
+    return this.inboxService.getOrCreateRideGroupConversation(rideId, req.user.id);
+  }
 }

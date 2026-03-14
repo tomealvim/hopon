@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useInbox } from "../contexts/InboxContext";
 import { apiRequest } from "../services/api";
 import { useNotifications } from "../contexts/NotificationContext";
 import { useSSE } from "../contexts/SSEContext";
@@ -144,10 +145,15 @@ const STATUS_TONE: Record<string, "success" | "warning" | "brand" | undefined> =
   COMPLETED: "brand",
 };
 
-export default function RidesPage() {
+type RidesPageProps = {
+  onOpenGroupChat?: (threadId: string) => void;
+};
+
+export default function RidesPage({ onOpenGroupChat }: RidesPageProps = {}) {
   const { user } = useAuth();
   const { showSuccess, showError } = useNotifications();
   const { subscribe } = useSSE();
+  const { getGroupThreadByRideId, refresh: refreshInbox } = useInbox();
 
   const [ridesTab, setRidesTab] = useState<"driver" | "passenger">("driver");
 
@@ -410,6 +416,24 @@ export default function RidesPage() {
     }
   }
 
+  // --- Open group chat ---
+  async function handleOpenGroupChat(rideId: string) {
+    // Try to find the thread already loaded in context
+    const existing = getGroupThreadByRideId(rideId);
+    if (existing && onOpenGroupChat) {
+      onOpenGroupChat(existing.id);
+      return;
+    }
+    // Fetch from API (will create if not exists)
+    try {
+      const conv = await apiRequest<{ id: string }>(`/inbox/group/${rideId}`);
+      await refreshInbox();
+      if (onOpenGroupChat) onOpenGroupChat(conv.id);
+    } catch (err) {
+      showError("Erro ao abrir chat do grupo", err instanceof Error ? err.message : "Tenta novamente.");
+    }
+  }
+
   const isLoading = hydrating || ridesLoading || bookingsLoading;
   const pendingBookingsForRide = (ride: ApiRide) =>
     (ride.bookings ?? []).filter((b) => b.status === "PENDING");
@@ -522,6 +546,8 @@ export default function RidesPage() {
                     const initials = ride.vehicle
                       ? `${ride.vehicle.brand[0]}${ride.vehicle.model[0]}`
                       : "?";
+                    const groupThread = getGroupThreadByRideId(ride.id);
+                    const groupUnread = groupThread?.unreadCount ?? 0;
                     return (
                       <EntityCard
                         key={ride.id}
@@ -531,6 +557,7 @@ export default function RidesPage() {
                         badges={[
                           { label: "Condutor", tone: "brand" },
                           ...(pending.length > 0 ? [{ label: `${pending.length} pendente${pending.length > 1 ? "s" : ""}`, tone: "warning" as const }] : []),
+                          ...(groupUnread > 0 ? [{ label: `${groupUnread} msg grupo`, tone: "brand" as const }] : []),
                         ]}
                         avatar={{ initials }}
                         primaryLabel={pending.length > 0 ? `Ver reservas (${pending.length})` : "Detalhes"}
@@ -624,6 +651,23 @@ export default function RidesPage() {
           ) : selectedRide ? (
             <div className="flex gap-2 flex-wrap">
               <Button variant="secondary" className="flex-1" onClick={() => setOpenSheet(false)}>Fechar</Button>
+              {onOpenGroupChat && (() => {
+                const groupThread = getGroupThreadByRideId(selectedRide.id);
+                return (
+                  <Button
+                    variant="secondary"
+                    className="flex-1 relative"
+                    onClick={() => { setOpenSheet(false); handleOpenGroupChat(selectedRide.id); }}
+                  >
+                    Chat do grupo
+                    {groupThread && groupThread.unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                        {groupThread.unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                );
+              })()}
               {(selectedRide.bookings ?? []).filter((b) => b.status === "PENDING").length > 0 && (
                 <Button className="flex-1" onClick={() => setSheetView("passengers")}>
                   Ver reservas ({(selectedRide.bookings ?? []).filter((b) => b.status === "PENDING").length})
@@ -667,8 +711,25 @@ export default function RidesPage() {
               )}
             </div>
           ) : selectedBooking ? (
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button variant="secondary" className="flex-1" onClick={() => setOpenSheet(false)}>Fechar</Button>
+              {selectedBooking.status === "CONFIRMED" && selectedBooking.ride && onOpenGroupChat && (() => {
+                const groupThread = getGroupThreadByRideId(selectedBooking.ride.id);
+                return (
+                  <Button
+                    variant="secondary"
+                    className="flex-1 relative"
+                    onClick={() => { setOpenSheet(false); handleOpenGroupChat(selectedBooking.ride!.id); }}
+                  >
+                    Chat do grupo
+                    {groupThread && groupThread.unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                        {groupThread.unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                );
+              })()}
               {(selectedBooking.status === "PENDING" || selectedBooking.status === "CONFIRMED") && (
                 <Button variant="danger" className="flex-1" onClick={() => handleCancelBooking(selectedBooking.id)}>
                   Cancelar reserva

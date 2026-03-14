@@ -114,6 +114,59 @@ export class InboxService {
     return { success: true };
   }
 
+  /** Cria (ou devolve existente) a conversa de grupo da boleia — condutor é o primeiro participante */
+  async getOrCreateRideGroupConversation(rideId: string, driverId: string) {
+    const existing = await this.prisma.conversation.findFirst({
+      where: { rideId, bookingId: null },
+    });
+    if (existing) return existing;
+
+    return this.prisma.conversation.create({
+      data: {
+        rideId,
+        participants: { create: [{ userId: driverId }] },
+      },
+    });
+  }
+
+  /** Adiciona passageiro ao grupo da boleia (idempotente) */
+  async addParticipantToGroup(rideId: string, userId: string) {
+    const conv = await this.prisma.conversation.findFirst({
+      where: { rideId, bookingId: null },
+    });
+    if (!conv) return;
+
+    const already = await this.prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId: conv.id, userId } },
+    });
+    if (already) return;
+
+    await this.prisma.conversationParticipant.create({
+      data: { conversationId: conv.id, userId },
+    });
+  }
+
+  /** Remove passageiro do grupo da boleia */
+  async removeParticipantFromGroup(rideId: string, userId: string) {
+    const conv = await this.prisma.conversation.findFirst({
+      where: { rideId, bookingId: null },
+    });
+    if (!conv) return;
+
+    await this.prisma.conversationParticipant.deleteMany({
+      where: { conversationId: conv.id, userId },
+    });
+  }
+
+  /** Devolve o conversationId do grupo de uma boleia (ou null) */
+  async getGroupConversationId(rideId: string): Promise<string | null> {
+    const conv = await this.prisma.conversation.findFirst({
+      where: { rideId, bookingId: null },
+      select: { id: true },
+    });
+    return conv?.id ?? null;
+  }
+
   async createConversationForBooking(
     bookingId: string,
     rideId: string,
