@@ -9,7 +9,8 @@ export type SystemEvent =
   | { kind: "payment_due"; amount?: number }
   | { kind: "payment_paid"; amount?: number; method?: string }
   | { kind: "change_confirmed"; byUser?: string }
-  | { kind: "rating_reminder"; rideId?: string };
+  | { kind: "rating_reminder"; rideId?: string }
+  | { kind: "group_event"; text: string };
 
 export type Thread = {
   id: string;

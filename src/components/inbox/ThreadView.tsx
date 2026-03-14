@@ -137,6 +137,13 @@ function SystemCardRenderer({
   if (ev.kind === "request_declined") return <div className="text-center bg-red-50 border border-red-200 text-red-700 text-xs py-2 px-3 rounded-lg">Pedido recusado</div>;
   if (ev.kind === "change_confirmed") return <div className="text-center bg-gray-50 border border-gray-200 text-gray-700 text-xs py-2 px-3 rounded-lg">Alteração confirmada</div>;
   if (ev.kind === "payment_paid") return <div className="text-center bg-green-50 border border-green-200 text-green-700 text-xs py-2 px-3 rounded-lg">Pagamento confirmado</div>;
+  if (ev.kind === "group_event") return (
+    <div className="flex items-center gap-2 my-1">
+      <div className="flex-1 h-px bg-gray-100" />
+      <span className="text-[11px] text-gray-400 font-medium px-1 shrink-0">{ev.text}</span>
+      <div className="flex-1 h-px bg-gray-100" />
+    </div>
+  );
 
   return <div className="text-center bg-gray-50 border border-gray-200 text-gray-600 text-xs py-2 px-3 rounded-lg">Atualização</div>;
 }

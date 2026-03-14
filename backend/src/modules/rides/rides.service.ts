@@ -760,6 +760,8 @@ export class RidesService {
       );
     }
 
+    void this.inboxService.sendSystemMessageToGroup(rideId, driverId, 'Condutor esta a caminho');
+
     return { message: 'Passageiros notificados que estás a caminho.' };
   }
 
@@ -786,6 +788,8 @@ export class RidesService {
     if (confirmedPassengerIds.length > 0) {
       void this.notificationsService.notifyDriverArrived(rideId, ride.origin, ride.destination, confirmedPassengerIds);
     }
+
+    void this.inboxService.sendSystemMessageToGroup(rideId, driverId, 'Condutor chegou ao ponto de encontro');
 
     return { message: 'Chegada marcada. Passageiros notificados.' };
   }
@@ -871,6 +875,8 @@ export class RidesService {
       );
     }
 
+    void this.inboxService.sendSystemMessageToGroup(rideId, driverId, 'Boleia concluida!');
+
     // Invalidar cache — boleia COMPLETED não deve aparecer na pesquisa
     void this.cache.clear();
 
@@ -941,6 +947,8 @@ export class RidesService {
         console.error('Erro ao enviar notificações de cancelamento:', error);
       }
     }
+
+    void this.inboxService.sendSystemMessageToGroup(rideId, userId, 'Boleia cancelada pelo condutor');
 
     // Rastrear cancelamentos de última hora e auto-suspender se necessário
     if (isLateCancel) {

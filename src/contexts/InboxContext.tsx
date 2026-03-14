@@ -64,13 +64,13 @@ function apiConversationToThread(conv: ApiConversation): Thread {
 }
 
 function apiMessageToMessage(msg: ApiMessage): Message {
-  if (msg.type === "system" && msg.metadata) {
+  if (msg.type === "system") {
     return {
       id: msg.id,
       threadId: msg.conversationId,
       type: "system",
       ts: new Date(msg.createdAt).getTime(),
-      system: msg.metadata,
+      system: msg.metadata ?? { kind: "group_event", text: msg.body },
     };
   }
   return {

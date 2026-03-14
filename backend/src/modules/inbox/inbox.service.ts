@@ -158,6 +158,36 @@ export class InboxService {
     });
   }
 
+  /** Envia mensagem de sistema automática no chat de grupo da boleia */
+  async sendSystemMessageToGroup(rideId: string, senderId: string, body: string) {
+    const conv = await this.prisma.conversation.findFirst({
+      where: { rideId, bookingId: null },
+      include: { participants: true },
+    });
+    if (!conv) return;
+
+    const message = await this.prisma.message.create({
+      data: { conversationId: conv.id, senderId, body, type: 'system' },
+      include: { sender: { include: { profile: true } } },
+    });
+
+    await this.prisma.conversation.update({
+      where: { id: conv.id },
+      data: { updatedAt: new Date() },
+    });
+
+    const response = this.toMessageResponse(message);
+
+    const otherParticipants = conv.participants
+      .filter((p) => p.userId !== senderId)
+      .map((p) => p.userId);
+
+    this.eventsService.emitToMany(otherParticipants, 'message.new', {
+      conversationId: conv.id,
+      message: response,
+    });
+  }
+
   /** Devolve o conversationId do grupo de uma boleia (ou null) */
   async getGroupConversationId(rideId: string): Promise<string | null> {
     const conv = await this.prisma.conversation.findFirst({

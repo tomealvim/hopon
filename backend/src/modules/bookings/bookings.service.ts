@@ -403,9 +403,14 @@ export class BookingsService {
       }
     }
 
-    // Gerir participação no grupo da boleia
+    // Gerir participação no grupo da boleia + mensagem de sistema
     if (status === 'CONFIRMED') {
       void this.inboxService.addParticipantToGroup(booking.rideId, booking.userId);
+      const passengerNameForGroup = updated.user?.profile?.name ?? updated.user?.email ?? 'Passageiro';
+      void this.inboxService.sendSystemMessageToGroup(
+        booking.rideId, booking.userId,
+        `${passengerNameForGroup} confirmou reserva`,
+      );
     } else if (status === 'DECLINED') {
       void this.inboxService.removeParticipantFromGroup(booking.rideId, booking.userId);
     }
@@ -531,9 +536,14 @@ export class BookingsService {
       },
     });
 
-    // Remover passageiro do grupo da boleia se cancelou reserva confirmada
+    // Remover passageiro do grupo da boleia se cancelou reserva confirmada + mensagem de sistema
     if (booking.status === 'CONFIRMED') {
       void this.inboxService.removeParticipantFromGroup(booking.rideId, userId);
+      const cancellerName = updatedBooking?.user?.profile?.name ?? updatedBooking?.user?.email ?? 'Passageiro';
+      void this.inboxService.sendSystemMessageToGroup(
+        booking.rideId, userId,
+        `${cancellerName} cancelou a reserva`,
+      );
     }
 
     // Notificar condutor por email (assíncrono via queue)
