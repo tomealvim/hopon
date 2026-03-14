@@ -41,6 +41,22 @@ function AppContent() {
   const [tab, setTab] = useState<Tab>("discover");
   const [notifOpen, setNotifOpen] = useState(false);
 
+  // 16.2.3 — Partilhar localização GPS com o backend (para matching "agora")
+  useEffect(() => {
+    if (!user) return;
+    function sendLocation() {
+      navigator.geolocation?.getCurrentPosition((pos) => {
+        apiRequest("/users/me/location", {
+          method: "PATCH",
+          body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        }).catch(() => {/* silencioso */});
+      });
+    }
+    sendLocation();
+    window.addEventListener("focus", sendLocation);
+    return () => window.removeEventListener("focus", sendLocation);
+  }, [user]);
+
   // Notificar o driver quando chega uma nova reserva
   useEffect(() => {
     return subscribe("booking.new", (data) => {
@@ -116,6 +132,7 @@ function AppContent() {
         platformFee: vals.platformFee,
         instantBooking: vals.instantBooking,
         ...(vals.pontoEncontro && { meetingPoint: vals.pontoEncontro }),
+        ...(vals.communityId && { communityId: vals.communityId }),
       }),
     });
     showSuccess("Boleia criada!", `${vals.origem} → ${vals.destino}`);

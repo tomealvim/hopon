@@ -1,0 +1,4 @@
+-- AddColumn: GPS location fields to users
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "currentLat" DOUBLE PRECISION;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "currentLng" DOUBLE PRECISION;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "locationUpdatedAt" TIMESTAMP(3);

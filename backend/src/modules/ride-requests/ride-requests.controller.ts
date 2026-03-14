@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, Param, Body, Request, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Param, Body, Query, Request, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RideRequestsService } from './ride-requests.service';
 import { CreateRideRequestDto } from './dto/create-ride-request.dto';
@@ -19,8 +19,20 @@ export class RideRequestsController {
   }
 
   @Get('for-driver')
-  findForDriver(@Request() req) {
-    return this.service.findForDriver(req.user.id);
+  findForDriver(
+    @Request() req,
+    @Query('lat') lat?: string,
+    @Query('lng') lng?: string,
+    @Query('destLat') destLat?: string,
+    @Query('destLng') destLng?: string,
+  ) {
+    return this.service.findForDriver(
+      req.user.id,
+      lat ? parseFloat(lat) : undefined,
+      lng ? parseFloat(lng) : undefined,
+      destLat ? parseFloat(destLat) : undefined,
+      destLng ? parseFloat(destLng) : undefined,
+    );
   }
 
   @Delete(':id')

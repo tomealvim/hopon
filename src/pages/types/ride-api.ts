@@ -78,4 +78,9 @@ export interface ApiRide {
   overlapPct?: number;
   /** Secção no smart feed: tomorrow | familiar | this_week */
   section?: 'tomorrow' | 'familiar' | 'this_week';
+  /** Comunidade a que pertence a boleia (boleia privada) */
+  communityId?: string | null;
+  community?: { id: string; name: string } | null;
+  /** Comunidade partilhada entre o utilizador e o condutor (badge) */
+  sharedCommunity?: { id: string; name: string } | null;
 }

@@ -75,6 +75,11 @@ model User {
 
   googleId String? @unique
 
+  // GPS location (updated on app load/focus, used for "available now" matching)
+  currentLat         Float?
+  currentLng         Float?
+  locationUpdatedAt  DateTime?
+
   ownedCommunities  Community[]       @relation("CommunityOwner")
   communityMemberships CommunityMember[]
 
@@ -193,6 +198,10 @@ model Ride {
 
   scheduleTemplateId String?
   scheduleTemplate   ScheduleTemplate? @relation(fields: [scheduleTemplateId], references: [id], onDelete: SetNull)
+
+  // Boleia privada para uma comunidade (opcional — null = pública)
+  communityId  String?
+  community    Community? @relation(fields: [communityId], references: [id], onDelete: SetNull)
 
   bookings       Booking[]
   conversations Conversation[]
@@ -537,6 +546,7 @@ model Community {
   requiresApproval Boolean  @default(true)
   domain           String?  // domínio de email opcional (ex: "iscte.pt")
   members          CommunityMember[]
+  rides            Ride[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

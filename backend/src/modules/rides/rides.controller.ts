@@ -4,6 +4,7 @@ import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
 import { SearchRidesDto } from './dto/search-rides.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
 import { VerifiedUserGuard } from '../../common/guards/verified-user.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -29,9 +30,10 @@ export class RidesController {
   }
 
   @Get('search')
-  @ApiOperation({ summary: 'Procurar boleias disponíveis (público)' })
-  search(@Query() dto: SearchRidesDto) {
-    return this.ridesService.search(dto);
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Procurar boleias disponíveis (público; autenticado filtra privadas)' })
+  search(@Request() req, @Query() dto: SearchRidesDto) {
+    return this.ridesService.search(dto, req.user?.id ?? null);
   }
 
   @Get('for-you')

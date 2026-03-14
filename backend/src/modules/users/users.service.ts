@@ -137,5 +137,13 @@ export class UsersService {
       })),
     };
   }
+
+  async updateLocation(userId: string, lat: number, lng: number) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { currentLat: lat, currentLng: lng, locationUpdatedAt: new Date() },
+    });
+    return { ok: true };
+  }
 }
 

@@ -27,6 +27,7 @@ export type OfferRideFormValues = {
   aceitaDesvios: boolean;
   desvioMaxMin: number; // minutos
   pontoEncontro?: string;
+  communityId?: string;
   recorrente: boolean;
   diasSemana: Array<"seg"|"ter"|"qua"|"qui"|"sex">;
   observacoes?: string;
@@ -86,6 +87,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
     aceitaDesvios: initial?.aceitaDesvios ?? true,
     desvioMaxMin: initial?.desvioMaxMin ?? 10,
     pontoEncontro: initial?.pontoEncontro ?? "",
+    communityId: initial?.communityId ?? undefined,
     recorrente: initial?.recorrente ?? false,
     diasSemana: initial?.diasSemana ?? ["seg", "ter", "qua", "qui", "sex"],
     observacoes: initial?.observacoes ?? "",
@@ -107,6 +109,14 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
   const [pricingError, setPricingError] = useState<string | null>(null);
 
   const pricingDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Comunidades do utilizador (para boleia privada)
+  const [communities, setCommunities] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    apiRequest<{ id: string; name: string }[]>("/communities/mine")
+      .then((data) => setCommunities(Array.isArray(data) ? data : []))
+      .catch(() => setCommunities([]));
+  }, []);
 
   useEffect(() => {
     if (!hasVehicles) return;
@@ -634,6 +644,23 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
           </label>
         ))}
       </fieldset>
+
+      {/* Boleia privada para comunidade */}
+      {communities.length > 0 && (
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">Visibilidade</label>
+          <select
+            className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 text-sm"
+            value={values.communityId ?? ""}
+            onChange={(e) => set("communityId", e.target.value || undefined)}
+          >
+            <option value="">Publica - visivel a todos</option>
+            {communities.map((c) => (
+              <option key={c.id} value={c.id}>Privada - so para {c.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="flex gap-2 pt-2">
         <Button variant="outline" className="flex-1" type="button" onClick={onCancel}>Cancelar</Button>

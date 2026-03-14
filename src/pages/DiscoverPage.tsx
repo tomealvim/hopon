@@ -568,10 +568,12 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                         subtitle={`${dateStr}, ${timeStr} - ${driverName}`}
                         badges={[
                           { label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`, tone: seatsLeft >= 3 ? "success" : "warning" },
+                          ...(ride.sharedCommunity ? [{ label: ride.sharedCommunity.name, tone: "success" as const }] : []),
+                          ...(ride.community && !ride.sharedCommunity ? [{ label: "Privada", tone: "neutral" as const }] : []),
                           ...(ride.overlapPct != null
-                            ? [{ label: `${ride.overlapPct}% compatível`, tone: (ride.overlapPct >= 70 ? "success" : ride.overlapPct >= 40 ? "warning" : "neutral") as "success" | "warning" | "neutral" }]
+                            ? [{ label: `${ride.overlapPct}% compativel`, tone: (ride.overlapPct >= 70 ? "success" : ride.overlapPct >= 40 ? "warning" : "neutral") as "success" | "warning" | "neutral" }]
                             : []),
-                          ...(ride.instantBooking ? [{ label: "Instantânea", tone: "success" as const }] : []),
+                          ...(ride.instantBooking ? [{ label: "Instantanea", tone: "success" as const }] : []),
                           ...(ride.driver?.isIdentityVerified ? [{ label: "Verificado", tone: "success" as const }] : []),
                           ...(ride.price != null && ride.price > 0 ? [{ label: `€${ride.price.toFixed(0)}/lugar` }] : []),
                         ]}

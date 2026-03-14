@@ -8,6 +8,7 @@ import { SearchRidesDto } from './dto/search-rides.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { WalletService } from '../wallet/wallet.service';
 import { GeocodingService } from '../geocoding/geocoding.service';
+import { CommunitiesService } from '../communities/communities.service';
 
 const SEARCH_TTL_MS = 30_000;  // 30s
 const FOR_YOU_TTL_MS = 60_000; // 60s
@@ -19,6 +20,7 @@ export class RidesService {
     private readonly notificationsService: NotificationsService,
     private readonly walletService: WalletService,
     private readonly geocodingService: GeocodingService,
+    private readonly communitiesService: CommunitiesService,
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
@@ -100,6 +102,7 @@ export class RidesService {
         ...(routePolyline && { routePolyline }),
         instantBooking: dto.instantBooking ?? false,
         ...(dto.meetingPoint && { meetingPoint: dto.meetingPoint }),
+        ...(dto.communityId && { communityId: dto.communityId }),
       },
       include: {
         vehicle: {
@@ -119,11 +122,22 @@ export class RidesService {
         bookings: true,
         originLocation: true,
         destinationLocation: true,
+        community: true,
       },
     });
 
     // Invalidar cache de pesquisa para resultados imediatos
     void this.cache.clear();
+
+    // 16.2.3 — Se a boleia parte nas próximas 2h, notificar utilizadores próximos com rota compatível
+    const now = new Date();
+    const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    if (originCoords && ride.departureTime <= twoHoursLater) {
+      void this.notifyNearbyUsersForNow(userId, ride.id, originCoords.lat, originCoords.lng, ride.origin, ride.destination);
+    }
+
+    // 16.4.5 — Notificar autores de ride requests compatíveis com esta boleia
+    void this.notifyMatchingRideRequests(userId, ride.id, ride.origin, ride.destination, originCoords, destCoords);
 
     return this.toResponse(ride);
   }
@@ -191,8 +205,8 @@ export class RidesService {
     const cached = await this.cache.get<any[]>(cacheKey);
     if (cached) return cached;
 
-    // Obter templates, rotas habituais e condutores familiares (viagens passadas confirmadas)
-    const [templates, userRoutes, pastBookings] = await Promise.all([
+    // Obter templates, rotas habituais, condutores familiares e mapa de comunidades partilhadas
+    const [templates, userRoutes, pastBookings, sharedCommunityMap] = await Promise.all([
       this.prisma.scheduleTemplate.findMany({ where: { userId, active: true } }),
       this.prisma.userRoute.findMany({ where: { userId, active: true } }),
       this.prisma.booking.findMany({
@@ -201,6 +215,7 @@ export class RidesService {
         orderBy: { createdAt: 'desc' },
         take: 50,
       }),
+      this.communitiesService.getSharedCommunityMap(userId),
     ]);
 
     // IDs de condutores com quem o user já viajou
@@ -245,11 +260,21 @@ export class RidesService {
     const tomorrowEnd = new Date(tomorrow);
     tomorrowEnd.setHours(23, 59, 59, 999);
 
+    const myCommunityIds = await this.prisma.communityMember.findMany({
+      where: { userId, status: 'APPROVED' },
+      select: { communityId: true },
+    }).then((ms) => ms.map((m) => m.communityId));
+
     const rides = await this.prisma.ride.findMany({
       where: {
         status: 'SCHEDULED',
         driverId: { not: userId },
         departureTime: { gte: now, lte: in7Days },
+        // Excluir boleias privadas de comunidades das quais o user não é membro
+        OR: [
+          { communityId: null },
+          { communityId: { in: myCommunityIds } },
+        ],
       },
       include: {
         vehicle: { include: { user: { include: { profile: true } } } },
@@ -257,6 +282,7 @@ export class RidesService {
         bookings: true,
         originLocation: true,
         destinationLocation: true,
+        community: true,
       },
     });
 
@@ -375,10 +401,12 @@ export class RidesService {
         const isTomorrow = dep >= tomorrow && dep <= tomorrowEnd;
         const section: 'tomorrow' | 'familiar' | 'this_week' =
           isTomorrow ? 'tomorrow' : familiar ? 'familiar' : 'this_week';
+        const sharedCommunity = sharedCommunityMap.get(ride.driverId) ?? null;
         return {
           ...this.toResponse(ride),
           matchScore: score,
           section,
+          sharedCommunity,
           ...(overlapPct > 0 ? { overlapPct: Math.round(overlapPct) } : {}),
         };
       });
@@ -492,8 +520,8 @@ export class RidesService {
       .map((r) => this.toResponse(r));
   }
 
-  async search(dto: SearchRidesDto) {
-    const cacheKey = `rides:search:${JSON.stringify(
+  async search(dto: SearchRidesDto, userId: string | null = null) {
+    const cacheKey = `rides:search:${userId ?? 'anon'}:${JSON.stringify(
       Object.fromEntries(Object.entries(dto).sort(([a], [b]) => a.localeCompare(b))),
     )}`;
     const cached = await this.cache.get<any[]>(cacheKey);
@@ -539,6 +567,19 @@ export class RidesService {
       where.driverId = { in: members.map((m) => m.userId) };
     }
 
+    // Filtrar boleias privadas: só mostrar se o user é membro da comunidade
+    if (userId) {
+      const myCommunityIds = await this.prisma.communityMember.findMany({
+        where: { userId, status: 'APPROVED' },
+        select: { communityId: true },
+      }).then((ms) => ms.map((m) => m.communityId));
+      const orPrivacy = [{ communityId: null }, ...(myCommunityIds.length > 0 ? [{ communityId: { in: myCommunityIds } }] : [])];
+      where.OR = where.OR ? [...(where.OR as any[]), ...orPrivacy] : orPrivacy;
+    } else {
+      // Utilizador não autenticado — só vê boleias públicas
+      where.communityId = null;
+    }
+
     // Pesquisa por proximidade: filtrar por IDs de rides cujo origin está dentro do raio
     if (dto.lat != null && dto.lng != null) {
       const radiusKm = dto.radius ?? 10;
@@ -580,11 +621,20 @@ export class RidesService {
         bookings: true,
         originLocation: true,
         destinationLocation: true,
+        community: true,
       },
       orderBy: { departureTime: 'asc' },
     });
 
-    const result = rides.map((ride) => this.toResponse(ride));
+    // Badge de comunidade partilhada (só se autenticado)
+    const sharedCommunityMap = userId
+      ? await this.communitiesService.getSharedCommunityMap(userId)
+      : new Map<string, { id: string; name: string }>();
+
+    const result = rides.map((ride) => ({
+      ...this.toResponse(ride),
+      sharedCommunity: sharedCommunityMap.get(ride.driverId) ?? null,
+    }));
     await this.cache.set(cacheKey, result, SEARCH_TTL_MS);
     return result;
   }
@@ -1034,6 +1084,8 @@ export class RidesService {
       routePolyline: ride.routePolyline ?? null,
       instantBooking: ride.instantBooking ?? false,
       meetingPoint: ride.meetingPoint ?? null,
+      communityId: ride.communityId ?? null,
+      community: ride.community ? { id: ride.community.id, name: ride.community.name } : null,
       scheduleTemplateId: ride.scheduleTemplateId ?? null,
       status: ride.status,
       arrivedAt: ride.arrivedAt ?? null,
@@ -1090,5 +1142,80 @@ export class RidesService {
       updatedAt: ride.updatedAt,
     };
   }
+
+  /** 16.2.3 — Notificar utilizadores próximos quando uma boleia "agora" é criada */
+  private async notifyNearbyUsersForNow(
+    driverId: string,
+    rideId: string,
+    originLat: number,
+    originLng: number,
+    origin: string,
+    destination: string,
+  ) {
+    const RADIUS_DEG = 0.027; // ~3 km
+    const LOCATION_STALE_MS = 30 * 60 * 1000; // 30 min
+    const staleCutoff = new Date(Date.now() - LOCATION_STALE_MS);
+
+    const nearbyUsers = await this.prisma.user.findMany({
+      where: {
+        id: { not: driverId },
+        currentLat: { gte: originLat - RADIUS_DEG, lte: originLat + RADIUS_DEG },
+        currentLng: { gte: originLng - RADIUS_DEG, lte: originLng + RADIUS_DEG },
+        locationUpdatedAt: { gte: staleCutoff },
+      },
+      select: { id: true },
+    });
+
+    for (const user of nearbyUsers) {
+      void this.notificationsService.createNotification(
+        user.id,
+        'ride.available-now',
+        'Boleia disponivel agora perto de ti',
+        `Ha uma boleia disponivel agora de ${origin} para ${destination}. Queres pedir lugar?`,
+        { rideId },
+      );
+    }
+  }
+
+  /** 16.4.5 — Notificar autores de ride requests que batem com a boleia criada */
+  private async notifyMatchingRideRequests(
+    driverId: string,
+    rideId: string,
+    rideOrigin: string,
+    rideDestination: string,
+    originCoords: { lat: number; lng: number } | null,
+    destCoords: { lat: number; lng: number } | null,
+  ) {
+    const ORIGIN_RADIUS_KM = 5;   // origem do request até à origem da boleia
+    const DEST_RADIUS_KM = 8;     // destino do request até ao destino da boleia
+
+    const openRequests = await this.prisma.rideRequest.findMany({
+      where: { status: 'OPEN', expiresAt: { gte: new Date() }, passengerId: { not: driverId } },
+      include: { passenger: { select: { id: true } } },
+    });
+
+    for (const req of openRequests) {
+      // Verificar proximidade de origem (se coords disponíveis)
+      if (originCoords && req.originLat != null && req.originLng != null) {
+        const distKm = this.haversineKm(originCoords.lat, originCoords.lng, req.originLat, req.originLng);
+        if (distKm > ORIGIN_RADIUS_KM) continue;
+      }
+
+      // Verificar proximidade de destino (se coords disponíveis)
+      if (destCoords && req.destinationLat != null && req.destinationLng != null) {
+        const distKm = this.haversineKm(destCoords.lat, destCoords.lng, req.destinationLat, req.destinationLng);
+        if (distKm > DEST_RADIUS_KM) continue;
+      }
+
+      void this.notificationsService.createNotification(
+        req.passenger.id,
+        'ride-request.matched',
+        'Boleia compativel com o teu pedido',
+        `Uma nova boleia de ${rideOrigin} para ${rideDestination} pode corresponder ao teu pedido. Ve os detalhes!`,
+        { rideId, rideRequestId: req.id },
+      );
+    }
+  }
+
 }
 

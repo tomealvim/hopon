@@ -23,7 +23,14 @@ type RideRequestItem = {
   departTime: string;
   daysOfWeek: string[];
   note?: string;
+  originDistKm?: number | null;
+  destDistKm?: number | null;
+  dayMatch?: boolean;
   passenger?: { profile?: { name?: string; avatarUrl?: string } | null; email?: string } | null;
+};
+
+const DAY_LABELS: Record<string, string> = {
+  MON: "Seg", TUE: "Ter", WED: "Qua", THU: "Qui", FRI: "Sex", SAT: "Sab", SUN: "Dom",
 };
 
 function RideRequestsForDriver() {
@@ -32,10 +39,21 @@ function RideRequestsForDriver() {
 
   useEffect(() => {
     setLoading(true);
-    apiRequest<RideRequestItem[]>("/ride-requests/for-driver")
-      .then((data) => setRequests(Array.isArray(data) ? data : []))
-      .catch(() => setRequests([]))
-      .finally(() => setLoading(false));
+
+    function load(lat?: number, lng?: number) {
+      const params = new URLSearchParams();
+      if (lat != null) params.set("lat", String(lat));
+      if (lng != null) params.set("lng", String(lng));
+      apiRequest<RideRequestItem[]>(`/ride-requests/for-driver?${params}`)
+        .then((data) => setRequests(Array.isArray(data) ? data : []))
+        .catch(() => setRequests([]))
+        .finally(() => setLoading(false));
+    }
+
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => load(pos.coords.latitude, pos.coords.longitude),
+      () => load(),
+    );
   }, []);
 
   if (loading) return null;
@@ -43,20 +61,35 @@ function RideRequestsForDriver() {
 
   return (
     <section className="pb-6">
-      <h2 className="text-sm font-bold text-gray-900 mb-1">Pedidos na minha rota</h2>
-      <p className="text-xs text-gray-500 mb-3">Passageiros que procuram boleia no teu trajeto habitual</p>
+      <h2 className="text-sm font-bold text-gray-900 mb-1">Pedidos de boleia perto de ti</h2>
+      <p className="text-xs text-gray-500 mb-3">Ordenados por proximidade - passageiros que precisam de boleia na tua zona</p>
       <div className="flex flex-col gap-2">
         {requests.map((r) => {
           const name = r.passenger?.profile?.name ?? r.passenger?.email ?? "Passageiro";
+          const days = (r.daysOfWeek as string[]).map((d) => DAY_LABELS[d] ?? d).join(", ");
           return (
             <div key={r.id} className="flex items-start gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
               <div className="mt-0.5 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-700 shrink-0">
                 {name.slice(0, 2).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-gray-900">{name}</p>
-                <p className="text-xs text-gray-700 truncate">{r.origin} - {r.destination}</p>
-                <p className="text-xs text-gray-500">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <p className="text-sm font-semibold text-gray-900">{name}</p>
+                  <div className="flex items-center gap-1.5">
+                    {r.originDistKm != null && (
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                        {r.originDistKm < 1 ? `${Math.round(r.originDistKm * 1000)}m` : `${r.originDistKm}km`}
+                      </span>
+                    )}
+                    {r.dayMatch === false && (
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">
+                        Dias diferentes
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-700 truncate mt-0.5">{r.origin} - {r.destination}</p>
+                <p className="text-xs text-gray-500">{r.departTime} · {days}</p>
                 {r.note && <p className="text-xs text-gray-400 mt-0.5 italic">{r.note}</p>}
               </div>
             </div>

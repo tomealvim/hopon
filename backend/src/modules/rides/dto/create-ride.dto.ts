@@ -88,5 +88,10 @@ export class CreateRideDto {
   @IsOptional()
   @IsString()
   meetingPoint?: string;
+
+  @ApiPropertyOptional({ example: 'abc123', description: 'ID de comunidade — boleia visível só a membros aprovados' })
+  @IsOptional()
+  @IsString()
+  communityId?: string;
 }
 

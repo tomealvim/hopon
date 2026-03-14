@@ -1095,7 +1095,7 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 | 16.1c.1 | Cron (7h e 17h diário) — cruzar todos os UserRoutes ativos com todos os ScheduleTemplates ativos: sobreposição de dias + hora ±45min + corredor 1500m | ✅ Concluído |
 | 16.1c.2 | Deduplicação obrigatória via Redis: chave `match:{passengerId}:{driverId}:{scheduleId}` com TTL 24h — nunca notificar o mesmo par mais do que 1x/dia | ✅ Concluído |
 | 16.1c.3 | In-app ao passageiro: "João passa perto de ti X-feira às 8h15 no trajeto A → B. Queres pedir lugar?" | ✅ Concluído |
-| 16.1c.4 | Push + in-app ao condutor (quando há passageiro com rota compatível sem boleia) | ⬜ Por fazer (baixa prioridade) |
+| 16.1c.4 | Push + in-app ao condutor (quando há passageiro com rota compatível sem boleia) | ✅ Concluído — dedup separado `match:driver:{driverId}:{passengerId}:{templateId}` TTL 24h; inclui nome do passageiro na notificação |
 | 16.1c.5 | `POST /scheduler/trigger-matching` — trigger manual para testes | ✅ Concluído |
 
 ### 16.2 — "Disponível agora" — modo instantâneo
@@ -1106,7 +1106,7 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 |---|---|---|
 | 16.2.1 | Condutor pode publicar boleia "agora" com departurTime = now + X min | ✅ Concluído — form já aceita qualquer hora; o campo de hora no form é livre |
 | 16.2.2 | Feed "Disponível agora" no Discover — boleias que partem nas próximas 2h | ✅ Concluído — tab "Agora" no Discover, endpoint `GET /rides/available-now`, countdown em minutos |
-| 16.2.3 | Push notification proativa: "Pedro está a 3km de ti e vai para o teu destino em 15 min" | ⬜ Por fazer (requer geolocalização em tempo real — complexo, baixa prioridade) |
+| 16.2.3 | Push notification proativa a utilizadores próximos quando uma boleia "agora" é criada | ✅ Concluído — GPS via `navigator.geolocation` no frontend (App.tsx, envia em load+focus); `PATCH /users/me/location` guarda `currentLat/Lng/locationUpdatedAt`; no `create()` do RidesService, se `departureTime <= now+2h` notifica utilizadores com GPS recente (<30min) num raio de ~3km |
 
 ### 16.3 — Arranjos recorrentes (driver ↔ passenger committed)
 
@@ -1130,7 +1130,7 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 | 16.4.2 | `POST /ride-requests` + `GET /ride-requests` + `DELETE /ride-requests/:id` | ✅ Concluído |
 | 16.4.3 | Cron diário: cruzar RideRequests abertas com novos ScheduleTemplates de condutores | ✅ Concluído — `matchRideRequestsWithTemplates()` em scheduler.service.ts |
 | 16.4.4 | Push notification ao condutor: "Ana precisa de boleia na tua rota Mon-Sex às 8h" | ✅ Concluído |
-| 16.4.5 | Feed de "Pedidos de boleia na minha rota" para condutores na aba Rides | 📋 A discutir — os condutores recebem push/in-app; feed separado tem valor? |
+| 16.4.5 | Feed de "Pedidos de boleia perto de ti" para condutores na aba Rides | ✅ Concluído — ordenado por proximidade GPS (lat/lng via query params), badge de distância em km/m, badge "Dias diferentes" se sem overlap; ao criar boleia notifica automaticamente autores de requests compatíveis (origem ≤5km, destino ≤8km) |
 
 ### 16.5 — Smart home feed
 
@@ -1143,26 +1143,85 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 | 16.5.3 | Secção "Habituais" — condutores com quem o user já viajou e têm boleia disponível | ✅ Concluído — secção "Condutores habituais" com emoji 🤝 |
 | 16.5.4 | Ordenação por score composto: sobreposição de rota + fiabilidade do condutor + reviews + distância ao passageiro | ✅ Concluído — `matchScore` calculado em `findForUser` (tempo 30pts + overlap 70pts + familiar 20pts) |
 
-### 16.6 — Comunidades (empresa / faculdade) 📋 A DISCUTIR
+### 16.6 — Comunidades (grupos sociais por link de convite)
 
-> Grupos fechados onde só entra quem tem email do domínio ou convite. Aumenta confiança porque condutor e passageiro são colegas.
-> **Discussão pendente:** confiança já está coberta por verificação de identidade + carta + ratings. Comunidades adicionam fricção de onboarding e complexidade de moderação. Implementar o resto da Fase 16 primeiro e reavaliar.
+> Grupos de confiança criados por link de convite — amigos, colegas de trabalho, turmas. **Não usa domínios de email** — o modelo é 100% social/pessoal: quem tem o link entra (ou com aprovação do dono). Aumenta confiança porque o condutor e passageiro se conhecem do contexto.
+
+**Estado geral: ~75% implementado.** Infraestrutura backend e UI de gestão completas. Faltam boleias privadas para a comunidade e badge nos cards.
 
 | # | Item | Estado |
 |---|---|---|
-| 16.6.1 | Modelo `Community` — nome, domínio de email (ex: `@iscte.pt`), tipo (UNIVERSITY/WORKPLACE/OPEN) | 📋 A discutir |
-| 16.6.2 | Auto-join por domínio de email na verificação (quem tem email `@iscte.pt` entra na comunidade ISCTE) | 📋 A discutir |
-| 16.6.3 | Filtro "Só da minha comunidade" no Discover | 📋 A discutir |
-| 16.6.4 | Condutor pode publicar boleia só para a comunidade | 📋 A discutir |
+| 16.6.1 | Modelo `Community` + `CommunityMember` — nome, descrição, invite code único, `requiresApproval` | ✅ Concluído |
+| 16.6.2 | CRUD completo — criar comunidade, entrar por código, aprovar/rejeitar membros, sair, regenerar invite code | ✅ Concluído |
+| 16.6.3 | UI de gestão de comunidades no Perfil (`CommunitiesSheet.tsx`) — ver comunidades, copiar link de convite, gerir membros | ✅ Concluído |
+| 16.6.4 | Deep link `/join/:code` — abre diretamente o sheet de entrada na comunidade | ✅ Concluído |
+| 16.6.5 | Filtro "Só da minha comunidade" no Discover | ✅ Concluído |
+| 16.6.6 | `getSharedCommunityUserIds()` — base para badge "Na tua comunidade" | ✅ Concluído |
+| 16.6.7 | Boleia privada para comunidade — campo `communityId` no `Ride`; visível só a membros aprovados | ✅ Concluído — seletor de visibilidade no `OfferRideForm`; `search` e `findForUser` filtram boleias privadas (só membros veem); badge "Privada" nos cards |
+| 16.6.8 | Badge "Na tua comunidade" nos cards do Discover e "Para Ti" | ✅ Concluído — `getSharedCommunityMap()` no backend; badge verde com nome da comunidade nos cards |
 
-### Prioridade de implementação da Fase 16
+---
 
-```
-1. 15.1 + 15.4 (cancelamento rigoroso + reserva instantânea) — base de fiabilidade
-2. 16.1 (route corridor matching) — diferencial técnico principal
-3. 16.5 (smart home feed) — experiência diária
-4. 16.4 (ride requests) — inverter o fluxo
-5. 16.2 (disponível agora) — modo instantâneo
-6. 16.3 (arranjos recorrentes) — relações de longo prazo
-7. 16.6 (comunidades) — crescimento orgânico
-```
+## Fase 17 — Próximos passos
+
+### 17.1 — Completar comunidades
+
+| # | Item | Porquê |
+|---|---|---|
+| 17.1.1 | Boleia privada para comunidade | ✅ Concluído |
+| 17.1.2 | Badge "Na tua comunidade" nos cards | ✅ Concluído |
+| 17.1.3 | Partilha de link de convite mais proeminente na UI — botão "Convidar" com share nativo do browser | ⬜ Por fazer — crescimento orgânico |
+
+### 17.2 — Chat de grupo por boleia
+
+> Hoje cada passageiro tem uma conversa 1-a-1 com o condutor. O que faz sentido é um **chat de grupo por boleia** — condutor + todos os passageiros confirmados. "Estou atrasado 5 min", "Paro no semáforo do Lidl", "Alguém quer parar na bomba?".
+
+**Estado atual:**
+- Infraestrutura de conversas existe (`Conversation` tem `rideId` + `bookingId`)
+- Conversas criadas automaticamente por reserva (1-a-1)
+- Inbox mostra threads separadas por "Viagens" vs DMs
+- **Falta:** conversa de grupo ligada à boleia, botão de acesso direto no card da boleia
+
+| # | Item | Porquê |
+|---|---|---|
+| 17.2.1 | Criar `Conversation` de grupo quando a boleia é criada — tipo `"ride_group"`, participantes: condutor + todos os passageiros CONFIRMED | Um único thread para coordenação — não N threads separadas |
+| 17.2.2 | Adicionar passageiro ao grupo ao confirmar reserva; remover ao cancelar | Grupo sempre sincronizado com os participantes reais |
+| 17.2.3 | Botão "Chat da boleia" no card de boleia ativa em RidesPage — abre diretamente o thread de grupo | Acesso em 1 toque, sem ir ao Inbox procurar |
+| 17.2.4 | Eventos de sistema automáticos no chat de grupo — "João confirmou reserva", "Boleia começa em 15 min", "Condutor está a chegar" | Coordenação sem esforço |
+| 17.2.5 | Badge de mensagens não lidas no card da boleia (RidesPage) | Visibilidade imediata de atividade no grupo |
+
+### 17.3 — Push notifications nativas (Web Push / PWA)
+
+> Atualmente as notificações são só in-app (bell icon). O utilizador tem de abrir a app para as ver. Com Web Push chegam mesmo quando a app está fechada.
+
+| # | Item | Porquê |
+|---|---|---|
+| 17.3.1 | Service Worker + `PushSubscription` guardada no backend (já existe modelo) | Base para enviar push mesmo com app fechada |
+| 17.3.2 | Enviar Web Push em eventos críticos: nova reserva, arranjo proposto, boleia agora perto de ti, mensagem no chat de boleia | Retenção — o utilizador sabe que tem atividade sem abrir a app |
+| 17.3.3 | Configurações de notificação por tipo (o utilizador escolhe o que quer receber) | Evitar spam — utilizador controla |
+
+### 17.4 — Referral e crescimento orgânico
+
+| # | Item | Porquê |
+|---|---|---|
+| 17.4.1 | Código de referral único por utilizador | Crescimento viral — cada condutor traz passageiros |
+| 17.4.2 | Partilha de boleia — link público `/ride/:id` com preview (origem, destino, hora, lugares) | SEO + partilha em grupos de WhatsApp |
+| 17.4.3 | Incentivo de referral — crédito de carteira quando referido completa primeira boleia | Motivação real para convidar |
+
+### 17.5 — Dashboard de admin
+
+> Hoje o admin não tem visibilidade sobre o que se passa na plataforma.
+
+| # | Item | Porquê |
+|---|---|---|
+| 17.5.1 | Métricas básicas: boleias criadas/dia, reservas confirmadas/dia, utilizadores ativos, taxa de cancelamento | Perceber se o produto está a crescer e onde há fricção |
+| 17.5.2 | Gestão de disputas melhorada — fila de disputas abertas, resolver com compensação de carteira | Operação eficiente |
+| 17.5.3 | Mapa de calor de origens/destinos mais frequentes | Perceber onde concentrar esforços de crescimento |
+
+### 17.6 — Polimento de experiência
+
+| # | Item | Porquê |
+|---|---|---|
+| 17.6.1 | Onboarding de rotas habituais — no primeiro login perguntar "De onde para onde vais normalmente?" e criar UserRoute automaticamente | Ativa o smart matching imediatamente para novos utilizadores |
+| 17.6.2 | Perfil público partilhável — página `/u/:id` com ratings, boleias feitas, veículo | Confiança antes da primeira reserva |
+| 17.6.3 | Confirmação de presença (check-in) — passageiro e condutor confirmam que a boleia aconteceu | Reduz disputas e melhora dados de fiabilidade |

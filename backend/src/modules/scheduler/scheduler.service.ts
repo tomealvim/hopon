@@ -268,7 +268,7 @@ export class SchedulerService {
     const [userRoutes, templates] = await Promise.all([
       this.prisma.userRoute.findMany({
         where: { active: true, originLat: { not: null }, originLng: { not: null } },
-        include: { user: { select: { id: true } } },
+        include: { user: { select: { id: true, profile: { select: { name: true } } } } },
       }),
       this.prisma.scheduleTemplate.findMany({
         where: { active: true },
@@ -352,6 +352,21 @@ export class SchedulerService {
           `${driverName} passa perto de ti ${this.dayLabel(nextDay)} às ${timeLabel} no trajeto ${template.origin} → ${template.destination}. Queres pedir lugar?`,
           { scheduleTemplateId: template.id, driverId: template.userId },
         );
+
+        // 16.1c.4 — Notificar também o condutor (dedup separado, TTL 24h)
+        const driverDedupKey = `match:driver:${template.userId}:${passengerId}:${template.id}`;
+        const driverAlreadyNotified = await this.cache.get(driverDedupKey);
+        if (!driverAlreadyNotified) {
+          await this.cache.set(driverDedupKey, true, 24 * 60 * 60 * 1000);
+          const passengerName = (route.user as any)?.profile?.name ?? 'Um passageiro';
+          void this.notificationsService.createNotification(
+            template.userId,
+            'match.passenger',
+            'Passageiro compatível encontrado',
+            `${passengerName} tem um trajeto compatível com a tua boleia ${template.origin} → ${template.destination} ${this.dayLabel(nextDay)} às ${timeLabel}.`,
+            { scheduleTemplateId: template.id, passengerId },
+          );
+        }
 
         notified++;
         this.logger.log(`[cron] Match: passenger ${passengerId} ↔ template ${template.id} (driver ${template.userId})`);

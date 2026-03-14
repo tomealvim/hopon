@@ -217,18 +217,32 @@ export class CommunitiesService {
 
   /** Devolve IDs de utilizadores aprovados em comunidades partilhadas com userId */
   async getSharedCommunityUserIds(userId: string): Promise<string[]> {
+    const map = await this.getSharedCommunityMap(userId);
+    return [...map.keys()];
+  }
+
+  /** Devolve Map<otherUserId, { id, name }> para badge "Na tua comunidade" */
+  async getSharedCommunityMap(userId: string): Promise<Map<string, { id: string; name: string }>> {
     const myMemberships = await this.prisma.communityMember.findMany({
       where: { userId, status: 'APPROVED' },
-      select: { communityId: true },
+      include: { community: { select: { id: true, name: true } } },
     });
-    const communityIds = myMemberships.map((m) => m.communityId);
-    if (communityIds.length === 0) return [];
+    if (myMemberships.length === 0) return new Map();
 
+    const communityIds = myMemberships.map((m) => m.communityId);
     const otherMembers = await this.prisma.communityMember.findMany({
       where: { communityId: { in: communityIds }, status: 'APPROVED', userId: { not: userId } },
-      select: { userId: true },
+      select: { userId: true, communityId: true },
     });
-    return [...new Set(otherMembers.map((m) => m.userId))];
+
+    const communityById = new Map(myMemberships.map((m) => [m.communityId, { id: m.community.id, name: m.community.name }]));
+    const result = new Map<string, { id: string; name: string }>();
+    for (const m of otherMembers) {
+      if (!result.has(m.userId)) {
+        result.set(m.userId, communityById.get(m.communityId)!);
+      }
+    }
+    return result;
   }
 
   private async assertOwner(userId: string, communityId: string) {
