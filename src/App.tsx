@@ -30,6 +30,7 @@ import PolicyAcceptanceSheet from "./components/ui/PolicyAcceptanceSheet";
 import CommunitiesSheet from "./components/profile/CommunitiesSheet";
 import RideRequestSheet from "./components/discover/RideRequestSheet";
 import RideSharePreview from "./pages/RideSharePreview";
+import SaveRouteSheet from "./components/discover/SaveRouteSheet";
 
 export type Tab = "discover" | "rides" | "inbox" | "profile";
 
@@ -83,6 +84,7 @@ function AppContent() {
   const [profileSheetsOpen, setProfileSheetsOpen] = useState(false);
   const [openDriverPolicy, setOpenDriverPolicy] = useState(false);
   const [pendingOfferValues, setPendingOfferValues] = useState<OfferRideFormValues | null>(null);
+  const [openRouteOnboarding, setOpenRouteOnboarding] = useState(false);
 
   // Deep link: /join/:code
   const [joinCode, setJoinCode] = useState<string | undefined>(() => {
@@ -109,6 +111,23 @@ function AppContent() {
       setShowWelcome(true);
       localStorage.setItem('hopon_welcome_shown', 'true');
     }
+  }, [user, hasCompletedProfile]);
+
+  // Onboarding de rota habitual: mostrar se o utilizador não tem rotas guardadas
+  useEffect(() => {
+    if (!user || !hasCompletedProfile) return;
+    if (localStorage.getItem('hopon_route_onboarding_shown')) return;
+    // Delay para não conflituar com o welcome sheet
+    const t = setTimeout(() => {
+      apiRequest<unknown[]>("/user-routes")
+        .then((routes) => {
+          if (Array.isArray(routes) && routes.length === 0) {
+            setOpenRouteOnboarding(true);
+          }
+        })
+        .catch(() => {});
+    }, 1200);
+    return () => clearTimeout(t);
   }, [user, hasCompletedProfile]);
 
   const showGlobalHeader = tab === "rides" || tab === "inbox";
@@ -341,6 +360,25 @@ function AppContent() {
           setOpenJoinSheet(false);
           setJoinCode(undefined);
           window.history.replaceState(null, "", "/");
+        }}
+      />
+
+      {/* Onboarding de rota habitual — utilizadores sem rotas */}
+      <SaveRouteSheet
+        open={openRouteOnboarding}
+        isOnboarding
+        onClose={() => {
+          setOpenRouteOnboarding(false);
+          localStorage.setItem('hopon_route_onboarding_shown', 'true');
+        }}
+        onSaved={() => {
+          setOpenRouteOnboarding(false);
+          localStorage.setItem('hopon_route_onboarding_shown', 'true');
+          setTab("discover");
+        }}
+        onSkip={() => {
+          setOpenRouteOnboarding(false);
+          localStorage.setItem('hopon_route_onboarding_shown', 'true');
         }}
       />
 

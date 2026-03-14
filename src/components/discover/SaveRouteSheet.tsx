@@ -9,6 +9,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onSaved: () => void;
+  onSkip?: () => void;
+  isOnboarding?: boolean;
 };
 
 const ALL_DAYS = [
@@ -43,7 +45,7 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
   }
 }
 
-export default function SaveRouteSheet({ open, onClose, onSaved }: Props) {
+export default function SaveRouteSheet({ open, onClose, onSaved, onSkip, isOnboarding }: Props) {
   const [originLabel,   setOriginLabel]   = useState("");
   const [originLat,     setOriginLat]     = useState<number | undefined>();
   const [originLng,     setOriginLng]     = useState<number | undefined>();
@@ -167,7 +169,7 @@ export default function SaveRouteSheet({ open, onClose, onSaved }: Props) {
   }
 
   return (
-    <Sheet open={open} onClose={handleClose} title="Guardar rota habitual">
+    <Sheet open={open} onClose={handleClose} title={isOnboarding ? "A tua rota habitual" : "Guardar rota habitual"}>
       {done ? (
         <div className="flex flex-col items-center justify-center py-16 gap-4">
           <div className="text-5xl">✅</div>
@@ -179,9 +181,18 @@ export default function SaveRouteSheet({ open, onClose, onSaved }: Props) {
         </div>
       ) : (
         <div className="flex flex-col gap-5 pb-6">
-          <p className="text-sm text-gray-600">
-            Define a tua rota habitual e vemos boleias disponíveis que batem certo.
-          </p>
+          {isOnboarding ? (
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <p className="text-sm font-semibold text-gray-900 mb-1">Bem-vindo ao HopOn!</p>
+              <p className="text-xs text-gray-600">
+                Diz-nos o teu trajeto diário e vamos encontrar boleias que batem certo — sem teres de pesquisar.
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-600">
+              Define a tua rota habitual e vemos boleias disponíveis que batem certo.
+            </p>
+          )}
 
           {/* Origem */}
           <div className="flex flex-col gap-1">
@@ -277,6 +288,16 @@ export default function SaveRouteSheet({ open, onClose, onSaved }: Props) {
           >
             {loading ? "A guardar…" : "Guardar rota"}
           </Button>
+
+          {onSkip && (
+            <button
+              type="button"
+              onClick={onSkip}
+              className="w-full text-center text-xs text-gray-400 hover:text-gray-600 py-1 transition"
+            >
+              Saltar por agora
+            </button>
+          )}
         </div>
       )}
     </Sheet>
