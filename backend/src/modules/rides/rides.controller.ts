@@ -58,6 +58,13 @@ export class RidesController {
     return this.ridesService.findHistory(req.user.id);
   }
 
+  @Get(':id/preview')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Preview público de uma boleia (partilha de link)' })
+  findOnePreview(@Request() req, @Param('id') id: string) {
+    return this.ridesService.findOnePreview(id, req.user?.id ?? null);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()

@@ -205,6 +205,69 @@ export class RidesService {
     return this.toResponse(ride);
   }
 
+  async findOnePreview(rideId: string, userId: string | null) {
+    const ride = await this.prisma.ride.findUnique({
+      where: { id: rideId },
+      include: {
+        driver: { include: { profile: true } },
+        vehicle: true,
+        bookings: { where: { status: { in: ['CONFIRMED', 'PENDING'] } }, select: { seats: true } },
+        community: { select: { id: true, name: true } },
+      },
+    });
+
+    if (!ride) throw new NotFoundException('Boleia não encontrada');
+
+    // Boleia privada — verificar se o utilizador é membro da comunidade
+    if (ride.communityId) {
+      const isMember = userId
+        ? await this.prisma.communityMember.findFirst({
+            where: { userId, communityId: ride.communityId, status: 'APPROVED' },
+          })
+        : null;
+      if (!isMember) {
+        // Devolver informação mínima para "boleia privada"
+        return {
+          id: ride.id,
+          private: true,
+          community: ride.community ? { id: ride.community.id, name: ride.community.name } : null,
+          origin: ride.origin,
+          destination: ride.destination,
+          departureTime: ride.departureTime,
+        };
+      }
+    }
+
+    const bookedSeats = ride.bookings.reduce((s, b) => s + b.seats, 0);
+    const remainingSeats = ride.availableSeats - bookedSeats;
+
+    return {
+      id: ride.id,
+      private: false,
+      origin: ride.origin,
+      destination: ride.destination,
+      departureTime: ride.departureTime,
+      availableSeats: ride.availableSeats,
+      remainingSeats,
+      price: ride.price,
+      status: ride.status,
+      meetingPoint: ride.meetingPoint ?? null,
+      instantBooking: ride.instantBooking,
+      community: ride.community ? { id: ride.community.id, name: ride.community.name } : null,
+      driver: ride.driver ? {
+        id: ride.driver.id,
+        name: ride.driver.profile?.name ?? ride.driver.email,
+        avatarUrl: ride.driver.profile?.avatarUrl ?? null,
+        isIdentityVerified: ride.driver.isIdentityVerified ?? false,
+      } : null,
+      vehicle: ride.vehicle ? {
+        brand: ride.vehicle.brand,
+        model: ride.vehicle.model,
+        color: ride.vehicle.color ?? null,
+      } : null,
+    };
+  }
+
   async findForUser(userId: string) {
     const cacheKey = `rides:for-you:${userId}`;
     const cached = await this.cache.get<any[]>(cacheKey);

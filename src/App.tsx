@@ -29,6 +29,7 @@ import NotificationsSheet from "./components/ui/NotificationsSheet";
 import PolicyAcceptanceSheet from "./components/ui/PolicyAcceptanceSheet";
 import CommunitiesSheet from "./components/profile/CommunitiesSheet";
 import RideRequestSheet from "./components/discover/RideRequestSheet";
+import RideSharePreview from "./pages/RideSharePreview";
 
 export type Tab = "discover" | "rides" | "inbox" | "profile";
 
@@ -92,6 +93,15 @@ function AppContent() {
   const [openJoinSheet, setOpenJoinSheet] = useState(() => {
     const path = window.location.pathname;
     return /^\/join\/[A-Z0-9]{6,10}$/i.test(path);
+  });
+
+  // Deep link: /ride/:id
+  const [sharedRideId, setSharedRideId] = useState<string | undefined>(() => {
+    const match = window.location.pathname.match(/^\/ride\/([a-z0-9-]+)$/i);
+    return match ? match[1] : undefined;
+  });
+  const [openRidePreview, setOpenRidePreview] = useState(() => {
+    return /^\/ride\/[a-z0-9-]+$/i.test(window.location.pathname);
   });
 
   useEffect(() => {
@@ -330,10 +340,27 @@ function AppContent() {
         onClose={() => {
           setOpenJoinSheet(false);
           setJoinCode(undefined);
-          // limpar o URL sem recarregar
           window.history.replaceState(null, "", "/");
         }}
       />
+
+      {/* Deep link /ride/:id — preview público de boleia partilhada */}
+      {openRidePreview && sharedRideId && (
+        <RideSharePreview
+          rideId={sharedRideId}
+          onBook={() => {
+            setOpenRidePreview(false);
+            setSharedRideId(undefined);
+            window.history.replaceState(null, "", "/");
+            setTab("discover");
+          }}
+          onClose={() => {
+            setOpenRidePreview(false);
+            setSharedRideId(undefined);
+            window.history.replaceState(null, "", "/");
+          }}
+        />
+      )}
     </div>
   );
 }
