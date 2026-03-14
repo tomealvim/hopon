@@ -34,6 +34,19 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
   const [loading, setLoading] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  function shareInvite(c: Community) {
+    const link = `${window.location.origin}/join/${c.inviteCode}`;
+    if ("share" in navigator) {
+      (navigator as any).share({ title: c.name, text: `Junta-te a ${c.name} no HopOn e partilha boleias!`, url: link });
+    } else {
+      navigator.clipboard.writeText(link).then(() => {
+        setCopiedId(c.id);
+        setTimeout(() => setCopiedId(null), 2000);
+      });
+    }
+  }
 
   // Create form
   const [name, setName] = useState("");
@@ -178,16 +191,35 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
           ) : (
             <div className="flex flex-col gap-2">
               {communities.map((c) => (
-                <div key={c.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{c.name}</p>
-                    <p className="text-xs text-gray-500">{c.memberCount} membro{c.memberCount !== 1 ? "s" : ""} · {c.myRole === "OWNER" ? "Owner" : "Membro"}</p>
+                <div key={c.id} className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{c.name}</p>
+                      <p className="text-xs text-gray-500">{c.memberCount} membro{c.memberCount !== 1 ? "s" : ""} · {c.myRole === "OWNER" ? "Owner" : "Membro"}</p>
+                    </div>
+                    {c.myRole === "OWNER" && (
+                      <button type="button" className="text-xs font-semibold text-gray-400 hover:text-gray-700 shrink-0" onClick={() => openManage(c)}>
+                        Gerir
+                      </button>
+                    )}
                   </div>
-                  {c.myRole === "OWNER" && (
-                    <button type="button" className="text-xs font-semibold text-gray-900 ml-4" onClick={() => openManage(c)}>
-                      Gerir
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => shareInvite(c)}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-900 text-white text-xs font-semibold py-2 transition hover:bg-gray-700"
+                  >
+                    {copiedId === c.id ? (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+                        Link copiado!
+                      </>
+                    ) : (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+                        Convidar para {c.name}
+                      </>
+                    )}
+                  </button>
                 </div>
               ))}
             </div>
