@@ -41,7 +41,7 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
     if ("share" in navigator) {
       (navigator as any).share({ title: c.name, text: `Junta-te a ${c.name} no HopOn e partilha boleias!`, url: link });
     } else {
-      navigator.clipboard.writeText(link).then(() => {
+      (navigator as Navigator).clipboard?.writeText(link).then(() => {
         setCopiedId(c.id);
         setTimeout(() => setCopiedId(null), 2000);
       });
