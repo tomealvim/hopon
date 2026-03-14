@@ -56,9 +56,12 @@ export class AuthService {
 
       // Criar user e profile numa transação
       // Garantir que phone seja null se não fornecido (não undefined)
+      const referralCode = randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+
       const userData: any = {
         email: dto.email,
         passwordHash,
+        referralCode,
         profile: {
           create: {
             name: dto.name,
@@ -472,11 +475,13 @@ export class AuthService {
         });
       } else {
         // Criar novo utilizador — Google já verificou o email
+        const googleReferralCode = randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
         user = await this.prisma.user.create({
           data: {
             email,
             googleId,
             emailVerifiedAt: new Date(),
+            referralCode: googleReferralCode,
             profile: { create: { name, avatarUrl } },
           },
           include: { profile: true, vehicles: true },

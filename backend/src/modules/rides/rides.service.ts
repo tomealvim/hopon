@@ -940,6 +940,30 @@ export class RidesService {
 
     void this.inboxService.sendSystemMessageToGroup(rideId, driverId, 'Boleia concluida!');
 
+    // Pagar bónus de referral se for a primeira boleia completada do passageiro
+    const REFERRAL_REWARD = 1; // €1
+    for (const booking of confirmedBookings) {
+      const passenger = await this.prisma.user.findUnique({
+        where: { id: booking.userId },
+        select: { referredById: true, referralPaidAt: true },
+      });
+      if (passenger?.referredById && !passenger.referralPaidAt) {
+        const prevCompleted = await this.prisma.booking.count({
+          where: { userId: booking.userId, status: 'COMPLETED', id: { not: booking.id } },
+        });
+        if (prevCompleted === 0) {
+          await Promise.all([
+            this.walletService.credit(booking.userId, REFERRAL_REWARD, 'Bonus de boas-vindas por convite', 'referral'),
+            this.walletService.credit(passenger.referredById, REFERRAL_REWARD, 'Bonus de convite aceite', 'referral'),
+          ]);
+          await this.prisma.user.update({
+            where: { id: booking.userId },
+            data: { referralPaidAt: new Date() },
+          });
+        }
+      }
+    }
+
     // Invalidar cache — boleia COMPLETED não deve aparecer na pesquisa
     void this.cache.clear();
 

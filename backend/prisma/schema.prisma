@@ -83,6 +83,12 @@ model User {
   ownedCommunities  Community[]       @relation("CommunityOwner")
   communityMemberships CommunityMember[]
 
+  referralCode   String?   @unique
+  referredById   String?
+  referredBy     User?     @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referredUsers  User[]    @relation("Referrals")
+  referralPaidAt DateTime?
+
   @@map("users")
 }
 

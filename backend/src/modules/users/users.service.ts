@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -144,6 +144,47 @@ export class UsersService {
       data: { currentLat: lat, currentLng: lng, locationUpdatedAt: new Date() },
     });
     return { ok: true };
+  }
+
+  async getReferralInfo(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        referralCode: true,
+        referredById: true,
+        referralPaidAt: true,
+        _count: { select: { referredUsers: true } },
+      },
+    });
+    if (!user) throw new NotFoundException('Utilizador não encontrado');
+    return {
+      referralCode: user.referralCode,
+      referredCount: user._count.referredUsers,
+      referralPaidAt: user.referralPaidAt,
+      isReferred: !!user.referredById,
+    };
+  }
+
+  async applyReferralCode(userId: string, code: string) {
+    const referrer = await this.prisma.user.findUnique({
+      where: { referralCode: code.toUpperCase() },
+      select: { id: true, profile: { select: { name: true } } },
+    });
+    if (!referrer) throw new BadRequestException('Código de convite inválido');
+    if (referrer.id === userId) throw new BadRequestException('Não podes usar o teu próprio código');
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { referredById: true },
+    });
+    if (!user) throw new NotFoundException('Utilizador não encontrado');
+    if (user.referredById) throw new BadRequestException('Já tens um código de convite aplicado');
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { referredById: referrer.id },
+    });
+    return { ok: true, referrerName: referrer.profile?.name ?? 'Utilizador' };
   }
 }
 

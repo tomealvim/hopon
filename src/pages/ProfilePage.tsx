@@ -164,15 +164,24 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
 
   const { isSupported: pushSupported, subscribed: pushSubscribed, subscribe: subscribePush, unsubscribe: unsubscribePush } = usePushNotifications();
 
-  const referralCode = useMemo(() => {
-    if (!user) return "HOPON10";
-    const nameBase = user.profile?.name?.replace(/\s+/g, "").toUpperCase() ?? "";
-    const emailBase = user.email?.split("@")[0]?.toUpperCase() ?? "";
-    const fallback = nameBase || emailBase || "HOPON";
-    const suffix = user.id.slice(-3).toUpperCase();
-    const raw = `${fallback}${suffix}`.replace(/[^A-Z0-9]/g, "");
-    return raw.slice(0, 8).padEnd(6, "0");
-  }, [user]);
+  const [referralInfo, setReferralInfo] = useState<{
+    referralCode: string | null;
+    referredCount: number;
+    referralPaidAt: string | null;
+    isReferred: boolean;
+  } | null>(null);
+  const [applyCodeInput, setApplyCodeInput] = useState("");
+  const [applyCodeLoading, setApplyCodeLoading] = useState(false);
+  const [applyCodeMsg, setApplyCodeMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  useEffect(() => {
+    if (!openReferral || referralInfo) return;
+    apiRequest<typeof referralInfo>("/users/me/referral")
+      .then((data) => setReferralInfo(data))
+      .catch(() => {});
+  }, [openReferral, referralInfo]);
+
+  const referralCode = referralInfo?.referralCode ?? null;
 
   const passwordHasMinChars = newPasswordValue.length >= 8;
   const passwordsMatch = confirmPassword.length > 0 && newPasswordValue === confirmPassword;
@@ -223,6 +232,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
   }, [language, openLanguageSheet]);
 
   useEffect(() => {
+    if (!openReferral) {
+      setApplyCodeInput("");
+      setApplyCodeMsg(null);
+    }
     if (!openReferral && copyTimeoutRef.current) {
       window.clearTimeout(copyTimeoutRef.current);
       copyTimeoutRef.current = undefined;
@@ -1139,70 +1152,137 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         title="Convidar amigos"
         height="md"
         footer={
-          <Button block variant="outline" className="min-h-[48px]" disabled>
-            Partilhar convite (brevemente)
-          </Button>
+          referralCode ? (
+            <Button
+              block
+              className="min-h-[48px]"
+              onClick={() => {
+                const link = `${window.location.origin}/ref/${referralCode}`;
+                if (typeof navigator !== "undefined" && "share" in navigator) {
+                  navigator.share({ title: "HopOn - Partilha de custos", text: `Usa o meu código ${referralCode} no HopOn e ambos ganhamos €1 de credito!`, url: link }).catch(() => {});
+                } else {
+                  (navigator as Navigator).clipboard?.writeText(link);
+                  setCopiedReferral(true);
+                  setTimeout(() => setCopiedReferral(false), 2000);
+                }
+              }}
+            >
+              Partilhar convite
+            </Button>
+          ) : null
         }
       >
         <div className="space-y-6 py-2">
-          <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-gray-900">Ganha descontos a cada convite</p>
+          <div className="text-center space-y-1">
+            <p className="text-base font-semibold text-gray-900">Convida amigos, ganhas €1</p>
             <p className="text-sm text-gray-900/60">
-              Em breve, quando um amigo usar o teu código, ambos recebem uma percentagem de desconto na próxima viagem.
+              Quando um amigo teu fizer a primeira boleia com o teu codigo, ambos recebem €1 de credito na carteira.
             </p>
           </div>
+
+          {referralInfo && referralInfo.referredCount > 0 && (
+            <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+              <span className="text-sm text-green-800 font-medium">Amigos convidados</span>
+              <span className="text-lg font-bold text-green-700">{referralInfo.referredCount}</span>
+            </div>
+          )}
 
           <div className="rounded-3xl border border-gray-200 bg-gray-50 p-4">
-            <div className="text-xs font-semibold text-gray-900/60 uppercase tracking-wide mb-3">O teu código</div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="font-mono text-lg tracking-[0.35em] text-gray-900">{referralCode}</span>
-              <button
-                type="button"
-                onClick={handleCopyReferralCode}
-                className="p-3 rounded-2xl bg-gray-100 border border-gray-200 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-900"
-                aria-label="Copiar código de convite"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <rect x="7" y="7" width="12" height="12" rx="3" stroke="currentColor" strokeWidth="2" />
-                  <path d="M5 15V7a2 2 0 0 1 2-2h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
-            <p className="text-xs text-gray-900/50 mt-3 min-h-[16px]" aria-live="polite">
-              {copiedReferral ? "Código copiado! Cola em qualquer app de mensagens." : "Toca para copiar e partilha com colegas."}
-            </p>
+            <div className="text-xs font-semibold text-gray-900/60 uppercase tracking-wide mb-3">O teu codigo</div>
+            {referralCode ? (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-lg tracking-[0.35em] text-gray-900">{referralCode}</span>
+                  <button
+                    type="button"
+                    onClick={handleCopyReferralCode}
+                    className="p-3 rounded-2xl bg-gray-100 border border-gray-200 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-900"
+                    aria-label="Copiar codigo de convite"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <rect x="7" y="7" width="12" height="12" rx="3" stroke="currentColor" strokeWidth="2" />
+                      <path d="M5 15V7a2 2 0 0 1 2-2h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-900/50 mt-3 min-h-[16px]" aria-live="polite">
+                  {copiedReferral ? "Codigo copiado! Cola em qualquer app de mensagens." : "Toca para copiar e partilha com colegas."}
+                </p>
+              </>
+            ) : (
+              <div className="h-8 bg-gray-200 rounded animate-pulse" />
+            )}
           </div>
 
+          {!referralInfo?.isReferred && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Tens um codigo de amigo?</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Ex: AB12CD34"
+                  value={applyCodeInput}
+                  onChange={(e) => { setApplyCodeInput(e.target.value.toUpperCase()); setApplyCodeMsg(null); }}
+                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+                  maxLength={8}
+                />
+                <Button
+                  variant="outline"
+                  disabled={applyCodeInput.length < 6 || applyCodeLoading}
+                  onClick={async () => {
+                    setApplyCodeLoading(true);
+                    setApplyCodeMsg(null);
+                    try {
+                      const res = await apiRequest<{ ok: boolean; referrerName: string }>("/users/me/referral/apply", {
+                        method: "POST",
+                        body: JSON.stringify({ code: applyCodeInput }),
+                      });
+                      setApplyCodeMsg({ ok: true, text: `Codigo aplicado! Convidado por ${res.referrerName}.` });
+                      setReferralInfo((prev) => prev ? { ...prev, isReferred: true } : prev);
+                    } catch (e: any) {
+                      setApplyCodeMsg({ ok: false, text: e?.message ?? "Codigo invalido." });
+                    } finally {
+                      setApplyCodeLoading(false);
+                    }
+                  }}
+                >
+                  Aplicar
+                </Button>
+              </div>
+              {applyCodeMsg && (
+                <p className={cn("text-xs", applyCodeMsg.ok ? "text-green-600" : "text-red-500")}>
+                  {applyCodeMsg.text}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-gray-900/60 uppercase tracking-wide">Como vai funcionar</h4>
+            <h4 className="text-xs font-bold text-gray-900/60 uppercase tracking-wide">Como funciona</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <span className="h-8 w-8 rounded-2xl bg-primary/20 text-primary font-semibold flex items-center justify-center">1</span>
+                <span className="h-8 w-8 rounded-2xl bg-gray-100 text-gray-700 font-semibold flex items-center justify-center shrink-0">1</span>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Partilha o teu código</p>
+                  <p className="text-sm font-semibold text-gray-900">Partilha o teu codigo</p>
                   <p className="text-xs text-gray-900/60">Copia e envia pelo WhatsApp, Instagram ou onde preferires.</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <span className="h-8 w-8 rounded-2xl bg-primary/20 text-primary font-semibold flex items-center justify-center">2</span>
+                <span className="h-8 w-8 rounded-2xl bg-gray-100 text-gray-700 font-semibold flex items-center justify-center shrink-0">2</span>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">O amigo usa o convite</p>
-                  <p className="text-xs text-gray-900/60">Assim que ele confirmar a conta, o desconto fica reservado.</p>
+                  <p className="text-sm font-semibold text-gray-900">O amigo regista-se e aplica o codigo</p>
+                  <p className="text-xs text-gray-900/60">No perfil dele, em "Convidar amigos", cola o teu codigo.</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <span className="h-8 w-8 rounded-2xl bg-primary/20 text-primary font-semibold flex items-center justify-center">3</span>
+                <span className="h-8 w-8 rounded-2xl bg-gray-100 text-gray-700 font-semibold flex items-center justify-center shrink-0">3</span>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Desconto aplicado</p>
-                  <p className="text-xs text-gray-900/60">Ambos recebem uma percentagem de desconto na próxima boleia.</p>
+                  <p className="text-sm font-semibold text-gray-900">€1 para cada um</p>
+                  <p className="text-xs text-gray-900/60">Apos a primeira boleia do amigo, ambos recebem €1 na carteira automaticamente.</p>
                 </div>
               </li>
             </ul>
           </div>
-
-          <p className="text-xs text-gray-400 text-center">
-            Funcionalidade visual por agora. As recompensas reais chegam em breve. ✌️
-          </p>
         </div>
       </Sheet>
 

@@ -86,6 +86,27 @@ function AppContent() {
   const [pendingOfferValues, setPendingOfferValues] = useState<OfferRideFormValues | null>(null);
   const [openRouteOnboarding, setOpenRouteOnboarding] = useState(false);
 
+  // Deep link: /ref/:code — store code in localStorage to apply after login
+  useEffect(() => {
+    const match = window.location.pathname.match(/^\/ref\/([A-Z0-9]{6,10})$/i);
+    if (match) {
+      localStorage.setItem('hopon_pending_referral', match[1].toUpperCase());
+      window.history.replaceState(null, "", "/");
+    }
+  }, []);
+
+  // Auto-apply pending referral code after login
+  useEffect(() => {
+    if (!user) return;
+    const code = localStorage.getItem('hopon_pending_referral');
+    if (!code) return;
+    localStorage.removeItem('hopon_pending_referral');
+    apiRequest("/users/me/referral/apply", {
+      method: "POST",
+      body: JSON.stringify({ code }),
+    }).catch(() => {});
+  }, [user]);
+
   // Deep link: /join/:code
   const [joinCode, setJoinCode] = useState<string | undefined>(() => {
     const path = window.location.pathname;

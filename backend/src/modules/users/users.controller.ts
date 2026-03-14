@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
@@ -15,6 +15,16 @@ export class UsersController {
   @Patch('me/location')
   updateLocation(@Request() req: any, @Body() body: { lat: number; lng: number }) {
     return this.usersService.updateLocation(req.user.userId, body.lat, body.lng);
+  }
+
+  @Get('me/referral')
+  getReferralInfo(@Request() req: any) {
+    return this.usersService.getReferralInfo(req.user.userId);
+  }
+
+  @Post('me/referral/apply')
+  applyReferralCode(@Request() req: any, @Body() body: { code: string }) {
+    return this.usersService.applyReferralCode(req.user.userId, body.code);
   }
 
   @Get(':id')
