@@ -10,22 +10,22 @@ export class UsersController {
 
   @Get('me/impact')
   getMyImpact(@Request() req: any) {
-    return this.usersService.getMyImpact(req.user.userId);
+    return this.usersService.getMyImpact(req.user.id);
   }
 
   @Patch('me/location')
   updateLocation(@Request() req: any, @Body() body: { lat: number; lng: number }) {
-    return this.usersService.updateLocation(req.user.userId, body.lat, body.lng);
+    return this.usersService.updateLocation(req.user.id, body.lat, body.lng);
   }
 
   @Get('me/referral')
   getReferralInfo(@Request() req: any) {
-    return this.usersService.getReferralInfo(req.user.userId);
+    return this.usersService.getReferralInfo(req.user.id);
   }
 
   @Post('me/referral/apply')
   applyReferralCode(@Request() req: any, @Body() body: { code: string }) {
-    return this.usersService.applyReferralCode(req.user.userId, body.code);
+    return this.usersService.applyReferralCode(req.user.id, body.code);
   }
 
   @Get(':id')
