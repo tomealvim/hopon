@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Patch, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -28,6 +29,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
   findPublicProfile(@Param('id') id: string) {
     return this.usersService.findPublicProfile(id);
   }

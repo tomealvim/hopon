@@ -97,9 +97,27 @@ export class UsersService {
 
     // Calcular fiabilidade como condutor (últimos 30 dias)
     const since = new Date(Date.now() - 30 * 24 * 3_600_000);
-    const [completedRides, cancelledRides] = await Promise.all([
+    const [completedRides, cancelledRides, vehicles, routeGroups, totalPassengerRides] = await Promise.all([
       this.prisma.ride.count({ where: { driverId: id, status: 'COMPLETED', departureTime: { gte: since } } }),
       this.prisma.ride.count({ where: { driverId: id, status: 'CANCELLED', cancelledAt: { gte: since } } }),
+      this.prisma.vehicle.findMany({
+        where: { userId: id },
+        select: {
+          id: true,
+          brand: true,
+          model: true,
+          color: true,
+          _count: { select: { rides: { where: { status: 'COMPLETED' } } } },
+        },
+      }),
+      this.prisma.ride.groupBy({
+        by: ['origin', 'destination'],
+        where: { driverId: id, status: 'COMPLETED' },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 5,
+      }),
+      this.prisma.booking.count({ where: { userId: id, status: 'COMPLETED' } }),
     ]);
     const totalDriverRides = completedRides + cancelledRides;
     const reliabilityScore = totalDriverRides >= 3
@@ -117,6 +135,7 @@ export class UsersService {
       memberSince: user.createdAt,
       profile: user.profile,
       totalRides: user._count.offeredRides,
+      totalPassengerRides,
       avgRating,
       totalRatings: ratings.length,
       reliability: {
@@ -125,6 +144,18 @@ export class UsersService {
         totalRides: totalDriverRides,
         cancelledRides,
       },
+      vehicles: vehicles.map((v) => ({
+        id: v.id,
+        brand: v.brand,
+        model: v.model,
+        color: v.color,
+        ridesCount: v._count.rides,
+      })),
+      frequentRoutes: routeGroups.map((r) => ({
+        origin: r.origin,
+        destination: r.destination,
+        count: r._count.id,
+      })),
       recentRatings: ratings.map((r) => ({
         score: r.score,
         comment: r.comment,

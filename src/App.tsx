@@ -32,6 +32,7 @@ import CommunitiesSheet from "./components/profile/CommunitiesSheet";
 import RideRequestSheet from "./components/discover/RideRequestSheet";
 import RideSharePreview from "./pages/RideSharePreview";
 import SaveRouteSheet from "./components/discover/SaveRouteSheet";
+import PublicProfilePage from "./pages/PublicProfilePage";
 
 export type Tab = "discover" | "rides" | "inbox" | "profile";
 
@@ -142,6 +143,15 @@ function AppContent() {
   });
   const [openRidePreview, setOpenRidePreview] = useState(() => {
     return /^\/ride\/[a-z0-9-]+$/i.test(window.location.pathname);
+  });
+
+  // Deep link: /u/:id
+  const [publicProfileId, setPublicProfileId] = useState<string | undefined>(() => {
+    const match = window.location.pathname.match(/^\/u\/([a-z0-9-]+)$/i);
+    return match ? match[1] : undefined;
+  });
+  const [openPublicProfile, setOpenPublicProfile] = useState(() => {
+    return /^\/u\/[a-z0-9-]+$/i.test(window.location.pathname);
   });
 
   useEffect(() => {
@@ -433,6 +443,18 @@ function AppContent() {
           onClose={() => {
             setOpenRidePreview(false);
             setSharedRideId(undefined);
+            window.history.replaceState(null, "", "/");
+          }}
+        />
+      )}
+
+      {/* Deep link /u/:id — perfil público de utilizador */}
+      {openPublicProfile && publicProfileId && (
+        <PublicProfilePage
+          userId={publicProfileId}
+          onClose={() => {
+            setOpenPublicProfile(false);
+            setPublicProfileId(undefined);
             window.history.replaceState(null, "", "/");
           }}
         />
