@@ -479,8 +479,8 @@ export class BookingsService {
       void this.notificationsService.createNotification(
         booking.ride.driverId,
         'booking.no_show_claimed',
-        'Passageiro nao embarcou',
-        `Um passageiro indicou que nao embarcou na boleia ${booking.ride.origin} - ${booking.ride.destination}.`,
+        'Passageiro não embarcou',
+        `Um passageiro indicou que não embarcou na boleia ${booking.ride.origin} - ${booking.ride.destination}.`,
         { bookingId, rideId: booking.rideId },
       );
     }

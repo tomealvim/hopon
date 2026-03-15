@@ -36,11 +36,11 @@ function relativeDate(iso: string): string {
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   if (diffDays < 1) return "hoje";
   if (diffDays === 1) return "ontem";
-  if (diffDays < 7) return `ha ${diffDays} dias`;
+  if (diffDays < 7) return `há ${diffDays} dias`;
   const diffWeeks = Math.floor(diffDays / 7);
-  if (diffDays < 30) return `ha ${diffWeeks} ${diffWeeks === 1 ? "semana" : "semanas"}`;
+  if (diffDays < 30) return `há ${diffWeeks} ${diffWeeks === 1 ? "semana" : "semanas"}`;
   const diffMonths = Math.floor(diffDays / 30);
-  return `ha ${diffMonths} ${diffMonths === 1 ? "mes" : "meses"}`;
+  return `há ${diffMonths} ${diffMonths === 1 ? "mês" : "meses"}`;
 }
 
 export default function PublicProfilePage({ userId, onClose }: Props) {
@@ -52,7 +52,7 @@ export default function PublicProfilePage({ userId, onClose }: Props) {
   useEffect(() => {
     apiRequest<PublicProfile>(`/users/${userId}`)
       .then(setProfile)
-      .catch(() => setError("Utilizador nao encontrado ou indisponivel."))
+      .catch(() => setError("Utilizador não encontrado ou indisponível."))
       .finally(() => setLoading(false));
   }, [userId]);
 
@@ -76,7 +76,7 @@ export default function PublicProfilePage({ userId, onClose }: Props) {
   if (error || !profile) {
     return (
       <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center px-6 gap-4">
-        <p className="text-sm text-gray-600 text-center">{error ?? "Utilizador indisponivel."}</p>
+        <p className="text-sm text-gray-600 text-center">{error ?? "Utilizador indisponível."}</p>
         <Button variant="secondary" onClick={onClose}>Voltar</Button>
       </div>
     );

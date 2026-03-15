@@ -1,6 +1,4 @@
 import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
-
-type PushPrefs = { messages: boolean; bookings: boolean; rides: boolean; matches: boolean };
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -13,6 +11,8 @@ import {
   BookingCancelledEmailPayload,
   RideCancelledEmailPayload,
 } from './email-jobs.types';
+
+type PushPrefs = { messages: boolean; bookings: boolean; rides: boolean; matches: boolean };
 
 @Injectable()
 export class NotificationsService {
