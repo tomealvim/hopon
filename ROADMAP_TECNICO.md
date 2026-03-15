@@ -1184,11 +1184,11 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Porquê |
 |---|---|---|
-| 17.2.1 | ❌ Criar `Conversation` de grupo quando a boleia é criada — tipo `"ride_group"`, participantes: condutor + todos os passageiros CONFIRMED | Um único thread para coordenação — não N threads separadas |
-| 17.2.2 | ❌ Adicionar passageiro ao grupo ao confirmar reserva; remover ao cancelar | Grupo sempre sincronizado com os participantes reais |
-| 17.2.3 | ❌ Botão "Chat da boleia" no card de boleia ativa em RidesPage — abre diretamente o thread de grupo | Acesso em 1 toque, sem ir ao Inbox procurar |
-| 17.2.4 | ❌ Eventos de sistema automáticos no chat de grupo — "João confirmou reserva", "Boleia começa em 15 min", "Condutor está a chegar" | Coordenação sem esforço |
-| 17.2.5 | ❌ Badge de mensagens não lidas no card da boleia (RidesPage) | Visibilidade imediata de atividade no grupo |
+| 17.2.1 | ✅ Concluído — `rides.service.ts:132` chama `getOrCreateRideGroupConversation()` após criar a boleia; condutor é o primeiro participante | Um único thread para coordenação — não N threads separadas |
+| 17.2.2 | ✅ Concluído — `bookings.service.ts` chama `addParticipantToGroup()` no CONFIRMED e `removeParticipantFromGroup()` no DECLINED/CANCELLED | Grupo sempre sincronizado com os participantes reais |
+| 17.2.3 | ✅ Concluído — Botão "Chat do grupo" no footer do sheet de detalhe de boleia (condutor e passageiro); abre diretamente o thread via `onOpenGroupChat` prop em App.tsx | Acesso em 1 toque, sem ir ao Inbox procurar |
+| 17.2.4 | ✅ Concluído — Mensagens de sistema enviadas em: reserva confirmada, reserva cancelada, condutor a caminho, condutor chegou, boleia concluída, boleia cancelada | Coordenação sem esforço |
+| 17.2.5 | ✅ Concluído — Badge `"X msg grupo"` visível no card da boleia na lista do condutor (RidesPage); badge vermelho no botão do sheet do passageiro | Visibilidade imediata de atividade no grupo |
 
 ### 17.3 — Push notifications nativas (Web Push / PWA)
 
@@ -1220,6 +1220,6 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Porquê |
 |---|---|---|
-| 17.6.1 | ❌ Onboarding de rotas habituais — no primeiro login perguntar "De onde para onde vais normalmente?" e criar UserRoute automaticamente | Ativa o smart matching imediatamente para novos utilizadores |
+| 17.6.1 | ✅ Concluído — Após primeiro login, se o utilizador não tiver rotas guardadas, mostra automaticamente o `SaveRouteSheet` com variante de onboarding (delay de 1.2s para não conflituar com welcome sheet); chave `hopon_route_onboarding_shown` em localStorage evita repetição | Ativa o smart matching imediatamente para novos utilizadores |
 | 17.6.2 | ✅ Concluído — `PublicProfilePage` em `/u/:id`; rating, fiabilidade, veículos com contagem de viagens, rotas frequentes, avaliações recentes; botão de partilha nativo | Confiança antes da primeira reserva |
 | 17.6.3 | ✅ Concluído — `PresenceConfirmBanner` em RidesPage para boleias COMPLETED; `POST /bookings/:id/confirm-presence`; notifica condutor se passageiro reporta no-show; campos `passengerConfirmed` + `passengerConfirmedAt` na DB | Reduz disputas e melhora dados de fiabilidade |
