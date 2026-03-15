@@ -270,6 +270,9 @@ model Booking {
   pickupLng    Float?
   detourMeters Int?    // distância do ponto de embarque à rota do condutor (calculada no booking)
 
+  passengerConfirmed   Boolean?
+  passengerConfirmedAt DateTime?
+
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 

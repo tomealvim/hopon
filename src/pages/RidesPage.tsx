@@ -145,6 +145,64 @@ const STATUS_TONE: Record<string, "success" | "warning" | "brand" | undefined> =
   COMPLETED: "brand",
 };
 
+function PresenceConfirmBanner({
+  bookingId, origin, destination, onConfirmed
+}: {
+  bookingId: string;
+  origin: string;
+  destination: string;
+  onConfirmed: (present: boolean) => void;
+}) {
+  const [loading, setLoading] = useState<"yes" | "no" | null>(null);
+  const [done, setDone] = useState(false);
+
+  if (done) {
+    return (
+      <div className="text-xs text-gray-500 text-center py-2">
+        Obrigado pela confirmacao
+      </div>
+    );
+  }
+
+  async function confirm(present: boolean) {
+    setLoading(present ? "yes" : "no");
+    try {
+      await apiRequest(`/bookings/${bookingId}/confirm-presence`, {
+        method: "POST",
+        body: JSON.stringify({ present }),
+      });
+      setDone(true);
+      onConfirmed(present);
+    } catch {
+      setLoading(null);
+    }
+  }
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-2">
+      <p className="text-xs font-semibold text-amber-800 mb-2">
+        Embarcaste nesta boleia? ({origin} - {destination})
+      </p>
+      <div className="flex gap-2">
+        <button
+          onClick={() => confirm(true)}
+          disabled={loading !== null}
+          className="flex-1 text-xs font-semibold py-2 rounded-lg border border-green-300 bg-green-50 text-green-700 disabled:opacity-50"
+        >
+          {loading === "yes" ? "..." : "Estive la"}
+        </button>
+        <button
+          onClick={() => confirm(false)}
+          disabled={loading !== null}
+          className="flex-1 text-xs font-semibold py-2 rounded-lg border border-red-200 bg-red-50 text-red-700 disabled:opacity-50"
+        >
+          {loading === "no" ? "..." : "Nao embarquei"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 type RidesPageProps = {
   onOpenGroupChat?: (threadId: string) => void;
 };
@@ -931,6 +989,25 @@ export default function RidesPage({ onOpenGroupChat }: RidesPageProps = {}) {
               )}
               <Row label="Estado" value={STATUS_LABEL[selectedBooking.status] ?? selectedBooking.status} />
             </div>
+            {selectedBooking.status === "COMPLETED" && selectedBooking.passengerConfirmed === null && (
+              <PresenceConfirmBanner
+                bookingId={selectedBooking.id}
+                origin={selectedBooking.ride.origin}
+                destination={selectedBooking.ride.destination}
+                onConfirmed={(present) => {
+                  setMyBookings((prev) =>
+                    prev.map((b) =>
+                      b.id === selectedBooking.id
+                        ? { ...b, passengerConfirmed: present, passengerConfirmedAt: new Date().toISOString() }
+                        : b
+                    )
+                  );
+                  setSelectedBooking((prev) =>
+                    prev ? { ...prev, passengerConfirmed: present, passengerConfirmedAt: new Date().toISOString() } : prev
+                  );
+                }}
+              />
+            )}
             {(selectedBooking.status === "PENDING" || selectedBooking.status === "CONFIRMED") && selectedBooking.ride.price != null && selectedBooking.ride.price > 0 && (() => {
               const hoursUntil = (new Date(selectedBooking.ride.departureTime).getTime() - Date.now()) / 3_600_000;
               const policyText =

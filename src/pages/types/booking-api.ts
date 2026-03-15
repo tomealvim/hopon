@@ -4,6 +4,8 @@ export interface ApiBooking {
   userId: string;
   seats: number;
   status: string; // PENDING | CONFIRMED | DECLINED | CANCELLED | COMPLETED
+  passengerConfirmed?: boolean | null;
+  passengerConfirmedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   conversationId?: string | null;

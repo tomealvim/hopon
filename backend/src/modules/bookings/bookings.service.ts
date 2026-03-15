@@ -460,6 +460,34 @@ export class BookingsService {
     return this.toResponse(updated);
   }
 
+  async confirmPresence(userId: string, bookingId: string, present: boolean) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { ride: true },
+    });
+    if (!booking) throw new NotFoundException('Reserva não encontrada');
+    if (booking.userId !== userId) throw new ForbiddenException('Sem permissão');
+    if (booking.status !== 'COMPLETED') throw new BadRequestException('Só é possível confirmar presença em boleias concluídas');
+    if (booking.passengerConfirmed !== null) throw new BadRequestException('Presença já confirmada');
+
+    await this.prisma.booking.update({
+      where: { id: bookingId },
+      data: { passengerConfirmed: present, passengerConfirmedAt: new Date() },
+    });
+
+    if (!present) {
+      void this.notificationsService.createNotification(
+        booking.ride.driverId,
+        'booking.no_show_claimed',
+        'Passageiro nao embarcou',
+        `Um passageiro indicou que nao embarcou na boleia ${booking.ride.origin} - ${booking.ride.destination}.`,
+        { bookingId, rideId: booking.rideId },
+      );
+    }
+
+    return { ok: true };
+  }
+
   async cancel(userId: string, bookingId: string) {
     // Verificar existência e ownership antes de tentar cancelar
     const booking = await this.prisma.booking.findUnique({
@@ -621,6 +649,8 @@ export class BookingsService {
       pickupLat: booking.pickupLat ?? null,
       pickupLng: booking.pickupLng ?? null,
       detourMeters: booking.detourMeters ?? null,
+      passengerConfirmed: booking.passengerConfirmed ?? null,
+      passengerConfirmedAt: booking.passengerConfirmedAt ?? null,
       createdAt: booking.createdAt,
       updatedAt: booking.updatedAt,
       conversationId: conversationId ?? null,

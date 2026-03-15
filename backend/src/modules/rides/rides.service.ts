@@ -938,6 +938,17 @@ export class RidesService {
       );
     }
 
+    // Pedir confirmação de presença a passageiros confirmados
+    for (const booking of confirmedBookings) {
+      void this.notificationsService.createNotification(
+        booking.userId,
+        'booking.confirm_presence',
+        'Embarcaste na boleia?',
+        `Confirma se embarcaste na boleia ${ride.origin} - ${ride.destination}.`,
+        { bookingId: booking.id, rideId },
+      );
+    }
+
     void this.inboxService.sendSystemMessageToGroup(rideId, driverId, 'Boleia concluida!');
 
     // Pagar bónus de referral se for a primeira boleia completada do passageiro

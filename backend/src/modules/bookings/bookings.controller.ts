@@ -48,5 +48,15 @@ export class BookingsController {
   cancel(@Request() req, @Param('id') id: string) {
     return this.bookingsService.cancel(req.user.id, id);
   }
+
+  @Post(':id/confirm-presence')
+  @ApiOperation({ summary: 'Confirmar presenca na boleia (passageiro)' })
+  confirmPresence(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() body: { present: boolean },
+  ) {
+    return this.bookingsService.confirmPresence(req.user.id, id, body.present);
+  }
 }
 
