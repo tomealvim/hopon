@@ -43,16 +43,17 @@ function AppContent() {
   const { showSuccess, showError } = useNotifications();
   const { refresh: refreshInbox } = useInbox();
   const { unreadCount: notifUnread } = useAppNotifications();
-  // Handle ?tab= param set by service worker notification click
+  // Handle ?tab= and ?rateBooking= params set by service worker notification click
+  const searchParams = new URLSearchParams(window.location.search);
   const [tab, setTab] = useState<Tab>(() => {
-    const param = new URLSearchParams(window.location.search).get("tab");
+    const param = searchParams.get("tab");
     window.history.replaceState(null, "", window.location.pathname);
     const valid: Tab[] = ["discover", "rides", "inbox", "profile"];
     return valid.includes(param as Tab) ? (param as Tab) : "discover";
   });
-  const [initialRateBookingId] = useState<string | undefined>(() => {
-    return new URLSearchParams(window.location.search).get("rateBooking") ?? undefined;
-  });
+  const [initialRateBookingId] = useState<string | undefined>(
+    () => searchParams.get("rateBooking") ?? undefined,
+  );
   const [notifOpen, setNotifOpen] = useState(false);
 
   // Auto-subscribe push notifications após login (só se ainda não subscrito e permissão não negada)
