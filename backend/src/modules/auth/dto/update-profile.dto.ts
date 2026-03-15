@@ -58,5 +58,14 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsNumber()
   homeLng?: number;
+
+  @ApiPropertyOptional({ description: 'Push notification preferences per category' })
+  @IsOptional()
+  pushPreferences?: {
+    messages?: boolean;
+    bookings?: boolean;
+    rides?: boolean;
+    matches?: boolean;
+  };
 }
 

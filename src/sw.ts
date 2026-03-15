@@ -32,8 +32,11 @@ self.addEventListener('push', (event: PushEvent) => {
 
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close();
-  const tab = (event.notification.data as Record<string, unknown> | undefined)?.tab as string | undefined;
-  const url = tab ? `/?tab=${tab}` : '/';
+  const data = event.notification.data as Record<string, unknown> | undefined;
+  const tab = data?.tab as string | undefined;
+  const bookingId = data?.bookingId as string | undefined;
+  let url = tab ? `/?tab=${tab}` : '/';
+  if (bookingId) url += `&rateBooking=${bookingId}`;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {

@@ -164,6 +164,24 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
 
   const { isSupported: pushSupported, subscribed: pushSubscribed, subscribe: subscribePush, unsubscribe: unsubscribePush } = usePushNotifications();
 
+  const [pushPrefs, setPushPrefs] = useState<Record<string, boolean>>(() => {
+    const p = user?.pushPreferences as Record<string, boolean> | null | undefined;
+    return { messages: true, bookings: true, rides: true, matches: true, ...p };
+  });
+
+  async function handleTogglePushPref(key: string) {
+    const next = { ...pushPrefs, [key]: pushPrefs[key] !== false ? false : true };
+    setPushPrefs(next);
+    try {
+      await apiRequest("/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({ pushPreferences: next }),
+      });
+    } catch {
+      setPushPrefs(pushPrefs); // reverter em caso de erro
+    }
+  }
+
   const [referralInfo, setReferralInfo] = useState<{
     referralCode: string | null;
     referredCount: number;
@@ -906,6 +924,34 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           />
         )}
       </nav>
+      {pushSupported && pushSubscribed && (
+        <div className="mx-4 mb-4 border border-gray-100 rounded-xl p-3 bg-white">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">O que receber</p>
+          {([
+            { key: 'messages', label: 'Mensagens' },
+            { key: 'bookings', label: 'Reservas' },
+            { key: 'rides', label: 'Boleias' },
+            { key: 'matches', label: 'Sugestoes de boleias' },
+          ] as const).map(({ key, label }) => (
+            <div key={key} className="flex items-center justify-between py-1">
+              <span className="text-sm text-gray-700">{label}</span>
+              <button
+                onClick={() => handleTogglePushPref(key)}
+                className={cn(
+                  "w-10 h-6 rounded-full transition-colors relative",
+                  pushPrefs[key] !== false ? "bg-gray-900" : "bg-gray-200"
+                )}
+                aria-label={`Notificacoes de ${label}`}
+              >
+                <span className={cn(
+                  "absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform",
+                  pushPrefs[key] !== false ? "left-5" : "left-1"
+                )} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Ajuda">
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useInbox } from "../contexts/InboxContext";
 import { apiRequest } from "../services/api";
@@ -205,9 +205,10 @@ function PresenceConfirmBanner({
 
 type RidesPageProps = {
   onOpenGroupChat?: (threadId: string) => void;
+  initialRateBookingId?: string;
 };
 
-export default function RidesPage({ onOpenGroupChat }: RidesPageProps = {}) {
+export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: RidesPageProps = {}) {
   const { user } = useAuth();
   const { showSuccess, showError } = useNotifications();
   const { subscribe } = useSSE();
@@ -227,6 +228,19 @@ export default function RidesPage({ onOpenGroupChat }: RidesPageProps = {}) {
   const [pendingRatings, setPendingRatings] = useState<PendingRating[]>([]);
   const [ratingTarget, setRatingTarget] = useState<PendingRating | null>(null);
   const [openRating, setOpenRating] = useState(false);
+
+  // Auto-open rating sheet se vem de notificacao push
+  const initialRateHandled = useRef(false);
+  useEffect(() => {
+    if (!initialRateBookingId || initialRateHandled.current) return;
+    if (pendingRatings.length === 0) return;
+    const target = pendingRatings.find((r) => r.bookingId === initialRateBookingId);
+    if (target) {
+      initialRateHandled.current = true;
+      setRatingTarget(target);
+      setOpenRating(true);
+    }
+  }, [initialRateBookingId, pendingRatings]);
 
   // --- Schedules ---
   const [schedules, setSchedules] = useState<ApiSchedule[]>([]);

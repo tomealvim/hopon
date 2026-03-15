@@ -77,5 +77,11 @@ export interface User {
   driverLicenseAdminNote?: string | null;
   isAdmin?: boolean;
   reliability?: UserReliability;
+  pushPreferences?: {
+    messages?: boolean;
+    bookings?: boolean;
+    rides?: boolean;
+    matches?: boolean;
+  } | null;
 }
 

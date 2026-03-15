@@ -1,4 +1,6 @@
 import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
+
+type PushPrefs = { messages: boolean; bookings: boolean; rides: boolean; matches: boolean };
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -24,6 +26,25 @@ export class NotificationsService {
   ) {}
 
   // ─── In-app notifications ────────────────────────────────────────────────────
+
+  private static readonly PUSH_CATEGORY: Record<string, keyof PushPrefs> = {
+    'message.new': 'messages',
+    'booking.new': 'bookings',
+    'booking.confirmed': 'bookings',
+    'booking.declined': 'bookings',
+    'booking.cancelled': 'bookings',
+    'booking.no_show_claimed': 'bookings',
+    'booking.confirm_presence': 'bookings',
+    'ride.completed': 'rides',
+    'ride.arrived': 'rides',
+    'ride.on_the_way': 'rides',
+    'ride.updated': 'rides',
+    'ride.cancelled': 'rides',
+    'match.found': 'matches',
+    'arrangement.proposed': 'matches',
+    'arrangement.accepted': 'matches',
+    'arrangement.declined': 'matches',
+  };
 
   private static readonly TAB_BY_TYPE: Record<string, string> = {
     'message.new': 'inbox',
@@ -69,9 +90,22 @@ export class NotificationsService {
       createdAt: notification.createdAt,
     });
 
-    // Push notification (web push) — inclui tab de destino para navegação ao clicar
+    // Push notification (web push) — verifica preferencias antes de enviar
     const tab = NotificationsService.TAB_BY_TYPE[type] ?? 'discover';
-    void this.pushService.sendToUser(userId, title, body, { ...metadata, tab });
+    const category = NotificationsService.PUSH_CATEGORY[type];
+    if (category) {
+      const userPrefs = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { pushPreferences: true },
+      });
+      const prefs = (userPrefs?.pushPreferences as Partial<PushPrefs> | null) ?? {};
+      const enabled = prefs[category] !== false; // default true se nao definido
+      if (enabled) {
+        void this.pushService.sendToUser(userId, title, body, { ...metadata, tab });
+      }
+    } else {
+      void this.pushService.sendToUser(userId, title, body, { ...metadata, tab });
+    }
 
     return notification;
   }

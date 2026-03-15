@@ -89,6 +89,8 @@ model User {
   referredUsers  User[]    @relation("Referrals")
   referralPaidAt DateTime?
 
+  pushPreferences  Json?   // { messages: bool, bookings: bool, rides: bool, matches: bool }
+
   @@map("users")
 }
 

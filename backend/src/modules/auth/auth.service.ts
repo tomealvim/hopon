@@ -183,15 +183,18 @@ export class AuthService {
     if (dto.homeLng !== undefined) profileData.homeLng = dto.homeLng;
 
     const hasProfileUpdate = Object.keys(profileData).length > 0;
-    const hasUserUpdates = dto.phone !== undefined;
+    const hasUserUpdates = dto.phone !== undefined || dto.pushPreferences !== undefined;
 
     if (!hasUserUpdates && !hasProfileUpdate) {
       return this.getMe(userId);
     }
 
     const userData: Prisma.UserUpdateInput = {};
-    if (hasUserUpdates) {
+    if (dto.phone !== undefined) {
       userData.phone = dto.phone;
+    }
+    if (dto.pushPreferences !== undefined) {
+      (userData as any).pushPreferences = dto.pushPreferences;
     }
     if (hasProfileUpdate) {
       userData.profile = { update: profileData };

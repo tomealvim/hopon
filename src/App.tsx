@@ -50,6 +50,9 @@ function AppContent() {
     const valid: Tab[] = ["discover", "rides", "inbox", "profile"];
     return valid.includes(param as Tab) ? (param as Tab) : "discover";
   });
+  const [initialRateBookingId] = useState<string | undefined>(() => {
+    return new URLSearchParams(window.location.search).get("rateBooking") ?? undefined;
+  });
   const [notifOpen, setNotifOpen] = useState(false);
 
   // Auto-subscribe push notifications após login (só se ainda não subscrito e permissão não negada)
@@ -308,6 +311,7 @@ function AppContent() {
               setInitialThreadId(threadId);
               setTab("inbox");
             }}
+            initialRateBookingId={initialRateBookingId}
           />
         )}
         {tab === "inbox" && (
