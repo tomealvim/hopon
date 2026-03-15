@@ -14,18 +14,18 @@ export class RecurringBookingsController {
   @ApiOperation({ summary: 'Subscrever boleia recorrente' })
   @Post()
   create(@Request() req: any, @Body() dto: CreateRecurringBookingDto) {
-    return this.service.create(req.user.userId, dto);
+    return this.service.create(req.user.id, dto);
   }
 
   @ApiOperation({ summary: 'Listar as minhas subscrições recorrentes' })
   @Get('mine')
   findMine(@Request() req: any) {
-    return this.service.findMine(req.user.userId);
+    return this.service.findMine(req.user.id);
   }
 
   @ApiOperation({ summary: 'Cancelar subscrição recorrente' })
   @Delete(':id')
   cancel(@Request() req: any, @Param('id') id: string) {
-    return this.service.cancel(req.user.userId, id);
+    return this.service.cancel(req.user.id, id);
   }
 }
