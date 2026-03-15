@@ -1184,44 +1184,42 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Porquê |
 |---|---|---|
-| 17.2.1 | Criar `Conversation` de grupo quando a boleia é criada — tipo `"ride_group"`, participantes: condutor + todos os passageiros CONFIRMED | Um único thread para coordenação — não N threads separadas |
-| 17.2.2 | Adicionar passageiro ao grupo ao confirmar reserva; remover ao cancelar | Grupo sempre sincronizado com os participantes reais |
-| 17.2.3 | Botão "Chat da boleia" no card de boleia ativa em RidesPage — abre diretamente o thread de grupo | Acesso em 1 toque, sem ir ao Inbox procurar |
-| 17.2.4 | Eventos de sistema automáticos no chat de grupo — "João confirmou reserva", "Boleia começa em 15 min", "Condutor está a chegar" | Coordenação sem esforço |
-| 17.2.5 | Badge de mensagens não lidas no card da boleia (RidesPage) | Visibilidade imediata de atividade no grupo |
+| 17.2.1 | ❌ Criar `Conversation` de grupo quando a boleia é criada — tipo `"ride_group"`, participantes: condutor + todos os passageiros CONFIRMED | Um único thread para coordenação — não N threads separadas |
+| 17.2.2 | ❌ Adicionar passageiro ao grupo ao confirmar reserva; remover ao cancelar | Grupo sempre sincronizado com os participantes reais |
+| 17.2.3 | ❌ Botão "Chat da boleia" no card de boleia ativa em RidesPage — abre diretamente o thread de grupo | Acesso em 1 toque, sem ir ao Inbox procurar |
+| 17.2.4 | ❌ Eventos de sistema automáticos no chat de grupo — "João confirmou reserva", "Boleia começa em 15 min", "Condutor está a chegar" | Coordenação sem esforço |
+| 17.2.5 | ❌ Badge de mensagens não lidas no card da boleia (RidesPage) | Visibilidade imediata de atividade no grupo |
 
 ### 17.3 — Push notifications nativas (Web Push / PWA)
 
-> Atualmente as notificações são só in-app (bell icon). O utilizador tem de abrir a app para as ver. Com Web Push chegam mesmo quando a app está fechada.
-
 | # | Item | Porquê |
 |---|---|---|
-| 17.3.1 | Service Worker + `PushSubscription` guardada no backend (já existe modelo) | Base para enviar push mesmo com app fechada |
-| 17.3.2 | Enviar Web Push em eventos críticos: nova reserva, arranjo proposto, boleia agora perto de ti, mensagem no chat de boleia | Retenção — o utilizador sabe que tem atividade sem abrir a app |
-| 17.3.3 | Configurações de notificação por tipo (o utilizador escolhe o que quer receber) | Evitar spam — utilizador controla |
+| 17.3.1 | ✅ Concluído — Service Worker (`src/sw.ts`) + `PushSubscription` guardada no backend (`push_subscriptions`), VAPID keys configuradas em Railway | Base para enviar push mesmo com app fechada |
+| 17.3.2 | ✅ Concluído — Web Push enviado em todos os eventos críticos via `PushService.sendToUser()` integrado em `NotificationsService.createNotification()` | Retenção — o utilizador sabe que tem atividade sem abrir a app |
+| 17.3.3 | ✅ Concluído — 4 toggles no ProfilePage (Mensagens, Reservas, Boleias, Sugestoes); preferências guardadas em `pushPreferences JSONB` no user; verificadas antes de cada push | Evitar spam — utilizador controla |
 
 ### 17.4 — Referral e crescimento orgânico
 
 | # | Item | Porquê |
 |---|---|---|
-| 17.4.1 | Código de referral único por utilizador | Crescimento viral — cada condutor traz passageiros |
-| 17.4.2 | Partilha de boleia — link público `/ride/:id` com preview (origem, destino, hora, lugares) | SEO + partilha em grupos de WhatsApp |
-| 17.4.3 | Incentivo de referral — crédito de carteira quando referido completa primeira boleia | Motivação real para convidar |
+| 17.4.1 | ✅ Concluído — `referralCode` único gerado no registo (email + Google); endpoint `GET /users/me/referral`; UI no ProfilePage com contagem de referidos e botão de partilha | Crescimento viral — cada condutor traz passageiros |
+| 17.4.2 | ✅ Concluído — `RideSharePreview` em `/ride/:id`; público (sem login); mostra origem, destino, hora, lugares, condutor, veículo, preço; CTA "Reservar" ou "Entrar no HopOn" | SEO + partilha em grupos de WhatsApp |
+| 17.4.3 | ✅ Concluído — €1 creditado a ambos (referido + referidor) na primeira boleia completada do referido; `referralPaidAt` evita duplo pagamento; lógica em `rides.service.ts complete()` | Motivação real para convidar |
 
 ### 17.5 — Dashboard de admin
 
-> Hoje o admin não tem visibilidade sobre o que se passa na plataforma.
+> Ainda não implementado. Próximo grande passo.
 
 | # | Item | Porquê |
 |---|---|---|
-| 17.5.1 | Métricas básicas: boleias criadas/dia, reservas confirmadas/dia, utilizadores ativos, taxa de cancelamento | Perceber se o produto está a crescer e onde há fricção |
-| 17.5.2 | Gestão de disputas melhorada — fila de disputas abertas, resolver com compensação de carteira | Operação eficiente |
-| 17.5.3 | Mapa de calor de origens/destinos mais frequentes | Perceber onde concentrar esforços de crescimento |
+| 17.5.1 | ❌ Métricas básicas: boleias criadas/dia, reservas confirmadas/dia, utilizadores ativos, taxa de cancelamento | Perceber se o produto está a crescer e onde há fricção |
+| 17.5.2 | ❌ Gestão de disputas melhorada — fila de disputas abertas, resolver com compensação de carteira | Operação eficiente |
+| 17.5.3 | ❌ Mapa de calor de origens/destinos mais frequentes | Perceber onde concentrar esforços de crescimento |
 
 ### 17.6 — Polimento de experiência
 
 | # | Item | Porquê |
 |---|---|---|
-| 17.6.1 | Onboarding de rotas habituais — no primeiro login perguntar "De onde para onde vais normalmente?" e criar UserRoute automaticamente | Ativa o smart matching imediatamente para novos utilizadores |
-| 17.6.2 | Perfil público partilhável — página `/u/:id` com ratings, boleias feitas, veículo | Confiança antes da primeira reserva |
-| 17.6.3 | Confirmação de presença (check-in) — passageiro e condutor confirmam que a boleia aconteceu | Reduz disputas e melhora dados de fiabilidade |
+| 17.6.1 | ❌ Onboarding de rotas habituais — no primeiro login perguntar "De onde para onde vais normalmente?" e criar UserRoute automaticamente | Ativa o smart matching imediatamente para novos utilizadores |
+| 17.6.2 | ✅ Concluído — `PublicProfilePage` em `/u/:id`; rating, fiabilidade, veículos com contagem de viagens, rotas frequentes, avaliações recentes; botão de partilha nativo | Confiança antes da primeira reserva |
+| 17.6.3 | ✅ Concluído — `PresenceConfirmBanner` em RidesPage para boleias COMPLETED; `POST /bookings/:id/confirm-presence`; notifica condutor se passageiro reporta no-show; campos `passengerConfirmed` + `passengerConfirmedAt` na DB | Reduz disputas e melhora dados de fiabilidade |
