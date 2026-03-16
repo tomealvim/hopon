@@ -142,12 +142,8 @@ body {
   height: 65svh; 
 }
 
-.sheet--lg {
-  height: 85svh;
-}
-
-.sheet--full {
-  height: 95svh;
+.sheet--lg { 
+  height: 85svh; 
 }
 
 .sheet-handle { 

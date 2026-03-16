@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { cn } from "../../utils/cn";
 
-type Altura = "auto" | "md" | "lg" | "full";
+type Altura = "auto" | "md" | "lg";
 
 type Props = {
   open: boolean;
@@ -16,7 +16,6 @@ const heightClass: Record<Altura, string> = {
   auto: "sheet--auto",
   md:   "sheet--md",
   lg:   "sheet--lg",
-  full: "sheet--full",
 };
 
 function Sheet({ open, onClose, title, children, footer, height = "md" }: Props) {
