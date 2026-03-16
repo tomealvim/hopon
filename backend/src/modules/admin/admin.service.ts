@@ -268,6 +268,164 @@ export class AdminService {
     return { message: `Disputa ${disputeId} ${newStatus.toLowerCase()}.` };
   }
 
+  async getMetrics() {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const last7 = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const last30 = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [
+      totalUsers, newToday, newWeek, newMonth, suspended, verified,
+      totalRides, ridesWeek, scheduled, completed, cancelledRides,
+      totalBookings, confirmedBookings, cancelledBookings,
+      pendingDisputes, pendingPayouts, pendingVerifications, pendingLicenses,
+      topRoutes, walletAgg,
+    ] = await Promise.all([
+      this.prisma.user.count(),
+      this.prisma.user.count({ where: { createdAt: { gte: today } } }),
+      this.prisma.user.count({ where: { createdAt: { gte: last7 } } }),
+      this.prisma.user.count({ where: { createdAt: { gte: last30 } } }),
+      this.prisma.user.count({ where: { suspendedAt: { not: null } } }),
+      this.prisma.user.count({ where: { isIdentityVerified: true } }),
+      this.prisma.ride.count(),
+      this.prisma.ride.count({ where: { createdAt: { gte: last7 } } }),
+      this.prisma.ride.count({ where: { status: 'SCHEDULED' } }),
+      this.prisma.ride.count({ where: { status: 'COMPLETED' } }),
+      this.prisma.ride.count({ where: { cancelledAt: { not: null } } }),
+      this.prisma.booking.count(),
+      this.prisma.booking.count({ where: { status: 'CONFIRMED' } }),
+      this.prisma.booking.count({ where: { status: 'CANCELLED' } }),
+      (this.prisma as any).dispute.count({ where: { status: 'OPEN' } }),
+      (this.prisma as any).payoutRequest.count({ where: { status: 'PENDING' } }),
+      this.prisma.user.count({ where: { identityDocumentStatus: 'PENDING' } }),
+      this.prisma.user.count({ where: { driverLicenseStatus: 'PENDING' } }),
+      this.prisma.ride.groupBy({
+        by: ['origin', 'destination'],
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 10,
+      }),
+      this.prisma.wallet.aggregate({ _sum: { balance: true } }),
+    ]);
+
+    const cancellationRate =
+      totalBookings > 0 ? Math.round((cancelledBookings / totalBookings) * 1000) / 10 : 0;
+
+    return {
+      users: { total: totalUsers, newToday, newWeek, newMonth, suspended, verified },
+      rides: { total: totalRides, thisWeek: ridesWeek, scheduled, completed, cancelled: cancelledRides },
+      bookings: { total: totalBookings, confirmed: confirmedBookings, cancelled: cancelledBookings, cancellationRate },
+      pending: { disputes: pendingDisputes, payouts: pendingPayouts, verifications: pendingVerifications, licenses: pendingLicenses },
+      topRoutes: topRoutes.map((r) => ({ origin: r.origin, destination: r.destination, count: r._count.id })),
+      totalWalletBalance: walletAgg._sum.balance ?? 0,
+    };
+  }
+
+  async getUsers(search?: string, page = 1, limit = 20, filter?: string) {
+    const skip = (page - 1) * limit;
+    const where: any = {};
+    if (search) {
+      where.OR = [
+        { email: { contains: search, mode: 'insensitive' } },
+        { profile: { name: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+    if (filter === 'suspended') where.suspendedAt = { not: null };
+    if (filter === 'verified') where.isIdentityVerified = true;
+    if (filter === 'admin') where.isAdmin = true;
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          email: true,
+          isAdmin: true,
+          isIdentityVerified: true,
+          identityDocumentStatus: true,
+          driverLicenseStatus: true,
+          suspendedAt: true,
+          suspensionReason: true,
+          createdAt: true,
+          profile: { select: { name: true, avatarUrl: true } },
+          _count: { select: { offeredRides: true, bookings: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      users: users.map((u) => ({
+        id: u.id,
+        email: u.email,
+        name: u.profile?.name,
+        avatarUrl: u.profile?.avatarUrl,
+        isAdmin: u.isAdmin,
+        isIdentityVerified: u.isIdentityVerified,
+        identityDocumentStatus: u.identityDocumentStatus,
+        driverLicenseStatus: u.driverLicenseStatus,
+        suspendedAt: u.suspendedAt,
+        suspensionReason: u.suspensionReason,
+        createdAt: u.createdAt,
+        ridesOffered: u._count.offeredRides,
+        bookingsMade: u._count.bookings,
+      })),
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    };
+  }
+
+  async getRides(status?: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const where: any = status ? { status } : {};
+
+    const [rides, total] = await Promise.all([
+      this.prisma.ride.findMany({
+        where,
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          origin: true,
+          destination: true,
+          departureTime: true,
+          status: true,
+          availableSeats: true,
+          price: true,
+          createdAt: true,
+          cancelledAt: true,
+          driver: { select: { id: true, email: true, profile: { select: { name: true } } } },
+          _count: { select: { bookings: true } },
+        },
+        orderBy: { departureTime: 'desc' },
+      }),
+      this.prisma.ride.count({ where }),
+    ]);
+
+    return {
+      rides: rides.map((r) => ({
+        id: r.id,
+        origin: r.origin,
+        destination: r.destination,
+        departureTime: r.departureTime,
+        status: r.status,
+        availableSeats: r.availableSeats,
+        price: r.price,
+        createdAt: r.createdAt,
+        cancelledAt: r.cancelledAt,
+        driver: { id: r.driver.id, email: r.driver.email, name: r.driver.profile?.name },
+        bookingsCount: r._count.bookings,
+      })),
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    };
+  }
+
   async getPayoutRequests(status?: string) {
     const where = status ? { status } : {};
     return (this.prisma as any).payoutRequest.findMany({

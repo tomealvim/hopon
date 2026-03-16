@@ -13,6 +13,28 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  @Get('metrics')
+  @ApiOperation({ summary: 'Métricas da plataforma' })
+  getMetrics() {
+    return this.adminService.getMetrics();
+  }
+
+  @Get('users')
+  @ApiOperation({ summary: 'Listar utilizadores' })
+  getUsers(
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('filter') filter?: string,
+  ) {
+    return this.adminService.getUsers(search, page ? parseInt(page, 10) : 1, 20, filter);
+  }
+
+  @Get('rides')
+  @ApiOperation({ summary: 'Listar boleias' })
+  getRides(@Query('status') status?: string, @Query('page') page?: string) {
+    return this.adminService.getRides(status, page ? parseInt(page, 10) : 1);
+  }
+
   @Get('reports')
   @ApiOperation({ summary: 'Listar denúncias' })
   getReports(@Query('status') status?: string) {
