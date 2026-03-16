@@ -62,7 +62,7 @@ O sistema tem de ser tão fiável quanto um autocarro — o passageiro tem de po
 
 ---
 
-## Fase 2 — Produto real
+## Fase 2 — Produto real ✅ CONCLUÍDA
 
 ### 2.1 — Geodata estruturada ✅ CONCLUÍDA
 
@@ -189,7 +189,7 @@ O sistema tem de ser tão fiável quanto um autocarro — o passageiro tem de po
 
 ---
 
-## Fase 5 — Polimento e Features Avançadas
+## Fase 5 — Polimento e Features Avançadas ✅ CONCLUÍDA
 
 | # | Item | Estado |
 |---|---|---|
@@ -203,7 +203,7 @@ O sistema tem de ser tão fiável quanto um autocarro — o passageiro tem de po
 
 ---
 
-## Fase 6 — Deploy & Testes E2E
+## Fase 6 — Deploy & Testes E2E ✅ CONCLUÍDA
 
 | # | Item | Estado |
 |---|---|---|
@@ -284,7 +284,7 @@ VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
 
 ---
 
-## Fase 8 — Ciclo de Dinheiro Completo
+## Fase 8 — Ciclo de Dinheiro Completo ✅ CONCLUÍDA
 
 > O Stripe foi integrado (7.1) mas o ciclo ainda tem lacunas: a comissão HopOn não é retida, condutores não podem sacar, e passageiros não podem pedir reembolso do saldo não usado.
 
@@ -401,7 +401,7 @@ Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
 
 ---
 
-## Fase 9 — Matching & Descoberta
+## Fase 9 — Matching & Descoberta ✅ CONCLUÍDA
 
 | # | Item | Estado |
 |---|---|---|
@@ -462,7 +462,7 @@ Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
 
 ---
 
-## Fase 10 — Design & Infraestrutura Beta
+## Fase 10 — Design & Infraestrutura Beta ✅ CONCLUÍDA
 
 | # | Item | Estado |
 |---|---|---|
@@ -901,7 +901,7 @@ Não é urgente — o Prisma escala bem até dezenas de milhares de utilizadores
 
 ---
 
-## Fase 14 — Sistema de Verificação Completo
+## Fase 14 — Sistema de Verificação Completo ✅ CONCLUÍDA
 
 > Mínimo obrigatório para plataforma de ridesharing séria. Sem isto não é seguro lançar ao público.
 
@@ -962,7 +962,7 @@ O nº do Cartão de Cidadão deve aparecer na foto da carta de condução para c
 
 ---
 
-## Fase 15 — Experiência de Commute Diário
+## Fase 15 — Experiência de Commute Diário ✅ CONCLUÍDA
 
 > Peças essenciais que têm de existir para que o matching da Fase 16 resulte em experiências reais de commute — sem estas, mesmo o melhor matching parte na execução.
 
@@ -1010,7 +1010,7 @@ O nº do Cartão de Cidadão deve aparecer na foto da carta de condução para c
 
 ---
 
-## Fase 15b — Fiabilidade (Commute First)
+## Fase 15b — Fiabilidade (Commute First) ✅ CONCLUÍDA
 
 > Para substituir transportes públicos, a plataforma tem de ser tão fiável quanto um autocarro. Cancelar a 20 minutos é inaceitável — a pessoa fica sem ir trabalhar.
 
@@ -1053,7 +1053,7 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 ---
 
-## Fase 16 — Smart Matching (Daily Hardcore)
+## Fase 16 — Smart Matching (Daily Hardcore) ✅ CONCLUÍDA
 
 > O objetivo é que o utilizador abra a app e veja imediatamente "João passa a 500m de ti às 8h15 amanhã, mesmo destino". Sem pesquisar. Sem fricção. Como um autocarro inteligente.
 
