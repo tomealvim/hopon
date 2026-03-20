@@ -44,20 +44,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Carregar utilizador do localStorage ao iniciar (+ tratar callback OAuth Google)
+  // Ler tokens OAuth da URL de forma síncrona durante o render,
+  // antes de os children (AppContent) apagarem os query params com replaceState.
+  useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthToken = params.get("token");
+    const oauthRefresh = params.get("refresh");
+    if (oauthToken && oauthRefresh) {
+      localStorage.setItem(STORAGE_KEY_TOKEN, oauthToken);
+      localStorage.setItem(STORAGE_KEY_REFRESH, oauthRefresh);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    return null;
+  });
+
+  // Carregar utilizador do localStorage ao iniciar
   useEffect(() => {
     const checkAuth = async () => {
-      // Verificar se voltámos de um callback OAuth (Google)
-      const params = new URLSearchParams(window.location.search);
-      const oauthToken = params.get("token");
-      const oauthRefresh = params.get("refresh");
-      if (oauthToken && oauthRefresh) {
-        localStorage.setItem(STORAGE_KEY_TOKEN, oauthToken);
-        localStorage.setItem(STORAGE_KEY_REFRESH, oauthRefresh);
-        // Limpar os tokens da URL para não ficarem no histórico
-        window.history.replaceState({}, "", window.location.pathname);
-      }
-
       const token = localStorage.getItem(STORAGE_KEY_TOKEN);
       if (!token) {
         setIsLoading(false);
