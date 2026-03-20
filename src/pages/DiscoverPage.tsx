@@ -106,6 +106,15 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   const [arrangements, setArrangements] = useState<{ asDriver: Arrangement[]; asPassenger: Arrangement[] }>({ asDriver: [], asPassenger: [] });
   const [arrangementsLoaded, setArrangementsLoaded] = useState(false);
 
+  // Abrir sheet de rota habitual quando o utilizador vai para "Para ti" sem rotas
+  useEffect(() => {
+    if (tab !== "for-you") return;
+    if (!routesLoaded) return; // aguardar carregamento
+    if (userRoutes.length === 0) {
+      setOpenSaveRoute(true);
+    }
+  }, [tab, routesLoaded, userRoutes.length]);
+
   // Carregar rotas habituais + boleias sugeridas + pedidos proativamente ao montar
   useEffect(() => {
     if (!routesLoaded) {
