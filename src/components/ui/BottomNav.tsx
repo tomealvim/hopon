@@ -63,7 +63,6 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
   return (
     <nav
       className="fixed left-0 right-0 bottom-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-100 pb-[env(safe-area-inset-bottom)]"
-      style={{ boxShadow: "0 -4px 20px rgba(0,0,0,0.05)" }}
       role="navigation"
       aria-label="Navegação inferior"
     >
