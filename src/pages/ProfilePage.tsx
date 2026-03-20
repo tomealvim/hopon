@@ -299,8 +299,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       verificationSheetOpen ||
       openIdentitySheet ||
       openDriverLicenseSheet ||
-      openCommunities ||
-      openAdminPanel;
+      openCommunities;
 
     onSheetStateChange?.(isAnySheetOpen);
   }, [
@@ -322,7 +321,6 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
     openIdentitySheet,
     openDriverLicenseSheet,
     openCommunities,
-    openAdminPanel,
     onSheetStateChange,
   ]);
 
