@@ -79,9 +79,10 @@ export default function MapPicker({ open, onClose, onConfirm, initialLat, initia
         zoomControl: true,
       });
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap",
-        maxZoom: 19,
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: "© OpenStreetMap © CARTO",
+        subdomains: "abcd",
+        maxZoom: 20,
       }).addTo(map);
 
       marker = L.marker([startLat, startLng], { draggable: true }).addTo(map);
