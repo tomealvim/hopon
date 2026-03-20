@@ -106,7 +106,6 @@ function AppContent() {
   const [profileSheetsOpen, setProfileSheetsOpen] = useState(false);
   const [openDriverPolicy, setOpenDriverPolicy] = useState(false);
   const [pendingOfferValues, setPendingOfferValues] = useState<OfferRideFormValues | null>(null);
-  const [openRouteOnboarding, setOpenRouteOnboarding] = useState(false);
 
   // Deep link: /ref/:code — store code in localStorage to apply after login
   useEffect(() => {
@@ -165,22 +164,6 @@ function AppContent() {
     }
   }, [user, hasCompletedProfile]);
 
-  // Onboarding de rota habitual: mostrar se o utilizador não tem rotas guardadas
-  useEffect(() => {
-    if (!user || !hasCompletedProfile) return;
-    if (localStorage.getItem('hopon_route_onboarding_shown')) return;
-    // Delay para não conflituar com o welcome sheet
-    const t = setTimeout(() => {
-      apiRequest<unknown[]>("/user-routes")
-        .then((routes) => {
-          if (Array.isArray(routes) && routes.length === 0) {
-            setOpenRouteOnboarding(true);
-          }
-        })
-        .catch(() => {});
-    }, 1200);
-    return () => clearTimeout(t);
-  }, [user, hasCompletedProfile]);
 
   const showGlobalHeader = tab === "rides" || tab === "inbox";
   const hideBottomNav = openOffer || openComposer || profileSheetsOpen;
@@ -416,24 +399,6 @@ function AppContent() {
         }}
       />
 
-      {/* Onboarding de rota habitual — utilizadores sem rotas */}
-      <SaveRouteSheet
-        open={openRouteOnboarding}
-        isOnboarding
-        onClose={() => {
-          setOpenRouteOnboarding(false);
-          localStorage.setItem('hopon_route_onboarding_shown', 'true');
-        }}
-        onSaved={() => {
-          setOpenRouteOnboarding(false);
-          localStorage.setItem('hopon_route_onboarding_shown', 'true');
-          setTab("discover");
-        }}
-        onSkip={() => {
-          setOpenRouteOnboarding(false);
-          localStorage.setItem('hopon_route_onboarding_shown', 'true');
-        }}
-      />
 
       {/* Deep link /ride/:id — preview público de boleia partilhada */}
       {openRidePreview && sharedRideId && (
