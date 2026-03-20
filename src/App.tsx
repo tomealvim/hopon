@@ -31,7 +31,6 @@ import PolicyAcceptanceSheet from "./components/ui/PolicyAcceptanceSheet";
 import CommunitiesSheet from "./components/profile/CommunitiesSheet";
 import RideRequestSheet from "./components/discover/RideRequestSheet";
 import RideSharePreview from "./pages/RideSharePreview";
-import SaveRouteSheet from "./components/discover/SaveRouteSheet";
 import PublicProfilePage from "./pages/PublicProfilePage";
 
 export type Tab = "discover" | "rides" | "inbox" | "profile";
