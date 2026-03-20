@@ -20,7 +20,6 @@ import HistorySheet from "../components/profile/HistorySheet";
 import IdentityVerificationSheet from "../components/profile/IdentityVerificationSheet";
 import DriverLicenseSheet from "../components/profile/DriverLicenseSheet";
 import CommunitiesSheet from "../components/profile/CommunitiesSheet";
-import AdminPanel from "../components/admin/AdminPanel";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { TERMS_LAST_UPDATED, TERMS_SECTIONS, TERMS_TITLE } from "../data/terms";
 import AuthPage from "./AuthPage";
@@ -67,25 +66,25 @@ function ImpactWidget() {
       <div className="grid grid-cols-2 gap-3">
         {impact.co2SavedKg > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
-            <p className="text-2xl font-bold text-gray-900">{impact.co2SavedKg} kg</p>
+            <p className="text-2xl font-bold text-gray-900 font-headline">{impact.co2SavedKg} kg</p>
             <p className="text-xs text-gray-500 mt-0.5">CO2 poupado</p>
           </div>
         )}
         {impact.moneySavedEur > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
-            <p className="text-2xl font-bold text-gray-900">€{impact.moneySavedEur.toFixed(0)}</p>
+            <p className="text-2xl font-bold text-gray-900 font-headline">€{impact.moneySavedEur.toFixed(0)}</p>
             <p className="text-xs text-gray-500 mt-0.5">poupado vs. carro</p>
           </div>
         )}
         {impact.totalPassengerRides > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
-            <p className="text-2xl font-bold text-gray-900">{impact.totalPassengerRides}</p>
+            <p className="text-2xl font-bold text-gray-900 font-headline">{impact.totalPassengerRides}</p>
             <p className="text-xs text-gray-500 mt-0.5">boleias como passageiro</p>
           </div>
         )}
         {impact.totalPassengersCarried > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
-            <p className="text-2xl font-bold text-gray-900">{impact.totalPassengersCarried}</p>
+            <p className="text-2xl font-bold text-gray-900 font-headline">{impact.totalPassengersCarried}</p>
             <p className="text-xs text-gray-500 mt-0.5">passageiros transportados</p>
           </div>
         )}
@@ -129,7 +128,6 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
   const [openIdentitySheet, setOpenIdentitySheet] = useState(false);
   const [openDriverLicenseSheet, setOpenDriverLicenseSheet] = useState(false);
   const [openCommunities, setOpenCommunities] = useState(false);
-  const [openAdminPanel, setOpenAdminPanel] = useState(false);
   const [profileSection, setProfileSection] = useState<"overview" | "driver" | "account">("overview");
   const [copiedReferral, setCopiedReferral] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
@@ -967,14 +965,6 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       </nav>
 
       {/* ========== ADMIN (apenas visível para admins) ========== */}
-      {user?.isAdmin && (
-        <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Admin">
-          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">Administração</h3>
-          </div>
-          <ListRow label="Painel Admin" onClick={() => setOpenAdminPanel(true)} />
-        </nav>
-      )}
 
       {/* ========== ZONA DE RISCO ========== */}
       <div className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Zona de risco">
@@ -1646,7 +1636,6 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         onUploaded={() => { /* o AuthContext fará refresh do user */ }}
       />
       <CommunitiesSheet open={openCommunities} onClose={() => setOpenCommunities(false)} />
-      <AdminPanel open={openAdminPanel} onClose={() => setOpenAdminPanel(false)} />
       </div>
     </div>
   );

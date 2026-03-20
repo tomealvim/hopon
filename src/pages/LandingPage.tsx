@@ -31,7 +31,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
           <span className="text-[10px] uppercase tracking-[0.55em] text-gray-500 mb-5 block">
             Bem-vindo ao
           </span>
-          <h1 className="text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
+          <h1 className="text-6xl font-extrabold text-gray-900 mb-4 tracking-tight font-headline">
             <AppName />
           </h1>
           <p className="text-xl font-semibold text-gray-900 mb-3 leading-snug">

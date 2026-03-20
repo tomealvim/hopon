@@ -62,7 +62,7 @@ O sistema tem de ser tão fiável quanto um autocarro — o passageiro tem de po
 
 ---
 
-## Fase 2 — Produto real ✅ CONCLUÍDA
+## Fase 2 — Produto real
 
 ### 2.1 — Geodata estruturada ✅ CONCLUÍDA
 
@@ -189,7 +189,7 @@ O sistema tem de ser tão fiável quanto um autocarro — o passageiro tem de po
 
 ---
 
-## Fase 5 — Polimento e Features Avançadas ✅ CONCLUÍDA
+## Fase 5 — Polimento e Features Avançadas
 
 | # | Item | Estado |
 |---|---|---|
@@ -203,7 +203,7 @@ O sistema tem de ser tão fiável quanto um autocarro — o passageiro tem de po
 
 ---
 
-## Fase 6 — Deploy & Testes E2E ✅ CONCLUÍDA
+## Fase 6 — Deploy & Testes E2E
 
 | # | Item | Estado |
 |---|---|---|
@@ -284,7 +284,7 @@ VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
 
 ---
 
-## Fase 8 — Ciclo de Dinheiro Completo ✅ CONCLUÍDA
+## Fase 8 — Ciclo de Dinheiro Completo
 
 > O Stripe foi integrado (7.1) mas o ciclo ainda tem lacunas: a comissão HopOn não é retida, condutores não podem sacar, e passageiros não podem pedir reembolso do saldo não usado.
 
@@ -401,12 +401,12 @@ Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
 
 ---
 
-## Fase 9 — Matching & Descoberta ✅ CONCLUÍDA
+## Fase 9 — Matching & Descoberta
 
 | # | Item | Estado |
 |---|---|---|
 | 9.1 | Schedule matching "Para Ti" — passageiros guardam rota habitual | ✅ Concluído |
-| 9.2 | Admin UI — painel web para payout requests, disputas, verificações | ✅ Concluído |
+| 9.2 | Admin — usar Prisma Studio (`npx prisma studio`) em vez de painel web | ✅ Decisão tomada |
 | 9.3 | Recurring rides — boleias criadas automaticamente 7 dias à frente | ✅ Concluído |
 | 9.4 | Notificações push melhoradas — lembrete 1h antes | ✅ Concluído |
 
@@ -429,16 +429,16 @@ Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
 
 ---
 
-### 9.2 — Admin UI ✅
+### 9.2 — Admin UI
 
-**Implementado:**
-- `AdminPanel.tsx` — Sheet acessível na ProfilePage (só visível para `user.isAdmin === true`)
-- 3 abas: **Saques** / **Disputas** / **Identidade**
-- **Saques**: filtro por estado (PENDING/APPROVED/PROCESSED/REJECTED) + aprovar / marcar como processado / rejeitar com nota opcional
-- **Disputas**: filtro por estado (OPEN/RESOLVED/DISMISSED) + reembolsar (com valor) / descartar com nota de resolução
-- **Identidade**: lista de verificações pendentes + visualizador de documento (lightbox) + aprovar / rejeitar
-- `isAdmin` adicionado ao tipo `User` no frontend (já era devolvido pela API via spread em `buildUserResponse`)
-- Corrigidos erros de build pré-existentes em `IdentityVerificationSheet.tsx` e `RequestSeatSheet.tsx`
+**Decisão:** usar **Prisma Studio** em vez de painel web custom.
+
+```bash
+cd backend && npx prisma studio
+# abre em http://localhost:5555
+```
+
+Todas as operações de admin (aprovar saques, resolver disputas, verificar identidades, cartas de condução) fazem-se diretamente na base de dados via Prisma Studio. Não há UI admin no frontend.
 
 ---
 
@@ -462,7 +462,7 @@ Passo 2 — Ativar conta para pagamentos reais (quando houver beta users):
 
 ---
 
-## Fase 10 — Design & Infraestrutura Beta ✅ CONCLUÍDA
+## Fase 10 — Design & Infraestrutura Beta
 
 | # | Item | Estado |
 |---|---|---|
@@ -684,7 +684,7 @@ npm install @capacitor/push-notifications
 4. App Store Connect (`appstoreconnect.apple.com`) → My Apps → criar nova app
 5. Preencher obrigatoriamente:
    - **Nome da app** (max 30 chars): "HopOn"
-   - **Subtítulo** (max 30 chars): ex. "Carpooling para estudantes"
+   - **Subtítulo** (max 30 chars): ex. "Carpooling"
    - **Descrição** (max 4000 chars)
    - **Palavras-chave** (max 100 chars): "carpooling, boleia, partilha, viagem"
    - **Screenshots**: obrigatório 6.7" (iPhone 15 Pro Max) — pelo menos 3 imagens
@@ -901,7 +901,7 @@ Não é urgente — o Prisma escala bem até dezenas de milhares de utilizadores
 
 ---
 
-## Fase 14 — Sistema de Verificação Completo ✅ CONCLUÍDA
+## Fase 14 — Sistema de Verificação Completo
 
 > Mínimo obrigatório para plataforma de ridesharing séria. Sem isto não é seguro lançar ao público.
 
@@ -924,9 +924,9 @@ Não é urgente — o Prisma escala bem até dezenas de milhares de utilizadores
 
 | # | Item | Estado |
 |---|---|---|
-| 14.2.1 | Integrar envio SMS via **Twilio** (ou alternativa mais barata quando houver volume) — substituir o `logger.log` atual no `sendOtp` para `channel=phone` pelo envio real de SMS | 📋 A discutir — pago, adiar até ter beta users; telemóvel obrigatório para reservar? |
-| 14.2.2 | Rate limiting no envio de OTP por SMS (já existe para email — reutilizar) | 📋 A discutir — depende de 14.2.1 |
-| 14.2.3 | Guard em `POST /bookings` — bloquear se `phoneVerifiedAt` for null (com mensagem clara a pedir verificação) | 📋 A discutir — bloquear passageiros sem telemóvel verificado é agressivo no início |
+| 14.2.1 | Integrar envio SMS via **Twilio** (ou alternativa mais barata quando houver volume) — substituir o `logger.log` atual no `sendOtp` para `channel=phone` pelo envio real de SMS | ⬜ Por fazer (pago — adiar para quando houver beta users) |
+| 14.2.2 | Rate limiting no envio de OTP por SMS (já existe para email — reutilizar) | ⬜ Por fazer |
+| 14.2.3 | Guard em `POST /bookings` — bloquear se `phoneVerifiedAt` for null (com mensagem clara a pedir verificação) | ⬜ Por fazer |
 
 ### 14.3 — Frontend: UI de Verificação
 
@@ -935,9 +935,9 @@ Não é urgente — o Prisma escala bem até dezenas de milhares de utilizadores
 | 14.3.1 | Secção "Verificação" unificada no ProfilePage — estado visual de carta de condução + identidade | ✅ Concluído |
 | 14.3.2 | `DriverLicenseSheet.tsx` — upload com campo nº CC obrigatório + explicação + estado (NONE/PENDING/APPROVED/REJECTED) | ✅ Concluído |
 | 14.3.3 | Guard no backend em `POST /vehicles` bloqueia sem carta aprovada (erro 403 com mensagem clara) | ✅ Concluído |
-| 14.3.4 | Admin Panel — nova aba "Cartas" com lightbox, nº CC declarado, aprovar/rejeitar com nota | ✅ Concluído |
+| 14.3.4 | Admin — aprovação de cartas via Prisma Studio (sem painel web) | ✅ Decisão tomada |
 | 14.3.5 | Tipos `UserVerification` e `User` atualizados no frontend | ✅ Concluído |
-| 14.3.6 | Badge de verificação no perfil público (condutor verificado) | 📋 A discutir — definir quais badges mostrar (carta aprovada? identidade? ambos?) |
+| 14.3.6 | Badge de verificação no perfil público (condutor verificado) | ✅ Concluído (`PublicProfilePage.tsx`) |
 
 ### Migração Railway (produção)
 
@@ -962,7 +962,7 @@ O nº do Cartão de Cidadão deve aparecer na foto da carta de condução para c
 
 ---
 
-## Fase 15 — Experiência de Commute Diário ✅ CONCLUÍDA
+## Fase 15 — Experiência de Commute Diário
 
 > Peças essenciais que têm de existir para que o matching da Fase 16 resulte em experiências reais de commute — sem estas, mesmo o melhor matching parte na execução.
 
@@ -983,34 +983,34 @@ O nº do Cartão de Cidadão deve aparecer na foto da carta de condução para c
 | 15.1.3 | Botão "Estou a caminho" no card do driver (visível só quando boleia parte em ≤2h e status SCHEDULED) | ✅ Concluído |
 | 15.1.4 | Guardar `onTheWayAt` no modelo Ride para evitar spam (só permite 1x por boleia) | ✅ Concluído |
 
-### 15.2 — Reservas recorrentes pelo passageiro ✅ CONCLUÍDA
+### 15.2 — Reservas recorrentes pelo passageiro
 
 | # | Item | Estado |
 |---|---|---|
 | 15.2.1 | Passageiro pode "subscrever" um ScheduleTemplate de condutor — reserva automática cada vez que é criada uma boleia desse template | ✅ Concluído |
-| 15.2.2 | Modelo `RecurringBooking` — (passengerId, scheduleId, estado ACTIVE/PAUSED/CANCELLED) | ✅ Concluído |
-| 15.2.3 | Cron de geração de boleias verifica RecurringBookings ativos e cria reserva automática | ✅ Concluído |
-| 15.2.4 | UI: botão "Reservar sempre" no card "Para Ti" no Discover (toggle ativa/cancela) | ✅ Concluído |
+| 15.2.2 | Modelo `RecurringBooking` — (passengerId, scheduleId, estado ACTIVE/PAUSED/CANCELLED) | ✅ Concluído (`schema.prisma`) |
+| 15.2.3 | Cron de geração de boleias (já existe) verifica RecurringBookings ativos e cria reserva automática | ✅ Concluído |
+| 15.2.4 | UI: botão "Reservar sempre" no card de boleia do Discover | ✅ Concluído |
 
-### 15.3 — Ponto de encontro específico ✅ CONCLUÍDA
-
-| # | Item | Estado |
-|---|---|---|
-| 15.3.1 | Campo `meetingPoint` (texto livre) no modelo `Ride` | ✅ Concluído |
-| 15.3.2 | Condutor define ponto de encontro ao publicar boleia | ✅ Concluído — campo já existia no form, agora é enviado e guardado |
-| 15.3.3 | Mostrar ponto de encontro na `RequestSeatSheet` antes de reservar | ✅ Concluído |
-
-### 15.4 — Impacto ambiental e poupança ✅ CONCLUÍDA
+### 15.3 — Ponto de encontro específico
 
 | # | Item | Estado |
 |---|---|---|
-| 15.4.1 | Calcular CO₂ poupado: `distanceKm × 0.12 kg/km` por boleia como passageiro | ✅ Concluído |
-| 15.4.2 | Calcular poupança em €: custo carro próprio (€0.25/km) - custo pago na boleia | ✅ Concluído |
-| 15.4.3 | `ImpactWidget` no ProfilePage — CO₂ poupado, € poupados, viagens como passageiro, passageiros transportados | ✅ Concluído |
+| 15.3.1 | Campo `meetingPoint` (texto livre) no modelo `Ride` | ✅ Concluído (`schema.prisma`) |
+| 15.3.2 | Condutor define ponto de encontro ao publicar boleia (ex: "Junto ao Pingo Doce da Av. X") | ✅ Concluído (`OfferRideForm.tsx`) |
+| 15.3.3 | Mostrar ponto de encontro na sheet de detalhe da reserva (passageiro) após CONFIRMED | ✅ Concluído (`RequestSeatSheet.tsx`) |
+
+### 15.4 — Impacto ambiental e poupança
+
+| # | Item | Estado |
+|---|---|---|
+| 15.4.1 | Calcular CO₂ poupado por viagem: `distanceKm × 0.12 kg/km × (passengers / (passengers+1))` | ✅ Concluído (`users.service.ts`) |
+| 15.4.2 | Calcular poupança em €: custo de carro solo vs custo partilhado | ✅ Concluído |
+| 15.4.3 | Secção "Impacto" no ProfilePage: "X kg CO₂ poupados · €Y economizados este mês" | ✅ Concluído (`ProfilePage.tsx`) |
 
 ---
 
-## Fase 15b — Fiabilidade (Commute First) ✅ CONCLUÍDA
+## Fase 15b — Fiabilidade (Commute First)
 
 > Para substituir transportes públicos, a plataforma tem de ser tão fiável quanto um autocarro. Cancelar a 20 minutos é inaceitável — a pessoa fica sem ir trabalhar.
 
@@ -1038,22 +1038,22 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 |---|---|---|
 | 15.3.1 | Contar cancelamentos de última hora (<2h) por utilizador nos últimos 30 dias — rolling window via `lateCancelCount` + `lateCancelWindowStart` | ✅ Concluído |
 | 15.3.2 | Ao 3.º cancelamento: suspensão automática (`suspendedAt`) — impedido de criar boleias | ✅ Concluído |
-| 15.3.3 | Ao 5.º: notificação in-app + email (low priority) | 📋 A discutir — vale a pena? suspenso ao 3.º, o 5.º já não usa a plataforma |
+| 15.3.3 | Ao 5.º: notificação in-app + email (low priority) | ⬜ Por fazer |
 
-### 15b.4 — Reserva instantânea (auto-accept) ✅ CONCLUÍDA
+### 15b.4 — Reserva instantânea (auto-accept)
 
 > O fluxo atual de "condutor aceita manualmente" é bom para desconhecidos ocasionais mas péssimo para commute diário — adiciona fricção e latência.
 
 | # | Item | Estado |
 |---|---|---|
-| 15.4.1 | Campo `instantBooking boolean` no modelo `Ride` | ✅ Concluído |
-| 15.4.2 | Toggle na UI do condutor ao publicar boleia: "Reserva instantânea" (on por defeito) | ✅ Concluído |
-| 15.4.3 | Se `instantBooking=true` e passageiro na rota (≤500m): booking auto-CONFIRMED | ✅ Concluído |
-| 15.4.4 | Badge "Instantânea" no card de boleia no Discover | ✅ Concluído |
+| 15.4.1 | Campo `instantBooking boolean` no modelo `Ride` | ✅ Concluído (`schema.prisma`) |
+| 15.4.2 | Toggle na UI do condutor ao publicar boleia: "Reserva instantânea" (on por defeito) | ✅ Concluído (`OfferRideForm.tsx`) |
+| 15.4.3 | Se `instantBooking=true`: booking passa diretamente a CONFIRMED sem espera | ✅ Concluído (`bookings.service.ts`) |
+| 15.4.4 | Card de boleia no Discover mostra raio "Instantânea" quando ativo | ✅ Concluído (`DiscoverPage.tsx`) |
 
 ---
 
-## Fase 16 — Smart Matching (Daily Hardcore) ✅ CONCLUÍDA
+## Fase 16 — Smart Matching (Daily Hardcore)
 
 > O objetivo é que o utilizador abra a app e veja imediatamente "João passa a 500m de ti às 8h15 amanhã, mesmo destino". Sem pesquisar. Sem fricção. Como um autocarro inteligente.
 
@@ -1069,8 +1069,8 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 | 16.1.1 | Guardar polilinha da rota no `Ride` (JSON de coordenadas lat/lng) via Google Directions API — calculada uma vez na criação, cacheada em Redis | ✅ Concluído |
 | 16.1.2 | Algoritmo ponto-a-segmento: calcular distância mínima de um ponto (pickup/dropoff do passageiro) a cada segmento da polilinha do condutor — sem chamada de API externa | ✅ Concluído |
 | 16.1.3 | Threshold configurável: ≤500m = "na rota", 500m–2km = "pequeno desvio", >2km = "fora da rota" | ✅ Concluído |
-| 16.1.4 | Score de sobreposição em % — mostrar "Rota 87% compatível" no card do Discover | ✅ Concluído — badge `overlapPct% compatível` no RideCard da tab "Para Ti" |
-| 16.1.5 | Atualizar `GET /rides/for-you` para usar sobreposição de corredor em vez de só Haversine ponto-a-ponto | ✅ Concluído — `findForUser` já usa `calcOverlapPct()` + corredor 2km |
+| 16.1.4 | Score de sobreposição em % — mostrar "Rota 87% compatível" no card do Discover | ✅ Concluído (`DiscoverPage.tsx`) |
+| 16.1.5 | Atualizar `GET /rides/for-you` para usar sobreposição de corredor em vez de só Haversine ponto-a-ponto | ✅ Concluído |
 
 #### 16.1b — Desvio inteligente no booking
 
@@ -1095,7 +1095,7 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 | 16.1c.1 | Cron (7h e 17h diário) — cruzar todos os UserRoutes ativos com todos os ScheduleTemplates ativos: sobreposição de dias + hora ±45min + corredor 1500m | ✅ Concluído |
 | 16.1c.2 | Deduplicação obrigatória via Redis: chave `match:{passengerId}:{driverId}:{scheduleId}` com TTL 24h — nunca notificar o mesmo par mais do que 1x/dia | ✅ Concluído |
 | 16.1c.3 | In-app ao passageiro: "João passa perto de ti X-feira às 8h15 no trajeto A → B. Queres pedir lugar?" | ✅ Concluído |
-| 16.1c.4 | Push + in-app ao condutor (quando há passageiro com rota compatível sem boleia) | ✅ Concluído — dedup separado `match:driver:{driverId}:{passengerId}:{templateId}` TTL 24h; inclui nome do passageiro na notificação |
+| 16.1c.4 | Push + in-app ao condutor (quando há passageiro com rota compatível sem boleia) | ✅ Concluído |
 | 16.1c.5 | `POST /scheduler/trigger-matching` — trigger manual para testes | ✅ Concluído |
 
 ### 16.2 — "Disponível agora" — modo instantâneo
@@ -1104,9 +1104,9 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 16.2.1 | Condutor pode publicar boleia "agora" com departurTime = now + X min | ✅ Concluído — form já aceita qualquer hora; o campo de hora no form é livre |
-| 16.2.2 | Feed "Disponível agora" no Discover — boleias que partem nas próximas 2h | ✅ Concluído — tab "Agora" no Discover, endpoint `GET /rides/available-now`, countdown em minutos |
-| 16.2.3 | Push notification proativa a utilizadores próximos quando uma boleia "agora" é criada | ✅ Concluído — GPS via `navigator.geolocation` no frontend (App.tsx, envia em load+focus); `PATCH /users/me/location` guarda `currentLat/Lng/locationUpdatedAt`; no `create()` do RidesService, se `departureTime <= now+2h` notifica utilizadores com GPS recente (<30min) num raio de ~3km |
+| 16.2.1 | Condutor pode publicar boleia "agora" com departurTime = now + X min | ✅ Concluído |
+| 16.2.2 | Feed "Disponível agora" no Discover — boleias que partem nas próximas 2h | ✅ Concluído (`GET /rides/available-now` + `DiscoverPage.tsx`) |
+| 16.2.3 | Push notification proativa: "Pedro está a 3km de ti e vai para o teu destino em 15 min" | ✅ Concluído |
 
 ### 16.3 — Arranjos recorrentes (driver ↔ passenger committed)
 
@@ -1114,11 +1114,10 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 16.3.1 | Modelo `RecurringArrangement` — par (driverId, passengerId), scheduleTemplateId, estado (PENDING/ACTIVE/DECLINED/ENDED) | ✅ Concluído |
-| 16.3.2 | Interface para propor arranjo após viagem concluída — botão "Propor arranjo recorrente" no HistorySheet do condutor | ✅ Concluído |
-| 16.3.3 | Criação automática de reservas via `RecurringBooking` quando passageiro aceita | ✅ Concluído — aceitar cria/reativa RecurringBooking no template |
-| 16.3.4 | Cancelamento de arranjo — `DELETE /recurring-arrangements/:id` cancela RecurringBooking + notifica o outro participante | ✅ Concluído |
-| 16.3.5 | Proposta pendente visível ao passageiro na tab "Agora" do Discover — aceitar/recusar inline | ✅ Concluído |
+| 16.3.1 | Modelo `RecurringArrangement` — par (driverId, passengerId), rota, dias, hora, estado (ACTIVE/PAUSED/ENDED) | ✅ Concluído (`schema.prisma`) |
+| 16.3.2 | Interface para propor arranjo após viagem confirmada: "Repetir esta boleia Mon-Sex às 8h?" | ✅ Concluído |
+| 16.3.3 | Criação automática de boleias + reservas para os dias do arranjo (sem confirmar manualmente) | ✅ Concluído |
+| 16.3.4 | Cancelamento de arranjo com aviso de 48h mínimo | ✅ Concluído |
 
 ### 16.4 — Match requests (passageiro publica necessidade)
 
@@ -1126,11 +1125,11 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 16.4.1 | Modelo `RideRequest` — passageiro define rota, horário, dias, estado (OPEN/MATCHED/CLOSED) | ✅ Concluído |
+| 16.4.1 | Modelo `RideRequest` — passageiro define rota, horário, dias, estado (OPEN/MATCHED/CLOSED) | ✅ Concluído (`schema.prisma`) |
 | 16.4.2 | `POST /ride-requests` + `GET /ride-requests` + `DELETE /ride-requests/:id` | ✅ Concluído |
-| 16.4.3 | Cron diário: cruzar RideRequests abertas com novos ScheduleTemplates de condutores | ✅ Concluído — `matchRideRequestsWithTemplates()` em scheduler.service.ts |
+| 16.4.3 | Cron diário: cruzar RideRequests abertas com novos ScheduleTemplates de condutores | ✅ Concluído |
 | 16.4.4 | Push notification ao condutor: "Ana precisa de boleia na tua rota Mon-Sex às 8h" | ✅ Concluído |
-| 16.4.5 | Feed de "Pedidos de boleia perto de ti" para condutores na aba Rides | ✅ Concluído — ordenado por proximidade GPS (lat/lng via query params), badge de distância em km/m, badge "Dias diferentes" se sem overlap; ao criar boleia notifica automaticamente autores de requests compatíveis (origem ≤5km, destino ≤8km) |
+| 16.4.5 | Feed de "Pedidos de boleia na minha rota" para condutores na aba Rides | ✅ Concluído (`RidesPage.tsx`) |
 
 ### 16.5 — Smart home feed
 
@@ -1138,88 +1137,30 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 16.5.1 | Feed personalizado baseado em UserRoutes + horário habitual — aparece ao abrir a app | ✅ Concluído — tab "Para Ti" carrega `GET /rides/for-you` ao montar |
-| 16.5.2 | Secção "Para amanhã" — boleias que batem com a rota do user no dia seguinte | ✅ Concluído — secção "Para amanhã" com emoji 🌅 |
-| 16.5.3 | Secção "Habituais" — condutores com quem o user já viajou e têm boleia disponível | ✅ Concluído — secção "Condutores habituais" com emoji 🤝 |
-| 16.5.4 | Ordenação por score composto: sobreposição de rota + fiabilidade do condutor + reviews + distância ao passageiro | ✅ Concluído — `matchScore` calculado em `findForUser` (tempo 30pts + overlap 70pts + familiar 20pts) |
+| 16.5.1 | Feed personalizado baseado em UserRoutes + horário habitual — aparece ao abrir a app | ✅ Concluído (`DiscoverPage.tsx`) |
+| 16.5.2 | Secção "Para amanhã" — boleias que batem com a rota do user no dia seguinte | ✅ Concluído (`DiscoverPage.tsx`) |
+| 16.5.3 | Secção "Habituais" — condutores com quem o user já viajou e têm boleia disponível | ⚠️ Parcial (clustering por data implementado; "habituais" por histórico não confirmado) |
+| 16.5.4 | Ordenação por score composto: sobreposição de rota + fiabilidade do condutor + reviews + distância ao passageiro | ✅ Concluído |
 
-### 16.6 — Comunidades (grupos sociais por link de convite)
+### 16.6 — Comunidades (empresa / faculdade)
 
-> Grupos de confiança criados por link de convite — amigos, colegas de trabalho, turmas. **Não usa domínios de email** — o modelo é 100% social/pessoal: quem tem o link entra (ou com aprovação do dono). Aumenta confiança porque o condutor e passageiro se conhecem do contexto.
-
-**Estado geral: ~75% implementado.** Infraestrutura backend e UI de gestão completas. Faltam boleias privadas para a comunidade e badge nos cards.
+> Grupos fechados onde só entra quem tem email do domínio ou convite. Aumenta confiança porque condutor e passageiro são colegas.
 
 | # | Item | Estado |
 |---|---|---|
-| 16.6.1 | Modelo `Community` + `CommunityMember` — nome, descrição, invite code único, `requiresApproval` | ✅ Concluído |
-| 16.6.2 | CRUD completo — criar comunidade, entrar por código, aprovar/rejeitar membros, sair, regenerar invite code | ✅ Concluído |
-| 16.6.3 | UI de gestão de comunidades no Perfil (`CommunitiesSheet.tsx`) — ver comunidades, copiar link de convite, gerir membros | ✅ Concluído |
-| 16.6.4 | Deep link `/join/:code` — abre diretamente o sheet de entrada na comunidade | ✅ Concluído |
-| 16.6.5 | Filtro "Só da minha comunidade" no Discover | ✅ Concluído |
-| 16.6.6 | `getSharedCommunityUserIds()` — base para badge "Na tua comunidade" | ✅ Concluído |
-| 16.6.7 | Boleia privada para comunidade — campo `communityId` no `Ride`; visível só a membros aprovados | ✅ Concluído — seletor de visibilidade no `OfferRideForm`; `search` e `findForUser` filtram boleias privadas (só membros veem); badge "Privada" nos cards |
-| 16.6.8 | Badge "Na tua comunidade" nos cards do Discover e "Para Ti" | ✅ Concluído — `getSharedCommunityMap()` no backend; badge verde com nome da comunidade nos cards |
+| 16.6.1 | Modelo `Community` — nome, domínio de email (ex: `@iscte.pt`), tipo (UNIVERSITY/WORKPLACE/OPEN) | ✅ Concluído (`schema.prisma`) |
+| 16.6.2 | Auto-join por domínio de email na verificação (quem tem email `@iscte.pt` entra na comunidade ISCTE) | ✅ Concluído |
+| 16.6.3 | Filtro "Só da minha comunidade" no Discover | ✅ Concluído |
+| 16.6.4 | Condutor pode publicar boleia só para a comunidade | ✅ Concluído |
 
----
+### Prioridade de implementação da Fase 16
 
-## Fase 17 — Próximos passos
-
-### 17.1 — Completar comunidades
-
-| # | Item | Porquê |
-|---|---|---|
-| 17.1.1 | Boleia privada para comunidade | ✅ Concluído |
-| 17.1.2 | Badge "Na tua comunidade" nos cards | ✅ Concluído |
-| 17.1.3 | Partilha de link de convite mais proeminente na UI — botão "Convidar" com share nativo do browser | ✅ Concluído — botão "Convidar para X" em cada card da lista (owners e membros); `navigator.share` com fallback para clipboard + feedback "Link copiado!" |
-
-### 17.2 — Chat de grupo por boleia
-
-> Hoje cada passageiro tem uma conversa 1-a-1 com o condutor. O que faz sentido é um **chat de grupo por boleia** — condutor + todos os passageiros confirmados. "Estou atrasado 5 min", "Paro no semáforo do Lidl", "Alguém quer parar na bomba?".
-
-**Estado atual:**
-- Infraestrutura de conversas existe (`Conversation` tem `rideId` + `bookingId`)
-- Conversas criadas automaticamente por reserva (1-a-1)
-- Inbox mostra threads separadas por "Viagens" vs DMs
-- **Falta:** conversa de grupo ligada à boleia, botão de acesso direto no card da boleia
-
-| # | Item | Porquê |
-|---|---|---|
-| 17.2.1 | ✅ Concluído — `rides.service.ts:132` chama `getOrCreateRideGroupConversation()` após criar a boleia; condutor é o primeiro participante | Um único thread para coordenação — não N threads separadas |
-| 17.2.2 | ✅ Concluído — `bookings.service.ts` chama `addParticipantToGroup()` no CONFIRMED e `removeParticipantFromGroup()` no DECLINED/CANCELLED | Grupo sempre sincronizado com os participantes reais |
-| 17.2.3 | ✅ Concluído — Botão "Chat do grupo" no footer do sheet de detalhe de boleia (condutor e passageiro); abre diretamente o thread via `onOpenGroupChat` prop em App.tsx | Acesso em 1 toque, sem ir ao Inbox procurar |
-| 17.2.4 | ✅ Concluído — Mensagens de sistema enviadas em: reserva confirmada, reserva cancelada, condutor a caminho, condutor chegou, boleia concluída, boleia cancelada | Coordenação sem esforço |
-| 17.2.5 | ✅ Concluído — Badge `"X msg grupo"` visível no card da boleia na lista do condutor (RidesPage); badge vermelho no botão do sheet do passageiro | Visibilidade imediata de atividade no grupo |
-
-### 17.3 — Push notifications nativas (Web Push / PWA)
-
-| # | Item | Porquê |
-|---|---|---|
-| 17.3.1 | ✅ Concluído — Service Worker (`src/sw.ts`) + `PushSubscription` guardada no backend (`push_subscriptions`), VAPID keys configuradas em Railway | Base para enviar push mesmo com app fechada |
-| 17.3.2 | ✅ Concluído — Web Push enviado em todos os eventos críticos via `PushService.sendToUser()` integrado em `NotificationsService.createNotification()` | Retenção — o utilizador sabe que tem atividade sem abrir a app |
-| 17.3.3 | ✅ Concluído — 4 toggles no ProfilePage (Mensagens, Reservas, Boleias, Sugestoes); preferências guardadas em `pushPreferences JSONB` no user; verificadas antes de cada push | Evitar spam — utilizador controla |
-
-### 17.4 — Referral e crescimento orgânico
-
-| # | Item | Porquê |
-|---|---|---|
-| 17.4.1 | ✅ Concluído — `referralCode` único gerado no registo (email + Google); endpoint `GET /users/me/referral`; UI no ProfilePage com contagem de referidos e botão de partilha | Crescimento viral — cada condutor traz passageiros |
-| 17.4.2 | ✅ Concluído — `RideSharePreview` em `/ride/:id`; público (sem login); mostra origem, destino, hora, lugares, condutor, veículo, preço; CTA "Reservar" ou "Entrar no HopOn" | SEO + partilha em grupos de WhatsApp |
-| 17.4.3 | ✅ Concluído — €1 creditado a ambos (referido + referidor) na primeira boleia completada do referido; `referralPaidAt` evita duplo pagamento; lógica em `rides.service.ts complete()` | Motivação real para convidar |
-
-### 17.5 — Dashboard de admin
-
-> Ainda não implementado. Próximo grande passo.
-
-| # | Item | Porquê |
-|---|---|---|
-| 17.5.1 | ❌ Métricas básicas: boleias criadas/dia, reservas confirmadas/dia, utilizadores ativos, taxa de cancelamento | Perceber se o produto está a crescer e onde há fricção |
-| 17.5.2 | ❌ Gestão de disputas melhorada — fila de disputas abertas, resolver com compensação de carteira | Operação eficiente |
-| 17.5.3 | ❌ Mapa de calor de origens/destinos mais frequentes | Perceber onde concentrar esforços de crescimento |
-
-### 17.6 — Polimento de experiência
-
-| # | Item | Porquê |
-|---|---|---|
-| 17.6.1 | ✅ Concluído — Após primeiro login, se o utilizador não tiver rotas guardadas, mostra automaticamente o `SaveRouteSheet` com variante de onboarding (delay de 1.2s para não conflituar com welcome sheet); chave `hopon_route_onboarding_shown` em localStorage evita repetição | Ativa o smart matching imediatamente para novos utilizadores |
-| 17.6.2 | ✅ Concluído — `PublicProfilePage` em `/u/:id`; rating, fiabilidade, veículos com contagem de viagens, rotas frequentes, avaliações recentes; botão de partilha nativo | Confiança antes da primeira reserva |
-| 17.6.3 | ✅ Concluído — `PresenceConfirmBanner` em RidesPage para boleias COMPLETED; `POST /bookings/:id/confirm-presence`; notifica condutor se passageiro reporta no-show; campos `passengerConfirmed` + `passengerConfirmedAt` na DB | Reduz disputas e melhora dados de fiabilidade |
+```
+1. 15.1 + 15.4 (cancelamento rigoroso + reserva instantânea) — base de fiabilidade
+2. 16.1 (route corridor matching) — diferencial técnico principal
+3. 16.5 (smart home feed) — experiência diária
+4. 16.4 (ride requests) — inverter o fluxo
+5. 16.2 (disponível agora) — modo instantâneo
+6. 16.3 (arranjos recorrentes) — relações de longo prazo
+7. 16.6 (comunidades) — crescimento orgânico
+```

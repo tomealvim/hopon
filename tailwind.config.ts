@@ -68,7 +68,7 @@ export default {
         'desktop': '760px',
       },
       
-      // Fontes (já usa system fonts)
+      // Fontes
       fontFamily: {
         sans: [
           '-apple-system',
@@ -79,6 +79,7 @@ export default {
           'Arial',
           'sans-serif',
         ],
+        headline: ['"Plus Jakarta Sans"', 'sans-serif'],
       },
     },
   },

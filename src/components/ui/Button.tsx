@@ -14,27 +14,19 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-2 font-medium transition active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
-/**
- * Variantes de botão:
- * - primary: ação principal (CTA) — fundo preto, texto branco
- * - secondary: ação secundária em contexto claro — fundo cinzento, texto preto
- * - outline: ação secundária — borda cinzenta, texto preto, fundo branco
- * - ghost: ação terciária — transparente, texto cinzento escuro
- * - danger: ações destrutivas — vermelho
- */
 const variants: Record<Variant, string> = {
   primary:
-    "bg-gray-900 text-white font-semibold hover:bg-gray-700 active:bg-gray-800 focus-visible:ring-gray-900 focus-visible:ring-offset-2",
+    "rounded-full bg-gray-900 text-white font-semibold hover:bg-gray-700 active:bg-gray-800 focus-visible:ring-gray-900 focus-visible:ring-offset-2 shadow-sm",
   secondary:
-    "bg-gray-100 text-gray-900 border border-gray-200 hover:bg-gray-200 hover:border-gray-300 focus-visible:ring-gray-400 ring-offset-white",
+    "rounded-2xl bg-gray-100 text-gray-900 border border-gray-200 hover:bg-gray-200 hover:border-gray-300 focus-visible:ring-gray-400 ring-offset-white",
   outline:
-    "bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 hover:border-gray-400 focus-visible:ring-gray-400 ring-offset-white",
+    "rounded-full bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 hover:border-gray-400 focus-visible:ring-gray-400 ring-offset-white",
   ghost:
-    "bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-400 ring-offset-white",
+    "rounded-2xl bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-400 ring-offset-white",
   danger:
-    "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 ring-offset-white",
+    "rounded-full bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 ring-offset-white",
 };
 
 const sizes: Record<Size, string> = {

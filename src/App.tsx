@@ -262,7 +262,7 @@ function AppContent() {
       {showGlobalHeader && (
         <header className="sticky top-0 z-30 bg-white border-b border-gray-200 backdrop-blur-sm">
           <div className="w-full max-w-mobile md:max-w-tablet lg:max-w-desktop mx-auto px-4 h-14 flex items-center justify-between">
-            <h1 className="text-base font-bold text-gray-900"><AppName /></h1>
+            <h1 className="text-base font-bold text-gray-900 font-headline tracking-tight"><AppName /></h1>
             <div className="flex items-center gap-2">
               {/* Bell icon */}
               <button
