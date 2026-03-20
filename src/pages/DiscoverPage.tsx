@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 import { useAuth } from "../contexts/AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import { apiRequest } from "../services/api";
@@ -866,106 +868,154 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
           </div>
         }
       >
-        {detailLoading && <p className="text-sm text-gray-600 p-4">A carregar...</p>}
-        {!detailLoading && detailRide && (
-          <div className="grid gap-4 p-1">
-            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 w-5 h-5 rounded-full bg-gray-900 flex-shrink-0 flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-white" />
+        {detailLoading && <p className="text-sm text-gray-500 py-8 text-center">A carregar...</p>}
+        {!detailLoading && detailRide && (() => {
+          const dep = new Date(detailRide.departureTime);
+          const dateStr = dep.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" });
+          const timeStr = dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+          const driverName = detailRide.driver?.profile?.name ?? detailRide.driver?.email ?? "Condutor";
+          const oLng = detailRide.originLocation?.lng;
+          const oLat = detailRide.originLocation?.lat;
+          const dLng = detailRide.destinationLocation?.lng;
+          const dLat = detailRide.destinationLocation?.lat;
+          const hasMap = !!(MAPBOX_TOKEN && oLat && oLng && dLat && dLng);
+
+          return (
+            <div>
+              {/* Mapa no topo */}
+              {hasMap ? (
+                <div className="-mx-5 -mt-2 mb-6 relative">
+                  <img
+                    src={`https://api.mapbox.com/styles/v1/mapbox/light-v11/static/pin-s+111111(${oLng},${oLat}),pin-s+888888(${dLng},${dLat})/auto/600x200@2x?padding=60,30,30,30&access_token=${MAPBOX_TOKEN}`}
+                    alt="Mapa da rota"
+                    className="w-full h-44 object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/70 to-transparent px-5 pb-3 pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col items-center shrink-0">
+                        <div className="w-2.5 h-2.5 rounded-full bg-gray-900" />
+                        <div className="route-dotted-line my-1" style={{ height: 18 }} />
+                        <div className="w-2.5 h-2.5 rounded-full border-2 border-gray-500 bg-white" />
+                      </div>
+                      <div className="flex flex-col gap-1.5 min-w-0">
+                        <p className="font-headline font-bold text-gray-900 text-sm truncate">{detailRide.origin}</p>
+                        <p className="font-headline font-bold text-gray-900 text-sm truncate">{detailRide.destination}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-xs text-gray-500">Origem</div>
-                  <div className="font-semibold text-sm text-gray-900">{detailRide.origin}</div>
-                </div>
-              </div>
-              <div className="ml-2.5 h-4 w-px bg-gray-300" />
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 w-5 h-5 rounded-full border-2 border-gray-900 flex-shrink-0" />
-                <div>
-                  <div className="text-xs text-gray-500">Destino</div>
-                  <div className="font-semibold text-sm text-gray-900">{detailRide.destination}</div>
-                </div>
-              </div>
-            </div>
-            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Partida</span>
-                <span className="font-semibold text-gray-900">
-                  {new Date(detailRide.departureTime).toLocaleString("pt-PT", {
-                    day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
-                  })}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Lugares disponíveis</span>
-                <span className="font-semibold text-gray-900">{detailRide.remainingSeats}</span>
-              </div>
-              {detailRide.price != null && detailRide.price > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Preço / lugar</span>
-                  <span className="font-semibold text-gray-900">€{detailRide.price.toFixed(2)}</span>
+              ) : (
+                <div className="bg-gray-50 rounded-2xl p-4 mb-5">
+                  <div className="flex gap-4">
+                    <div className="flex flex-col items-center pt-1 shrink-0">
+                      <div className="w-2.5 h-2.5 rounded-full bg-gray-900" />
+                      <div className="route-dotted-line my-1" style={{ minHeight: 28 }} />
+                      <div className="w-2.5 h-2.5 rounded-full border-2 border-gray-400 bg-white" />
+                    </div>
+                    <div className="flex flex-col justify-between gap-3 min-w-0">
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Origem</p>
+                        <p className="font-headline font-semibold text-gray-900 text-sm">{detailRide.origin}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Destino</p>
+                        <p className="font-headline font-semibold text-gray-900 text-sm">{detailRide.destination}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
-            </div>
-            {detailRide.driver && (
-              <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Condutor</div>
-                <button
-                  className="flex items-center gap-3 hover:opacity-80 transition text-left w-full"
-                  onClick={() => { setProfileUserId(detailRide.driverId); setOpenProfile(true); }}
-                >
-                  {detailRide.driver.profile?.avatarUrl ? (
-                    <img src={detailRide.driver.profile.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-700">
-                      {(detailRide.driver.profile?.name ?? detailRide.driver.email ?? "?").slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <div className="font-semibold text-sm text-gray-900">
-                        {detailRide.driver.profile?.name ?? detailRide.driver.email}
-                      </div>
-                      {detailRide.driver.isIdentityVerified && (
-                        <span className="text-xs bg-green-100 text-green-700 border border-green-200 rounded-full px-2 py-0.5">
-                          Verificado
-                        </span>
-                      )}
-                    </div>
-                    {detailRide.driver.profile?.username && (
-                      <div className="text-xs text-gray-500">@{detailRide.driver.profile.username}</div>
-                    )}
-                    <div className="text-[10px] text-gray-500 mt-0.5">Ver perfil →</div>
-                  </div>
-                </button>
-                {detailRide.driverId !== user?.id && (
+
+              {/* Condutor */}
+              {detailRide.driver && (
+                <div className="flex items-center justify-between mb-5">
                   <button
-                    className="text-xs text-gray-400 hover:text-red-500 transition-colors text-left mt-1"
-                    onClick={() => {
-                      const name = detailRide.driver?.profile?.name ?? detailRide.driver?.email ?? "Condutor";
-                      setReportTarget({ id: detailRide.driverId, name });
-                      setOpenDetail(false);
-                      setOpenReport(true);
-                    }}
+                    className="flex items-center gap-3 hover:opacity-80 transition text-left"
+                    onClick={() => { setProfileUserId(detailRide.driverId); setOpenProfile(true); }}
                   >
-                    Denunciar condutor
+                    {detailRide.driver.profile?.avatarUrl ? (
+                      <img src={detailRide.driver.profile.avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover ring-2 ring-gray-100" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-gray-900 text-white flex items-center justify-center text-lg font-bold shrink-0">
+                        {driverName.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <p className="font-headline font-bold text-gray-900 text-lg leading-tight">{driverName}</p>
+                        {detailRide.driver.isIdentityVerified && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-gray-700 shrink-0">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-400">Ver perfil →</p>
+                    </div>
                   </button>
+                  {detailRide.driverId !== user?.id && (
+                    <button
+                      className="w-11 h-11 rounded-2xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition shrink-0"
+                      aria-label="Mensagem"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Grid de info */}
+              <div className="grid grid-cols-2 gap-3 mb-5">
+                <div className="bg-gray-50 rounded-2xl p-4">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Partida</p>
+                  <p className="font-headline font-bold text-gray-900 text-base">{timeStr}</p>
+                  <p className="text-xs text-gray-500 mt-0.5 capitalize">{dateStr}</p>
+                </div>
+                {detailRide.vehicle && (
+                  <div className="bg-gray-50 rounded-2xl p-4">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Veículo</p>
+                    <p className="font-headline font-bold text-gray-900 text-base leading-tight">
+                      {detailRide.vehicle.brand} {detailRide.vehicle.model}
+                    </p>
+                    {detailRide.vehicle.color && (
+                      <p className="text-xs text-gray-500 mt-0.5">{detailRide.vehicle.color}</p>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-            {detailRide.vehicle && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Veículo</div>
-                <div className="font-semibold text-sm text-gray-900">
-                  {detailRide.vehicle.brand} {detailRide.vehicle.model}
-                  {detailRide.vehicle.color ? ` · ${detailRide.vehicle.color}` : ""}
+
+              {/* Preço + lugares */}
+              {detailRide.price != null && detailRide.price > 0 && (
+                <div className="flex items-center justify-between bg-gray-50 rounded-2xl p-4 mb-5">
+                  <div>
+                    <p className="text-xs text-gray-500">Preço por lugar</p>
+                    <p className="font-headline font-extrabold text-gray-900 text-2xl">€{detailRide.price.toFixed(2)}</p>
+                  </div>
+                  <div className="bg-white rounded-xl px-3 py-2 border border-gray-200 text-center">
+                    <p className="font-bold text-gray-900 text-sm">{detailRide.bookedSeats}/{detailRide.availableSeats}</p>
+                    <p className="text-[10px] text-gray-400">lugares</p>
+                  </div>
                 </div>
-                <div className="text-xs text-gray-500">{detailRide.vehicle.seats} lugares</div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+
+              {/* Denunciar */}
+              {detailRide.driverId !== user?.id && (
+                <button
+                  className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                  onClick={() => {
+                    const name = detailRide.driver?.profile?.name ?? detailRide.driver?.email ?? "Condutor";
+                    setReportTarget({ id: detailRide.driverId, name });
+                    setOpenDetail(false);
+                    setOpenReport(true);
+                  }}
+                >
+                  Denunciar condutor
+                </button>
+              )}
+            </div>
+          );
+        })()}
       </Sheet>
     </>
   );
