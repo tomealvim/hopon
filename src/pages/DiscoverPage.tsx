@@ -829,6 +829,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         userId={profileUserId}
         open={openProfile}
         onClose={() => { setOpenProfile(false); setProfileUserId(null); }}
+        zIndex={110}
       />
 
       <SaveRouteSheet

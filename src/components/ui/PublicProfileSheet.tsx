@@ -45,9 +45,10 @@ interface Props {
   userId: string | null;
   open: boolean;
   onClose: () => void;
+  zIndex?: number;
 }
 
-export default function PublicProfileSheet({ userId, open, onClose }: Props) {
+export default function PublicProfileSheet({ userId, open, onClose, zIndex }: Props) {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -65,7 +66,7 @@ export default function PublicProfileSheet({ userId, open, onClose }: Props) {
   const initials = name.slice(0, 2).toUpperCase();
 
   return (
-    <Sheet open={open} onClose={onClose} title="Perfil" height="lg" footer={null}>
+    <Sheet open={open} onClose={onClose} title="Perfil" height="lg" footer={null} zIndex={zIndex}>
       {loading && (
         <div className="flex items-center justify-center py-16 text-sm text-gray-400">
           A carregar…
