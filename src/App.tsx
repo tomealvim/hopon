@@ -240,7 +240,8 @@ function AppContent() {
   if (!hasCompletedProfile) return <ProfileSetupPage />;
 
   return (
-    <div className="min-h-[100svh] overflow-x-hidden bg-white">
+    <>
+    <div className="min-h-[100svh] bg-white">
       {showGlobalHeader && (
         <header className="sticky top-0 z-30 bg-white border-b border-gray-200 backdrop-blur-sm">
           <div className="w-full max-w-mobile md:max-w-tablet lg:max-w-desktop mx-auto px-4 h-14 flex items-center justify-between">
@@ -312,10 +313,6 @@ function AppContent() {
           />
         )}
       </main>
-
-      {!hideBottomNav && (
-        <BottomNav current={tab} onChange={setTab} onPlus={user ? () => setOpenComposer(true) : () => setTab("profile")} />
-      )}
 
       {/* Composer do "+" */}
       <Sheet open={openComposer} onClose={() => setOpenComposer(false)} title="Criar" height="md" footer={null}>
@@ -429,6 +426,10 @@ function AppContent() {
         />
       )}
     </div>
+    {!hideBottomNav && (
+      <BottomNav current={tab} onChange={setTab} onPlus={user ? () => setOpenComposer(true) : () => setTab("profile")} />
+    )}
+    </>
   );
 }
 
