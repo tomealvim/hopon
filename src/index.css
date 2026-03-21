@@ -146,16 +146,11 @@ body {
   transform: translate(-50%, 100%); 
 }
 
-.sheet--auto { 
-  height: auto; 
-}
-
-.sheet--md { 
-  height: 65svh; 
-}
-
-.sheet--lg { 
-  height: 85svh; 
+.sheet--auto,
+.sheet--md,
+.sheet--lg {
+  height: auto;
+  max-height: 92svh;
 }
 
 .sheet-handle { 
@@ -213,12 +208,10 @@ body {
 
 /* ===== horizontal (landscape) ===== */
 @media (orientation: landscape) {
-  .sheet--md { 
-    height: 75svh; 
-  }
-  
-  .sheet--lg { 
-    height: 90svh; 
+  .sheet--auto,
+  .sheet--md,
+  .sheet--lg {
+    max-height: 95svh;
   }
 }
 

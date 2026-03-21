@@ -816,6 +816,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         initial={filters}
         onClose={() => setOpenFilters(false)}
         onApply={(next) => { setFilters(next); setOpenFilters(false); }}
+        resultCount={apiRides.filter(r => r.driverId !== user?.id && (!filters.verified || r.driver?.isIdentityVerified)).length}
       />
 
       {selectedRideId && (() => {

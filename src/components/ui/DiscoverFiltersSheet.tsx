@@ -9,9 +9,10 @@ type Props = {
   initial: DiscoverFilters;
   onClose: () => void;
   onApply: (next: DiscoverFilters) => void;
+  resultCount?: number;
 };
 
-export default function DiscoverFiltersSheet({ open, initial, onClose, onApply }: Props) {
+export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, resultCount }: Props) {
   const [f, setF] = useState<DiscoverFilters>(initial);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const uid = useId();
@@ -56,8 +57,8 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply }
       footer={
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1" onClick={clearAll}>Limpar tudo</Button>
-          <Button variant="outline" className="flex-1" onClick={() => onApply(f)}>
-            Ver resultados
+          <Button variant="primary" className="flex-1" onClick={() => onApply(f)}>
+            Ver resultados{resultCount != null ? ` (${resultCount})` : ""}
           </Button>
         </div>
       }
