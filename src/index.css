@@ -122,19 +122,20 @@ body {
 }
 
 .sheet-panel {
-  position: absolute; 
-  left: 50%; 
+  position: absolute;
+  left: 50%;
   transform: translateX(-50%);
-  bottom: 0; 
-  width: 100%; 
+  bottom: 0;
+  width: 100%;
   max-width: 440px;
-  background: #ffffff; 
-  border-top-left-radius: 24px; 
+  background: #ffffff;
+  border-top-left-radius: 24px;
   border-top-right-radius: 24px;
   border: 1px solid rgba(0,0,0,0.08);
   transition: transform .2s;
-  display: flex; 
+  display: flex;
   flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .sheet-panel--open { 
@@ -204,11 +205,10 @@ body {
 }
 
 .sheet-foot {
-  padding: 12px 20px; 
-  padding-bottom: calc(20px + env(safe-area-inset-bottom)); 
-  border-top: 1px solid rgba(0,0,0,0.08); 
-  background: #ffffff; 
-  flex-shrink: 0; 
+  padding: 12px 20px 20px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  background: #ffffff;
+  flex-shrink: 0;
 }
 
 /* ===== horizontal (landscape) ===== */
