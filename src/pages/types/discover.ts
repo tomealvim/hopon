@@ -5,6 +5,11 @@ export type DiscoverFilters = {
   // Rota & proximidade
   origin?: string;          // simplificado para string; podes trocar por {id, lat, lng}
   destination?: string;
+  originLat?: number;
+  originLng?: number;
+  destinationLat?: number;
+  destinationLng?: number;
+  radiusKm: number;
   deviationKm: number;      // 0..10
   routeOverlapPct: number;  // 0..100
 
@@ -49,6 +54,7 @@ export const defaultFilters: DiscoverFilters = {
   q: "",
   origin: "",
   destination: "",
+  radiusKm: 10,
   deviationKm: 0,
   routeOverlapPct: 60,
 

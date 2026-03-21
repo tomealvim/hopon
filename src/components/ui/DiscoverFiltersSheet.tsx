@@ -2,15 +2,17 @@ import type { DiscoverFilters } from "../../pages/types/discover";
 import { useEffect, useId, useState } from "react";
 import Sheet from "./Sheet";
 import { Button } from "./Button";
+import LocationAutocomplete from "./LocationAutocomplete";
 
 type Props = {
   open: boolean;
   initial: DiscoverFilters;
   onClose: () => void;
   onApply: (next: DiscoverFilters) => void;
+  mapboxToken: string;
 };
 
-export default function DiscoverFiltersSheet({ open, initial, onClose, onApply }: Props) {
+export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, mapboxToken }: Props) {
   const [f, setF] = useState<DiscoverFilters>(initial);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const uid = useId();
@@ -34,6 +36,7 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply }
     setF(prev => ({
       ...prev,
       q: "", origin: "", destination: "",
+      originLat: undefined, originLng: undefined, destinationLat: undefined, destinationLng: undefined, radiusKm: 10,
       date: "",
       deviationKm: 0, routeOverlapPct: 60,
       departFrom: "", departTo: "", toleranceMin: 5,
@@ -63,27 +66,46 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply }
       <div className="grid gap-4">
 
         {/* Origem / Destino */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor={`${uid}-origin`}>Origem</label>
-            <input
-              id={`${uid}-origin`}
-              className="w-full border border-gray-200 bg-gray-50 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-400"
-              placeholder="Ex.: Lisboa"
-              value={f.origin || ""}
-              onChange={e => update("origin", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor={`${uid}-destination`}>Destino</label>
-            <input
-              id={`${uid}-destination`}
-              className="w-full border border-gray-200 bg-gray-50 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-400"
-              placeholder="Ex.: Porto"
-              value={f.destination || ""}
-              onChange={e => update("destination", e.target.value)}
-            />
-          </div>
+        <div className="grid grid-cols-1 gap-3">
+          <LocationAutocomplete
+            id={`${uid}-origin`}
+            label="Origem"
+            placeholder="Ex.: Lisboa"
+            value={f.origin || ""}
+            mapboxToken={mapboxToken}
+            onSelect={(s) => {
+              if (s) {
+                setF(prev => ({ ...prev, origin: s.label, originLat: s.lat, originLng: s.lng }));
+              } else {
+                setF(prev => ({ ...prev, origin: "", originLat: undefined, originLng: undefined }));
+              }
+            }}
+          />
+          <LocationAutocomplete
+            id={`${uid}-destination`}
+            label="Destino"
+            placeholder="Ex.: Porto"
+            value={f.destination || ""}
+            mapboxToken={mapboxToken}
+            onSelect={(s) => {
+              if (s) {
+                setF(prev => ({ ...prev, destination: s.label, destinationLat: s.lat, destinationLng: s.lng }));
+              } else {
+                setF(prev => ({ ...prev, destination: "", destinationLat: undefined, destinationLng: undefined }));
+              }
+            }}
+          />
+          {f.originLat && (
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Raio de pesquisa: {f.radiusKm} km</label>
+              <input
+                type="range" min={2} max={50} step={1}
+                value={f.radiusKm}
+                onChange={e => setF(prev => ({ ...prev, radiusKm: Number(e.target.value) }))}
+                className="w-full accent-gray-900"
+              />
+            </div>
+          )}
         </div>
 
         {/* Data */}

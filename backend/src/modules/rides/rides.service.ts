@@ -669,6 +669,11 @@ export class RidesService {
       where.originLocationId = { in: nearbyIds };
     }
 
+    // Filtro de condutor verificado
+    if (dto.verified) {
+      where.driver = { isIdentityVerified: true };
+    }
+
     const rides = await this.prisma.ride.findMany({
       where,
       include: {
@@ -691,7 +696,7 @@ export class RidesService {
         destinationLocation: true,
         community: true,
       },
-      orderBy: { departureTime: 'asc' },
+      orderBy: dto.sort === 'earliest' ? { departureTime: 'asc' } : { departureTime: 'asc' },
     });
 
     // Badge de comunidade partilhada (só se autenticado)

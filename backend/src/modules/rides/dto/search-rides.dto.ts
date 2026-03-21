@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsDateString, IsInt, IsNumber, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsDateString, IsInt, IsNumber, Min, IsBoolean } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 export class SearchRidesDto {
   @ApiPropertyOptional({ example: 'Lisboa' })
@@ -61,5 +61,16 @@ export class SearchRidesDto {
   @IsOptional()
   @IsString()
   communityId?: string;
+
+  @ApiPropertyOptional({ description: 'Filtrar apenas condutores com identidade verificada' })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  verified?: boolean;
+
+  @ApiPropertyOptional({ enum: ['recommended', 'earliest', 'rating'], default: 'recommended' })
+  @IsOptional()
+  @IsString()
+  sort?: string;
 }
 

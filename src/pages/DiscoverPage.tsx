@@ -196,6 +196,15 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
       params.set("departureTimeFrom", new Date(from).toISOString());
       params.set("departureTimeTo",   new Date(to).toISOString());
     }
+    // Coords-based proximity search (replaces text when coords available)
+    if (f.originLat != null && f.originLng != null) {
+      params.set("lat", String(f.originLat));
+      params.set("lng", String(f.originLng));
+      params.set("radius", String(f.radiusKm ?? 10));
+    }
+    // Keep text-based as fallback/additional
+    if (f.verified) params.set("verified", "true");
+    if (f.sort && f.sort !== "recommended") params.set("sort", f.sort);
     return params;
   }
 
@@ -227,7 +236,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
       .catch(() => setApiRides([]))
       .finally(() => setApiRidesLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, filters.origin, filters.destination, filters.minSeats, filters.maxPrice, filters.date, filters.departFrom, filters.departTo, filters.communityId]);
+  }, [tab, filters.origin, filters.destination, filters.minSeats, filters.maxPrice, filters.date, filters.departFrom, filters.departTo, filters.communityId, filters.verified, filters.sort, filters.originLat, filters.originLng, filters.radiusKm]);
 
   // Abrir detalhe
   async function openRideDetail(rideId: string) {
@@ -776,6 +785,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         initial={filters}
         onClose={() => setOpenFilters(false)}
         onApply={(next) => { setFilters(next); setOpenFilters(false); }}
+        mapboxToken={MAPBOX_TOKEN ?? ""}
       />
 
       {selectedRideId && (() => {
