@@ -86,12 +86,6 @@ function Sheet({ open, onClose, title, children, footer, height = "md" }: Props)
           onPointerUp={onPointerUp}
         >
           <h3 className="sheet-title">{title}</h3>
-          <button
-            onClick={onClose}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="rounded-xl p-2 hover:bg-gray-100 text-gray-900"
-            aria-label="Fechar"
-          >✕</button>
         </div>
         <div className="sheet-body">{children}</div>
         {footer && <div className="sheet-foot">{footer}</div>}
