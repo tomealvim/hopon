@@ -1219,3 +1219,87 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 6. 16.3 (arranjos recorrentes) — relações de longo prazo
 7. 16.6 (comunidades) — crescimento orgânico
 ```
+
+---
+
+## Fase 17 — Inteligência de Chegada + Assistente HopOn AI
+
+> Duas features complementares que elevam a app de "lista de boleias" para "sistema inteligente de mobilidade diária".
+> O foco principal é o algoritmo de chegada a tempo — o assistente constrói por cima disso.
+
+---
+
+### 17.1 — Algoritmo "Chegar a tempo"
+
+> O utilizador deixa de pesquisar boleias de A para B e passa a dizer "preciso de estar em X às 9h00". O sistema trabalha para trás, combinando boleias disponíveis com tempo de caminhada, e sugere a melhor opção viável.
+
+**Como funciona:**
+1. Utilizador define: destino final + hora de chegada pretendida
+2. Sistema encontra boleias que chegam perto do destino antes da hora limite
+3. Para cada boleia candidata: calcula tempo a pé do ponto de chegada ao destino final (Google Walking Directions API)
+4. Filtra as combinações que chegam a tempo (com margem configurável, ex: 5 min)
+5. Ordena por: menor desvio de chegada → fiabilidade do condutor → distância a pé
+
+**Exemplo:**
+> "Preciso de estar no ISCTE às 9h00" → sistema sugere: "João passa em Entrecampos às 8h45, são 12 min a pé — chegas às 8h57 ✓"
+
+| # | Item | Estado |
+|---|---|---|
+| 17.1.1 | Endpoint `GET /rides/arrive-by?destination=<placeId>&arriveBy=<ISO>&date=<YYYY-MM-DD>` — devolve lista de combinações viáveis ordenadas por score | ⬜ Por fazer |
+| 17.1.2 | Integrar Google Walking Directions API no backend para calcular tempo a pé (ponto de chegada da boleia → destino final) | ⬜ Por fazer |
+| 17.1.3 | Score de viabilidade: `margin = arriveBy - (rideArrival + walkingMinutes)` — só mostrar se margem ≥ 0 | ⬜ Por fazer |
+| 17.1.4 | Frontend: novo modo de pesquisa "Chegar a tempo" no DiscoverPage — input destino + hora de chegada | ⬜ Por fazer |
+| 17.1.5 | Card de resultado mostra: boleia + "X min a pé" + "Chegas às HH:MM" | ⬜ Por fazer |
+| 17.1.6 | Margem configurável pelo utilizador (ex: "quero pelo menos 10 min de margem") | ⬜ Por fazer |
+
+**APIs necessárias:**
+- Google Directions API (modo walking) — já tens a chave configurada
+- Reutiliza a polilinha de rota da boleia (já calculada na Fase 16.1) para determinar ponto de chegada
+
+---
+
+### 17.2 — Assistente HopOn AI (chat bot)
+
+> Tab separado no Inbox — não substitui o chat pessoa-a-pessoa, coexiste com ele. O utilizador conversa em linguagem natural com o assistente que usa o algoritmo 17.1 por baixo e o contexto do utilizador (rotas guardadas, horários habituais) para sugerir boleias.
+
+**Exemplo de conversa:**
+> User: "Amanhã preciso de estar no trabalho às 8h30, tens alguma coisa?"
+> Bot: "Encontrei 2 opções para amanhã: O Carlos parte de Odivelas às 7h50, chegas a 5 min a pé do teu trabalho às 8h20 ✓. Queres que reserve?"
+
+**Arquitetura:**
+- Frontend: nova tab "AI" no InboxPage (ícone distinto — ex: estrela ou faísca)
+- Interface de chat igual ao inbox normal mas com respostas do bot
+- Backend: `POST /assistant/message { message, userId }` → processa com Claude API → devolve resposta + lista de boleias sugeridas (se aplicável)
+- Claude API (claude-haiku-4-5 para custo baixo) com system prompt que conhece: rotas guardadas do user, horários habituais, boleias disponíveis hoje/amanhã
+- Ações diretas: bot pode sugerir "Reservar agora?" com botão inline na resposta
+
+| # | Item | Estado |
+|---|---|---|
+| 17.2.1 | Tab "AI" no InboxPage — ícone separado, interface de chat igual ao inbox | ⬜ Por fazer |
+| 17.2.2 | `AssistantModule` no backend — `POST /assistant/message` | ⬜ Por fazer |
+| 17.2.3 | Integração Claude API (Haiku para custo baixo) com system prompt contextualizado (rotas do user, boleias disponíveis) | ⬜ Por fazer |
+| 17.2.4 | Bot usa algoritmo 17.1 internamente para responder a perguntas de "chegar a tempo" | ⬜ Por fazer |
+| 17.2.5 | Respostas com ações inline: card de boleia + botão "Reservar" diretamente no chat | ⬜ Por fazer |
+| 17.2.6 | Histórico de conversa por utilizador (persistido em DB, janela de contexto máx. 20 mensagens) | ⬜ Por fazer |
+
+**Env vars necessárias:**
+```
+# backend/.env
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+**Custo estimado:**
+- Claude Haiku: ~$0.25/1M tokens input + $1.25/1M tokens output
+- Uma conversa típica de 5 mensagens ≈ 2000 tokens ≈ $0.003
+- Muito baixo para uma base de utilizadores beta
+
+---
+
+### Prioridade de implementação da Fase 17
+
+```
+1. 17.1 (algoritmo "chegar a tempo") — diferencial core, funciona sem AI
+2. 17.2 (assistente AI) — constrói por cima do 17.1, adiar para quando 17.1 estiver sólido
+```
+
+> **Nota:** o multimodal completo (boleia + transporte público + caminhada) requer GTFS feeds por cidade e é Fase 20+. A Fase 17 foca em boleia + caminhada que é simples e já resolve 80% dos casos.
