@@ -1,4 +1,5 @@
-import { Loader } from "@googlemaps/js-api-loader";
+/// <reference types="@types/google.maps" />
+import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 
 const GOOGLE_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string | undefined;
 
@@ -7,8 +8,11 @@ let _promise: Promise<void> | null = null;
 export function loadGoogleMaps(): Promise<void> {
   if (!GOOGLE_KEY) return Promise.reject(new Error("VITE_GOOGLE_MAPS_KEY não configurada"));
   if (!_promise) {
-    const loader = new Loader({ apiKey: GOOGLE_KEY, version: "weekly", libraries: ["places"] });
-    _promise = loader.load().then(() => {});
+    setOptions({ key: GOOGLE_KEY, v: "weekly", language: "pt" });
+    _promise = Promise.all([
+      importLibrary("places"),
+      importLibrary("geocoding"),
+    ]).then(() => {});
   }
   return _promise;
 }
@@ -50,6 +54,24 @@ export async function getPlaceSuggestions(
       );
     });
   });
+}
+
+export async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  try {
+    await loadGoogleMaps();
+    return new Promise((resolve) => {
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ location: { lat, lng }, language: "pt" } as any, (results, status) => {
+        if (status === "OK" && results?.[0]) {
+          resolve(results[0].formatted_address);
+        } else {
+          resolve(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        }
+      });
+    });
+  } catch {
+    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  }
 }
 
 export async function getPlaceCoords(

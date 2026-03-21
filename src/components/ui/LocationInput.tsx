@@ -162,7 +162,7 @@ export function LocationInput({
           }}
           onFocus={() => setOpen(true)}
           aria-invalid={ariaInvalid}
-          aria-autocomplete={autocompleteEnabled ? "list" : "none"}
+          aria-autocomplete="list"
           aria-controls={showDropdown ? listId : undefined}
           aria-activedescendant={activeIdx >= 0 ? `${listId}-${activeIdx}` : undefined}
           autoComplete="off"
