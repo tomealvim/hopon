@@ -84,9 +84,6 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
             )}>
               {label}
             </span>
-            {isActive(key) && (
-              <span className="w-1 h-1 rounded-full bg-gray-900 mt-0.5" />
-            )}
           </button>
         ))}
 
@@ -119,9 +116,6 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
             )}>
               {label}
             </span>
-            {isActive(key) && (
-              <span className="w-1 h-1 rounded-full bg-gray-900 mt-0.5" />
-            )}
           </button>
         ))}
       </div>
