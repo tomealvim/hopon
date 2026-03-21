@@ -187,7 +187,19 @@ body {
   min-height: 0; 
 }
 
-.sheet-foot { 
+/* ===== bottom nav safe area ===== */
+.bottom-nav-safe {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: #ffffff;
+  border-top: 1px solid #f3f4f6;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.sheet-foot {
   padding: 12px 20px; 
   padding-bottom: calc(20px + env(safe-area-inset-bottom)); 
   border-top: 1px solid rgba(0,0,0,0.08); 
