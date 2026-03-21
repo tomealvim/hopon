@@ -46,7 +46,7 @@ O sistema tem de ser tão fiável quanto um autocarro — o passageiro tem de po
 | Inbox | Backend real + SSE | Sólido |
 | Ratings | Backend + UI | Funcional |
 | Wallet | Backend ledger + UI | Funcional (sem gateway de pagamento externo) |
-| Geodata | Mapbox autocomplete + Haversine | Funcional |
+| Geodata | Google Maps (Places + Geocoding) + Haversine | Funcional |
 | Realtime | SSE (message.new, booking.new) | Funcional |
 
 ---
@@ -70,13 +70,11 @@ O sistema tem de ser tão fiável quanto um autocarro — o passageiro tem de po
 - [x] `originLocationId` / `destinationLocationId` opcionais na `Ride`
 - [x] Backend cria registos `Location` com coordenadas
 - [x] Pesquisa por proximidade Haversine (lat/lng/radius)
-- [x] Componente `LocationInput` com Mapbox Geocoding API + fallback texto
-- [x] `VITE_MAPBOX_TOKEN` em `.env`
-
-> **⚠️ Nota — Mapbox vs Google Places**
-> Implementámos com **Mapbox** (50k pedidos/mês grátis, sem cartão). Se escalar ou precisar de
-> melhor cobertura de POIs portugueses, migrar para **Google Places API** é simples: substituir
-> `fetchSuggestions()` em `LocationInput.tsx` — o resto mantém-se igual.
+- [x] Componente `LocationInput` com Google Places Autocomplete + fallback texto
+- [x] `VITE_GOOGLE_MAPS_KEY` em `.env` (frontend) — substitui `VITE_MAPBOX_TOKEN`
+- [x] `src/utils/googleMaps.ts` — `@googlemaps/js-api-loader` v2 (setOptions + importLibrary), singleton, exporta `loadGoogleMaps`, `getPlaceSuggestions`, `reverseGeocode`, `getPlaceCoords`
+- [x] Geocodificação inversa migrada de Mapbox para Google em todos os ficheiros: `SaveRouteSheet`, `RideRequestSheet`, `MapPicker`, `ProfileSetupPage`
+- [x] `RideDetailPage` ainda usa Mapbox Static API para imagem de mapa (não geocoding — mantém `VITE_MAPBOX_TOKEN`)
 
 ---
 
@@ -470,6 +468,7 @@ Todas as operações de admin (aprovar saques, resolver disputas, verificar iden
 | 10.2 | Migrar frontend Vercel → Railway | ✅ Concluído — hopon.up.railway.app |
 | 10.3 | Reset DB (limpar dados de teste) | ✅ Concluído |
 | 10.4 | Configurar domínio personalizado | ⏳ Opcional |
+| 10.5 | BottomNav polish + safe area fix | ✅ Concluído |
 
 ### Testar no telemóvel (PWA) — recomendado
 
@@ -484,6 +483,26 @@ Instalar como PWA para ter experiência idêntica a app nativa (sem barra do bro
 2. Menu `⋮` → **"Adicionar ao ecrã inicial"** (ou aceitar o banner automático)
 
 A app fica no ecrã inicial com ícone próprio e abre em fullscreen — sem barra do browser.
+
+---
+
+### 10.5 — BottomNav polish + safe area ✅
+
+- Removida sombra do FAB central e do nav bar
+- Removido ponto de indicador de tab ativa (só cor e peso de fonte distinguem)
+- Removido `backdrop-blur` — fundo branco sólido
+- `BottomNav` movido para fora do `div` com `overflow-x-hidden` no `App.tsx` — corrige bug iOS Safari onde `overflow-x: hidden` cria scroll container que prende elementos `fixed`
+- CSS `.bottom-nav-safe`: `position: fixed; bottom: 0; padding-bottom: env(safe-area-inset-bottom)` — cobre safe area via padding interno em vez de deslocar o nav para cima (elimina qualquer gap)
+- `VITE_GOOGLE_MAPS_KEY` migração de geocoding reverso concluída (ver 2.1)
+
+> **⚠️ Nota — gap visível no Chrome DevTools**
+> No Chrome DevTools com "Toggle Device Toolbar" ativo, pode aparecer um espaço entre o nav e o
+> fundo do ecrã simulado. Este espaço é a zona do home indicator **simulada pelo DevTools** e está
+> fora do viewport CSS — a app não controla nem precisa de controlar esta área.
+> **Num telemóvel real não existe** — confirmado pelo utilizador.
+> Ponto de partida se voltar a aparecer: verificar `bottom: 0` no `.bottom-nav-safe` e
+> `padding-bottom: env(safe-area-inset-bottom)`. Se o problema aparecer só em Safari iOS real,
+> investigar se o browser toolbar do Safari está a interferir com o layout viewport.
 
 ---
 
