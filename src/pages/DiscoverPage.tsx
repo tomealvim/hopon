@@ -825,13 +825,6 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         }}
       />
 
-      <PublicProfileSheet
-        userId={profileUserId}
-        open={openProfile}
-        onClose={() => { setOpenProfile(false); setProfileUserId(null); }}
-        zIndex={110}
-      />
-
       <SaveRouteSheet
         open={openSaveRoute}
         onClose={() => setOpenSaveRoute(false)}
@@ -1018,6 +1011,12 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
           );
         })()}
       </Sheet>
+
+      <PublicProfileSheet
+        userId={profileUserId}
+        open={openProfile}
+        onClose={() => { setOpenProfile(false); setProfileUserId(null); }}
+      />
     </>
   );
 }
