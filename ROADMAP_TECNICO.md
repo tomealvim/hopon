@@ -469,6 +469,8 @@ Todas as operações de admin (aprovar saques, resolver disputas, verificar iden
 | 10.3 | Reset DB (limpar dados de teste) | ✅ Concluído |
 | 10.4 | Configurar domínio personalizado | ⏳ Opcional |
 | 10.5 | BottomNav polish + safe area fix | ✅ Concluído |
+| 10.6 | Sheets UX nativa (swipe, auto-size, sem cruz) | ✅ Concluído |
+| 10.7 | Google Maps Places API (New) - migração autocomplete | ✅ Concluído |
 
 ### Testar no telemóvel (PWA) — recomendado
 
@@ -483,6 +485,29 @@ Instalar como PWA para ter experiência idêntica a app nativa (sem barra do bro
 2. Menu `⋮` → **"Adicionar ao ecrã inicial"** (ou aceitar o banner automático)
 
 A app fica no ecrã inicial com ícone próprio e abre em fullscreen — sem barra do browser.
+
+---
+
+### 10.7 — Google Maps Places API (New) ✅
+
+- `AutocompleteService` depreciado desde março 2025 para novos clientes — migrado para `AutocompleteSuggestion.fetchAutocompleteSuggestions()`
+- `location`/`radius` depreciados — migrado para `locationBias: { center, radius }`
+- 403 Forbidden resolvido adicionando `https://hopon.up.railway.app/*` às restrições HTTP referrer da chave no Google Cloud Console
+- Places API (New) confirmada ativa na consola Google Cloud
+
+> **⚠️ Nota — `ERR_BLOCKED_BY_CLIENT` no gen_204**
+> O Google Maps tenta carregar `maps.googleapis.com/maps/api/mapsjs/gen_204` (pixel de tracking)
+> que ad blockers bloqueiam. É inofensivo — não afeta autocomplete nem geocoding.
+
+---
+
+### 10.6 — Sheets UX nativa ✅
+
+- **Swipe down para fechar**: arrastar o handle ou o header >120px fecha a sheet; pointer capture garante que funciona em touch e rato
+- **Auto-size ao conteúdo**: todas as sheets usam `height: auto; max-height: 92svh` — sem espaço vazio em baixo
+- **Sem cruz**: removida — fechar via swipe ou tap no backdrop (padrão iOS/Android)
+- **"Ver resultados (N)"**: botão nos filtros mostra contagem de boleias atuais em tempo real
+- **Safe area nas sheets**: `padding-bottom: env(safe-area-inset-bottom)` no `.sheet-panel` — sheets chegam ao fundo físico do ecrã
 
 ---
 
