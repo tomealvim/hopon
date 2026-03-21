@@ -2,6 +2,8 @@ import { Button } from "../components/ui/Button";
 import { cn } from "../utils/cn";
 import type { ApiRide } from "./types/ride-api";
 
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
+
 type Props = {
   ride: ApiRide | null;
   loading: boolean;
@@ -11,7 +13,6 @@ type Props = {
   onViewProfile: (userId: string) => void;
   onReport: (driverId: string, driverName: string) => void;
   currentUserId?: string;
-  mapboxToken?: string;
 };
 
 export default function RideDetailPage({
@@ -23,7 +24,6 @@ export default function RideDetailPage({
   onViewProfile,
   onReport,
   currentUserId,
-  mapboxToken,
 }: Props) {
   return (
     <div
@@ -69,7 +69,7 @@ export default function RideDetailPage({
           const oLat = ride.originLocation?.lat;
           const dLng = ride.destinationLocation?.lng;
           const dLat = ride.destinationLocation?.lat;
-          const hasMap = !!(mapboxToken && oLat && oLng && dLat && dLng);
+          const hasMap = !!(MAPBOX_TOKEN && oLat && oLng && dLat && dLng);
 
           return (
             <div>
@@ -77,7 +77,7 @@ export default function RideDetailPage({
               {hasMap ? (
                 <div className="-mx-5 -mt-2 mb-6 relative">
                   <img
-                    src={`https://api.mapbox.com/styles/v1/mapbox/light-v11/static/geojson(${encodeURIComponent(JSON.stringify({type:"Feature",geometry:{type:"LineString",coordinates:[[oLng,oLat],[dLng,dLat]]},properties:{stroke:"#374151","stroke-width":3,"stroke-opacity":0.55}}))}),pin-l+111827(${oLng},${oLat}),pin-l+6b7280(${dLng},${dLat})/auto/800x320@2x?padding=90,50,80,50&access_token=${mapboxToken}`}
+                    src={`https://api.mapbox.com/styles/v1/mapbox/light-v11/static/geojson(${encodeURIComponent(JSON.stringify({type:"Feature",geometry:{type:"LineString",coordinates:[[oLng,oLat],[dLng,dLat]]},properties:{stroke:"#374151","stroke-width":3,"stroke-opacity":0.55}}))}),pin-l+111827(${oLng},${oLat}),pin-l+6b7280(${dLng},${dLat})/auto/800x320@2x?padding=90,50,80,50&access_token=${MAPBOX_TOKEN}`}
                     alt="Mapa da rota"
                     className="w-full h-56 object-cover"
                   />

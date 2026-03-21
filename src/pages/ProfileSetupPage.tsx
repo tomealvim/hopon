@@ -7,6 +7,7 @@ import AppName from "../components/ui/AppName";
 import Sheet from "../components/ui/Sheet";
 import ImageUpload from "../components/ui/ImageUpload";
 import { LocationInput, type LocationValue } from "../components/ui/LocationInput";
+import { reverseGeocode } from "../utils/googleMaps";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -225,18 +226,8 @@ export default function ProfileSetupPage() {
                   async (pos) => {
                     const { latitude, longitude } = pos.coords;
                     setHomeLat(latitude); setHomeLng(longitude);
-                    // Tentar geocodificação reversa via Mapbox
-                    const token = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
-                    if (token) {
-                      try {
-                        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${token}&language=pt&types=address,place,neighborhood&limit=1`);
-                        const data = await res.json();
-                        const label = data.features?.[0]?.place_name ?? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-                        setHomeAddress(label);
-                      } catch { setHomeAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`); }
-                    } else {
-                      setHomeAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-                    }
+                    const label = await reverseGeocode(latitude, longitude);
+                    setHomeAddress(label);
                     setLocating(false);
                   },
                   (err) => {

@@ -4,6 +4,7 @@ import { Button } from "../ui/Button";
 import { LocationInput, type LocationValue } from "../ui/LocationInput";
 import { cn } from "../../utils/cn";
 import { apiRequest } from "../../services/api";
+import { reverseGeocode } from "../../utils/googleMaps";
 
 type Props = {
   open: boolean;
@@ -22,28 +23,6 @@ const ALL_DAYS = [
   { key: "sabado",  label: "Sáb" },
   { key: "domingo", label: "Dom" },
 ];
-
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
-
-async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  if (!MAPBOX_TOKEN) return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-  try {
-    const params = new URLSearchParams({
-      access_token: MAPBOX_TOKEN,
-      language: "pt",
-      types: "address,place,poi,neighborhood",
-      limit: "1",
-    });
-    const res = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?${params}`
-    );
-    if (!res.ok) return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-    const data = await res.json();
-    return data.features?.[0]?.place_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-  } catch {
-    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-  }
-}
 
 export default function SaveRouteSheet({ open, onClose, onSaved, onSkip, isOnboarding }: Props) {
   const [originLabel,   setOriginLabel]   = useState("");

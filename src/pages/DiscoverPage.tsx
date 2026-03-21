@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 import { useAuth } from "../contexts/AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import { apiRequest } from "../services/api";
@@ -892,7 +890,6 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
           setOpenReport(true);
         }}
         currentUserId={user?.id}
-        mapboxToken={MAPBOX_TOKEN}
       />
 
       <PublicProfileSheet
