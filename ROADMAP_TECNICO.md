@@ -1295,11 +1295,12 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 ---
 
-### Prioridade de implementação da Fase 17
-
-```
-1. 17.1 (algoritmo "chegar a tempo") — diferencial core, funciona sem AI
-2. 17.2 (assistente AI) — constrói por cima do 17.1, adiar para quando 17.1 estiver sólido
-```
-
 > **Nota:** o multimodal completo (boleia + transporte público + caminhada) requer GTFS feeds por cidade e é Fase 20+. A Fase 17 foca em boleia + caminhada que é simples e já resolve 80% dos casos.
+
+---
+
+### 17.2 — Assistente HopOn AI ⏳ v2 (adiar)
+
+> Feature para uma segunda versão da app — após lançamento com utilizadores reais e validação do produto core. O 17.1 resolve o problema sem precisar de AI. O assistente é um "nice to have" que adiciona custo e complexidade sem ser essencial para a v1.
+
+Ver detalhe acima — implementar apenas após 17.1 estar sólido e com feedback real de utilizadores.
