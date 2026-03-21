@@ -210,19 +210,6 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, 
                   <option value="rating">Melhor avaliação</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor={`${uid}-vibe`}>Ambiente</label>
-                <select
-                  id={`${uid}-vibe`}
-                  className="w-full border border-gray-200 bg-gray-50 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
-                  value={f.vibe}
-                  onChange={e => update("vibe", e.target.value as DiscoverFilters["vibe"])}
-                >
-                  <option value="any">Qualquer</option>
-                  <option value="quiet">Silencioso</option>
-                  <option value="chatty">Conversa</option>
-                </select>
-              </div>
             </div>
           </div>
         )}

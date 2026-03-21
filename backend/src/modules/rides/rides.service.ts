@@ -696,7 +696,7 @@ export class RidesService {
         destinationLocation: true,
         community: true,
       },
-      orderBy: dto.sort === 'earliest' ? { departureTime: 'asc' } : { departureTime: 'asc' },
+      orderBy: { departureTime: 'asc' },
     });
 
     // Badge de comunidade partilhada (só se autenticado)
@@ -704,10 +704,22 @@ export class RidesService {
       ? await this.communitiesService.getSharedCommunityMap(userId)
       : new Map<string, { id: string; name: string }>();
 
-    const result = rides.map((ride) => ({
+    let result = rides.map((ride) => ({
       ...this.toResponse(ride),
       sharedCommunity: sharedCommunityMap.get(ride.driverId) ?? null,
     }));
+
+    // Ordenar por avaliação média do condutor
+    if (dto.sort === 'rating' && result.length > 0) {
+      const driverIds = [...new Set(result.map((r) => r.driverId))];
+      const ratingRows = await this.prisma.rating.groupBy({
+        by: ['revieweeId'],
+        where: { revieweeId: { in: driverIds } },
+        _avg: { score: true },
+      });
+      const avgMap = new Map(ratingRows.map((r) => [r.revieweeId, r._avg.score ?? 0]));
+      result = result.sort((a, b) => (avgMap.get(b.driverId) ?? 0) - (avgMap.get(a.driverId) ?? 0));
+    }
     await this.cache.set(cacheKey, result, SEARCH_TTL_MS);
     return result;
   }
