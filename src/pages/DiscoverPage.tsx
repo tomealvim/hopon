@@ -71,6 +71,16 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   const [openPassengerPolicy, setOpenPassengerPolicy] = useState(false);
   const [pendingBookingRideId, setPendingBookingRideId] = useState<string | null>(null);
 
+  // Localização GPS do utilizador (para ordenar "Para Ti" por proximidade)
+  const [userGps, setUserGps] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => setUserGps({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => { /* sem permissão — fallback para ordenação por hora */ },
+      { maximumAge: 5 * 60 * 1000, timeout: 5000 }
+    );
+  }, []);
+
   // "Para Ti" — boleias que batem com os templates/rotas do utilizador
   const [forYouRides, setForYouRides]   = useState<ApiRide[]>([]);
   const [forYouLoading, setForYouLoading] = useState(false);
@@ -336,6 +346,29 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
     }
   }
 
+  // Ordenar "Para Ti" por proximidade GPS + hora de partida
+  function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  const sortedForYouRides = userGps
+    ? [...forYouRides].sort((a, b) => {
+        const aLat = a.originLocation?.lat, aLng = a.originLocation?.lng;
+        const bLat = b.originLocation?.lat, bLng = b.originLocation?.lng;
+        const distA = aLat != null && aLng != null ? haversineKm(userGps.lat, userGps.lng, aLat, aLng) : 999;
+        const distB = bLat != null && bLng != null ? haversineKm(userGps.lat, userGps.lng, bLat, bLng) : 999;
+        // Proximity score: bucket de 5km, depois hora de partida
+        const bucketA = Math.floor(distA / 5);
+        const bucketB = Math.floor(distB / 5);
+        if (bucketA !== bucketB) return bucketA - bucketB;
+        return new Date(a.departureTime).getTime() - new Date(b.departureTime).getTime();
+      })
+    : forYouRides;
+
   // Chips de filtros activos (para mostrar na UI)
   const filterChips: { label: string; clear: () => void }[] = [];
   if (filters.origin?.trim()) filterChips.push({ label: `De: ${filters.origin.trim()}`, clear: () => setFilters(f => ({ ...f, origin: "" })) });
@@ -562,7 +595,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                       </div>
                     ))}
                   </div>
-                ) : forYouRides.length === 0 ? (
+                ) : sortedForYouRides.length === 0 ? (
                   <div className="text-center py-12 px-4">
                     <p className="text-xl font-bold text-gray-900 mb-2">Sem sugestões ainda</p>
                     <p className="text-sm text-gray-600 max-w-[300px] mx-auto mb-6">
@@ -571,9 +604,9 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                     <Button onClick={() => setOpenSaveRoute(true)}>Guardar rota habitual</Button>
                   </div>
                 ) : (() => {
-                  const tomorrow = forYouRides.filter((r) => r.section === "tomorrow");
-                  const familiar = forYouRides.filter((r) => r.section === "familiar");
-                  const thisWeek = forYouRides.filter((r) => r.section === "this_week");
+                  const tomorrow = sortedForYouRides.filter((r) => r.section === "tomorrow");
+                  const familiar = sortedForYouRides.filter((r) => r.section === "familiar");
+                  const thisWeek = sortedForYouRides.filter((r) => r.section === "this_week");
 
                   function RideCard({ ride }: { ride: ApiRide }) {
                     const dep = new Date(ride.departureTime);

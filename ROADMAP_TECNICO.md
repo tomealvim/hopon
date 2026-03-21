@@ -1008,6 +1008,17 @@ O nº do Cartão de Cidadão deve aparecer na foto da carta de condução para c
 | 15.4.2 | Calcular poupança em €: custo de carro solo vs custo partilhado | ✅ Concluído |
 | 15.4.3 | Secção "Impacto" no ProfilePage: "X kg CO₂ poupados · €Y economizados este mês" | ✅ Concluído (`ProfilePage.tsx`) |
 
+### 15.5 — Permissão de localização no onboarding
+
+> Para usar 100% das funcionalidades (ordenação por proximidade, boleias perto de si, matching automático) o utilizador deve aceitar partilhar localização logo nos primeiros passos. Referência: Waze, Google Maps, Uber pedem no onboarding com justificação clara.
+
+| # | Item | Estado |
+|---|---|---|
+| 15.5.1 | Adicionar passo de permissão de localização no `OnboardingPage` — antes do utilizador entrar no app, pedir `navigator.geolocation.getCurrentPosition` com mensagem clara: "Para encontrares boleias perto de ti precisamos da tua localização" | ⬜ Por fazer |
+| 15.5.2 | Se o utilizador recusar, guardar preferência e não voltar a pedir (usar fallback de pesquisa por texto) | ⬜ Por fazer |
+| 15.5.3 | Mostrar badge "Localização ativa" no feed com raio atual (ex: "Boleias a menos de 10 km") | ⬜ Por fazer |
+| 15.5.4 | Ordenação "Para Ti" por proximidade GPS + hora de partida (já implementado — depende da permissão aceite) | ✅ Concluído |
+
 ---
 
 ## Fase 15b — Fiabilidade (Commute First)
