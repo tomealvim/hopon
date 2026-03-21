@@ -1,31 +1,40 @@
 import { useEffect, useRef, useState } from "react";
+import { getPlaceSuggestions, getPlaceCoords } from "../../utils/googleMaps";
 
-type Suggestion = { label: string; shortName: string; context: string; lat: number; lng: number };
+type Suggestion = { placeId: string; mainText: string; secondaryText: string };
 
 type Props = {
   label: string;
   placeholder?: string;
   value: string;
-  onSelect: (suggestion: Suggestion | null) => void;
-  mapboxToken: string;
+  onSelect: (suggestion: { label: string; lat: number; lng: number } | null) => void;
   id?: string;
 };
 
-export default function LocationAutocomplete({ label, placeholder, value, onSelect, mapboxToken, id }: Props) {
+const DEFAULT_PROXIMITY = { lat: 38.7169, lng: -9.1399 };
+
+export default function LocationAutocomplete({ label, placeholder, value, onSelect, id }: Props) {
   const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const proximityRef = useRef(DEFAULT_PROXIMITY);
 
   useEffect(() => { setQuery(value); }, [value]);
 
   useEffect(() => {
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => { proximityRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
+      () => {},
+      { maximumAge: 10 * 60 * 1000, timeout: 3000 }
+    );
+  }, []);
+
+  useEffect(() => {
     function handler(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -40,32 +49,24 @@ export default function LocationAutocomplete({ label, placeholder, value, onSele
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?country=pt&language=pt&types=place,locality,neighborhood,address&limit=5&access_token=${mapboxToken}`
-        );
-        const data = await res.json();
-        const items: Suggestion[] = (data.features ?? []).map((f: any) => {
-          const parts: string[] = f.place_name.split(", ");
-          return {
-            label: f.text,
-            shortName: f.text,
-            context: parts.slice(1).join(", "),
-            lat: f.center[1],
-            lng: f.center[0],
-          };
-        });
-        setSuggestions(items);
-        setOpen(items.length > 0);
+        const results = await getPlaceSuggestions(q, proximityRef.current);
+        setSuggestions(results);
+        setOpen(results.length > 0);
       } catch { setSuggestions([]); }
       finally { setLoading(false); }
     }, 300);
   }
 
-  function handleSelect(s: Suggestion) {
-    setQuery(s.shortName);
+  async function handleSelect(s: Suggestion) {
+    setQuery(s.mainText);
     setSuggestions([]);
     setOpen(false);
-    onSelect(s);
+    setLoading(true);
+    try {
+      const coords = await getPlaceCoords(s.placeId);
+      if (coords) onSelect({ label: s.mainText, lat: coords.lat, lng: coords.lng });
+      else onSelect(null);
+    } finally { setLoading(false); }
   }
 
   function handleClear() {
@@ -94,12 +95,7 @@ export default function LocationAutocomplete({ label, placeholder, value, onSele
           autoComplete="off"
         />
         {query && (
-          <button
-            type="button"
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
-            onClick={handleClear}
-            tabIndex={-1}
-          >
+          <button type="button" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors" onClick={handleClear} tabIndex={-1}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M18 6L6 18M6 6l12 12"/>
             </svg>
@@ -107,7 +103,6 @@ export default function LocationAutocomplete({ label, placeholder, value, onSele
         )}
       </div>
 
-      {/* Dropdown */}
       {(loading || (open && suggestions.length > 0)) && (
         <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-gray-100 rounded-2xl shadow-xl z-[100] overflow-hidden">
           {loading && (
@@ -118,9 +113,9 @@ export default function LocationAutocomplete({ label, placeholder, value, onSele
               A pesquisar...
             </div>
           )}
-          {!loading && suggestions.map((s, i) => (
+          {!loading && suggestions.map((s) => (
             <button
-              key={i}
+              key={s.placeId}
               type="button"
               className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3 border-b border-gray-50 last:border-0"
               onMouseDown={(e) => { e.preventDefault(); handleSelect(s); }}
@@ -131,10 +126,8 @@ export default function LocationAutocomplete({ label, placeholder, value, onSele
                 </svg>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-900 leading-snug">{s.shortName}</p>
-                {s.context && (
-                  <p className="text-xs text-gray-400 mt-0.5 truncate">{s.context}</p>
-                )}
+                <p className="text-sm font-semibold text-gray-900 leading-snug">{s.mainText}</p>
+                {s.secondaryText && <p className="text-xs text-gray-400 mt-0.5 truncate">{s.secondaryText}</p>}
               </div>
             </button>
           ))}

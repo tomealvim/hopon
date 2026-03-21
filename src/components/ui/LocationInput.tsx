@@ -1,17 +1,12 @@
 /**
- * LocationInput — campo de texto para localização com autocomplete Mapbox.
- *
- * Requer VITE_MAPBOX_TOKEN no .env do frontend.
- * Se o token não estiver configurado, degrada graciosamente para texto simples.
- *
- * Quando integrar Google Places no futuro (2.1 roadmap note):
- *   - Substituir fetchSuggestions() pela Places Autocomplete API
- *   - O resto do componente (onLocationSelect, LocationValue) mantém-se igual
+ * LocationInput — campo de texto para localização com Google Places Autocomplete.
+ * Requer VITE_GOOGLE_MAPS_KEY no .env do frontend.
  */
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { cn } from "../../utils/cn";
 import MapPicker from "./MapPicker";
+import { getPlaceSuggestions, getPlaceCoords } from "../../utils/googleMaps";
 
 export type LocationValue = {
   label: string;
@@ -25,9 +20,6 @@ type Suggestion = {
   id: string;
   label: string;
   sublabel?: string;
-  lat: number;
-  lng: number;
-  city?: string;
 };
 
 type LocationInputProps = {
@@ -45,55 +37,7 @@ type LocationInputProps = {
   "aria-invalid"?: boolean;
 };
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
-const MAPBOX_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places";
-// Default de proximidade: centro de Lisboa (usado quando o GPS não está disponível)
-const DEFAULT_PROXIMITY = "-9.1399,38.7169";
-
-async function fetchSuggestions(query: string, proximity?: string): Promise<Suggestion[]> {
-  if (!MAPBOX_TOKEN || query.trim().length < 2) return [];
-
-  const params = new URLSearchParams({
-    access_token: MAPBOX_TOKEN,
-    language: "pt",
-    country: "pt",
-    limit: "6",
-    // Sem "address" — evita ruas com nomes parecidos (ex: "Rua Belém do Pará, Aveiro")
-    // Sem "poi" puro — neighborhood/locality cobre bairros, place cobre cidades
-    types: "place,locality,neighborhood,district,poi",
-    proximity: proximity ?? DEFAULT_PROXIMITY,
-    fuzzy_match: "false",
-  });
-
-  const res = await fetch(`${MAPBOX_URL}/${encodeURIComponent(query)}.json?${params}`);
-  if (!res.ok) return [];
-
-  const data: {
-    features: Array<{
-      id: string;
-      place_name: string;
-      text: string;
-      center: [number, number]; // [lng, lat]
-      context?: Array<{ id: string; text: string }>;
-    }>;
-  } = await res.json();
-
-  return data.features.map((f) => {
-    const [lng, lat] = f.center;
-    const city = f.context?.find((c) => c.id.startsWith("place."))?.text;
-    const parts = f.place_name.split(", ");
-    const context = parts.slice(1).join(", ");
-    return {
-      id: f.id,
-      // Guardar só o nome curto (ex: "Belém" em vez de "Belém, Lisboa, Portugal")
-      label: f.text,
-      sublabel: context || undefined,
-      lat,
-      lng,
-      city,
-    };
-  });
-}
+const DEFAULT_PROXIMITY = { lat: 38.7169, lng: -9.1399 }; // Lisboa
 
 export function LocationInput({
   id,
@@ -113,16 +57,15 @@ export function LocationInput({
   const [mapOpen, setMapOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const proximityRef = useRef<string>(DEFAULT_PROXIMITY);
+  const proximityRef = useRef<{ lat: number; lng: number }>(DEFAULT_PROXIMITY);
   const listId = useId();
   const hasCoords = lat != null && lng != null;
-  const autocompleteEnabled = !!MAPBOX_TOKEN;
 
-  // Obter GPS do utilizador uma vez para bias de proximidade
+  // Obter GPS do utilizador para bias de proximidade
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
-      (pos) => { proximityRef.current = `${pos.coords.longitude},${pos.coords.latitude}`; },
-      () => { /* manter default Lisboa */ },
+      (pos) => { proximityRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
+      () => {},
       { maximumAge: 10 * 60 * 1000, timeout: 3000 }
     );
   }, []);
@@ -130,9 +73,9 @@ export function LocationInput({
   const search = useCallback((query: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
-      const results = await fetchSuggestions(query, proximityRef.current);
-      setSuggestions(results);
-      setOpen(true); // abrir sempre que há input (pin no mapa está sempre disponível)
+      const results = await getPlaceSuggestions(query, proximityRef.current);
+      setSuggestions(results.map((r) => ({ id: r.placeId, label: r.mainText, sublabel: r.secondaryText })));
+      setOpen(true);
       setActiveIdx(-1);
     }, 300);
   }, []);
@@ -152,18 +95,19 @@ export function LocationInput({
     const v = e.target.value;
     onLabelChange(v);
     if (v.trim().length >= 2) {
-      if (autocompleteEnabled) search(v);
+      search(v);
     } else {
       setSuggestions([]);
       setOpen(v.trim().length === 0 ? false : true);
     }
   };
 
-  const handleSelect = (s: Suggestion) => {
+  const handleSelect = async (s: Suggestion) => {
     onLabelChange(s.label);
-    onLocationSelect?.({ label: s.label, lat: s.lat, lng: s.lng, placeId: s.id, city: s.city });
     setOpen(false);
     setSuggestions([]);
+    const coords = await getPlaceCoords(s.id);
+    onLocationSelect?.({ label: s.label, lat: coords?.lat, lng: coords?.lng, placeId: s.id });
   };
 
   const handleMapConfirm = (pickedLat: number, pickedLng: number, pickedLabel: string) => {

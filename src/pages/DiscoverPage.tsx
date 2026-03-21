@@ -818,7 +818,6 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         initial={filters}
         onClose={() => setOpenFilters(false)}
         onApply={(next) => { setFilters(next); setOpenFilters(false); }}
-        mapboxToken={MAPBOX_TOKEN ?? ""}
       />
 
       {selectedRideId && (() => {

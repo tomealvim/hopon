@@ -9,10 +9,9 @@ type Props = {
   initial: DiscoverFilters;
   onClose: () => void;
   onApply: (next: DiscoverFilters) => void;
-  mapboxToken: string;
 };
 
-export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, mapboxToken }: Props) {
+export default function DiscoverFiltersSheet({ open, initial, onClose, onApply }: Props) {
   const [f, setF] = useState<DiscoverFilters>(initial);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const uid = useId();
@@ -72,7 +71,7 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, 
             label="Origem"
             placeholder="Ex.: Lisboa"
             value={f.origin || ""}
-            mapboxToken={mapboxToken}
+
             onSelect={(s) => {
               if (s) {
                 setF(prev => ({ ...prev, origin: s.label, originLat: s.lat, originLng: s.lng }));
@@ -86,7 +85,7 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, 
             label="Destino"
             placeholder="Ex.: Porto"
             value={f.destination || ""}
-            mapboxToken={mapboxToken}
+
             onSelect={(s) => {
               if (s) {
                 setF(prev => ({ ...prev, destination: s.label, destinationLat: s.lat, destinationLng: s.lng }));
