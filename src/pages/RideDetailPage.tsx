@@ -77,9 +77,9 @@ export default function RideDetailPage({
               {hasMap ? (
                 <div className="-mx-5 -mt-2 mb-6 relative">
                   <img
-                    src={`https://api.mapbox.com/styles/v1/mapbox/light-v11/static/pin-s+111111(${oLng},${oLat}),pin-s+888888(${dLng},${dLat})/auto/600x200@2x?padding=60,30,30,30&access_token=${mapboxToken}`}
+                    src={`https://api.mapbox.com/styles/v1/mapbox/light-v11/static/geojson(${encodeURIComponent(JSON.stringify({type:"Feature",geometry:{type:"LineString",coordinates:[[oLng,oLat],[dLng,dLat]]},properties:{stroke:"#374151","stroke-width":3,"stroke-opacity":0.55}}))}),pin-l+111827(${oLng},${oLat}),pin-l+6b7280(${dLng},${dLat})/auto/800x320@2x?padding=90,50,80,50&access_token=${mapboxToken}`}
                     alt="Mapa da rota"
-                    className="w-full h-44 object-cover"
+                    className="w-full h-56 object-cover"
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/70 to-transparent px-5 pb-3 pt-6">
                     <div className="flex items-center gap-3">
