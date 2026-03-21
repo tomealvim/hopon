@@ -29,31 +29,26 @@ export async function getPlaceSuggestions(
 ): Promise<PlaceSuggestion[]> {
   if (!GOOGLE_KEY || query.trim().length < 2) return [];
   await loadGoogleMaps();
-  return new Promise((resolve) => {
-    const service = new google.maps.places.AutocompleteService();
-    const req: google.maps.places.AutocompletionRequest = {
+  try {
+    // Nova API (Places API New) — obrigatória para novos clientes desde março 2025
+    const { AutocompleteSuggestion } = await google.maps.importLibrary("places") as any;
+    const request: any = {
       input: query,
-      componentRestrictions: { country: "pt" },
+      includedRegionCodes: ["pt"],
       language: "pt",
       ...(proximity && {
-        location: new google.maps.LatLng(proximity.lat, proximity.lng),
-        radius: 50000,
+        locationBias: { center: { lat: proximity.lat, lng: proximity.lng }, radius: 50000 },
       }),
     };
-    service.getPlacePredictions(req, (predictions, status) => {
-      if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
-        resolve([]);
-        return;
-      }
-      resolve(
-        predictions.map((p) => ({
-          placeId: p.place_id,
-          mainText: p.structured_formatting.main_text,
-          secondaryText: p.structured_formatting.secondary_text ?? "",
-        }))
-      );
-    });
-  });
+    const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+    return suggestions.map((s: any) => ({
+      placeId: s.placePrediction.placeId,
+      mainText: s.placePrediction.mainText?.toString() ?? "",
+      secondaryText: s.placePrediction.secondaryText?.toString() ?? "",
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export async function reverseGeocode(lat: number, lng: number): Promise<string> {
