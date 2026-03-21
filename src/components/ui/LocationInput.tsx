@@ -47,16 +47,22 @@ type LocationInputProps = {
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 const MAPBOX_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places";
+// Default de proximidade: centro de Lisboa (usado quando o GPS não está disponível)
+const DEFAULT_PROXIMITY = "-9.1399,38.7169";
 
-async function fetchSuggestions(query: string): Promise<Suggestion[]> {
+async function fetchSuggestions(query: string, proximity?: string): Promise<Suggestion[]> {
   if (!MAPBOX_TOKEN || query.trim().length < 2) return [];
 
   const params = new URLSearchParams({
     access_token: MAPBOX_TOKEN,
     language: "pt",
     country: "pt",
-    limit: "5",
-    types: "place,locality,neighborhood,address,poi",
+    limit: "6",
+    // Sem "address" — evita ruas com nomes parecidos (ex: "Rua Belém do Pará, Aveiro")
+    // Sem "poi" puro — neighborhood/locality cobre bairros, place cobre cidades
+    types: "place,locality,neighborhood,district,poi",
+    proximity: proximity ?? DEFAULT_PROXIMITY,
+    fuzzy_match: "false",
   });
 
   const res = await fetch(`${MAPBOX_URL}/${encodeURIComponent(query)}.json?${params}`);
@@ -75,13 +81,13 @@ async function fetchSuggestions(query: string): Promise<Suggestion[]> {
   return data.features.map((f) => {
     const [lng, lat] = f.center;
     const city = f.context?.find((c) => c.id.startsWith("place."))?.text;
-    // Separar label principal do sublabel (ex: "Rua X" / "Lisboa, Portugal")
-    const [main, ...rest] = f.place_name.split(", ");
+    const parts = f.place_name.split(", ");
+    const context = parts.slice(1).join(", ");
     return {
       id: f.id,
-      label: f.place_name,
-      sublabel: rest.length > 0 ? rest.join(", ") : undefined,
-      mainText: main,
+      // Guardar só o nome curto (ex: "Belém" em vez de "Belém, Lisboa, Portugal")
+      label: f.text,
+      sublabel: context || undefined,
       lat,
       lng,
       city,
@@ -107,14 +113,24 @@ export function LocationInput({
   const [mapOpen, setMapOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const proximityRef = useRef<string>(DEFAULT_PROXIMITY);
   const listId = useId();
   const hasCoords = lat != null && lng != null;
   const autocompleteEnabled = !!MAPBOX_TOKEN;
 
+  // Obter GPS do utilizador uma vez para bias de proximidade
+  useEffect(() => {
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => { proximityRef.current = `${pos.coords.longitude},${pos.coords.latitude}`; },
+      () => { /* manter default Lisboa */ },
+      { maximumAge: 10 * 60 * 1000, timeout: 3000 }
+    );
+  }, []);
+
   const search = useCallback((query: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
-      const results = await fetchSuggestions(query);
+      const results = await fetchSuggestions(query, proximityRef.current);
       setSuggestions(results);
       setOpen(true); // abrir sempre que há input (pin no mapa está sempre disponível)
       setActiveIdx(-1);
@@ -255,7 +271,6 @@ export function LocationInput({
 
             {/* Sugestões de texto */}
             {suggestions.map((s, i) => {
-              const [main, ...rest] = s.label.split(", ");
               const idx = i + 1; // offset de 1 por causa do item "pin no mapa"
               return (
                 <li
@@ -278,9 +293,9 @@ export function LocationInput({
                     <circle cx="12" cy="10" r="3" />
                   </svg>
                   <span className="min-w-0">
-                    <span className="font-medium text-gray-900 truncate block">{main}</span>
-                    {rest.length > 0 && (
-                      <span className="text-xs text-gray-500 truncate block">{rest.join(", ")}</span>
+                    <span className="font-medium text-gray-900 truncate block">{s.label}</span>
+                    {s.sublabel && (
+                      <span className="text-xs text-gray-500 truncate block">{s.sublabel}</span>
                     )}
                   </span>
                 </li>
