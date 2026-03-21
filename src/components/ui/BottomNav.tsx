@@ -61,6 +61,8 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
   const isActive = (tab: TabKey) => current === tab;
 
   return (
+    <>
+    <div className="bottom-nav-fill" aria-hidden />
     <nav
       className="bottom-nav-safe"
       role="navigation"
@@ -120,5 +122,6 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
         ))}
       </div>
     </nav>
+    </>
   );
 }
