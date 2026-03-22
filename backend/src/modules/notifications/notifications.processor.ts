@@ -10,6 +10,7 @@ import {
   BookingStatusEmailPayload,
   BookingCancelledEmailPayload,
   RideCancelledEmailPayload,
+  LateCancelWarningEmailPayload,
 } from './email-jobs.types';
 import {
   otpEmailHtml,
@@ -18,6 +19,7 @@ import {
   bookingDeclinedEmailHtml,
   bookingCancelledEmailHtml,
   rideCancelledEmailHtml,
+  lateCancelWarningEmailHtml,
 } from './email-templates';
 
 type EmailJobPayload =
@@ -25,7 +27,8 @@ type EmailJobPayload =
   | BookingCreatedEmailPayload
   | BookingStatusEmailPayload
   | BookingCancelledEmailPayload
-  | RideCancelledEmailPayload;
+  | RideCancelledEmailPayload
+  | LateCancelWarningEmailPayload;
 
 @Processor('email')
 @Injectable()
@@ -123,6 +126,22 @@ export class NotificationsProcessor extends WorkerHost {
           });
         } else {
           this.logger.log(`[dev] email.ride-cancelled → ${userEmail}`);
+        }
+        break;
+      }
+
+      case 'email.late-cancel-warning': {
+        const { userEmail, userName, count, windowDays } = job.data as LateCancelWarningEmailPayload;
+        if (resendKey) {
+          const resend = new Resend(resendKey);
+          await resend.emails.send({
+            from: fromEmail,
+            to: userEmail,
+            subject: 'Aviso de cancelamentos - HopOn',
+            html: lateCancelWarningEmailHtml(userName, count, windowDays),
+          });
+        } else {
+          this.logger.log(`[dev] email.late-cancel-warning → ${userEmail} (${count} cancelamentos)`);
         }
         break;
       }

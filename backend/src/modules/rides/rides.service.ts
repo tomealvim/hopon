@@ -1173,7 +1173,7 @@ export class RidesService {
         const newCount = windowExpired ? 1 : driver.lateCancelCount + 1;
         const newWindowStart = windowExpired ? now : windowStart;
 
-        await this.prisma.user.update({
+        const fullUser = await this.prisma.user.update({
           where: { id: userId },
           data: {
             lateCancelCount: newCount,
@@ -1184,10 +1184,17 @@ export class RidesService {
               suspensionReason: `Suspensão automática: ${newCount} cancelamentos de última hora (<2h) em 30 dias`,
             }),
           },
+          select: { email: true, profile: { select: { name: true } } },
         });
 
         if (newCount >= 3) {
           console.warn(`[RidesService] Utilizador ${userId} auto-suspenso após ${newCount} cancelamentos de última hora`);
+        }
+
+        // Aviso por email ao 5.º cancelamento de última hora
+        if (newCount === 5) {
+          const userName = fullUser.profile?.name ?? fullUser.email;
+          void this.notificationsService.queueLateCancelWarningEmail(fullUser.email, userName, newCount);
         }
       }
     }

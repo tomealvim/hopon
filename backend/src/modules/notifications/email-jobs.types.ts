@@ -4,7 +4,8 @@ export type EmailJobName =
   | 'email.booking-confirmed'
   | 'email.booking-declined'
   | 'email.booking-cancelled'
-  | 'email.ride-cancelled';
+  | 'email.ride-cancelled'
+  | 'email.late-cancel-warning';
 
 export interface OtpEmailPayload {
   to: string;
@@ -47,4 +48,11 @@ export interface RideCancelledEmailPayload {
   origin: string;
   destination: string;
   departureTime: string;
+}
+
+export interface LateCancelWarningEmailPayload {
+  userEmail: string;
+  userName: string;
+  count: number; // número atual de cancelamentos (5)
+  windowDays: number; // janela de tempo (30 dias)
 }

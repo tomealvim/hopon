@@ -219,3 +219,29 @@ export function rideCancelledEmailHtml(
     ${ctaButton('Explorar boleias')}
   `);
 }
+
+export function lateCancelWarningEmailHtml(
+  userName: string,
+  count: number,
+  windowDays: number,
+): string {
+  return layout(`
+    ${greeting(userName)}
+    ${h1('Aviso de cancelamentos')}
+    <p style="margin:0 0 16px;font-size:15px;color:${BASE.muted};">
+      Nos ultimos <strong style="color:${BASE.primary};">${windowDays} dias</strong> tiveste
+      <strong style="color:${BASE.primary};">${count} cancelamentos de ultima hora</strong> (menos de 2h antes da partida).
+    </p>
+    <div style="background:#fef9c3;border:1px solid #fde047;border-radius:12px;padding:16px;margin-bottom:16px;">
+      <p style="margin:0;font-size:14px;color:#713f12;">
+        Cancelamentos frequentes de ultima hora prejudicam os passageiros e a tua taxa de fiabilidade.
+        Se continuares, a tua conta pode ser suspensa temporariamente.
+      </p>
+    </div>
+    <p style="margin:0;font-size:14px;color:${BASE.muted};">
+      Se precisares de cancelar uma boleia, tenta faze-lo com pelo menos 2 horas de antecedencia.
+      Isso permite que os passageiros encontrem alternativas a tempo.
+    </p>
+    ${ctaButton('Ver as minhas boleias')}
+  `);
+}

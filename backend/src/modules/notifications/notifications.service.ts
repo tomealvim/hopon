@@ -10,6 +10,7 @@ import {
   BookingStatusEmailPayload,
   BookingCancelledEmailPayload,
   RideCancelledEmailPayload,
+  LateCancelWarningEmailPayload,
 } from './email-jobs.types';
 
 type PushPrefs = { messages: boolean; bookings: boolean; rides: boolean; matches: boolean };
@@ -205,6 +206,11 @@ export class NotificationsService {
       departureTime,
     };
     await this.queue.add('email.booking-cancelled', payload);
+  }
+
+  async queueLateCancelWarningEmail(userEmail: string, userName: string, count: number) {
+    const payload: LateCancelWarningEmailPayload = { userEmail, userName, count, windowDays: 30 };
+    await this.queue.add('email.late-cancel-warning', payload);
   }
 
   async notifyRideUpdated(
