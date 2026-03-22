@@ -19,6 +19,7 @@ import PublicProfileSheet from "../components/ui/PublicProfileSheet";
 import RideDetailPage from "./RideDetailPage";
 import SaveRouteSheet from "../components/discover/SaveRouteSheet";
 import RideRequestSheet from "../components/discover/RideRequestSheet";
+import LocationAutocomplete from "../components/ui/LocationAutocomplete";
 
 type DiscoverPageProps = {
   onOpenInbox?: (threadId?: string) => void;
@@ -110,6 +111,17 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   // "Disponível agora" — boleias nas próximas 2h
   const [nowRides, setNowRides] = useState<ApiRide[]>([]);
   const [nowLoading, setNowLoading] = useState(false);
+
+  // "Chegar a tempo" (17.1)
+  type ArrivingByResult = ApiRide & { walkingMinutes: number; estimatedArrival: string; marginMinutes: number };
+  const [arriveDest, setArriveDest] = useState<{ label: string; lat: number; lng: number } | null>(null);
+  const [arriveDestText, setArriveDestText] = useState("");
+  const [arriveDate, setArriveDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [arriveTime, setArriveTime] = useState("09:00");
+  const [arriveMargin, setArriveMargin] = useState(5);
+  const [arriveByRides, setArriveByRides] = useState<ArrivingByResult[]>([]);
+  const [arriveByLoading, setArriveByLoading] = useState(false);
+  const [arriveBySearched, setArriveBySearched] = useState(false);
 
   // Arranjos recorrentes (para propor após boleia concluída)
   type Arrangement = { id: string; status: string; proposedById: string; note?: string; scheduleTemplate: { id: string; origin: string; destination: string; time: string; daysOfWeek: string[] } | null; otherUser: { id: string; name: string; avatarUrl?: string | null } | null };
@@ -216,6 +228,28 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
     return params;
   }
 
+  async function handleArrivingBySearch() {
+    if (!arriveDest) return;
+    const arriveByIso = new Date(`${arriveDate}T${arriveTime}:00`).toISOString();
+    const params = new URLSearchParams({
+      destinationLat: String(arriveDest.lat),
+      destinationLng: String(arriveDest.lng),
+      arriveBy: arriveByIso,
+      date: arriveDate,
+      marginMin: String(arriveMargin),
+    });
+    setArriveByLoading(true);
+    setArriveBySearched(true);
+    try {
+      const data = await apiRequest<ArrivingByResult[]>(`/rides/arrive-by?${params}`);
+      setArriveByRides(Array.isArray(data) ? data : []);
+    } catch {
+      setArriveByRides([]);
+    } finally {
+      setArriveByLoading(false);
+    }
+  }
+
   // Carregar boleias disponíveis agora ao mudar para tab "now"
   useEffect(() => {
     if (tab !== "now") return;
@@ -267,7 +301,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
       method: "POST",
       body: JSON.stringify({ seats: 1, ...opts }),
     });
-    const ride = [...apiRides, ...forYouRides].find((r) => r.id === rideId);
+    const ride = [...apiRides, ...forYouRides, ...arriveByRides].find((r) => r.id === rideId);
     showSuccess(
       "Reserva feita!",
       ride ? `${ride.origin} → ${ride.destination}. O condutor irá confirmar em breve.` : "Reserva registada."
@@ -695,6 +729,129 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
               </>
             )}
 
+            {/* Chegar a tempo */}
+            {tab === "arrive-by" && (
+              <div className="pt-3 flex flex-col gap-4">
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">Chegar a tempo</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">Define o destino e a hora de chegada - encontramos boleias que te deixam a pé do destino a tempo.</p>
+                </div>
+
+                {/* Formulario de pesquisa */}
+                <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 flex flex-col gap-3">
+                  <LocationAutocomplete
+                    label="Destino final"
+                    placeholder="Ex: ISCTE, Marquês de Pombal..."
+                    value={arriveDestText}
+                    onSelect={(s) => {
+                      if (s) { setArriveDest(s); setArriveDestText(s.label); }
+                      else { setArriveDest(null); setArriveDestText(""); }
+                    }}
+                  />
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-gray-600">Data</label>
+                      <input
+                        type="date"
+                        value={arriveDate}
+                        min={new Date().toISOString().slice(0, 10)}
+                        onChange={(e) => setArriveDate(e.target.value)}
+                        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-gray-600">Chegar ate as</label>
+                      <input
+                        type="time"
+                        value={arriveTime}
+                        onChange={(e) => setArriveTime(e.target.value)}
+                        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-gray-600">Margem minima: {arriveMargin} min</label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={30}
+                      step={5}
+                      value={arriveMargin}
+                      onChange={(e) => setArriveMargin(Number(e.target.value))}
+                      className="w-full accent-gray-900"
+                    />
+                    <div className="flex justify-between text-[10px] text-gray-400">
+                      <span>0 min</span><span>15 min</span><span>30 min</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={!arriveDest || arriveByLoading}
+                    onClick={handleArrivingBySearch}
+                    className="w-full rounded-xl bg-gray-900 text-white text-sm font-semibold py-3 disabled:opacity-40 transition"
+                  >
+                    {arriveByLoading ? "A pesquisar..." : "Pesquisar boleias"}
+                  </button>
+                </div>
+
+                {/* Resultados */}
+                {arriveByLoading ? (
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    {Array.from({ length: 3 }).map((_, i) => <EntityCardSkeleton key={i} />)}
+                  </div>
+                ) : arriveBySearched && arriveByRides.length === 0 ? (
+                  <div className="text-center py-12 px-4">
+                    <p className="text-4xl mb-3">🚶</p>
+                    <p className="text-base font-bold text-gray-900 mb-1">Nenhuma boleia a tempo</p>
+                    <p className="text-sm text-gray-500 max-w-[280px] mx-auto">
+                      Tenta uma hora de chegada mais tarde, uma margem menor, ou procura noutra data.
+                    </p>
+                  </div>
+                ) : arriveByRides.length > 0 ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-gray-900">{arriveByRides.length} boleia{arriveByRides.length !== 1 ? "s" : ""} encontrada{arriveByRides.length !== 1 ? "s" : ""}</h3>
+                      <span className="text-xs text-gray-400">ordenadas pela chegada mais ajustada</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                      {arriveByRides.map((ride) => {
+                        const dep = new Date(ride.departureTime);
+                        const timeStr = dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+                        const dateStr = dep.toLocaleDateString("pt-PT", { weekday: "short", day: "numeric", month: "short" });
+                        const arrival = new Date(ride.estimatedArrival);
+                        const arrivalStr = arrival.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+                        const driverName = ride.driver?.profile?.name ?? ride.driver?.email ?? "Condutor";
+                        const seatsLeft = ride.remainingSeats;
+                        return (
+                          <EntityCard
+                            key={ride.id}
+                            title={`${ride.origin} - ${ride.destination}`}
+                            subtitle={`${dateStr}, parte as ${timeStr} - ${driverName}`}
+                            meta={`${ride.walkingMinutes} min a pe - chegas as ${arrivalStr} (${ride.marginMinutes} min de margem)`}
+                            badges={[
+                              { label: `${ride.walkingMinutes} min a pe`, tone: ride.walkingMinutes <= 10 ? "success" : ride.walkingMinutes <= 20 ? "warning" : "neutral" },
+                              { label: `Chegas as ${arrivalStr}`, tone: "success" },
+                              { label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`, tone: seatsLeft >= 3 ? "success" : "warning" },
+                              ...(ride.instantBooking ? [{ label: "Instantanea", tone: "success" as const }] : []),
+                              ...(ride.price != null && ride.price > 0 ? [{ label: `€${ride.price.toFixed(0)}/lugar` }] : []),
+                            ]}
+                            avatar={{ src: ride.driver?.profile?.avatarUrl ?? undefined, initials: driverName.slice(0, 2).toUpperCase() }}
+                            primaryLabel="Reservar"
+                            secondaryLabel="Detalhes"
+                            onPrimary={() => handleOpenBooking(ride.id)}
+                            onSecondary={() => openRideDetail(ride.id)}
+                          />
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            )}
+
             {/* Agora */}
             {tab === "now" && (
               <>
@@ -820,7 +977,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
       />
 
       {selectedRideId && (() => {
-        const ride = [...apiRides, ...forYouRides].find((r) => r.id === selectedRideId);
+        const ride = [...apiRides, ...forYouRides, ...arriveByRides].find((r) => r.id === selectedRideId);
         const dep = ride ? new Date(ride.departureTime) : null;
         const t = dep ? dep.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }) : "";
         return (

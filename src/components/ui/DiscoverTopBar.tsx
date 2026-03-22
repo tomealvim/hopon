@@ -1,7 +1,7 @@
 import { cn } from "../../utils/cn";
 import type { KeyboardEvent } from "react";
 
-export type DiscoverTab = "explore" | "for-you" | "now";
+export type DiscoverTab = "explore" | "for-you" | "now" | "arrive-by";
 
 type Props = {
   active: DiscoverTab;
@@ -11,7 +11,7 @@ type Props = {
 };
 
 export default function DiscoverTopBar({ active, onChange, onFilter, filterCount = 0 }: Props) {
-  const order: DiscoverTab[] = ["explore", "for-you", "now"];
+  const order: DiscoverTab[] = ["explore", "for-you", "now", "arrive-by"];
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const i = order.indexOf(active);
     if (e.key === "ArrowRight") { e.preventDefault(); onChange(order[Math.min(i + 1, order.length - 1)]); }
@@ -27,7 +27,7 @@ export default function DiscoverTopBar({ active, onChange, onFilter, filterCount
     <div className="sticky top-0 z-40 border-b border-gray-200 bg-white" role="region" aria-label="Navegação Explorar">
       <div className="mx-auto grid h-14 max-w-mobile grid-cols-[1fr_44px] items-center gap-2 px-4 md:max-w-tablet lg:max-w-desktop" onKeyDown={onKeyDown}>
         <div className="inline-flex gap-6 items-center w-full overflow-x-auto overflow-y-hidden scrollbar-none" role="radiogroup" aria-label="Feeds">
-          {(["explore", "for-you", "now"] as DiscoverTab[]).map((tab) => (
+          {(["explore", "for-you", "now", "arrive-by"] as DiscoverTab[]).map((tab) => (
             <button
               key={tab}
               type="button" role="radio"
@@ -40,7 +40,7 @@ export default function DiscoverTopBar({ active, onChange, onFilter, filterCount
               )}
               onClick={() => onChange(tab)}
             >
-              {tab === "explore" ? "Explorar" : tab === "for-you" ? "Para ti" : "Agora"}
+              {tab === "explore" ? "Explorar" : tab === "for-you" ? "Para ti" : tab === "now" ? "Agora" : "A tempo"}
               {active === tab && (
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
               )}

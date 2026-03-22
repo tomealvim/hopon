@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
 import { SearchRidesDto } from './dto/search-rides.dto';
+import { ArrivingByDto } from './dto/arrive-by.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { WalletService } from '../wallet/wallet.service';
 import { GeocodingService } from '../geocoding/geocoding.service';
@@ -586,6 +587,99 @@ export class RidesService {
         return booked < r.availableSeats;
       })
       .map((r) => this.toResponse(r));
+  }
+
+  /** 17.1 — "Chegar a tempo": boleias que chegam ao destino antes da hora pretendida */
+  async findArrivingBy(dto: ArrivingByDto, userId: string | null = null) {
+    const {
+      destinationLat,
+      destinationLng,
+      arriveBy,
+      date,
+      marginMin = 5,
+      maxWalkKm = 3,
+    } = dto;
+
+    const arriveByMs = new Date(arriveBy).getTime();
+    const dayStart = new Date(`${date}T00:00:00`);
+    const dayEnd = new Date(`${date}T23:59:59`);
+
+    function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+      const R = 6371;
+      const dLat = ((lat2 - lat1) * Math.PI) / 180;
+      const dLng = ((lng2 - lng1) * Math.PI) / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    // 1. Boleias agendadas no dia, com destino e duração conhecidos
+    const rides = await this.prisma.ride.findMany({
+      where: {
+        status: 'SCHEDULED',
+        departureTime: { gte: dayStart, lte: dayEnd },
+        destinationLocationId: { not: null },
+        routeDurationMin: { not: null },
+      },
+      include: {
+        vehicle: true,
+        driver: { include: { profile: true } },
+        bookings: true,
+        originLocation: true,
+        destinationLocation: true,
+      },
+      orderBy: { departureTime: 'asc' },
+    });
+
+    // 2. Com lugares disponíveis, excluindo o próprio condutor
+    const withSeats = rides
+      .filter((r) => {
+        const booked = r.bookings
+          .filter((b) => b.status === 'CONFIRMED' || b.status === 'PENDING')
+          .reduce((sum, b) => sum + b.seats, 0);
+        return booked < r.availableSeats;
+      })
+      .filter((r) => !userId || r.driverId !== userId);
+
+    // 3. Filtrar pelo destino próximo do utilizador (Haversine ≤ maxWalkKm)
+    const nearby = withSeats.filter((r) => {
+      if (r.destinationLocation?.lat == null || r.destinationLocation?.lng == null) return false;
+      return haversineKm(destinationLat, destinationLng, r.destinationLocation.lat, r.destinationLocation.lng) <= maxWalkKm;
+    });
+
+    // 4. Pré-filtro: chegada estimada (sem caminhada) deve ser ≤ arriveBy
+    const feasible = nearby.filter((r) => {
+      const rideArrivalMs = new Date(r.departureTime).getTime() + (r.routeDurationMin ?? 0) * 60_000;
+      return rideArrivalMs <= arriveByMs;
+    });
+
+    // 5. Calcular tempo a pé em paralelo (com fallback Haversine se API falhar)
+    const results = await Promise.all(
+      feasible.map(async (r) => {
+        const destLat = r.destinationLocation!.lat;
+        const destLng = r.destinationLocation!.lng;
+        const distKm = haversineKm(destLat, destLng, destinationLat, destinationLng);
+        const walkingMin =
+          (await this.geocodingService.getWalkingDuration(destLat, destLng, destinationLat, destinationLng))
+          ?? Math.ceil(distKm * 12); // fallback: ~5 km/h = 12 min/km
+
+        const rideArrivalMs = new Date(r.departureTime).getTime() + (r.routeDurationMin ?? 0) * 60_000;
+        const totalArrivalMs = rideArrivalMs + walkingMin * 60_000;
+        const marginMinutes = Math.floor((arriveByMs - totalArrivalMs) / 60_000);
+
+        return { ride: r, walkingMinutes: walkingMin, estimatedArrival: new Date(totalArrivalMs).toISOString(), marginMinutes };
+      }),
+    );
+
+    // 6. Filtrar e ordenar por menor margem (chega o mais certo possível, mas a tempo)
+    return results
+      .filter((r) => r.marginMinutes >= marginMin)
+      .sort((a, b) => a.marginMinutes - b.marginMinutes)
+      .map(({ ride, walkingMinutes, estimatedArrival, marginMinutes }) => ({
+        ...this.toResponse(ride),
+        walkingMinutes,
+        estimatedArrival,
+        marginMinutes,
+      }));
   }
 
   async search(dto: SearchRidesDto, userId: string | null = null) {

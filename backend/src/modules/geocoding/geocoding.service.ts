@@ -78,6 +78,49 @@ export class GeocodingService {
    * Retorna array de {lat,lng} já descodificado, ou null se falhar.
    * Usar apenas uma vez por rota — guardar resultado na DB para não re-chamar.
    */
+  /**
+   * Calcula duração a pé entre dois pontos via Google Directions API (mode: walking).
+   * Retorna minutos arredondados para cima, ou null se falhar.
+   */
+  async getWalkingDuration(
+    originLat: number,
+    originLng: number,
+    destLat: number,
+    destLng: number,
+  ): Promise<number | null> {
+    const apiKey = this.config.get<string>('GOOGLE_MAPS_API_KEY');
+    if (!apiKey) return null;
+
+    try {
+      const params = new URLSearchParams({
+        origin: `${originLat},${originLng}`,
+        destination: `${destLat},${destLng}`,
+        mode: 'walking',
+        region: 'pt',
+        key: apiKey,
+      });
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/directions/json?${params}`,
+      );
+      if (!res.ok) return null;
+
+      const data: {
+        status: string;
+        routes: Array<{ legs: Array<{ duration: { value: number } }> }>;
+      } = await res.json();
+
+      if (data.status !== 'OK' || data.routes.length === 0) return null;
+      return Math.ceil(data.routes[0].legs[0].duration.value / 60);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Obtém a polilinha de uma rota via Google Directions API.
+   * Retorna array de {lat,lng} já descodificado, ou null se falhar.
+   * Usar apenas uma vez por rota — guardar resultado na DB para não re-chamar.
+   */
   async getRoutePolyline(
     originLat: number,
     originLng: number,

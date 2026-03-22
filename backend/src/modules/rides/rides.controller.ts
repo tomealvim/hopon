@@ -3,6 +3,7 @@ import { RidesService } from './rides.service';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
 import { SearchRidesDto } from './dto/search-rides.dto';
+import { ArrivingByDto } from './dto/arrive-by.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
 import { VerifiedUserGuard } from '../../common/guards/verified-user.guard';
@@ -56,6 +57,13 @@ export class RidesController {
   @ApiOperation({ summary: 'Histórico de boleias (como condutor e passageiro)' })
   findHistory(@Request() req) {
     return this.ridesService.findHistory(req.user.id);
+  }
+
+  @Get('arrive-by')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Boleias que chegam ao destino antes da hora pretendida (17.1 — Chegar a tempo)' })
+  findArrivingBy(@Request() req, @Query() dto: ArrivingByDto) {
+    return this.ridesService.findArrivingBy(dto, req.user?.id ?? null);
   }
 
   @Get(':id/preview')
