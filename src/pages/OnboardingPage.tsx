@@ -5,8 +5,9 @@ import { cn } from "../utils/cn";
 import { TERMS_LAST_UPDATED, TERMS_SECTIONS, TERMS_TITLE } from "../data/terms";
 
 const ONBOARDING_STORAGE_KEY = "hopon_onboarding_completed";
+export const LOCATION_PERMISSION_KEY = "hopon_location_permission"; // "granted" | "declined"
 
-type OnboardingScreen = 1 | 2 | 3 | 4;
+type OnboardingScreen = 1 | 2 | 3 | 4 | 5;
 
 interface OnboardingPageProps {
   onComplete: (mode?: "register" | "login") => void;
@@ -16,11 +17,12 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
   const [currentScreen, setCurrentScreen] = useState<OnboardingScreen>(1);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
-  const isFinalScreen = currentScreen === 4;
+  const isFinalScreen = currentScreen === 5;
+  const isLocationScreen = currentScreen === 4;
   const isDark = false;
 
-  const handleNext = () => {
-    if (currentScreen < 4) {
+  const advance = () => {
+    if (currentScreen < 5) {
       setCurrentScreen((prev) => (prev + 1) as OnboardingScreen);
     } else if (agreedToTerms) {
       localStorage.setItem(ONBOARDING_STORAGE_KEY, "true");
@@ -28,10 +30,26 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
     }
   };
 
+  const handleNext = () => {
+    // No ecrã de localização, "Seguinte" age como "Agora não"
+    if (isLocationScreen) {
+      localStorage.setItem(LOCATION_PERMISSION_KEY, "declined");
+    }
+    advance();
+  };
+
   const handleBack = () => {
     if (currentScreen > 1) {
       setCurrentScreen((prev) => (prev - 1) as OnboardingScreen);
     }
+  };
+
+  const handleAllowLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      () => { localStorage.setItem(LOCATION_PERMISSION_KEY, "granted"); advance(); },
+      () => { localStorage.setItem(LOCATION_PERMISSION_KEY, "declined"); advance(); },
+      { timeout: 8000 },
+    );
   };
 
   return (
@@ -72,7 +90,7 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
           "text-sm font-medium",
           isDark ? "text-white/60" : "text-gray-500"
         )}>
-          {currentScreen}/4
+          {currentScreen}/5
         </div>
       </div>
 
@@ -86,8 +104,9 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
         {currentScreen === 1 && <Screen1 />}
         {currentScreen === 2 && <Screen2 />}
         {currentScreen === 3 && <Screen3 />}
-        {currentScreen === 4 && (
-          <Screen4
+        {currentScreen === 4 && <Screen4Location onAllow={handleAllowLocation} />}
+        {currentScreen === 5 && (
+          <Screen5Terms
             agreedToTerms={agreedToTerms}
             onAgreeChange={setAgreedToTerms}
             onOpenTerms={() => setIsTermsOpen(true)}
@@ -106,20 +125,25 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
           onClick={handleNext}
           disabled={isFinalScreen && !agreedToTerms}
           className={cn(
-            "flex items-center justify-center font-semibold text-gray-900 transition shadow-md",
-            "bg-gray-900 text-white",
-            isFinalScreen ? "px-8 h-14 rounded-full text-sm uppercase tracking-[0.15em]" : "px-6 h-14 rounded-full text-[15px]",
+            "flex items-center justify-center font-semibold transition shadow-md",
+            isFinalScreen
+              ? "bg-gray-900 text-white px-8 h-14 rounded-full text-sm uppercase tracking-[0.15em]"
+              : isLocationScreen
+                ? "bg-transparent text-gray-400 px-6 h-12 rounded-full text-sm"
+                : "bg-gray-900 text-white px-6 h-14 rounded-full text-[15px]",
             "active:scale-95",
             "disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100",
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-900 focus-visible:ring-offset-white"
           )}
-          aria-label={isFinalScreen ? "Começar" : "Seguinte"}
+          aria-label={isFinalScreen ? "Começar" : isLocationScreen ? "Agora não" : "Seguinte"}
         >
           {isFinalScreen ? (
             <span className="flex items-center gap-2">
               Começar
               <span className="text-xl leading-none">→</span>
             </span>
+          ) : isLocationScreen ? (
+            <span>Agora não</span>
           ) : (
             <span>Seguinte →</span>
           )}
@@ -202,8 +226,53 @@ function Screen3() {
   );
 }
 
-// Ecrã 4: Termos e condições
-function Screen4({
+// Ecrã 4: Permissão de localização
+function Screen4Location({ onAllow }: { onAllow: () => void }) {
+  return (
+    <div className="w-full max-w-sm mx-auto text-center space-y-8">
+      <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mx-auto">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-gray-900">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+          <circle cx="12" cy="9" r="2.5"/>
+        </svg>
+      </div>
+      <div className="space-y-3">
+        <h1 className="text-[26px] font-bold text-gray-900 leading-tight">Boleias perto de ti</h1>
+        <p className="text-[14px] text-gray-600 leading-relaxed">
+          Para encontrares boleias na tua zona e receberes sugestoes personalizadas, precisamos de saber onde estas.
+        </p>
+      </div>
+      <div className="space-y-3 text-left">
+        <LocationBenefit text="Boleias ordenadas pela distancia a ti" />
+        <LocationBenefit text="Sugestoes automaticas para o teu trajeto" />
+        <LocationBenefit text="Alerta quando ha boleia disponivel agora perto" />
+      </div>
+      <button
+        type="button"
+        onClick={onAllow}
+        className="w-full h-14 rounded-full bg-gray-900 text-white font-semibold text-[15px] transition active:scale-95 shadow-md"
+      >
+        Permitir localizacao
+      </button>
+    </div>
+  );
+}
+
+function LocationBenefit({ text }: { text: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3">
+      <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center shrink-0">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+      </div>
+      <span className="text-sm text-gray-800">{text}</span>
+    </div>
+  );
+}
+
+// Ecrã 5: Termos e condições
+function Screen5Terms({
   agreedToTerms,
   onAgreeChange,
   onOpenTerms,

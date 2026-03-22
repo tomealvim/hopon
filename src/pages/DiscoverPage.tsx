@@ -14,6 +14,7 @@ import ReportSheet from "../components/ui/ReportSheet";
 
 import type { DiscoverFilters } from "./types/discover";
 import { defaultFilters } from "./types/discover";
+import { LOCATION_PERMISSION_KEY } from "./OnboardingPage";
 import type { ApiRide } from "./types/ride-api";
 import PublicProfileSheet from "../components/ui/PublicProfileSheet";
 import RideDetailPage from "./RideDetailPage";
@@ -462,10 +463,18 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                     ))}
                   </div>
                 )}
-                <h2 className="text-sm font-bold text-gray-800 mt-3 mb-2">
-                  Boleias disponíveis
-                  {apiRides.length > 0 && ` (${apiRides.filter(r => !filters.verified || r.driver?.isIdentityVerified).filter(r => r.driverId !== user?.id).length})`}
-                </h2>
+                <div className="flex items-center justify-between mt-3 mb-2">
+                  <h2 className="text-sm font-bold text-gray-800">
+                    Boleias disponíveis
+                    {apiRides.length > 0 && ` (${apiRides.filter(r => !filters.verified || r.driver?.isIdentityVerified).filter(r => r.driverId !== user?.id).length})`}
+                  </h2>
+                  {userGps && localStorage.getItem(LOCATION_PERMISSION_KEY) === "granted" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+                      Localização ativa
+                    </span>
+                  )}
+                </div>
                 {apiRidesLoading ? (
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                     {Array.from({ length: 4 }).map((_, i) => <EntityCardSkeleton key={i} />)}
