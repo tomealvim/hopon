@@ -67,25 +67,27 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
     <div className="min-h-[100svh] bg-[#F8F9F4] font-manrope flex flex-col overflow-x-hidden text-[#1A1C19]">
 
       {/* Header fixo com glassmorphism */}
-      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#F8F9F4]/70 backdrop-blur-xl">
-        <div className="w-10 flex items-center">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="flex items-center justify-center w-10 h-10 text-[#1B4332] active:scale-95 transition-transform"
-            aria-label="Voltar"
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
+      <header className="fixed top-0 w-full z-50 h-16 bg-[#F8F9F4]/70 backdrop-blur-xl">
+        <div className="max-w-mobile mx-auto flex justify-between items-center px-6 h-full">
+          <div className="w-10 flex items-center">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="flex items-center justify-center w-10 h-10 text-[#1B4332] active:scale-95 transition-transform"
+              aria-label="Voltar"
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+          </div>
+          <h1 className="font-noto-serif italic text-2xl font-bold text-[#1B4332]">HopOn</h1>
+          <span className="w-10 text-right text-sm font-semibold text-[#1B4332]/60">
+            {currentScreen}/5
+          </span>
         </div>
-        <h1 className="font-noto-serif italic text-2xl font-bold text-[#1B4332]">HopOn</h1>
-        <span className="w-10 text-right text-sm font-semibold text-[#1B4332]/60">
-          {currentScreen}/5
-        </span>
       </header>
 
       {/* Conteudo principal */}
-      <main className="flex-grow pt-16 pb-40 flex flex-col">
+      <main className="flex-grow pt-16 pb-40 flex flex-col max-w-mobile mx-auto w-full">
         {currentScreen === 2 && <Screen2 />}
         {currentScreen === 3 && <Screen3 />}
         {currentScreen === 4 && <Screen4Location onAllow={handleAllowLocation} />}
@@ -105,7 +107,7 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
         className="fixed bottom-0 left-0 w-full px-6 pt-4 bg-gradient-to-t from-[#F8F9F4] via-[#F8F9F4]/95 to-transparent"
         style={{ paddingBottom: "calc(1.75rem + env(safe-area-inset-bottom))" }}
       >
-        <div className="max-w-md mx-auto flex flex-col items-center gap-4">
+        <div className="max-w-mobile mx-auto flex flex-col items-center gap-4">
           {/* Dots de progresso */}
           <div className="flex items-center gap-2.5">
             {([1, 2, 3, 4, 5] as OnboardingScreen[]).map((step) => (
@@ -191,9 +193,10 @@ function Screen1Welcome({ onNext }: { onNext: () => void }) {
 
       {/* Bottom sheet */}
       <div
-        className="relative z-10 mt-auto bg-[#F9FAF5] rounded-t-[2.5rem] w-full max-h-[90vh] overflow-y-auto"
+        className="relative z-10 mt-auto bg-[#F9FAF5] rounded-t-[2.5rem] w-full max-h-[90vh] overflow-y-auto flex flex-col items-center"
         style={{ boxShadow: "0 -8px 32px rgba(27,67,50,0.08)" }}
       >
+        <div className="w-full max-w-mobile">
         {/* Handlebar */}
         <div className="flex justify-center pt-4">
           <div className="w-12 h-1.5 bg-[#c1c8c2] rounded-full" />
@@ -267,6 +270,7 @@ function Screen1Welcome({ onNext }: { onNext: () => void }) {
               ))}
             </div>
           </section>
+        </div>
         </div>
       </div>
     </div>

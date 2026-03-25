@@ -32,6 +32,7 @@ import CommunitiesSheet from "./components/profile/CommunitiesSheet";
 import RideRequestSheet from "./components/discover/RideRequestSheet";
 import RideSharePreview from "./pages/RideSharePreview";
 import PublicProfilePage from "./pages/PublicProfilePage";
+import LandingPage from "./pages/LandingPage";
 
 export type Tab = "discover" | "rides" | "inbox" | "profile";
 
@@ -101,6 +102,7 @@ function AppContent() {
   const [initialThreadId, setInitialThreadId] = useState<string | undefined>(undefined);
   const [vehicleSheetTrigger, setVehicleSheetTrigger] = useState(0);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => hasCompletedOnboarding());
+  const [authMode, setAuthMode] = useState<"register" | "login" | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [profileSheetsOpen, setProfileSheetsOpen] = useState(false);
   const [openDriverPolicy, setOpenDriverPolicy] = useState(false);
@@ -229,6 +231,10 @@ function AppContent() {
   }
 
   if (isLoading) return <Loading message="A inicializar..." />;
+  if (!user) {
+    if (!authMode) return <LandingPage onStart={setAuthMode} />;
+    return <AuthPage initialMode={authMode} />;
+  }
   if (!hasSeenOnboarding) return (
     <OnboardingPageFull
       onComplete={() => {
@@ -236,7 +242,6 @@ function AppContent() {
       }}
     />
   );
-  if (!user) return <AuthPage />;
   if (!hasCompletedProfile) return <ProfileSetupPage />;
 
   return (
