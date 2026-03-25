@@ -156,33 +156,28 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
   };
 
   return (
-    <div className="relative min-h-screen bg-[#F9FAF5] text-[#1A1C19] flex flex-col font-manrope">
-      {/* Blobs decorativos */}
-      <div className="fixed top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[#92f7c3]/10 rounded-full blur-3xl -z-10 pointer-events-none" />
-      <div className="fixed bottom-1/4 left-0 -ml-20 w-48 h-48 bg-[#b0f1cc]/10 rounded-full blur-3xl -z-10 pointer-events-none" />
-      <div className="fixed bottom-0 left-0 w-full h-32 -z-10 bg-gradient-to-t from-[#a5d0b9]/20 to-transparent pointer-events-none" />
-
-      {/* TopAppBar */}
-      <nav className="fixed top-0 w-full z-50 bg-[#F8F9F4]/70 backdrop-blur-xl flex items-center px-6 py-4">
-        <div className="w-10">
+    <div className="min-h-[100svh] bg-[#F9FAF5] text-[#1A1C19] flex flex-col font-manrope"
+      style={{ padding: "1.5rem 1.5rem calc(1rem + env(safe-area-inset-bottom))" }}
+    >
+      {/* Header — igual ao Onboarding */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="w-10 h-10">
           {mode === 'register' && view === 'form' && (
             <button
               type="button"
               onClick={() => setMode('login')}
-              className="flex items-center justify-center w-10 h-10 text-[#1B4332] hover:bg-[#f3f4ef] rounded-full transition-colors active:scale-95"
+              className="w-10 h-10 rounded-full border border-[#e7e9e4] flex items-center justify-center text-[#1B4332] hover:bg-[#f3f4ef] transition"
               aria-label="Voltar"
             >
-              <span className="material-symbols-outlined">arrow_back</span>
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
           )}
         </div>
-        <h1 className="font-noto-serif italic font-bold text-[#1B4332] text-2xl absolute left-1/2 -translate-x-1/2">
-          HopOn
-        </h1>
-        <div className="ml-auto w-10" />
-      </nav>
+        <span className="font-noto-serif italic font-bold text-[#1B4332] text-lg">HopOn</span>
+        <div className="w-10" />
+      </div>
 
-      <main className="flex-grow pt-20 px-6 pb-12 max-w-md mx-auto w-full flex flex-col justify-center gap-0">
+      <main className="flex-1 max-w-md mx-auto w-full flex flex-col justify-center pb-4">
         {view === 'form' ? (
           <>
             {/* Header */}
