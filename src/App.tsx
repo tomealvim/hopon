@@ -243,9 +243,9 @@ function AppContent() {
 
   return (
     <>
-    <div className="min-h-[100svh] bg-[#F9FAF5]">
+    <div className="flex flex-col h-[100svh] bg-[#F9FAF5]">
       {showGlobalHeader && (
-        <header className="sticky top-0 z-30 bg-[#F8F9F4]/80 backdrop-blur-xl border-b border-[#D0E8DC]/40">
+        <header className="shrink-0 bg-[#F8F9F4]/80 backdrop-blur-xl border-b border-[#D0E8DC]/40">
           <div className="w-full max-w-mobile md:max-w-tablet lg:max-w-desktop mx-auto px-5 h-16 flex items-center justify-between">
             <h1 className="font-noto-serif italic font-bold text-[#1B4332] text-xl"><AppName /></h1>
             <div className="flex items-center gap-2">
@@ -279,6 +279,7 @@ function AppContent() {
         </header>
       )}
 
+      <div className="flex-1 overflow-y-auto min-h-0">
       <main>
         {tab === "discover" && (
           <DiscoverPage
@@ -312,6 +313,11 @@ function AppContent() {
           />
         )}
       </main>
+      </div>
+
+      {!hideBottomNav && (
+        <BottomNav current={tab} onChange={setTab} onPlus={user ? () => setOpenComposer(true) : () => setTab("profile")} />
+      )}
 
       {/* Composer do "+" */}
       <Sheet open={openComposer} onClose={() => setOpenComposer(false)} title="Criar" height="md" footer={null}>
@@ -425,9 +431,6 @@ function AppContent() {
         />
       )}
     </div>
-    {!hideBottomNav && (
-      <BottomNav current={tab} onChange={setTab} onPlus={user ? () => setOpenComposer(true) : () => setTab("profile")} />
-    )}
     </>
   );
 }

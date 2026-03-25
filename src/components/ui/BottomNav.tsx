@@ -25,7 +25,6 @@ const FILLED: React.CSSProperties = {
 export default function BottomNav({ current, onChange, onPlus }: BottomNavProps) {
   return (
     <>
-      <div className="bottom-nav-fill" aria-hidden />
       <nav className="bottom-nav-safe" role="navigation" aria-label="Navegacao inferior">
         <div className="mx-auto max-w-mobile grid grid-cols-[1fr_1fr_auto_1fr_1fr] items-center h-16 px-3 md:max-w-tablet lg:max-w-desktop">
 
@@ -56,14 +55,16 @@ export default function BottomNav({ current, onChange, onPlus }: BottomNavProps)
           <button
             onClick={() => onPlus?.()}
             aria-label="Publicar boleia"
-            className="relative -top-3 flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform duration-200 focus-visible:outline-none"
+            className="flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform duration-200 focus-visible:outline-none"
           >
-            <span
-              className="material-symbols-outlined text-[#52B788]"
-              style={{ fontSize: "40px", fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 40" }}
-            >
-              add_circle
-            </span>
+            <div className="w-12 h-12 rounded-full bg-[#52B788] flex items-center justify-center shadow-lg shadow-[#52B788]/25">
+              <span
+                className="material-symbols-outlined text-white"
+                style={{ fontSize: "24px", fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+              >
+                add
+              </span>
+            </div>
             <span className="text-[10px] font-medium text-[#1B4332]/40 font-manrope">Postar</span>
           </button>
 
