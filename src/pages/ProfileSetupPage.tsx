@@ -230,7 +230,11 @@ export default function ProfileSetupPage() {
                   },
                   (err) => {
                     setLocating(false);
-                    setLocError(err.code === err.PERMISSION_DENIED ? "Permissao de localizacao negada." : "Nao foi possivel obter a localizacao.");
+                    setLocError(
+                      err.code === err.PERMISSION_DENIED
+                        ? "Permissao negada pelo browser. Clica no cadeado na barra de enderecos para ativar, ou escreve a morada manualmente."
+                        : "Nao foi possivel obter a localizacao (desktop sem GPS?). Escreve a morada no campo abaixo."
+                    );
                   },
                   { enableHighAccuracy: true, timeout: 8000 }
                 );
