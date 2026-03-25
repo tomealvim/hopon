@@ -1,5 +1,4 @@
 import { useState } from "react";
-import AppName from "../components/ui/AppName";
 import OnboardingPage from "./OnboardingPage";
 
 type AuthMode = "register" | "login";
@@ -23,39 +22,39 @@ export default function LandingPage({ onStart }: LandingPageProps) {
   }
 
   return (
-    <div className="min-h-[100svh] bg-white flex flex-col overflow-x-hidden">
+    <div className="min-h-[100svh] bg-[#F9FAF5] flex flex-col overflow-x-hidden font-manrope">
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-b from-[#F5E6D3] via-[#FAF0E8] to-white px-6 pt-16 pb-14 text-center flex-shrink-0">
+      <section className="relative bg-gradient-to-b from-[#E8F5EC] via-[#F3FAF5] to-[#F9FAF5] px-6 pt-16 pb-14 text-center flex-shrink-0">
         <div className="max-w-sm mx-auto">
-          <span className="text-[10px] uppercase tracking-[0.55em] text-gray-500 mb-5 block">
+          <span className="text-[10px] uppercase tracking-[0.55em] text-[#717973] mb-5 block">
             Bem-vindo ao
           </span>
-          <h1 className="text-6xl font-extrabold text-gray-900 mb-4 tracking-tight font-headline">
-            <AppName />
+          <h1 className="text-6xl font-noto-serif italic font-bold text-[#1B4332] mb-4 leading-tight">
+            HopOn
           </h1>
-          <p className="text-xl font-semibold text-gray-900 mb-3 leading-snug">
-            Partilha os custos das tuas viagens diárias
+          <p className="text-xl font-semibold text-[#1A1C19] mb-3 leading-snug">
+            Partilha os custos das tuas viagens diarias
           </p>
-          <p className="text-base text-gray-600 mb-10 leading-relaxed">
-            Vai de carro todos os dias para o mesmo sítio? Divide gasolina e portagens com quem passa pelo mesmo caminho.
+          <p className="text-base text-[#414844] mb-10 leading-relaxed">
+            Vai de carro todos os dias para o mesmo sitio? Divide gasolina e portagens com quem passa pelo mesmo caminho.
           </p>
           <div className="flex flex-col gap-3">
             <button
               onClick={() => onStart("register")}
-              className="w-full h-14 rounded-full bg-gray-900 text-white text-sm font-bold tracking-wide shadow-lg active:scale-95 transition-transform"
+              className="w-full h-14 rounded-full bg-[#52B788] text-white text-sm font-bold shadow-lg shadow-[#52B788]/20 active:scale-95 transition-transform"
             >
-              Criar conta grátis
+              Criar conta gratis
             </button>
             <button
               onClick={() => onStart("login")}
-              className="w-full h-14 rounded-full border-2 border-gray-200 text-gray-900 text-sm font-bold bg-white active:scale-95 transition-transform hover:border-gray-300"
+              className="w-full h-14 rounded-full border-2 border-[#D0E8DC] text-[#1B4332] text-sm font-bold bg-white active:scale-95 transition-transform hover:border-[#52B788]"
             >
-              Já tenho conta
+              Ja tenho conta
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-4">
-            Grátis · Sem subscrições · Paga apenas quando viajas
+          <p className="text-xs text-[#717973] mt-4">
+            Gratis - Sem subscricoes - Paga apenas quando viajas
           </p>
         </div>
       </section>
@@ -63,54 +62,53 @@ export default function LandingPage({ onStart }: LandingPageProps) {
       {/* Features */}
       <section className="px-6 py-10 flex-shrink-0">
         <div className="max-w-sm mx-auto">
-          <h2 className="text-xs uppercase tracking-[0.4em] text-gray-500 text-center mb-6">Porquê o HopOn</h2>
+          <h2 className="text-xs uppercase tracking-[0.4em] text-[#717973] text-center mb-6">Porque o HopOn</h2>
           <div className="grid gap-3">
             <FeatureCard
-              icon="💰"
+              icon="savings"
               title="Poupa dinheiro"
               desc="Divide gasolina e portagens automaticamente. O algoritmo calcula o custo justo por lugar."
             />
             <FeatureCard
-              icon="🚗"
+              icon="directions_car"
               title="Ganha rendimento"
-              desc="Tens carro? Publica uma boleia e recupera os custos das tuas viagens diárias."
+              desc="Tens carro? Publica uma boleia e recupera os custos das tuas viagens diarias."
             />
             <FeatureCard
-              icon="🤝"
-              title="Comunidade de confiança"
-              desc="Perfis verificados, avaliações reais e histórico de viagens. Sabes sempre quem te leva."
+              icon="verified_user"
+              title="Comunidade de confianca"
+              desc="Perfis verificados, avaliacoes reais e historico de viagens. Sabes sempre quem te leva."
             />
             <FeatureCard
-              icon="⏰"
-              title="Boleias automáticas"
-              desc="Define o teu horário habitual e as boleias são criadas e sugeridas automaticamente."
+              icon="schedule"
+              title="Boleias automaticas"
+              desc="Define o teu horario habitual e as boleias sao criadas e sugeridas automaticamente."
             />
           </div>
         </div>
       </section>
 
       {/* Como funciona */}
-      <section className="px-6 py-10 bg-[#F9F6F2] flex-shrink-0">
+      <section className="px-6 py-10 bg-[#F3F4EF] flex-shrink-0">
         <div className="max-w-sm mx-auto">
-          <h2 className="text-xl font-bold text-gray-900 mb-8 text-center">Como funciona</h2>
+          <h2 className="text-xl font-bold text-[#1B4332] mb-8 text-center font-noto-serif italic">Como funciona</h2>
           <div className="relative">
-            {/* Linha vertical */}
-            <div className="absolute left-5 top-5 bottom-5 w-px bg-gray-200" aria-hidden="true" />
+            <div className="absolute left-5 top-5 bottom-5 w-px bg-[#D0E8DC]" aria-hidden="true" />
             <div className="flex flex-col gap-8">
               <Step
                 n={1}
                 title="Cria o teu perfil"
-                desc="Regista-te em 2 minutos. Adiciona o teu veículo se fores condutor."
+                desc="Regista-te em 2 minutos. Adiciona o teu veiculo se fores condutor."
               />
               <Step
                 n={2}
                 title="Define o teu percurso habitual"
-                desc="Cria um template (ex: Porto → Lisboa, Seg–Sex às 08:00) e a app trata do resto."
+                desc="Cria um template (ex: Porto - Lisboa, Seg-Sex as 08:00) e a app trata do resto."
               />
               <Step
                 n={3}
                 title="Viaja e divide os custos"
-                desc="A boleia é criada automaticamente. O pagamento é feito pela app, sem dinheiro em mãos."
+                desc="A boleia e criada automaticamente. O pagamento e feito pela app, sem dinheiro em maos."
               />
             </div>
           </div>
@@ -120,20 +118,20 @@ export default function LandingPage({ onStart }: LandingPageProps) {
       {/* CTA final */}
       <section className="px-6 py-14 text-center flex-shrink-0">
         <div className="max-w-sm mx-auto">
-          <p className="text-2xl font-bold text-gray-900 mb-2">Pronto para começar?</p>
-          <p className="text-sm text-gray-500 mb-8">Junta-te a quem já está a poupar nas viagens diárias.</p>
+          <p className="text-2xl font-bold text-[#1B4332] mb-2 font-noto-serif italic">Pronto para comecar?</p>
+          <p className="text-sm text-[#717973] mb-8">Junta-te a quem ja esta a poupar nas viagens diarias.</p>
           <button
             onClick={() => onStart("register")}
-            className="w-full h-14 rounded-full bg-gray-900 text-white text-sm font-bold shadow-sm active:scale-95 transition-transform"
+            className="w-full h-14 rounded-full bg-[#52B788] text-white text-sm font-bold shadow-sm active:scale-95 transition-transform"
           >
-            Começar agora →
+            Comecar agora
           </button>
           <button
             type="button"
             onClick={() => setShowHowItWorks(true)}
-            className="mt-4 text-sm text-gray-500 underline underline-offset-2"
+            className="mt-4 text-sm text-[#717973] underline underline-offset-2"
           >
-            Ver demonstração completa
+            Ver demonstracao completa
           </button>
         </div>
       </section>
@@ -144,11 +142,13 @@ export default function LandingPage({ onStart }: LandingPageProps) {
 
 function FeatureCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
-    <div className="flex items-start gap-4 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-      <span className="text-2xl flex-shrink-0 mt-0.5">{icon}</span>
+    <div className="flex items-start gap-4 bg-white border border-[#e7e9e4] rounded-2xl p-4 shadow-sm">
+      <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-[#95D5B2]/25 text-[#006c48]">
+        <span className="material-symbols-outlined text-xl">{icon}</span>
+      </div>
       <div>
-        <p className="text-sm font-semibold text-gray-900 mb-0.5">{title}</p>
-        <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
+        <p className="text-sm font-semibold text-[#1A1C19] mb-0.5">{title}</p>
+        <p className="text-xs text-[#717973] leading-relaxed">{desc}</p>
       </div>
     </div>
   );
@@ -157,12 +157,12 @@ function FeatureCard({ icon, title, desc }: { icon: string; title: string; desc:
 function Step({ n, title, desc }: { n: number; title: string; desc: string }) {
   return (
     <div className="flex items-start gap-4 relative">
-      <div className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 z-10">
+      <div className="w-10 h-10 rounded-full bg-[#1B4332] text-white flex items-center justify-center text-sm font-bold flex-shrink-0 z-10">
         {n}
       </div>
       <div className="pt-1.5">
-        <p className="text-sm font-semibold text-gray-900 mb-1">{title}</p>
-        <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
+        <p className="text-sm font-semibold text-[#1A1C19] mb-1">{title}</p>
+        <p className="text-xs text-[#717973] leading-relaxed">{desc}</p>
       </div>
     </div>
   );

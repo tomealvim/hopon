@@ -120,8 +120,8 @@ export default function RatingsSheet({
               </svg>
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Avaliação enviada</h2>
-          <p className="text-base text-gray-600 mb-8">Obrigado por partilhares a tua opinião!</p>
+          <h2 className="text-2xl font-bold text-[#1A1C19] mb-2">Avaliação enviada</h2>
+          <p className="text-base text-[#414844] mb-8">Obrigado por partilhares a tua opinião!</p>
           <Button block variant="outline" className="min-h-[48px]" onClick={handleBackHome}>
             Voltar ao início
           </Button>
@@ -158,7 +158,7 @@ export default function RatingsSheet({
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
+            <label className="block text-sm font-semibold text-[#1A1C19] mb-3">
               Como avalias a tua experiência?
             </label>
             <div className="flex items-center justify-center gap-3 py-4">
@@ -177,14 +177,14 @@ export default function RatingsSheet({
               ))}
             </div>
             {score > 0 && (
-              <p className="text-center text-sm font-semibold text-gray-900 mt-2">
+              <p className="text-center text-sm font-semibold text-[#1A1C19] mt-2">
                 {scoreLabels[score]}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-2" htmlFor="rating-comment">
+            <label className="block text-sm font-semibold text-[#1A1C19] mb-2" htmlFor="rating-comment">
               Comentário (opcional)
             </label>
             <textarea
@@ -192,10 +192,10 @@ export default function RatingsSheet({
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Partilha a tua experiência..."
-              className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder:text-gray-400 resize-none focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20"
+              className="w-full h-32 px-4 py-3 bg-[#f3f4ef] border border-[#e7e9e4] rounded-2xl text-[#1A1C19] placeholder:text-[#717973] resize-none focus:outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/20"
               maxLength={300}
             />
-            <p className="text-xs text-gray-500 mt-2">{comment.length}/300 caracteres</p>
+            <p className="text-xs text-[#717973] mt-2">{comment.length}/300 caracteres</p>
           </div>
         </div>
       </Sheet>
@@ -208,20 +208,20 @@ export default function RatingsSheet({
       {loadingRatings ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />
+            <div key={i} className="h-20 bg-[#f3f4ef] rounded-xl animate-pulse" />
           ))}
         </div>
       ) : !ratingsData || ratingsData.total === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="text-4xl mb-3">⭐</div>
-          <p className="text-sm font-semibold text-gray-700 mb-1">Ainda sem avaliações</p>
-          <p className="text-xs text-gray-500">As tuas avaliações aparecerão aqui depois das viagens</p>
+          <p className="text-sm font-semibold text-[#414844] mb-1">Ainda sem avaliações</p>
+          <p className="text-xs text-[#717973]">As tuas avaliações aparecerão aqui depois das viagens</p>
         </div>
       ) : (
         <div className="space-y-4">
           {/* Average score */}
-          <div className="flex items-center gap-4 bg-gray-50 rounded-2xl p-4">
-            <div className="text-4xl font-bold text-gray-900">
+          <div className="flex items-center gap-4 bg-[#f3f4ef] rounded-2xl p-4">
+            <div className="text-4xl font-bold text-[#1A1C19]">
               {ratingsData.average?.toFixed(1)}
             </div>
             <div>
@@ -230,16 +230,16 @@ export default function RatingsSheet({
                   <StarIcon key={star} filled={star <= Math.round(ratingsData.average ?? 0)} size={16} />
                 ))}
               </div>
-              <p className="text-xs text-gray-500">{ratingsData.total} {ratingsData.total === 1 ? "avaliação" : "avaliações"}</p>
+              <p className="text-xs text-[#717973]">{ratingsData.total} {ratingsData.total === 1 ? "avaliação" : "avaliações"}</p>
             </div>
           </div>
 
           {/* Ratings list */}
           <div className="space-y-3">
             {ratingsData.ratings.map((r) => (
-              <div key={r.id} className="border border-gray-100 rounded-2xl p-4">
+              <div key={r.id} className="border border-[#e7e9e4] rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-gray-900">{r.reviewer.name}</span>
+                  <span className="text-sm font-semibold text-[#1A1C19]">{r.reviewer.name}</span>
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <StarIcon key={star} filled={star <= r.score} size={14} />
@@ -247,9 +247,9 @@ export default function RatingsSheet({
                   </div>
                 </div>
                 {r.comment && (
-                  <p className="text-sm text-gray-600">{r.comment}</p>
+                  <p className="text-sm text-[#414844]">{r.comment}</p>
                 )}
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="text-xs text-[#717973] mt-2">
                   {new Date(r.createdAt).toLocaleDateString("pt-PT")}
                 </p>
               </div>

@@ -241,38 +241,35 @@ function AppContent() {
 
   return (
     <>
-    <div className="min-h-[100svh] bg-white">
+    <div className="min-h-[100svh] bg-[#F9FAF5]">
       {showGlobalHeader && (
-        <header className="sticky top-0 z-30 bg-white border-b border-gray-200 backdrop-blur-sm">
-          <div className="w-full max-w-mobile md:max-w-tablet lg:max-w-desktop mx-auto px-4 h-14 flex items-center justify-between">
-            <h1 className="text-base font-bold text-gray-900 font-headline tracking-tight"><AppName /></h1>
+        <header className="sticky top-0 z-30 bg-[#F8F9F4]/80 backdrop-blur-xl border-b border-[#D0E8DC]/40">
+          <div className="w-full max-w-mobile md:max-w-tablet lg:max-w-desktop mx-auto px-5 h-16 flex items-center justify-between">
+            <h1 className="font-noto-serif italic font-bold text-[#1B4332] text-xl"><AppName /></h1>
             <div className="flex items-center gap-2">
-              {/* Bell icon */}
+              {/* Sino de notificacoes */}
               <button
-                className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition"
+                className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#edeee9] transition-colors"
                 onClick={() => setNotifOpen(true)}
-                aria-label="Notificações"
+                aria-label="Notificacoes"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
+                <span className="material-symbols-outlined text-[#1B4332]/60 text-2xl">notifications</span>
                 {notifUnread > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-[#52B788] text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                     {notifUnread > 9 ? "9+" : notifUnread}
                   </span>
                 )}
               </button>
               <button
-                className="flex items-center gap-2 hover:opacity-70 transition"
+                className="flex items-center gap-2 hover:opacity-70 transition-opacity active:scale-95"
                 onClick={() => setTab("profile")}
                 aria-label="Ir para perfil"
               >
-                <div className="text-right hidden sm:block">
-                  <div className="text-xs font-semibold text-gray-900">{user?.profile?.name || "Perfil"}</div>
-                  <div className="text-[10px] text-gray-500">Ver perfil</div>
-                </div>
-                <div className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-bold">
-                  {user?.profile?.name?.charAt(0).toUpperCase() || "U"}
+                <div className="w-9 h-9 rounded-full bg-[#1B4332] text-white flex items-center justify-center text-sm font-bold border-2 border-[#52B788]/30">
+                  {user?.profile?.avatarUrl
+                    ? <img src={user.profile.avatarUrl} alt="" className="w-full h-full object-cover rounded-full" />
+                    : (user?.profile?.name?.charAt(0).toUpperCase() || "U")
+                  }
                 </div>
               </button>
             </div>

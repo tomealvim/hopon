@@ -112,8 +112,8 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
     return (
       <Sheet open={open} onClose={onClose} title="Novo template de viagem" height="md">
         <div className="p-4 text-center">
-          <p className="text-sm text-gray-700">Precisas de ter um veículo para criar um template.</p>
-          <p className="text-xs text-gray-500 mt-1">Adiciona um em Perfil → Veículos.</p>
+          <p className="text-sm text-[#414844]">Precisas de ter um veículo para criar um template.</p>
+          <p className="text-xs text-[#717973] mt-1">Adiciona um em Perfil → Veículos.</p>
           <Button variant="secondary" className="mt-4" onClick={onClose}>
             Fechar
           </Button>
@@ -142,8 +142,8 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
       <form onSubmit={handleSubmit} className="grid gap-4 p-1">
         {/* Veículo: só mostrar seletor quando há mais de 1 carro; com 1 carro usa-se automaticamente */}
         {vehicles.length > 1 && (
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Selecionar veículo</p>
+          <div className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#717973] mb-2">Selecionar veículo</p>
             <div className="grid gap-2">
               {vehicles.map((vehicle) => {
                 const isSelected = vehicle.id === vehicleId;
@@ -155,7 +155,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
                       "flex items-center justify-between rounded-2xl border px-4 py-2 text-left transition",
                       isSelected
                         ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-50"
-                        : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
+                        : "border-[#e7e9e4] bg-[#f3f4ef] text-[#414844] hover:bg-[#f3f4ef]"
                     )}
                     aria-pressed={isSelected}
                     onClick={() => {
@@ -165,12 +165,12 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
                   >
                     <div>
                       <p className="text-sm font-semibold">{vehicle.brand}</p>
-                      <p className="text-xs text-gray-600">{vehicle.model}</p>
+                      <p className="text-xs text-[#414844]">{vehicle.model}</p>
                     </div>
                     <span
                       className={cn(
                         "flex h-5 w-5 items-center justify-center rounded-full border text-[11px]",
-                        isSelected ? "border-emerald-300 bg-emerald-400 text-emerald-900" : "border-gray-300 text-gray-500"
+                        isSelected ? "border-emerald-300 bg-emerald-400 text-emerald-900" : "border-[#c1c8c2] text-[#717973]"
                       )}
                     >
                       {isSelected ? "✓" : ""}
@@ -183,22 +183,22 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
         )}
 
         <div>
-          <label htmlFor={`${id}-origem`} className="block text-xs font-semibold text-gray-600 mb-1">De onde?</label>
+          <label htmlFor={`${id}-origem`} className="block text-xs font-semibold text-[#414844] mb-1">De onde?</label>
           <input
             id={`${id}-origem`}
             type="text"
-            className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-900/40"
+            className="w-full px-3 py-2.5 border border-[#e7e9e4] bg-white text-[#1A1C19] rounded-xl outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/10 placeholder:text-[#1A1C19]/40"
             placeholder="Ex.: Estoril, estação, rua…"
             value={origin}
             onChange={(e) => setOrigin(e.target.value)}
           />
         </div>
         <div>
-          <label htmlFor={`${id}-destino`} className="block text-xs font-semibold text-gray-600 mb-1">Para onde?</label>
+          <label htmlFor={`${id}-destino`} className="block text-xs font-semibold text-[#414844] mb-1">Para onde?</label>
           <input
             id={`${id}-destino`}
             type="text"
-            className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-900/40"
+            className="w-full px-3 py-2.5 border border-[#e7e9e4] bg-white text-[#1A1C19] rounded-xl outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/10 placeholder:text-[#1A1C19]/40"
             placeholder="Ex.: ULisboa Ciências, campus…"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
@@ -210,13 +210,13 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
             <TimePicker label="Hora de partida" value={time} onChange={setTime} />
           </div>
           <div>
-            <label htmlFor={`${id}-lugares`} className="block text-xs font-semibold text-gray-600 mb-1">Lugares</label>
+            <label htmlFor={`${id}-lugares`} className="block text-xs font-semibold text-[#414844] mb-1">Lugares</label>
             <input
               id={`${id}-lugares`}
               type="number"
               min={1}
               max={8}
-              className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+              className="w-full px-3 py-2.5 border border-[#e7e9e4] bg-white text-[#1A1C19] rounded-xl outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/10"
               value={availableSeats}
               onChange={(e) => setAvailableSeats(parseInt(e.target.value, 10) || 1)}
             />
@@ -224,19 +224,19 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor={`${id}-price`} className="block text-xs font-semibold text-gray-600 mb-1">Preço (€) opcional</label>
+            <label htmlFor={`${id}-price`} className="block text-xs font-semibold text-[#414844] mb-1">Preço (€) opcional</label>
             <input
               id={`${id}-price`}
               type="text"
               inputMode="decimal"
               placeholder="0"
-              className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl placeholder:text-gray-900/40"
+              className="w-full px-3 py-2.5 border border-[#e7e9e4] bg-white text-[#1A1C19] rounded-xl placeholder:text-[#1A1C19]/40"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
             />
           </div>
           <div className="flex items-end pb-2">
-            <label className="flex items-center gap-2 text-sm text-gray-900">
+            <label className="flex items-center gap-2 text-sm text-[#1A1C19]">
               <input
                 type="checkbox"
                 className="w-4 h-4 rounded border-white/30 bg-white"
@@ -250,7 +250,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
 
         {acceptDetours && (
           <div>
-            <label htmlFor={`${id}-desvio`} className="block text-xs font-semibold text-gray-600 mb-1">Desvio máx. (min)</label>
+            <label htmlFor={`${id}-desvio`} className="block text-xs font-semibold text-[#414844] mb-1">Desvio máx. (min)</label>
             <input
               id={`${id}-desvio`}
               type="range"
@@ -261,16 +261,16 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
               value={detourMaxMin}
               onChange={(e) => setDetourMaxMin(Number(e.target.value))}
             />
-            <div className="text-xs text-gray-500 mt-1">{detourMaxMin} min</div>
+            <div className="text-xs text-[#717973] mt-1">{detourMaxMin} min</div>
           </div>
         )}
 
         <div>
-          <label htmlFor={`${id}-ponto`} className="block text-xs font-semibold text-gray-600 mb-1">Ponto de encontro</label>
+          <label htmlFor={`${id}-ponto`} className="block text-xs font-semibold text-[#414844] mb-1">Ponto de encontro</label>
           <input
             id={`${id}-ponto`}
             type="text"
-            className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-900/40"
+            className="w-full px-3 py-2.5 border border-[#e7e9e4] bg-white text-[#1A1C19] rounded-xl outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/10 placeholder:text-[#1A1C19]/40"
             placeholder="Ex.: estação de Cascais, portaria"
             value={meetingPoint}
             onChange={(e) => setMeetingPoint(e.target.value)}
@@ -278,7 +278,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-2">Dias da semana</label>
+          <label className="block text-xs font-semibold text-[#414844] mb-2">Dias da semana</label>
           <div className="flex gap-2 flex-wrap" role="group" aria-label="Dias da semana">
             {DAYS_SHORT.map(({ value, label }) => {
               const checked = daysOfWeek.includes(value);
@@ -289,8 +289,8 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
                   className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
                     checked
-                      ? "bg-gray-900 text-white border-transparent"
-                      : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      ? "bg-[#1B4332] text-white border-transparent"
+                      : "bg-white text-[#414844] border-[#e7e9e4] hover:bg-[#f3f4ef]"
                   )}
                   aria-pressed={checked}
                   onClick={() => toggleDay(value)}
@@ -303,11 +303,11 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
         </div>
 
         <div>
-          <label htmlFor={`${id}-obs`} className="block text-xs font-semibold text-gray-600 mb-1">Observações</label>
+          <label htmlFor={`${id}-obs`} className="block text-xs font-semibold text-[#414844] mb-1">Observações</label>
           <textarea
             id={`${id}-obs`}
             rows={2}
-            className="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-900 rounded-xl outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 resize-none placeholder:text-gray-900/40"
+            className="w-full px-3 py-2.5 border border-[#e7e9e4] bg-white text-[#1A1C19] rounded-xl outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/10 resize-none placeholder:text-[#1A1C19]/40"
             placeholder="Ex.: trago mochila grande, prefiro silêncio"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -315,21 +315,21 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
         </div>
 
         <fieldset aria-label="Preferências">
-          <legend className="block text-xs font-semibold text-gray-600 mb-1">Preferências</legend>
+          <legend className="block text-xs font-semibold text-[#414844] mb-1">Preferências</legend>
           <div className="grid grid-cols-2 gap-2">
-            <label className="flex items-center gap-2 text-sm text-gray-900">
+            <label className="flex items-center gap-2 text-sm text-[#1A1C19]">
               <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white" checked={preferences.musica} onChange={(e) => setPref("musica", e.target.checked)} />
               Música
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-900">
+            <label className="flex items-center gap-2 text-sm text-[#1A1C19]">
               <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white" checked={preferences.falar} onChange={(e) => setPref("falar", e.target.checked)} />
               Conversa
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-900">
+            <label className="flex items-center gap-2 text-sm text-[#1A1C19]">
               <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white" checked={preferences.bagagem} onChange={(e) => setPref("bagagem", e.target.checked)} />
               Bagagem
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-900">
+            <label className="flex items-center gap-2 text-sm text-[#1A1C19]">
               <input type="checkbox" className="w-4 h-4 rounded border-white/30 bg-white" checked={preferences.animais} onChange={(e) => setPref("animais", e.target.checked)} />
               Animais
             </label>

@@ -33,10 +33,10 @@ export default function RideDetailPage({
       )}
     >
       {/* Sticky header */}
-      <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 h-14 flex items-center gap-3 z-10 shrink-0">
+      <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-[#e7e9e4] px-4 h-14 flex items-center gap-3 z-10 shrink-0">
         <button
           onClick={onClose}
-          className="p-2 -ml-2 rounded-xl hover:bg-gray-100 transition-colors"
+          className="p-2 -ml-2 rounded-xl hover:bg-[#f3f4ef] transition-colors"
           aria-label="Voltar"
         >
           <svg
@@ -52,13 +52,13 @@ export default function RideDetailPage({
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
-        <h1 className="font-headline font-bold text-gray-900 text-base">Detalhes da boleia</h1>
+        <h1 className="font-headline font-bold text-[#1A1C19] text-base">Detalhes da boleia</h1>
       </div>
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto pb-28 px-5">
         {loading && (
-          <p className="text-sm text-gray-500 py-8 text-center">A carregar...</p>
+          <p className="text-sm text-[#717973] py-8 text-center">A carregar...</p>
         )}
         {!loading && ride && (() => {
           const dep = new Date(ride.departureTime);
@@ -84,33 +84,33 @@ export default function RideDetailPage({
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/70 to-transparent px-5 pb-3 pt-6">
                     <div className="flex items-center gap-3">
                       <div className="flex flex-col items-center shrink-0">
-                        <div className="w-2.5 h-2.5 rounded-full bg-gray-900" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#1B4332]" />
                         <div className="route-dotted-line my-1" style={{ height: 18 }} />
-                        <div className="w-2.5 h-2.5 rounded-full border-2 border-gray-500 bg-white" />
+                        <div className="w-2.5 h-2.5 rounded-full border-2 border-[#717973] bg-white" />
                       </div>
                       <div className="flex flex-col gap-1.5 min-w-0">
-                        <p className="font-headline font-bold text-gray-900 text-sm truncate">{ride.origin}</p>
-                        <p className="font-headline font-bold text-gray-900 text-sm truncate">{ride.destination}</p>
+                        <p className="font-headline font-bold text-[#1A1C19] text-sm truncate">{ride.origin}</p>
+                        <p className="font-headline font-bold text-[#1A1C19] text-sm truncate">{ride.destination}</p>
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="bg-gray-50 rounded-2xl p-4 mb-5 mt-4">
+                <div className="bg-[#f3f4ef] rounded-2xl p-4 mb-5 mt-4">
                   <div className="flex gap-4">
                     <div className="flex flex-col items-center pt-1 shrink-0">
-                      <div className="w-2.5 h-2.5 rounded-full bg-gray-900" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#1B4332]" />
                       <div className="route-dotted-line my-1" style={{ minHeight: 28 }} />
-                      <div className="w-2.5 h-2.5 rounded-full border-2 border-gray-400 bg-white" />
+                      <div className="w-2.5 h-2.5 rounded-full border-2 border-[#c1c8c2] bg-white" />
                     </div>
                     <div className="flex flex-col justify-between gap-3 min-w-0">
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Origem</p>
-                        <p className="font-headline font-semibold text-gray-900 text-sm">{ride.origin}</p>
+                        <p className="text-[10px] font-bold text-[#717973] uppercase tracking-wider">Origem</p>
+                        <p className="font-headline font-semibold text-[#1A1C19] text-sm">{ride.origin}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Destino</p>
-                        <p className="font-headline font-semibold text-gray-900 text-sm">{ride.destination}</p>
+                        <p className="text-[10px] font-bold text-[#717973] uppercase tracking-wider">Destino</p>
+                        <p className="font-headline font-semibold text-[#1A1C19] text-sm">{ride.destination}</p>
                       </div>
                     </div>
                   </div>
@@ -125,27 +125,27 @@ export default function RideDetailPage({
                     onClick={() => onViewProfile(ride.driverId)}
                   >
                     {ride.driver.profile?.avatarUrl ? (
-                      <img src={ride.driver.profile.avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover ring-2 ring-gray-100" />
+                      <img src={ride.driver.profile.avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover ring-2 ring-[#D0E8DC]" />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-gray-900 text-white flex items-center justify-center text-lg font-bold shrink-0">
+                      <div className="w-16 h-16 rounded-full bg-[#1B4332] text-white flex items-center justify-center text-lg font-bold shrink-0">
                         {driverName.slice(0, 2).toUpperCase()}
                       </div>
                     )}
                     <div>
                       <div className="flex items-center gap-1.5 mb-0.5">
-                        <p className="font-headline font-bold text-gray-900 text-lg leading-tight">{driverName}</p>
+                        <p className="font-headline font-bold text-[#1A1C19] text-lg leading-tight">{driverName}</p>
                         {ride.driver.isIdentityVerified && (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-gray-700 shrink-0">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-[#414844] shrink-0">
                             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                         )}
                       </div>
-                      <p className="text-xs text-gray-400">Ver perfil -&gt;</p>
+                      <p className="text-xs text-[#717973]">Ver perfil -&gt;</p>
                     </div>
                   </button>
                   {ride.driverId !== currentUserId && (
                     <button
-                      className="w-11 h-11 rounded-2xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition shrink-0"
+                      className="w-11 h-11 rounded-2xl bg-[#f3f4ef] flex items-center justify-center hover:bg-[#edeee9] transition shrink-0"
                       aria-label="Mensagem"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -158,19 +158,19 @@ export default function RideDetailPage({
 
               {/* Grid de info */}
               <div className="grid grid-cols-2 gap-3 mb-5">
-                <div className="bg-gray-50 rounded-2xl p-4">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Partida</p>
-                  <p className="font-headline font-bold text-gray-900 text-base">{timeStr}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 capitalize">{dateStr}</p>
+                <div className="bg-[#f3f4ef] rounded-2xl p-4">
+                  <p className="text-[10px] font-bold text-[#717973] uppercase tracking-wider mb-2">Partida</p>
+                  <p className="font-headline font-bold text-[#1A1C19] text-base">{timeStr}</p>
+                  <p className="text-xs text-[#717973] mt-0.5 capitalize">{dateStr}</p>
                 </div>
                 {ride.vehicle && (
-                  <div className="bg-gray-50 rounded-2xl p-4">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Veículo</p>
-                    <p className="font-headline font-bold text-gray-900 text-base leading-tight">
+                  <div className="bg-[#f3f4ef] rounded-2xl p-4">
+                    <p className="text-[10px] font-bold text-[#717973] uppercase tracking-wider mb-2">Veículo</p>
+                    <p className="font-headline font-bold text-[#1A1C19] text-base leading-tight">
                       {ride.vehicle.brand} {ride.vehicle.model}
                     </p>
                     {ride.vehicle.color && (
-                      <p className="text-xs text-gray-500 mt-0.5">{ride.vehicle.color}</p>
+                      <p className="text-xs text-[#717973] mt-0.5">{ride.vehicle.color}</p>
                     )}
                   </div>
                 )}
@@ -178,14 +178,14 @@ export default function RideDetailPage({
 
               {/* Preço + lugares */}
               {ride.price != null && ride.price > 0 && (
-                <div className="flex items-center justify-between bg-gray-50 rounded-2xl p-4 mb-5">
+                <div className="flex items-center justify-between bg-[#f3f4ef] rounded-2xl p-4 mb-5">
                   <div>
-                    <p className="text-xs text-gray-500">Preço por lugar</p>
-                    <p className="font-headline font-extrabold text-gray-900 text-2xl">€{ride.price.toFixed(2)}</p>
+                    <p className="text-xs text-[#717973]">Preço por lugar</p>
+                    <p className="font-headline font-extrabold text-[#1A1C19] text-2xl">€{ride.price.toFixed(2)}</p>
                   </div>
-                  <div className="bg-white rounded-xl px-3 py-2 border border-gray-200 text-center">
-                    <p className="font-bold text-gray-900 text-sm">{ride.bookedSeats}/{ride.availableSeats}</p>
-                    <p className="text-[10px] text-gray-400">lugares</p>
+                  <div className="bg-white rounded-xl px-3 py-2 border border-[#e7e9e4] text-center">
+                    <p className="font-bold text-[#1A1C19] text-sm">{ride.bookedSeats}/{ride.availableSeats}</p>
+                    <p className="text-[10px] text-[#717973]">lugares</p>
                   </div>
                 </div>
               )}
@@ -193,7 +193,7 @@ export default function RideDetailPage({
               {/* Denunciar */}
               {ride.driverId !== currentUserId && (
                 <button
-                  className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                  className="text-xs text-[#717973] hover:text-red-500 transition-colors"
                   onClick={() => {
                     const name = ride.driver?.profile?.name ?? ride.driver?.email ?? "Condutor";
                     onReport(ride.driverId, name);
@@ -208,15 +208,15 @@ export default function RideDetailPage({
       </div>
 
       {/* Sticky footer */}
-      <div className="shrink-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      <div className="shrink-0 bg-white/95 backdrop-blur-sm border-t border-[#e7e9e4] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         {ride && ride.driverId !== currentUserId && ride.remainingSeats > 0 && (
           <Button className="w-full" onClick={() => onBook(ride.id)}>Reservar lugar</Button>
         )}
         {ride && ride.driverId === currentUserId && (
-          <p className="text-sm text-center text-gray-400">Esta é a tua boleia</p>
+          <p className="text-sm text-center text-[#717973]">Esta é a tua boleia</p>
         )}
         {ride && ride.driverId !== currentUserId && ride.remainingSeats === 0 && (
-          <p className="text-sm text-center text-gray-400">Sem lugares disponíveis</p>
+          <p className="text-sm text-center text-[#717973]">Sem lugares disponíveis</p>
         )}
       </div>
     </div>

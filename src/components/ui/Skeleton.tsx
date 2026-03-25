@@ -8,7 +8,7 @@ export function Skeleton({ className }: SkeletonProps) {
   return (
     <div
       className={cn(
-        "animate-pulse rounded-xl bg-gray-200",
+        "animate-pulse rounded-xl bg-[#edeee9]",
         className
       )}
       aria-hidden="true"
@@ -19,7 +19,7 @@ export function Skeleton({ className }: SkeletonProps) {
 // Skeleton específico para EntityCard
 export function EntityCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4" aria-hidden="true">
+    <div className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] p-4" aria-hidden="true">
       <div className="flex gap-3">
         {/* Avatar */}
         <Skeleton className="w-12 h-12 rounded-full shrink-0" />
@@ -54,7 +54,7 @@ export function EntityCardSkeleton() {
 // Skeleton para lista de inbox
 export function InboxRowSkeleton() {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4" aria-hidden="true">
+    <div className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] p-4" aria-hidden="true">
       <div className="flex gap-3 items-center">
         {/* Avatar */}
         <Skeleton className="w-10 h-10 rounded-full shrink-0" />
@@ -77,7 +77,7 @@ export function InboxRowSkeleton() {
 // Skeleton para ride no calendário
 export function RideCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4" aria-hidden="true">
+    <div className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] p-4" aria-hidden="true">
       <div className="flex items-start gap-3">
         {/* Hora */}
         <Skeleton className="w-12 h-12 rounded-xl" />
@@ -110,7 +110,7 @@ export function Loading({ message = "A carregar..." }: LoadingProps) {
       aria-live="polite"
     >
       <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin" />
-      <p className="text-lg font-semibold text-gray-900">{message}</p>
+      <p className="text-lg font-semibold text-[#1A1C19]">{message}</p>
     </div>
   );
 }

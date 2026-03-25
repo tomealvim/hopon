@@ -36,11 +36,11 @@ export default function WelcomeSheet({ open, onClose, onGoToProfile, onGoToRides
       <div className="px-1 pb-4 space-y-6">
         {/* Header */}
         <div className="text-center space-y-1 pt-2">
-          <p className="text-xs uppercase tracking-[0.4em] text-gray-500">Bem-vindo ao</p>
-          <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+          <p className="text-xs uppercase tracking-[0.4em] text-[#717973]">Bem-vindo ao</p>
+          <h2 className="text-3xl font-extrabold text-[#1A1C19] tracking-tight">
             <AppName />
           </h2>
-          <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed">
+          <p className="text-sm text-[#717973] max-w-xs mx-auto leading-relaxed">
             O teu perfil está criado! Aqui tens os próximos passos para começar.
           </p>
         </div>
@@ -50,12 +50,12 @@ export default function WelcomeSheet({ open, onClose, onGoToProfile, onGoToRides
           {STEPS.map((step, i) => (
             <div
               key={i}
-              className="flex items-start gap-3 bg-gray-50 rounded-2xl p-4"
+              className="flex items-start gap-3 bg-[#f3f4ef] rounded-2xl p-4"
             >
               <span className="text-2xl flex-shrink-0 mt-0.5">{step.icon}</span>
               <div>
-                <p className="text-sm font-semibold text-gray-900 mb-0.5">{step.title}</p>
-                <p className="text-xs text-gray-500 leading-relaxed">{step.desc}</p>
+                <p className="text-sm font-semibold text-[#1A1C19] mb-0.5">{step.title}</p>
+                <p className="text-xs text-[#717973] leading-relaxed">{step.desc}</p>
               </div>
             </div>
           ))}
@@ -80,7 +80,7 @@ export default function WelcomeSheet({ open, onClose, onGoToProfile, onGoToRides
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-gray-400 hover:text-gray-600 transition py-1"
+            className="text-sm text-[#717973] hover:text-[#414844] transition py-1"
           >
             Explorar primeiro
           </button>

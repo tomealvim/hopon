@@ -418,7 +418,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
     <>
       <DiscoverTopBar active={tab} onChange={setTab} onFilter={() => setOpenFilters(true)} filterCount={activeFilterCount(filters)} />
 
-      <main className="relative min-h-screen pb-32 bg-white text-gray-900">
+      <main className="relative min-h-screen pb-32 bg-[#F9FAF5] text-[#1A1C19]">
         <BackgroundGlow />
         <div className="relative z-10 px-4">
           <div className="mx-auto max-w-mobile md:max-w-tablet lg:max-w-desktop">
@@ -426,6 +426,13 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
             {/* Explore */}
             {tab === "explore" && (
               <>
+                {/* Header editorial */}
+                <header className="pt-6 pb-4">
+                  <h1 className="font-noto-serif italic text-[2rem] leading-tight text-[#1B4332]">
+                    Encontra a tua proxima<br />viagem partilhada.
+                  </h1>
+                  <p className="text-[#1B4332]/60 font-medium text-sm mt-1">Viagens sustentaveis, conexoes reais.</p>
+                </header>
                 {/* Chips de filtros activos */}
                 {filterChips.length > 0 && (
                   <div className="flex gap-2 overflow-x-auto scrollbar-none py-2 -mx-4 px-4">
@@ -433,7 +440,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                       <button
                         key={chip.label}
                         onClick={chip.clear}
-                        className="shrink-0 inline-flex items-center gap-1 bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-full"
+                        className="shrink-0 inline-flex items-center gap-1 bg-[#1B4332] text-white text-xs font-semibold px-3 py-1.5 rounded-full"
                       >
                         {chip.label}
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -454,8 +461,8 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                         )}
                         className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
                           filters.communityId === c.id
-                            ? "bg-gray-900 text-white border-gray-900"
-                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
+                            ? "bg-[#1B4332] text-white border-[#1B4332]"
+                            : "bg-white text-[#1B4332]/70 border-[#D0E8DC] hover:border-[#52B788]"
                         }`}
                       >
                         {c.name}
@@ -464,14 +471,14 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                   </div>
                 )}
                 <div className="flex items-center justify-between mt-3 mb-2">
-                  <h2 className="text-sm font-bold text-gray-800">
+                  <h2 className="text-sm font-bold text-[#1B4332]">
                     Boleias disponíveis
                     {apiRides.length > 0 && ` (${apiRides.filter(r => !filters.verified || r.driver?.isIdentityVerified).filter(r => r.driverId !== user?.id).length})`}
                   </h2>
                   {userGps && localStorage.getItem(LOCATION_PERMISSION_KEY) === "granted" && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                      <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
-                      Localização ativa
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#52B788] bg-[#95D5B2]/20 px-2 py-1 rounded-full">
+                      <span className="material-symbols-outlined" style={{ fontSize: "10px" }}>location_on</span>
+                      Localizacao ativa
                     </span>
                   )}
                 </div>
@@ -481,8 +488,8 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                   </div>
                 ) : apiRides.filter((r) => r.driverId !== user?.id && (!filters.verified || r.driver?.isIdentityVerified)).length === 0 ? (
                   <div className="text-center py-16 px-4">
-                    <p className="text-xl font-bold text-gray-900 mb-2">Sem boleias disponíveis</p>
-                    <p className="text-sm text-gray-600 max-w-[280px] mx-auto">
+                    <p className="text-xl font-bold text-[#1A1C19] mb-2">Sem boleias disponíveis</p>
+                    <p className="text-sm text-[#414844] max-w-[280px] mx-auto">
                       Tenta ajustar os filtros ou sê o primeiro a criar uma boleia.
                     </p>
                   </div>
@@ -551,8 +558,8 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                     className="flex items-center justify-between w-full py-2"
                     onClick={() => setShowMyConfig(v => !v)}
                   >
-                    <span className="text-sm font-semibold text-gray-800">As minhas configurações</span>
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <span className="text-sm font-semibold text-[#1A1C19]">As minhas configurações</span>
+                    <span className="text-xs text-[#717973] flex items-center gap-1">
                       {userRoutes.length > 0 || rideRequests.length > 0
                         ? `${userRoutes.length} rota${userRoutes.length !== 1 ? "s" : ""} · ${rideRequests.length} pedido${rideRequests.length !== 1 ? "s" : ""}`
                         : "Configurar"}
@@ -568,20 +575,20 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                       {/* Rotas habituais */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Rotas habituais</h3>
-                          <button type="button" className="text-xs text-gray-900 font-semibold" onClick={() => setOpenSaveRoute(true)}>+ Adicionar</button>
+                          <h3 className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Rotas habituais</h3>
+                          <button type="button" className="text-xs text-[#1A1C19] font-semibold" onClick={() => setOpenSaveRoute(true)}>+ Adicionar</button>
                         </div>
                         {userRoutes.length === 0 ? (
-                          <div className="rounded-xl border border-dashed border-gray-200 px-4 py-3 text-center">
-                            <p className="text-xs text-gray-500">Nenhuma rota guardada</p>
+                          <div className="rounded-xl border border-dashed border-[#e7e9e4] px-4 py-3 text-center">
+                            <p className="text-xs text-[#717973]">Nenhuma rota guardada</p>
                           </div>
                         ) : (
                           <div className="flex flex-col gap-2">
                             {userRoutes.map((r) => (
-                              <div key={r.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                              <div key={r.id} className="flex items-center justify-between bg-[#f3f4ef] rounded-xl px-4 py-3">
                                 <div>
-                                  <p className="text-sm font-medium text-gray-900">{r.origin} - {r.destination}</p>
-                                  <p className="text-xs text-gray-500">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
+                                  <p className="text-sm font-medium text-[#1A1C19]">{r.origin} - {r.destination}</p>
+                                  <p className="text-xs text-[#717973]">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
                                 </div>
                                 <button type="button" className="text-xs text-red-500 font-semibold ml-4 shrink-0"
                                   onClick={async () => { try { await apiRequest(`/user-routes/${r.id}`, { method: "DELETE" }); handleRouteDeleted(r.id); } catch { /* ignore */ } }}>
@@ -596,21 +603,21 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                       {/* Pedidos de boleia */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Pedidos ativos</h3>
-                          <button type="button" className="text-xs text-gray-900 font-semibold" onClick={() => setOpenRideRequest(true)}>+ Publicar</button>
+                          <h3 className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Pedidos ativos</h3>
+                          <button type="button" className="text-xs text-[#1A1C19] font-semibold" onClick={() => setOpenRideRequest(true)}>+ Publicar</button>
                         </div>
                         {rideRequests.length === 0 ? (
-                          <div className="rounded-xl border border-dashed border-gray-200 px-4 py-3 text-center">
-                            <p className="text-xs text-gray-500">Nenhum pedido ativo</p>
+                          <div className="rounded-xl border border-dashed border-[#e7e9e4] px-4 py-3 text-center">
+                            <p className="text-xs text-[#717973]">Nenhum pedido ativo</p>
                           </div>
                         ) : (
                           <div className="flex flex-col gap-2">
                             {rideRequests.map((r) => (
-                              <div key={r.id} className="flex items-start justify-between bg-gray-50 rounded-xl px-4 py-3">
+                              <div key={r.id} className="flex items-start justify-between bg-[#f3f4ef] rounded-xl px-4 py-3">
                                 <div className="min-w-0">
-                                  <p className="text-sm font-medium text-gray-900 truncate">{r.origin} - {r.destination}</p>
-                                  <p className="text-xs text-gray-500">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
-                                  {r.note && <p className="text-xs text-gray-400 mt-0.5 italic truncate">{r.note}</p>}
+                                  <p className="text-sm font-medium text-[#1A1C19] truncate">{r.origin} - {r.destination}</p>
+                                  <p className="text-xs text-[#717973]">{r.departTime} · {(r.daysOfWeek as string[]).join(", ")}</p>
+                                  {r.note && <p className="text-xs text-[#717973] mt-0.5 italic truncate">{r.note}</p>}
                                 </div>
                                 <button type="button" className="text-xs text-red-500 font-semibold ml-4 shrink-0 mt-0.5"
                                   onClick={() => handleDeleteRequest(r.id)}>
@@ -629,7 +636,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                   <div className="flex flex-col gap-6">
                     {["Para amanhã", "Esta semana"].map((label) => (
                       <div key={label}>
-                        <div className="h-4 w-28 bg-gray-100 rounded mb-3 animate-pulse" />
+                        <div className="h-4 w-28 bg-[#f3f4ef] rounded mb-3 animate-pulse" />
                         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                           {Array.from({ length: 2 }).map((_, i) => <EntityCardSkeleton key={i} />)}
                         </div>
@@ -638,8 +645,8 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                   </div>
                 ) : sortedForYouRides.length === 0 ? (
                   <div className="text-center py-12 px-4">
-                    <p className="text-xl font-bold text-gray-900 mb-2">Sem sugestões ainda</p>
-                    <p className="text-sm text-gray-600 max-w-[300px] mx-auto mb-6">
+                    <p className="text-xl font-bold text-[#1A1C19] mb-2">Sem sugestões ainda</p>
+                    <p className="text-sm text-[#414844] max-w-[300px] mx-auto mb-6">
                       Guarda a tua rota habitual e vemos boleias que batem certo com o teu horário.
                     </p>
                     <Button onClick={() => setOpenSaveRoute(true)}>Guardar rota habitual</Button>
@@ -692,8 +699,8 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                         <div>
                           <div className="flex items-center gap-2 mb-3">
                             <span className="text-base">🌅</span>
-                            <h2 className="text-sm font-bold text-gray-900">Para amanhã</h2>
-                            <span className="text-xs text-gray-400 font-medium">{tomorrow.length} boleia{tomorrow.length !== 1 ? "s" : ""}</span>
+                            <h2 className="text-sm font-bold text-[#1A1C19]">Para amanhã</h2>
+                            <span className="text-xs text-[#717973] font-medium">{tomorrow.length} boleia{tomorrow.length !== 1 ? "s" : ""}</span>
                           </div>
                           <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                             {tomorrow.map((ride) => <RideCard key={ride.id} ride={ride} />)}
@@ -705,8 +712,8 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                         <div>
                           <div className="flex items-center gap-2 mb-3">
                             <span className="text-base">🤝</span>
-                            <h2 className="text-sm font-bold text-gray-900">Condutores habituais</h2>
-                            <span className="text-xs text-gray-400 font-medium">já viajaste com eles</span>
+                            <h2 className="text-sm font-bold text-[#1A1C19]">Condutores habituais</h2>
+                            <span className="text-xs text-[#717973] font-medium">já viajaste com eles</span>
                           </div>
                           <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                             {familiar.map((ride) => <RideCard key={ride.id} ride={ride} />)}
@@ -718,8 +725,8 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                         <div>
                           <div className="flex items-center gap-2 mb-3">
                             <span className="text-base">📅</span>
-                            <h2 className="text-sm font-bold text-gray-900">Esta semana</h2>
-                            <span className="text-xs text-gray-400 font-medium">{thisWeek.length} boleia{thisWeek.length !== 1 ? "s" : ""}</span>
+                            <h2 className="text-sm font-bold text-[#1A1C19]">Esta semana</h2>
+                            <span className="text-xs text-[#717973] font-medium">{thisWeek.length} boleia{thisWeek.length !== 1 ? "s" : ""}</span>
                           </div>
                           <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                             {thisWeek.map((ride) => <RideCard key={ride.id} ride={ride} />)}
@@ -728,7 +735,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                       )}
 
                       {userRoutes.length === 0 && (
-                        <button type="button" onClick={() => setOpenSaveRoute(true)} className="w-full rounded-2xl border-2 border-dashed border-gray-200 py-4 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700 transition">
+                        <button type="button" onClick={() => setOpenSaveRoute(true)} className="w-full rounded-2xl border-2 border-dashed border-[#e7e9e4] py-4 text-sm text-[#717973] hover:border-[#c1c8c2] hover:text-[#414844] transition">
                           + Guardar rota habitual para sugestões mais precisas
                         </button>
                       )}
@@ -742,12 +749,12 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
             {tab === "arrive-by" && (
               <div className="pt-3 flex flex-col gap-4">
                 <div>
-                  <h2 className="text-base font-bold text-gray-900">Chegar a tempo</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">Define o destino e a hora de chegada - encontramos boleias que te deixam a pé do destino a tempo.</p>
+                  <h2 className="text-base font-bold text-[#1A1C19]">Chegar a tempo</h2>
+                  <p className="text-xs text-[#717973] mt-0.5">Define o destino e a hora de chegada - encontramos boleias que te deixam a pé do destino a tempo.</p>
                 </div>
 
                 {/* Formulario de pesquisa */}
-                <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 flex flex-col gap-3">
+                <div className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] p-4 flex flex-col gap-3">
                   <LocationAutocomplete
                     label="Destino final"
                     placeholder="Ex: ISCTE, Marquês de Pombal..."
@@ -760,28 +767,28 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-semibold text-gray-600">Data</label>
+                      <label className="text-xs font-semibold text-[#414844]">Data</label>
                       <input
                         type="date"
                         value={arriveDate}
                         min={new Date().toISOString().slice(0, 10)}
                         onChange={(e) => setArriveDate(e.target.value)}
-                        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                        className="rounded-xl border border-[#e7e9e4] bg-white px-3 py-2 text-sm text-[#1A1C19] focus:outline-none focus:ring-2 focus:ring-[#52B788]"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-semibold text-gray-600">Chegar ate as</label>
+                      <label className="text-xs font-semibold text-[#414844]">Chegar ate as</label>
                       <input
                         type="time"
                         value={arriveTime}
                         onChange={(e) => setArriveTime(e.target.value)}
-                        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                        className="rounded-xl border border-[#e7e9e4] bg-white px-3 py-2 text-sm text-[#1A1C19] focus:outline-none focus:ring-2 focus:ring-[#52B788]"
                       />
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-gray-600">Margem minima: {arriveMargin} min</label>
+                    <label className="text-xs font-semibold text-[#414844]">Margem minima: {arriveMargin} min</label>
                     <input
                       type="range"
                       min={0}
@@ -789,9 +796,9 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                       step={5}
                       value={arriveMargin}
                       onChange={(e) => setArriveMargin(Number(e.target.value))}
-                      className="w-full accent-gray-900"
+                      className="w-full accent-[#52B788]"
                     />
-                    <div className="flex justify-between text-[10px] text-gray-400">
+                    <div className="flex justify-between text-[10px] text-[#717973]">
                       <span>0 min</span><span>15 min</span><span>30 min</span>
                     </div>
                   </div>
@@ -800,7 +807,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                     type="button"
                     disabled={!arriveDest || arriveByLoading}
                     onClick={handleArrivingBySearch}
-                    className="w-full rounded-xl bg-gray-900 text-white text-sm font-semibold py-3 disabled:opacity-40 transition"
+                    className="w-full rounded-xl bg-[#1B4332] text-white text-sm font-semibold py-3 disabled:opacity-40 transition"
                   >
                     {arriveByLoading ? "A pesquisar..." : "Pesquisar boleias"}
                   </button>
@@ -814,16 +821,16 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                 ) : arriveBySearched && arriveByRides.length === 0 ? (
                   <div className="text-center py-12 px-4">
                     <p className="text-4xl mb-3">🚶</p>
-                    <p className="text-base font-bold text-gray-900 mb-1">Nenhuma boleia a tempo</p>
-                    <p className="text-sm text-gray-500 max-w-[280px] mx-auto">
+                    <p className="text-base font-bold text-[#1A1C19] mb-1">Nenhuma boleia a tempo</p>
+                    <p className="text-sm text-[#717973] max-w-[280px] mx-auto">
                       Tenta uma hora de chegada mais tarde, uma margem menor, ou procura noutra data.
                     </p>
                   </div>
                 ) : arriveByRides.length > 0 ? (
                   <>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold text-gray-900">{arriveByRides.length} boleia{arriveByRides.length !== 1 ? "s" : ""} encontrada{arriveByRides.length !== 1 ? "s" : ""}</h3>
-                      <span className="text-xs text-gray-400">ordenadas pela chegada mais ajustada</span>
+                      <h3 className="text-sm font-bold text-[#1A1C19]">{arriveByRides.length} boleia{arriveByRides.length !== 1 ? "s" : ""} encontrada{arriveByRides.length !== 1 ? "s" : ""}</h3>
+                      <span className="text-xs text-[#717973]">ordenadas pela chegada mais ajustada</span>
                     </div>
                     <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                       {arriveByRides.map((ride) => {
@@ -866,12 +873,12 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
               <>
                 <div className="flex items-center justify-between pt-2 pb-3">
                   <div>
-                    <h2 className="text-base font-bold text-gray-900">Disponível agora</h2>
-                    <p className="text-xs text-gray-500 mt-0.5">Boleias que partem nas próximas 2 horas</p>
+                    <h2 className="text-base font-bold text-[#1A1C19]">Disponível agora</h2>
+                    <p className="text-xs text-[#717973] mt-0.5">Boleias que partem nas próximas 2 horas</p>
                   </div>
                   <button
                     type="button"
-                    className="text-xs font-semibold text-gray-500 hover:text-gray-800"
+                    className="text-xs font-semibold text-[#717973] hover:text-[#1A1C19]"
                     onClick={() => {
                       setNowLoading(true);
                       apiRequest<ApiRide[]>("/rides/available-now")
@@ -895,7 +902,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        className="flex-1 rounded-xl bg-gray-900 text-white text-xs font-semibold py-2"
+                        className="flex-1 rounded-xl bg-[#1B4332] text-white text-xs font-semibold py-2"
                         onClick={async () => {
                           await apiRequest(`/recurring-arrangements/${a.id}/respond`, { method: "PATCH", body: JSON.stringify({ accept: true }) });
                           setArrangementsLoaded(false);
@@ -910,7 +917,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                       </button>
                       <button
                         type="button"
-                        className="flex-1 rounded-xl border border-gray-200 text-gray-700 text-xs font-semibold py-2"
+                        className="flex-1 rounded-xl border border-[#e7e9e4] text-[#414844] text-xs font-semibold py-2"
                         onClick={async () => {
                           await apiRequest(`/recurring-arrangements/${a.id}/respond`, { method: "PATCH", body: JSON.stringify({ accept: false }) });
                           setArrangements((prev) => ({
@@ -932,8 +939,8 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                 ) : nowRides.filter((r) => r.driverId !== user?.id).length === 0 ? (
                   <div className="text-center py-16 px-4">
                     <p className="text-5xl mb-4">🕐</p>
-                    <p className="text-xl font-bold text-gray-900 mb-2">Nenhuma boleia nas próximas 2h</p>
-                    <p className="text-sm text-gray-600 max-w-[280px] mx-auto">
+                    <p className="text-xl font-bold text-[#1A1C19] mb-2">Nenhuma boleia nas próximas 2h</p>
+                    <p className="text-sm text-[#414844] max-w-[280px] mx-auto">
                       Tenta mais tarde ou vê as boleias disponíveis na tab Explorar.
                     </p>
                   </div>

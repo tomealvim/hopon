@@ -183,7 +183,7 @@ export function LocationInput({
           <ul
             id={listId}
             role="listbox"
-            className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
+            className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-[#e7e9e4] rounded-xl shadow-lg overflow-hidden"
           >
             {/* Primeira opção: pin no mapa */}
             <li
@@ -191,8 +191,8 @@ export function LocationInput({
               role="option"
               aria-selected={activeIdx === 0}
               className={cn(
-                "flex items-center gap-2.5 px-3 py-3 cursor-pointer text-sm transition-colors border-b border-gray-100",
-                activeIdx === 0 ? "bg-gray-50" : "hover:bg-gray-50",
+                "flex items-center gap-2.5 px-3 py-3 cursor-pointer text-sm transition-colors border-b border-[#e7e9e4]",
+                activeIdx === 0 ? "bg-[#f3f4ef]" : "hover:bg-[#f3f4ef]",
               )}
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -201,15 +201,15 @@ export function LocationInput({
               }}
               onMouseEnter={() => setActiveIdx(0)}
             >
-              <div className="w-7 h-7 rounded-lg bg-gray-900 flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-[#1B4332] flex items-center justify-center shrink-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
               </div>
               <span>
-                <span className="font-semibold text-gray-900 block text-sm">Colocar pin no mapa</span>
-                <span className="text-xs text-gray-400">Toca para escolher no mapa</span>
+                <span className="font-semibold text-[#1A1C19] block text-sm">Colocar pin no mapa</span>
+                <span className="text-xs text-[#717973]">Toca para escolher no mapa</span>
               </span>
             </li>
 
@@ -224,7 +224,7 @@ export function LocationInput({
                   aria-selected={idx === activeIdx}
                   className={cn(
                     "flex items-start gap-2 px-3 py-2.5 cursor-pointer text-sm transition-colors",
-                    idx === activeIdx ? "bg-gray-50" : "text-gray-700 hover:bg-gray-50",
+                    idx === activeIdx ? "bg-[#f3f4ef]" : "text-[#414844] hover:bg-[#f3f4ef]",
                   )}
                   onMouseDown={(e) => {
                     e.preventDefault();
@@ -232,14 +232,14 @@ export function LocationInput({
                   }}
                   onMouseEnter={() => setActiveIdx(idx)}
                 >
-                  <svg className="mt-0.5 shrink-0 text-gray-300" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg className="mt-0.5 shrink-0 text-[#c1c8c2]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
                     <circle cx="12" cy="10" r="3" />
                   </svg>
                   <span className="min-w-0">
-                    <span className="font-medium text-gray-900 truncate block">{s.label}</span>
+                    <span className="font-medium text-[#1A1C19] truncate block">{s.label}</span>
                     {s.sublabel && (
-                      <span className="text-xs text-gray-500 truncate block">{s.sublabel}</span>
+                      <span className="text-xs text-[#717973] truncate block">{s.sublabel}</span>
                     )}
                   </span>
                 </li>
@@ -248,8 +248,8 @@ export function LocationInput({
 
             {/* Atribuição obrigatória Mapbox */}
             {suggestions.length > 0 && (
-              <li className="px-3 py-1.5 border-t border-gray-100 flex justify-end" aria-hidden>
-                <span className="text-[10px] text-gray-400">© Mapbox © OpenStreetMap</span>
+              <li className="px-3 py-1.5 border-t border-[#e7e9e4] flex justify-end" aria-hidden>
+                <span className="text-[10px] text-[#717973]">© Mapbox © OpenStreetMap</span>
               </li>
             )}
           </ul>

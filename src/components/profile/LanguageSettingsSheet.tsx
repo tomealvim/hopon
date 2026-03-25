@@ -40,7 +40,7 @@ export default function LanguageSettingsSheet({
       }
     >
       <div className="space-y-4">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-[#414844]">
           Escolhe o idioma principal da interface. Por agora, só suportamos as opções abaixo.
         </p>
 
@@ -54,8 +54,8 @@ export default function LanguageSettingsSheet({
                 type="button"
                 onClick={() => onSelect(option.id)}
                 aria-pressed={isActive}
-                className={`w-full rounded-3xl border-2 bg-gray-50 px-4 py-4 flex items-center justify-between gap-3 text-left transition ${
-                  isActive ? "border-gray-900 shadow-sm bg-gray-50" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                className={`w-full rounded-3xl border-2 bg-[#f3f4ef] px-4 py-4 flex items-center justify-between gap-3 text-left transition ${
+                  isActive ? "border-[#1B4332] shadow-sm bg-[#f3f4ef]" : "border-[#e7e9e4] hover:border-[#c1c8c2] hover:bg-[#f3f4ef]"
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -63,15 +63,15 @@ export default function LanguageSettingsSheet({
                     {option.flag}
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{option.label}</p>
-                    <p className="text-xs text-gray-600">{option.nativeLabel}</p>
+                    <p className="text-sm font-semibold text-[#1A1C19]">{option.label}</p>
+                    <p className="text-xs text-[#414844]">{option.nativeLabel}</p>
                   </div>
                 </div>
 
                 <span
                   aria-hidden
                   className={`w-6 h-6 rounded-full border flex items-center justify-center ${
-                    isActive ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300 text-transparent"
+                    isActive ? "bg-[#1B4332] border-[#1B4332] text-white" : "border-[#c1c8c2] text-transparent"
                   }`}
                 >
                   <CheckIcon />

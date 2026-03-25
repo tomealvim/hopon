@@ -103,13 +103,13 @@ export default function VerificationSheet({
       }
     >
       {!channel ? (
-        <p className="text-sm text-gray-600">Seleciona um contacto para verificar.</p>
+        <p className="text-sm text-[#414844]">Seleciona um contacto para verificar.</p>
       ) : (
         <div className="grid gap-4">
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Contacto</p>
-            <p className="text-base font-semibold text-gray-900 break-all">{value}</p>
-            <p className="text-xs text-gray-600 mt-1">
+          <div className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#717973]">Contacto</p>
+            <p className="text-base font-semibold text-[#1A1C19] break-all">{value}</p>
+            <p className="text-xs text-[#414844] mt-1">
               Vamos enviar um código para este {channelLabel}. Introduz o código abaixo para concluir a verificação.
             </p>
           </div>
@@ -124,14 +124,14 @@ export default function VerificationSheet({
               {cooldown > 0 ? `Reenviar em ${cooldown}s` : codeSent ? "Reenviar código" : "Enviar código"}
             </Button>
             {codeSent && (
-              <p className="text-xs text-gray-600 text-center">
+              <p className="text-xs text-[#414844] text-center">
                 Código enviado. Verifica o teu {channelLabel}.
               </p>
             )}
           </div>
 
           <div className="grid gap-2">
-            <label htmlFor="verification-code" className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+            <label htmlFor="verification-code" className="text-xs font-semibold text-[#414844] uppercase tracking-wide">
               Código de 6 caracteres
             </label>
             <input
@@ -142,7 +142,7 @@ export default function VerificationSheet({
                 setCode(event.target.value.replace(/\D/g, "").slice(0, 6));
                 setAttemptError(null);
               }}
-              className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-center text-lg font-mono tracking-[0.5em] text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+              className="w-full rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3 text-center text-lg font-mono tracking-[0.5em] text-[#1A1C19] placeholder:text-[#717973] focus:border-[#1B4332] focus:outline-none focus:ring-2 focus:ring-[#52B788]/20"
               placeholder="••••••"
             />
             {attemptError && <p className="text-xs text-red-600">{attemptError}</p>}

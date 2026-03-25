@@ -89,37 +89,37 @@ export default function ScheduleEditor({ schedule, onChange }: ScheduleEditorPro
     <div className="grid gap-4">
       <button 
         type="button" 
-        className="w-full px-4 py-3 bg-gray-800 text-white font-semibold rounded-xl hover:bg-gray-700 transition" 
+        className="w-full px-4 py-3 bg-[#1B4332] text-white font-semibold rounded-xl hover:bg-[#274e3d] transition" 
         onClick={handleNewSchedule}
       >
         + Adicionar horário
       </button>
 
       <div className="grid gap-2">
-        {flat.length === 0 && <div className="text-center text-gray-500 py-8 text-sm">Sem horários. Clica acima para adicionar.</div>}
+        {flat.length === 0 && <div className="text-center text-[#717973] py-8 text-sm">Sem horários. Clica acima para adicionar.</div>}
         {flat.map((item) => (
-          <div key={item.block.id} className="border border-gray-200 bg-gray-50 backdrop-blur-sm rounded-xl p-4">
+          <div key={item.block.id} className="border border-[#e7e9e4] bg-[#f3f4ef] backdrop-blur-sm rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="px-2 py-1 bg-primary/20 text-primary text-xs font-medium rounded">{DAY_LABELS[item.day]}</span>
-              <span className="text-sm font-semibold text-gray-900">{item.block.start} - {item.block.end}</span>
+              <span className="text-sm font-semibold text-[#1A1C19]">{item.block.start} - {item.block.end}</span>
             </div>
             {(item.block.title || item.block.room) && (
               <div className="mb-3 text-sm">
-                {item.block.title && <div className="font-medium text-gray-800">{item.block.title}</div>}
-                {item.block.room && <div className="text-gray-600">{item.block.room}</div>}
+                {item.block.title && <div className="font-medium text-[#1A1C19]">{item.block.title}</div>}
+                {item.block.room && <div className="text-[#414844]">{item.block.room}</div>}
               </div>
             )}
             <div className="flex gap-2">
               <button
                 type="button"
-                className="flex-1 px-3 py-2 border border-gray-200 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition text-sm"
+                className="flex-1 px-3 py-2 border border-[#e7e9e4] bg-[#f3f4ef] text-[#414844] rounded-lg hover:bg-[#f3f4ef] transition text-sm"
                 onClick={() => handleEdit(item.day, item.block)}
               >
                 Editar
               </button>
               <button
                 type="button"
-                className="flex-1 px-3 py-2 min-w-0 border border-gray-200 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+                className="flex-1 px-3 py-2 min-w-0 border border-[#e7e9e4] bg-[#f3f4ef] text-[#414844] rounded-lg hover:bg-[#edeee9] transition text-sm font-medium"
                 onClick={() => handleRemove(item.day, item.block.id)}
               >
                 Remover

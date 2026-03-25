@@ -127,21 +127,21 @@ export default function MapPicker({ open, onClose, onConfirm, initialLat, initia
   return (
     <div className="fixed inset-0 z-[200] flex flex-col bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 h-14 border-b border-gray-200 shrink-0">
+      <div className="flex items-center justify-between px-4 h-14 border-b border-[#e7e9e4] shrink-0">
         <button
           type="button"
           onClick={onClose}
-          className="text-sm text-gray-600 font-medium"
+          className="text-sm text-[#414844] font-medium"
         >
           Cancelar
         </button>
-        <h2 className="text-sm font-bold text-gray-900">Colocar pin no mapa</h2>
+        <h2 className="text-sm font-bold text-[#1A1C19]">Colocar pin no mapa</h2>
         <div className="w-16" />
       </div>
 
       {/* Instrução */}
-      <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 shrink-0">
-        <p className="text-xs text-gray-500 text-center">
+      <div className="px-4 py-2 bg-[#f3f4ef] border-b border-[#e7e9e4] shrink-0">
+        <p className="text-xs text-[#717973] text-center">
           Toca no mapa ou arrasta o pin para selecionar a localização
         </p>
       </div>
@@ -150,22 +150,22 @@ export default function MapPicker({ open, onClose, onConfirm, initialLat, initia
       <div ref={mapRef} className="flex-1 w-full" />
 
       {/* Footer com endereço + confirmar */}
-      <div className="px-4 py-4 border-t border-gray-200 bg-white shrink-0 safe-area-bottom">
-        <div className="mb-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-200 min-h-[52px] flex items-center gap-2">
+      <div className="px-4 py-4 border-t border-[#e7e9e4] bg-white shrink-0 safe-area-bottom">
+        <div className="mb-3 bg-[#f3f4ef] rounded-xl px-4 py-3 border border-[#e7e9e4] min-h-[52px] flex items-center gap-2">
           {geocoding ? (
             <div className="flex items-center gap-2">
-              <svg className="animate-spin w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg className="animate-spin w-4 h-4 text-[#717973] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4" />
               </svg>
-              <span className="text-sm text-gray-400">A identificar morada...</span>
+              <span className="text-sm text-[#717973]">A identificar morada...</span>
             </div>
           ) : (
             <>
-              <svg className="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg className="w-4 h-4 text-[#717973] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              <span className="text-sm text-gray-700 line-clamp-2">{label || "Toca no mapa para selecionar"}</span>
+              <span className="text-sm text-[#414844] line-clamp-2">{label || "Toca no mapa para selecionar"}</span>
             </>
           )}
         </div>

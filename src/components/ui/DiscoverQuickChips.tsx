@@ -29,8 +29,8 @@ export default function DiscoverQuickChips({ filters, onToggle }: Props) {
             className={cn(
               "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all",
               active 
-                ? "bg-gray-900 text-white border-gray-900" 
-                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                ? "bg-[#1B4332] text-white border-[#1B4332]" 
+                : "bg-white text-[#414844] border-[#e7e9e4] hover:bg-[#f3f4ef]"
             )}
             aria-pressed={active}
             onClick={() => onToggle(c.id)}

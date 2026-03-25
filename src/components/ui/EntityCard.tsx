@@ -42,7 +42,7 @@ export default function EntityCard({
 
   return (
     <div className={cn(
-      "bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden",
+      "bg-white rounded-3xl border border-[#e7e9e4] shadow-sm overflow-hidden",
       "active:scale-[0.99] transition-all duration-200 animate-fade-in-up"
     )}>
       {/* Header: avatar + nome + preço */}
@@ -50,7 +50,7 @@ export default function EntityCard({
         <div className="flex items-center gap-3 min-w-0">
           <Avatar size="md" src={avatar?.src} initials={avatar?.initials} />
           <div className="min-w-0">
-            <p className="font-headline font-bold text-gray-900 text-[15px] leading-tight truncate">
+            <p className="font-headline font-bold text-[#1A1C19] text-[15px] leading-tight truncate">
               {driverName || title}
             </p>
             {otherBadges.length > 0 && (
@@ -64,10 +64,10 @@ export default function EntityCard({
         </div>
         {priceBadge && (
           <div className="text-right shrink-0 ml-3">
-            <p className="font-headline font-extrabold text-gray-900 text-xl leading-none">
+            <p className="font-headline font-extrabold text-[#1B4332] text-xl leading-none">
               {priceBadge.label}
             </p>
-            <p className="text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">por lugar</p>
+            <p className="text-[10px] text-[#717973] uppercase tracking-wide mt-0.5">por lugar</p>
           </div>
         )}
       </div>
@@ -75,22 +75,22 @@ export default function EntityCard({
       {/* Route visualization */}
       {hasRoute && (
         <div className="px-5 pb-4">
-          <div className="bg-gray-50 rounded-2xl px-4 py-3 flex gap-4">
+          <div className="bg-[#f3f4ef] rounded-2xl px-4 py-3 flex gap-4">
             <div className="flex flex-col items-center pt-1 shrink-0">
-              <div className="w-2.5 h-2.5 rounded-full bg-gray-900" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#1B4332]" />
               <div className="route-dotted-line flex-1 my-1" style={{ minHeight: "24px" }} />
-              <div className="w-2.5 h-2.5 rounded-full border-2 border-gray-400 bg-white" />
+              <div className="w-2.5 h-2.5 rounded-full border-2 border-[#52B788] bg-white" />
             </div>
             <div className="flex flex-col justify-between gap-2 min-w-0">
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                  Partida{timeStr ? ` • ${timeStr}` : ""}
+                <p className="text-[10px] font-bold text-[#717973] uppercase tracking-wider">
+                  Partida{timeStr ? ` - ${timeStr}` : ""}
                 </p>
-                <p className="font-headline font-semibold text-gray-900 text-sm truncate">{origin}</p>
+                <p className="font-headline font-semibold text-[#1A1C19] text-sm truncate">{origin}</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Chegada</p>
-                <p className="font-headline font-semibold text-gray-900 text-sm truncate">{destination}</p>
+                <p className="text-[10px] font-bold text-[#717973] uppercase tracking-wider">Chegada</p>
+                <p className="font-headline font-semibold text-[#1A1C19] text-sm truncate">{destination}</p>
               </div>
             </div>
           </div>
@@ -100,16 +100,16 @@ export default function EntityCard({
       {/* Fallback para cards sem rota */}
       {!hasRoute && subtitle && (
         <div className="px-5 pb-3">
-          <p className="text-sm text-gray-600">{subtitle}</p>
+          <p className="text-sm text-[#414844]">{subtitle}</p>
         </div>
       )}
       {!hasRoute && meta && (
         <div className="px-5 pb-3">
-          <p className="text-sm text-gray-500">{meta}</p>
+          <p className="text-sm text-[#717973]">{meta}</p>
         </div>
       )}
 
-      {/* Ações */}
+      {/* Acoes */}
       {(onPrimary || onSecondary) && (
         <div className="px-5 pb-5 flex gap-2">
           {onSecondary && (
@@ -129,7 +129,7 @@ export default function EntityCard({
         <div className="px-5 pb-4 -mt-2">
           <button
             onClick={onTertiary}
-            className="w-full text-xs text-gray-500 underline underline-offset-2 hover:text-gray-900 transition-colors"
+            className="w-full text-xs text-[#717973] underline underline-offset-2 hover:text-[#1A1C19] transition-colors"
           >
             {tertiaryLabel}
           </button>

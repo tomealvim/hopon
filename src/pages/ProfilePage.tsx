@@ -61,31 +61,31 @@ function ImpactWidget() {
   }
 
   return (
-    <section className="bg-gray-50 border border-gray-200 rounded-2xl mx-4 mb-4 px-4 py-4 animate-fade-in-up">
-      <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide mb-3">O teu impacto</h3>
+    <section className="bg-[#F3F4EF] border border-[#e7e9e4] rounded-2xl mx-4 mb-4 px-4 py-4 animate-fade-in-up">
+      <h3 className="text-xs font-bold text-[#1B4332]/60 uppercase tracking-wide mb-3">O teu impacto</h3>
       <div className="grid grid-cols-2 gap-3">
         {impact.co2SavedKg > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
-            <p className="text-2xl font-bold text-gray-900 font-headline">{impact.co2SavedKg} kg</p>
-            <p className="text-xs text-gray-500 mt-0.5">CO2 poupado</p>
+          <div className="bg-white rounded-xl border border-[#e7e9e4] p-3 text-center">
+            <p className="text-2xl font-bold text-[#1B4332] font-noto-serif italic">{impact.co2SavedKg} kg</p>
+            <p className="text-xs text-[#1B4332]/50 mt-0.5">CO2 poupado</p>
           </div>
         )}
         {impact.moneySavedEur > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
-            <p className="text-2xl font-bold text-gray-900 font-headline">€{impact.moneySavedEur.toFixed(0)}</p>
-            <p className="text-xs text-gray-500 mt-0.5">poupado vs. carro</p>
+          <div className="bg-white rounded-xl border border-[#e7e9e4] p-3 text-center">
+            <p className="text-2xl font-bold text-[#1B4332] font-noto-serif italic">€{impact.moneySavedEur.toFixed(0)}</p>
+            <p className="text-xs text-[#1B4332]/50 mt-0.5">poupado vs. carro</p>
           </div>
         )}
         {impact.totalPassengerRides > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
-            <p className="text-2xl font-bold text-gray-900 font-headline">{impact.totalPassengerRides}</p>
-            <p className="text-xs text-gray-500 mt-0.5">boleias como passageiro</p>
+          <div className="bg-white rounded-xl border border-[#e7e9e4] p-3 text-center">
+            <p className="text-2xl font-bold text-[#1B4332] font-noto-serif italic">{impact.totalPassengerRides}</p>
+            <p className="text-xs text-[#1B4332]/50 mt-0.5">boleias como passageiro</p>
           </div>
         )}
         {impact.totalPassengersCarried > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-3 text-center">
-            <p className="text-2xl font-bold text-gray-900 font-headline">{impact.totalPassengersCarried}</p>
-            <p className="text-xs text-gray-500 mt-0.5">passageiros transportados</p>
+          <div className="bg-white rounded-xl border border-[#e7e9e4] p-3 text-center">
+            <p className="text-2xl font-bold text-[#1B4332] font-noto-serif italic">{impact.totalPassengersCarried}</p>
+            <p className="text-xs text-[#1B4332]/50 mt-0.5">passageiros transportados</p>
           </div>
         )}
       </div>
@@ -484,40 +484,40 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
   }
 
   return (
-    <div className="relative min-h-screen pb-32 bg-white text-gray-900 overflow-hidden">
-      {/* Blur effects coloridos */}
+    <div className="relative min-h-screen pb-32 bg-[#F9FAF5] text-[#1A1C19] overflow-hidden">
+      {/* Glow de fundo verde suave */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-gray-300/5 blur-[180px]" />
-        <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-gray-300/5 blur-[160px]" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-gray-200/5 blur-[200px]" />
+        <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-[#52B788]/5 blur-[180px]" />
+        <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-[#95D5B2]/5 blur-[160px]" />
       </div>
-      
+
       <div className="relative z-10">
-      {/* ========== HEADER COMPACTO ========== */}
+      {/* ========== HEADER ========== */}
       <section className="mt-6 mb-4 mx-4">
         <div className="flex items-center gap-4">
           {/* Avatar */}
-          <div className="w-16 h-16 rounded-full bg-gray-900 text-white flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden ring-2 ring-gray-200" aria-hidden>
+          <div className="w-16 h-16 rounded-full bg-[#1B4332] text-white flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden ring-2 ring-[#52B788]/30" aria-hidden>
             {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initials(name)}</span>}
           </div>
 
           {/* Info + badges */}
           <div className="flex-1 min-w-0">
-            {name && <h1 className="text-lg font-bold text-gray-900 truncate drop-shadow-sm">{name}</h1>}
-            {visibleEmail && <p className="text-sm text-gray-700 truncate">{visibleEmail}</p>}
-            
+            {name && <h1 className="font-noto-serif italic text-xl text-[#1B4332] truncate">{name}</h1>}
+            {visibleEmail && <p className="text-sm text-[#1B4332]/60 truncate">{visibleEmail}</p>}
+
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               {(verification.email || verification.phone) && (
-                <span className="text-xs text-green-700 flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full bg-green-50 ring-1 ring-green-200">
-                  ✓ Verificado
+                <span className="text-xs text-[#00734d] flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full bg-[#95D5B2]/25">
+                  <span className="material-symbols-outlined" style={{ fontSize: "12px", fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>check_circle</span>
+                  Verificado
                 </span>
               )}
               {user?.reliability?.score !== null && user?.reliability?.score !== undefined && (
                 <span className={cn(
-                  "text-xs font-semibold px-2 py-0.5 rounded-full ring-1",
-                  user.reliability.score >= 95 ? "text-emerald-700 bg-emerald-50 ring-emerald-200" :
-                  user.reliability.score >= 80 ? "text-blue-700 bg-blue-50 ring-blue-200" :
-                  "text-amber-700 bg-amber-50 ring-amber-200"
+                  "text-xs font-semibold px-2 py-0.5 rounded-full",
+                  user.reliability.score >= 95 ? "text-[#00734d] bg-[#95D5B2]/25" :
+                  user.reliability.score >= 80 ? "text-[#1B4332] bg-[#D0E8DC]" :
+                  "text-amber-700 bg-amber-50"
                 )}>
                   {user.reliability.score}% fiabilidade
                 </span>
@@ -525,11 +525,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             </div>
           </div>
         </div>
-
       </section>
 
-      {/* ========== NAVEGAÇÃO RÁPIDA ========== */}
-      <div className="flex gap-1 overflow-x-auto scrollbar-none px-4 mb-4 pb-1">
+      {/* ========== NAVEGACAO RAPIDA ========== */}
+      <div className="flex gap-2 overflow-x-auto scrollbar-none px-4 mb-4 pb-1">
         {([
           { key: "overview", label: "Geral" },
           { key: "driver", label: "Condutor" },
@@ -539,10 +538,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             key={key}
             type="button"
             onClick={() => setProfileSection(key)}
-            className={`shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition-colors ${
+            className={`shrink-0 px-5 py-2 rounded-full text-xs font-bold transition-all ${
               profileSection === key
-                ? "bg-gray-900 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-[#1B4332] text-white shadow-sm"
+                : "bg-[#edeee9] text-[#1B4332]/70 hover:bg-[#e7e9e4]"
             }`}
           >
             {label}
@@ -552,9 +551,9 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
 
       {/* ========== BLOCO 1: O MEU HORÁRIO ========== */}
       {profileSection === "driver" && (
-      <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
+      <section className="bg-white border border-[#e7e9e4] px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
         <div className="flex items-start justify-between mb-3">
-          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+          <h2 className="text-sm font-bold text-[#414844] uppercase tracking-wide">
             O meu horário
           </h2>
           <button
@@ -567,8 +566,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
 
         {!hasSchedule ? (
           <div className="text-center py-8 animate-fade-in">
-            <p className="text-base font-semibold text-gray-900/95 mb-2">Ainda sem horário</p>
-            <p className="text-sm text-gray-900/70 mb-4 max-w-[240px] mx-auto">
+            <p className="text-base font-semibold text-[#1A1C19]/95 mb-2">Ainda sem horário</p>
+            <p className="text-sm text-[#1A1C19]/70 mb-4 max-w-[240px] mx-auto">
               Define os teus horários para sugestões automáticas de boleias
             </p>
             <Button variant="outline" size="sm" onClick={() => setOpenSchedule(true)}>
@@ -579,10 +578,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           <>
             {/* Próxima boleia - card simples */}
             {primaryRide && (
-              <div className="rounded-2xl bg-gray-900 text-white px-4 py-3 mb-3 shadow-sm animate-fade-in">
-                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">Próxima boleia</p>
+              <div className="rounded-2xl bg-[#1B4332] text-white px-4 py-3 mb-3 shadow-sm animate-fade-in">
+                <p className="text-xs uppercase tracking-wide text-[#717973] font-semibold">Próxima boleia</p>
                 <p className="text-base font-bold mt-0.5">{primaryRide.block.title ?? "Boleia"}</p>
-                <p className="text-sm text-gray-300 mt-0.5">
+                <p className="text-sm text-[#c1c8c2] mt-0.5">
                   {getDayLabel(primaryRide.day)} · {primaryRide.block.start}–{primaryRide.block.end}
                 </p>
               </div>
@@ -598,7 +597,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             </Button>
 
             {showCalendarPreview && (
-              <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-2">
+              <div className="mt-3 rounded-xl border border-[#e7e9e4] bg-[#f3f4ef] p-2">
                 <WeekCalendar schedule={schedule} onBlockClick={() => setOpenSchedule(true)} compact />
               </div>
             )}
@@ -632,21 +631,21 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                 icon === "✓" ? "bg-emerald-100 text-emerald-700" :
                 icon === "…" ? "bg-amber-100 text-amber-700" :
                 icon === "✗" ? "bg-red-100 text-red-700" :
-                "bg-gray-100 text-gray-400"
+                "bg-[#f3f4ef] text-[#717973]"
               )}>
                 {icon}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-gray-900">{label}</p>
+                  <p className="text-sm font-semibold text-[#1A1C19]">{label}</p>
                   {badge && (
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200">{badge}</span>
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#f3f4ef] text-[#717973] border border-[#e7e9e4]">{badge}</span>
                   )}
                 </div>
                 <p className={cn("text-xs mt-0.5", descColor)}>{description}</p>
               </div>
               {onClick && !disabled && (
-                <svg className="text-gray-300 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <svg className="text-[#c1c8c2] shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
                 </svg>
               )}
@@ -656,7 +655,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             return (
               <button
                 type="button"
-                className="w-full text-left rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 hover:bg-gray-100 transition"
+                className="w-full text-left rounded-xl border border-[#e7e9e4] bg-[#f3f4ef] px-3 py-3 hover:bg-[#f3f4ef] transition"
                 onClick={onClick}
               >
                 {inner}
@@ -664,31 +663,31 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             );
           }
           return (
-            <div className="w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3">
+            <div className="w-full rounded-xl border border-[#e7e9e4] bg-[#f3f4ef] px-3 py-3">
               {inner}
             </div>
           );
         }
 
         return (
-          <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
+          <section className="bg-white border border-[#e7e9e4] px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
             {/* Cabeçalho com progresso */}
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Verificação</h2>
+              <h2 className="text-sm font-bold text-[#414844] uppercase tracking-wide">Verificação</h2>
               <span className={cn(
                 "text-xs font-semibold",
-                verifiedCount === totalCount ? "text-emerald-600" : "text-gray-400"
+                verifiedCount === totalCount ? "text-emerald-600" : "text-[#717973]"
               )}>
                 {verifiedCount}/{totalCount}
               </span>
             </div>
 
             {/* Barra de progresso */}
-            <div className="h-1.5 bg-gray-100 rounded-full mb-4 overflow-hidden">
+            <div className="h-1.5 bg-[#f3f4ef] rounded-full mb-4 overflow-hidden">
               <div
                 className={cn(
                   "h-full rounded-full transition-all duration-500",
-                  verifiedCount === totalCount ? "bg-emerald-500" : "bg-gray-800"
+                  verifiedCount === totalCount ? "bg-emerald-500" : "bg-[#1B4332]"
                 )}
                 style={{ width: `${(verifiedCount / totalCount) * 100}%` }}
               />
@@ -710,7 +709,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                 icon={verification.phone ? "✓" : "–"}
                 label="Telemóvel"
                 description={verification.phone ? "Verificado - contacto direto ativo" : "Para contacto direto em boleias confirmadas"}
-                descColor={verification.phone ? "text-emerald-600" : "text-gray-400"}
+                descColor={verification.phone ? "text-emerald-600" : "text-[#717973]"}
                 badge={!verification.phone ? "Em breve" : undefined}
                 disabled
               />
@@ -729,7 +728,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                   dlDone ? "text-emerald-600" :
                   dlStatus === "PENDING" ? "text-amber-600" :
                   dlStatus === "REJECTED" ? "text-red-600" :
-                  "text-gray-500"
+                  "text-[#717973]"
                 }
                 onClick={() => setOpenDriverLicenseSheet(true)}
               />
@@ -748,7 +747,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                   idDone ? "text-emerald-600" :
                   idStatus === "PENDING" ? "text-amber-600" :
                   idStatus === "REJECTED" ? "text-red-600" :
-                  "text-gray-400"
+                  "text-[#717973]"
                 }
                 onClick={() => setOpenIdentitySheet(true)}
               />
@@ -765,15 +764,15 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       })()}
 
       {/* ========== COMUNIDADES ========== */}
-      <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
+      <section className="bg-white border border-[#e7e9e4] px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Comunidades</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Empresa, faculdade ou grupo de confiança</p>
+            <h2 className="text-sm font-bold text-[#414844] uppercase tracking-wide">Comunidades</h2>
+            <p className="text-xs text-[#717973] mt-0.5">Empresa, faculdade ou grupo de confiança</p>
           </div>
           <button
             type="button"
-            className="text-xs font-semibold text-gray-900"
+            className="text-xs font-semibold text-[#1A1C19]"
             onClick={() => setOpenCommunities(true)}
           >
             Ver
@@ -785,17 +784,17 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
 
       {/* ========== BLOCO 2: CARRO EM USO ========== */}
       {profileSection === "driver" && (
-      <section className="bg-white border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
+      <section className="bg-white border border-[#e7e9e4] px-4 py-4 mb-4 rounded-2xl mx-4 animate-fade-in-up">
         <div className="flex items-start justify-between mb-3">
-          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+          <h2 className="text-sm font-bold text-[#414844] uppercase tracking-wide">
             Carro em uso
           </h2>
         </div>
 
         {!activeVehicle ? (
           <div className="text-center py-8 animate-fade-in">
-            <p className="text-base font-semibold text-gray-900/95 mb-2">Ainda sem veículo</p>
-            <p className="text-sm text-gray-900/70 mb-4 max-w-[240px] mx-auto">
+            <p className="text-base font-semibold text-[#1A1C19]/95 mb-2">Ainda sem veículo</p>
+            <p className="text-sm text-[#1A1C19]/70 mb-4 max-w-[240px] mx-auto">
               Adiciona marca e modelo para cálculo automático de custos
             </p>
             <Button variant="outline" size="sm" onClick={() => handleOpenVehicle(null)}>
@@ -806,25 +805,25 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           <>
             <div className="flex items-start justify-between gap-4 mb-3">
               <div className="flex-1">
-                <p className="text-base font-semibold text-gray-900">
+                <p className="text-base font-semibold text-[#1A1C19]">
                   {activeVehicle.brand} {activeVehicle.model}
                 </p>
                 {activeVehicle.plate && (
-                  <p className="text-sm text-gray-900/70 mt-0.5">{activeVehicle.plate}</p>
+                  <p className="text-sm text-[#1A1C19]/70 mt-0.5">{activeVehicle.plate}</p>
                 )}
                 <div className="flex flex-wrap gap-2 mt-2">
                   {activeVehicle.color && (
-                    <span className="text-xs rounded-full border border-gray-200 px-2 py-0.5 text-gray-700">
+                    <span className="text-xs rounded-full border border-[#e7e9e4] px-2 py-0.5 text-[#414844]">
                       {activeVehicle.color}
                     </span>
                   )}
                   {activeVehicle.features.airConditioning && (
-                    <span className="text-xs rounded-full border border-gray-200 px-2 py-0.5 text-gray-700">
+                    <span className="text-xs rounded-full border border-[#e7e9e4] px-2 py-0.5 text-[#414844]">
                       A/C
                     </span>
                   )}
                   {activeVehicle.features.heater && (
-                    <span className="text-xs rounded-full border border-gray-200 px-2 py-0.5 text-gray-700">
+                    <span className="text-xs rounded-full border border-[#e7e9e4] px-2 py-0.5 text-[#414844]">
                       Aquecimento
                     </span>
                   )}
@@ -834,7 +833,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                 <img 
                   src={activeVehicle.imageUrl} 
                   alt="" 
-                  className="w-20 h-20 rounded-lg object-cover border border-gray-200 flex-shrink-0"
+                  className="w-20 h-20 rounded-lg object-cover border border-[#e7e9e4] flex-shrink-0"
                 />
               )}
             </div>
@@ -861,7 +860,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       {profileSection === "overview" && (
       <>
       <section
-        className="bg-gray-100 border border-gray-200 px-4 py-4 mb-4 rounded-2xl mx-4 cursor-pointer hover:bg-gray-200/80 hover:border-gray-300 transition-all duration-200 active:scale-[0.99] animate-fade-in-up"
+        className="bg-[#f3f4ef] border border-[#e7e9e4] px-4 py-4 mb-4 rounded-2xl mx-4 cursor-pointer hover:bg-[#edeee9]/80 hover:border-[#c1c8c2] transition-all duration-200 active:scale-[0.99] animate-fade-in-up"
         onClick={() => setOpenReferral(true)}
         role="button"
         tabIndex={0}
@@ -874,19 +873,19 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       >
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-base font-bold text-gray-900 mb-1">Convidar amigos</h3>
-            <p className="text-sm text-gray-700">Partilha o teu código e recebe descontos</p>
+            <h3 className="text-base font-bold text-[#1A1C19] mb-1">Convidar amigos</h3>
+            <p className="text-sm text-[#414844]">Partilha o teu código e recebe descontos</p>
           </div>
-          <svg className="text-gray-900/70 shrink-0 mt-1" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <svg className="text-[#1A1C19]/70 shrink-0 mt-1" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
           </svg>
         </div>
       </section>
 
       {/* ========== AJUDA (Geral) ========== */}
-      <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Ajuda Geral">
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide">Histórico & Avaliações</h3>
+      <nav className="bg-white border border-[#e7e9e4] rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Ajuda Geral">
+        <div className="px-4 py-3 bg-[#f3f4ef] border-b border-[#e7e9e4]">
+          <h3 className="text-xs font-bold text-[#1A1C19]/70 uppercase tracking-wide">Histórico & Avaliações</h3>
         </div>
         <ListRow label="Histórico de boleias" onClick={() => setOpenHistory(true)} />
         <ListRow label="Avaliações" onClick={() => setOpenRatings(true)} />
@@ -897,9 +896,9 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       {/* ========== DEFINIÇÕES & AJUDA (lista simples) ========== */}
       {profileSection === "account" && (
       <>
-      <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Conta e pagamentos">
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide">Conta & Pagamentos</h3>
+      <nav className="bg-white border border-[#e7e9e4] rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Conta e pagamentos">
+        <div className="px-4 py-3 bg-[#f3f4ef] border-b border-[#e7e9e4]">
+          <h3 className="text-xs font-bold text-[#1A1C19]/70 uppercase tracking-wide">Conta & Pagamentos</h3>
         </div>
         <ListRow label="Editar perfil" onClick={() => setOpenEdit(true)} />
         <ListRow label="Editar palavra-passe" onClick={() => setOpenPassword(true)} />
@@ -921,8 +920,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         )}
       </nav>
       {pushSupported && pushSubscribed && (
-        <div className="mx-4 mb-4 border border-gray-100 rounded-xl p-3 bg-white">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">O que receber</p>
+        <div className="mx-4 mb-4 border border-[#e7e9e4] rounded-xl p-3 bg-white">
+          <p className="text-xs font-semibold text-[#717973] uppercase tracking-wide mb-2">O que receber</p>
           {([
             { key: 'messages', label: 'Mensagens' },
             { key: 'bookings', label: 'Reservas' },
@@ -930,12 +929,12 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             { key: 'matches', label: 'Sugestoes de boleias' },
           ] as const).map(({ key, label }) => (
             <div key={key} className="flex items-center justify-between py-1">
-              <span className="text-sm text-gray-700">{label}</span>
+              <span className="text-sm text-[#414844]">{label}</span>
               <button
                 onClick={() => handleTogglePushPref(key)}
                 className={cn(
                   "w-10 h-6 rounded-full transition-colors relative",
-                  pushPrefs[key] !== false ? "bg-gray-900" : "bg-gray-200"
+                  pushPrefs[key] !== false ? "bg-[#1B4332]" : "bg-[#edeee9]"
                 )}
                 aria-label={`Notificacoes de ${label}`}
               >
@@ -949,9 +948,9 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         </div>
       )}
 
-      <nav className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Ajuda">
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <h3 className="text-xs font-bold text-gray-900/70 uppercase tracking-wide">Ajuda</h3>
+      <nav className="bg-white border border-[#e7e9e4] rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Ajuda">
+        <div className="px-4 py-3 bg-[#f3f4ef] border-b border-[#e7e9e4]">
+          <h3 className="text-xs font-bold text-[#1A1C19]/70 uppercase tracking-wide">Ajuda</h3>
         </div>
         <ListRow label="Contacta-nos" onClick={() => setOpenSupport(true)} />
         <ListRow
@@ -965,7 +964,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       {/* ========== ADMIN (apenas visível para admins) ========== */}
 
       {/* ========== ZONA DE RISCO ========== */}
-      <div className="bg-white border border-gray-200 rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Zona de risco">
+      <div className="bg-white border border-[#e7e9e4] rounded-2xl mx-4 mb-4 overflow-hidden animate-fade-in-up" aria-label="Zona de risco">
         <ListRow label="Terminar sessão" tone="danger" onClick={() => setOpenLogoutConfirm(true)} />
         <ListRow label="Apagar conta" tone="danger" onClick={() => setOpenDeleteConfirm(true)} />
       </div>
@@ -986,8 +985,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       >
         <div className="grid gap-6">
           {/* Foto */}
-          <div className="flex flex-col items-center gap-3 pb-6 border-b border-gray-200">
-            <div className="w-28 h-28 rounded-full bg-gray-900 text-white flex items-center justify-center text-3xl font-bold overflow-hidden ring-4 ring-gray-100" aria-label="Foto de perfil">
+          <div className="flex flex-col items-center gap-3 pb-6 border-b border-[#e7e9e4]">
+            <div className="w-28 h-28 rounded-full bg-[#1B4332] text-white flex items-center justify-center text-3xl font-bold overflow-hidden ring-4 ring-[#D0E8DC]" aria-label="Foto de perfil">
               {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initials(name)}</span>}
             </div>
             <div className="flex flex-col items-center gap-2">
@@ -1013,14 +1012,14 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
 
           {/* Informação pessoal */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-gray-900/60 uppercase tracking-wide">
+            <h3 className="text-xs font-bold text-[#1A1C19]/60 uppercase tracking-wide">
               Informação pessoal
             </h3>
 
             <Field label="Nome completo" htmlFor="pf-name" hint="O teu nome completo como aparece no perfil.">
               <input
                 id="pf-name"
-                className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none placeholder:text-gray-900/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full px-3 py-2.5 border border-[#e7e9e4] bg-[#f3f4ef] text-[#1A1C19] rounded-xl outline-none placeholder:text-[#1A1C19]/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Ex: João Silva"
@@ -1033,7 +1032,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             <Field label="Username / apelido público" htmlFor="pf-username" hint="Opcional. Usa um @apelido curto para partilhar o perfil.">
               <input
                 id="pf-username"
-                className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none placeholder:text-gray-900/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full px-3 py-2.5 border border-[#e7e9e4] bg-[#f3f4ef] text-[#1A1C19] rounded-xl outline-none placeholder:text-[#1A1C19]/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 placeholder="Ex: joaosilva"
@@ -1045,7 +1044,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
 
           {/* Contactos */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-gray-900/60 uppercase tracking-wide">
+            <h3 className="text-xs font-bold text-[#1A1C19]/60 uppercase tracking-wide">
               Contactos
             </h3>
 
@@ -1053,7 +1052,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
               <input
                 id="pf-phone"
                 type="tel"
-                className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none placeholder:text-gray-900/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full px-3 py-2.5 border border-[#e7e9e4] bg-[#f3f4ef] text-[#1A1C19] rounded-xl outline-none placeholder:text-[#1A1C19]/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="Ex: +351912345678"
@@ -1066,7 +1065,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
               <input
                 id="pf-contact-email"
                 type="email"
-                className="w-full px-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl outline-none placeholder:text-gray-900/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full px-3 py-2.5 border border-[#e7e9e4] bg-[#f3f4ef] text-[#1A1C19] rounded-xl outline-none placeholder:text-[#1A1C19]/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 value={contactEmail}
                 onChange={e => setContactEmail(e.target.value)}
                 placeholder="Ex: joao@exemplo.com"
@@ -1097,7 +1096,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         }
       >
         <div className="space-y-6 py-1">
-          <p className="text-sm text-gray-900/60">
+          <p className="text-sm text-[#1A1C19]/60">
             Atualiza regularmente a tua palavra-passe para proteger a conta. Fluxo em modo demonstração.
           </p>
 
@@ -1124,7 +1123,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                 onToggle={() => setShowNewPassword(prev => !prev)}
                 autoComplete="new-password"
               />
-              <p className={`text-xs ${passwordHasMinChars ? "text-emerald-400" : "text-gray-900/50"}`}>
+              <p className={`text-xs ${passwordHasMinChars ? "text-emerald-400" : "text-[#1A1C19]/50"}`}>
                 A nova palavra-passe deve ter pelo menos 8 caracteres.
               </p>
             </div>
@@ -1208,8 +1207,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       >
         <div className="space-y-6 py-2">
           <div className="text-center space-y-1">
-            <p className="text-base font-semibold text-gray-900">Convida amigos, ganhas €1</p>
-            <p className="text-sm text-gray-900/60">
+            <p className="text-base font-semibold text-[#1A1C19]">Convida amigos, ganhas €1</p>
+            <p className="text-sm text-[#1A1C19]/60">
               Quando um amigo teu fizer a primeira boleia com o teu codigo, ambos recebem €1 de credito na carteira.
             </p>
           </div>
@@ -1221,16 +1220,16 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
             </div>
           )}
 
-          <div className="rounded-3xl border border-gray-200 bg-gray-50 p-4">
-            <div className="text-xs font-semibold text-gray-900/60 uppercase tracking-wide mb-3">O teu codigo</div>
+          <div className="rounded-3xl border border-[#e7e9e4] bg-[#f3f4ef] p-4">
+            <div className="text-xs font-semibold text-[#1A1C19]/60 uppercase tracking-wide mb-3">O teu codigo</div>
             {referralCode ? (
               <>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-mono text-lg tracking-[0.35em] text-gray-900">{referralCode}</span>
+                  <span className="font-mono text-lg tracking-[0.35em] text-[#1A1C19]">{referralCode}</span>
                   <button
                     type="button"
                     onClick={handleCopyReferralCode}
-                    className="p-3 rounded-2xl bg-gray-100 border border-gray-200 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-900"
+                    className="p-3 rounded-2xl bg-[#f3f4ef] border border-[#e7e9e4] hover:bg-[#edeee9] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-[#1A1C19]"
                     aria-label="Copiar codigo de convite"
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -1239,25 +1238,25 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                     </svg>
                   </button>
                 </div>
-                <p className="text-xs text-gray-900/50 mt-3 min-h-[16px]" aria-live="polite">
+                <p className="text-xs text-[#1A1C19]/50 mt-3 min-h-[16px]" aria-live="polite">
                   {copiedReferral ? "Codigo copiado! Cola em qualquer app de mensagens." : "Toca para copiar e partilha com colegas."}
                 </p>
               </>
             ) : (
-              <div className="h-8 bg-gray-200 rounded animate-pulse" />
+              <div className="h-8 bg-[#edeee9] rounded animate-pulse" />
             )}
           </div>
 
           {!referralInfo?.isReferred && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Tens um codigo de amigo?</p>
+              <p className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Tens um codigo de amigo?</p>
               <div className="flex gap-2">
                 <input
                   type="text"
                   placeholder="Ex: AB12CD34"
                   value={applyCodeInput}
                   onChange={(e) => { setApplyCodeInput(e.target.value.toUpperCase()); setApplyCodeMsg(null); }}
-                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+                  className="flex-1 border border-[#e7e9e4] rounded-xl px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20"
                   maxLength={8}
                 />
                 <Button
@@ -1292,27 +1291,27 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           )}
 
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-gray-900/60 uppercase tracking-wide">Como funciona</h4>
+            <h4 className="text-xs font-bold text-[#1A1C19]/60 uppercase tracking-wide">Como funciona</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <span className="h-8 w-8 rounded-2xl bg-gray-100 text-gray-700 font-semibold flex items-center justify-center shrink-0">1</span>
+                <span className="h-8 w-8 rounded-2xl bg-[#f3f4ef] text-[#414844] font-semibold flex items-center justify-center shrink-0">1</span>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Partilha o teu codigo</p>
-                  <p className="text-xs text-gray-900/60">Copia e envia pelo WhatsApp, Instagram ou onde preferires.</p>
+                  <p className="text-sm font-semibold text-[#1A1C19]">Partilha o teu codigo</p>
+                  <p className="text-xs text-[#1A1C19]/60">Copia e envia pelo WhatsApp, Instagram ou onde preferires.</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <span className="h-8 w-8 rounded-2xl bg-gray-100 text-gray-700 font-semibold flex items-center justify-center shrink-0">2</span>
+                <span className="h-8 w-8 rounded-2xl bg-[#f3f4ef] text-[#414844] font-semibold flex items-center justify-center shrink-0">2</span>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">O amigo regista-se e aplica o codigo</p>
-                  <p className="text-xs text-gray-900/60">No perfil dele, em "Convidar amigos", cola o teu codigo.</p>
+                  <p className="text-sm font-semibold text-[#1A1C19]">O amigo regista-se e aplica o codigo</p>
+                  <p className="text-xs text-[#1A1C19]/60">No perfil dele, em "Convidar amigos", cola o teu codigo.</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <span className="h-8 w-8 rounded-2xl bg-gray-100 text-gray-700 font-semibold flex items-center justify-center shrink-0">3</span>
+                <span className="h-8 w-8 rounded-2xl bg-[#f3f4ef] text-[#414844] font-semibold flex items-center justify-center shrink-0">3</span>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">€1 para cada um</p>
-                  <p className="text-xs text-gray-900/60">Apos a primeira boleia do amigo, ambos recebem €1 na carteira automaticamente.</p>
+                  <p className="text-sm font-semibold text-[#1A1C19]">€1 para cada um</p>
+                  <p className="text-xs text-[#1A1C19]/60">Apos a primeira boleia do amigo, ambos recebem €1 na carteira automaticamente.</p>
                 </div>
               </li>
             </ul>
@@ -1338,8 +1337,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         }
       >
         <div className="grid gap-4 text-center">
-          <h3 className="text-lg font-bold text-gray-900">Tens a certeza?</h3>
-          <p className="text-sm text-gray-900/70">
+          <h3 className="text-lg font-bold text-[#1A1C19]">Tens a certeza?</h3>
+          <p className="text-sm text-[#1A1C19]/70">
             Vais terminar a tua sessão. Podes sempre voltar e fazer login novamente.
           </p>
         </div>
@@ -1363,8 +1362,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         }
       >
         <div className="grid gap-4 text-center">
-          <h3 className="text-lg font-bold text-gray-900">Tens a certeza?</h3>
-          <p className="text-sm text-gray-900/70">
+          <h3 className="text-lg font-bold text-[#1A1C19]">Tens a certeza?</h3>
+          <p className="text-sm text-[#1A1C19]/70">
             Esta ação não pode ser desfeita. Todos os teus dados, boleias e histórico serão permanentemente removidos.
           </p>
           <div className="text-left bg-red-500/20 rounded-xl p-4 border border-red-500/30">
@@ -1385,14 +1384,14 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         title={TERMS_TITLE}
         height="lg"
       >
-        <div id="profile-terms-sheet" className="space-y-6 text-sm text-gray-700">
+        <div id="profile-terms-sheet" className="space-y-6 text-sm text-[#414844]">
           {TERMS_SECTIONS.map(section => (
             <section key={section.title} className="space-y-2">
-              <h4 className="text-base font-semibold text-gray-900">{section.title}</h4>
-              <p className="leading-relaxed text-gray-900/70">{section.content}</p>
+              <h4 className="text-base font-semibold text-[#1A1C19]">{section.title}</h4>
+              <p className="leading-relaxed text-[#1A1C19]/70">{section.content}</p>
             </section>
           ))}
-          <p className="text-xs text-gray-900/50">
+          <p className="text-xs text-[#1A1C19]/50">
             Estes Termos e Condições são preliminares e serão validados juridicamente antes do lançamento público.
             Última atualização: {TERMS_LAST_UPDATED}.
           </p>
@@ -1422,24 +1421,24 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         <div className="space-y-3">
           {vehicles.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-sm font-semibold text-gray-900 mb-1">Ainda sem veículos</p>
-              <p className="text-xs text-gray-900/50">Adiciona marca e modelo para desbloquear custos automáticos.</p>
+              <p className="text-sm font-semibold text-[#1A1C19] mb-1">Ainda sem veículos</p>
+              <p className="text-xs text-[#1A1C19]/50">Adiciona marca e modelo para desbloquear custos automáticos.</p>
             </div>
           ) : (
             vehicles.map(vehicle => (
               <div 
                 key={vehicle.id}
-                className="rounded-2xl border border-gray-200 bg-gray-50 backdrop-blur-sm p-4"
+                className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] backdrop-blur-sm p-4"
               >
                 {vehicle.imageUrl && (
-                  <div className="mb-3 overflow-hidden rounded-xl border border-gray-200">
+                  <div className="mb-3 overflow-hidden rounded-xl border border-[#e7e9e4]">
                     <img src={vehicle.imageUrl} alt={vehicle.brand} className="h-32 w-full object-cover" />
                   </div>
                 )}
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{vehicle.brand}</p>
-                    <p className="text-xs text-gray-900/70">{vehicle.model}</p>
+                    <p className="text-sm font-semibold text-[#1A1C19]">{vehicle.brand}</p>
+                    <p className="text-xs text-[#1A1C19]/70">{vehicle.model}</p>
                     {vehicle.id === activeVehicleId && (
                       <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-emerald-500/50 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
                         ✓ Em uso
@@ -1457,17 +1456,17 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                     Editar
                   </Button>
                 </div>
-                <div className="flex flex-wrap gap-2 text-[11px] text-gray-900/70">
+                <div className="flex flex-wrap gap-2 text-[11px] text-[#1A1C19]/70">
                   {vehicle.plate && (
-                    <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-1 uppercase tracking-wide">{vehicle.plate}</span>
+                    <span className="rounded-full border border-[#e7e9e4] bg-[#f3f4ef] px-2 py-1 uppercase tracking-wide">{vehicle.plate}</span>
                   )}
                   {vehicle.color && (
-                    <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-1">{vehicle.color}</span>
+                    <span className="rounded-full border border-[#e7e9e4] bg-[#f3f4ef] px-2 py-1">{vehicle.color}</span>
                   )}
-                  <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-1">
+                  <span className="rounded-full border border-[#e7e9e4] bg-[#f3f4ef] px-2 py-1">
                     {vehicle.features.airConditioning ? "Ar condicionado" : "Sem A/C"}
                   </span>
-                  <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-1">
+                  <span className="rounded-full border border-[#e7e9e4] bg-[#f3f4ef] px-2 py-1">
                     {vehicle.features.heater ? "Aquecimento" : "Sem aquecimento"}
                   </span>
                 </div>
@@ -1490,7 +1489,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                     className={cn(
                       "h-9 px-3 text-sm font-medium rounded-xl transition border",
                       vehicle.id === activeVehicleId ? "w-full" : "flex-1",
-                      "bg-gray-50 text-gray-900/70 border-gray-200 hover:bg-gray-100 hover:text-gray-900/90 hover:border-gray-200"
+                      "bg-[#f3f4ef] text-[#1A1C19]/70 border-[#e7e9e4] hover:bg-[#f3f4ef] hover:text-[#1A1C19]/90 hover:border-[#e7e9e4]"
                     )}
                     onClick={() => setVehicleToDelete(vehicle)}
                   >
@@ -1541,8 +1540,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
         }
       >
         <div className="grid gap-4 text-center">
-          <h3 className="text-lg font-bold text-gray-900">Tens a certeza?</h3>
-          <p className="text-sm text-gray-900/70">
+          <h3 className="text-lg font-bold text-[#1A1C19]">Tens a certeza?</h3>
+          <p className="text-sm text-[#1A1C19]/70">
             {vehicleToDelete && vehicleToDelete.id === activeVehicleId && (
               <>Este veículo está em uso. Ao removê-lo, {vehicles.length > 1 ? "outro veículo será ativado automaticamente" : "não terás nenhum veículo ativo"}.</>
             )}
@@ -1662,14 +1661,14 @@ function PasswordField({
 }: PasswordFieldProps) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-700" htmlFor={id}>
+      <label className="block text-xs font-semibold text-[#414844]" htmlFor={id}>
         {label}
       </label>
       <div className="relative mt-2">
         <input
           id={id}
           type={isVisible ? "text" : "password"}
-          className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-base text-gray-900 placeholder:text-gray-900/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className="w-full rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3 text-base text-[#1A1C19] placeholder:text-[#1A1C19]/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
@@ -1680,7 +1679,7 @@ function PasswordField({
           onClick={onToggle}
           aria-label={`${isVisible ? "Ocultar" : "Mostrar"} ${label.toLowerCase()}`}
           aria-pressed={isVisible}
-          className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-900/60 hover:text-gray-900 focus:outline-none"
+          className="absolute inset-y-0 right-0 flex items-center pr-4 text-[#1A1C19]/60 hover:text-[#1A1C19] focus:outline-none"
         >
           <EyeIcon crossed={!isVisible} />
         </button>
@@ -1710,9 +1709,9 @@ function Field({
 }: { label: string; htmlFor: string; hint?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-700 mb-1" htmlFor={htmlFor}>{label}</label>
+      <label className="block text-xs font-semibold text-[#414844] mb-1" htmlFor={htmlFor}>{label}</label>
       {children}
-      {hint && <div className="text-xs text-gray-900/50 mt-1">{hint}</div>}
+      {hint && <div className="text-xs text-[#1A1C19]/50 mt-1">{hint}</div>}
     </div>
   );
 }
@@ -1738,7 +1737,7 @@ function ListRow({
 }: ListRowProps) {
   return (
     <button 
-      className={`w-full flex items-center justify-between px-4 py-3.5 border-b border-gray-200 last:border-b-0 hover:bg-gray-100 transition ${tone === "danger" ? "text-red-700" : "text-gray-900"}`} 
+      className={`w-full flex items-center justify-between px-4 py-3.5 border-b border-[#e7e9e4] last:border-b-0 hover:bg-[#f3f4ef] transition ${tone === "danger" ? "text-red-700" : "text-[#1A1C19]"}`} 
       onClick={onClick}
       aria-haspopup={ariaHasPopup}
       aria-controls={ariaControls}
@@ -1747,10 +1746,10 @@ function ListRow({
         {icon && <span className="text-xl" aria-hidden>{icon}</span>}
         <div>
           <div className="text-sm font-medium">{label}</div>
-          {caption && <div className="text-xs text-gray-900/60 mt-0.5">{caption}</div>}
+          {caption && <div className="text-xs text-[#1A1C19]/60 mt-0.5">{caption}</div>}
         </div>
       </div>
-      <svg className={tone === "danger" ? "text-red-700" : "text-gray-900/50"} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <svg className={tone === "danger" ? "text-red-700" : "text-[#1A1C19]/50"} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
         <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" />
       </svg>
     </button>

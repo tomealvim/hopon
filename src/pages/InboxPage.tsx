@@ -76,17 +76,17 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
         addMessage(tid, { type: "system", system } as Omit<Message, "id" | "threadId" | "ts">);
       }
     } catch (err) {
-      setError("Erro ao processar ação");
+      setError("Erro ao processar acao");
       console.error("Error handling system action:", err);
     }
   }, [meId, addMessage]);
 
   if (!user) {
     return (
-      <main className="relative min-h-screen px-4 pb-32 flex flex-col items-center justify-center bg-white text-gray-900 overflow-hidden">
-        <div className="text-4xl mb-4">💬</div>
-        <p className="text-sm font-semibold text-gray-800 mb-1">As tuas mensagens aparecem aqui</p>
-        <p className="text-xs text-gray-500 text-center">Inicia sessão para ver as tuas conversas com condutores e passageiros</p>
+      <main className="relative min-h-screen px-4 pb-32 flex flex-col items-center justify-center bg-[#F9FAF5] text-[#1A1C19] overflow-hidden">
+        <span className="material-symbols-outlined text-[#D0E8DC] mb-4" style={{ fontSize: "48px" }}>chat</span>
+        <p className="text-sm font-semibold text-[#1A1C19] mb-1">As tuas mensagens aparecem aqui</p>
+        <p className="text-xs text-[#717973] text-center">Inicia sessao para ver as tuas conversas com condutores e passageiros</p>
       </main>
     );
   }
@@ -95,15 +95,8 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
     const thread = threads.find(t => t.id === initialThreadId);
     if (!thread) {
       return (
-        <main className="relative min-h-screen px-4 pb-32 flex items-center justify-center bg-white text-gray-900 overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-gray-300/8 blur-[180px]" />
-            <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/20 blur-[160px]" />
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/15 blur-[200px]" />
-          </div>
-          <div className="relative z-10 text-center">
-            <div className="text-sm text-gray-600">A carregar conversa...</div>
-          </div>
+        <main className="relative min-h-screen px-4 pb-32 flex items-center justify-center bg-[#F9FAF5] text-[#1A1C19]">
+          <div className="text-sm text-[#717973]">A carregar conversa...</div>
         </main>
       );
     }
@@ -112,7 +105,7 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
   if (openThreadId) {
     const thread = threads.find(t => t.id === openThreadId);
     if (!thread) {
-      setError("Conversa não encontrada");
+      setError("Conversa nao encontrada");
       setOpenThreadId(null);
       return null;
     }
@@ -133,16 +126,10 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
   }
 
   return (
-    <main className="relative min-h-screen px-4 pb-32 bg-white text-gray-900 overflow-hidden" role="main" aria-label="Caixa de entrada">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-gray-300/5 blur-[180px]" />
-        <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-purple-500/8 blur-[160px]" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-amber-200/6 blur-[200px]" />
-      </div>
-
+    <main className="relative min-h-screen px-4 pb-32 bg-[#F9FAF5] text-[#1A1C19] overflow-hidden" role="main" aria-label="Caixa de entrada">
       <div className="relative z-10">
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-700 px-4 py-3 rounded mb-4" role="alert" aria-live="polite">
+          <div className="bg-[#ffdad6] border border-[#ba1a1a]/20 text-[#ba1a1a] px-4 py-3 rounded-lg mb-4" role="alert" aria-live="polite">
             {error}
           </div>
         )}
@@ -196,7 +183,7 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
 function Section({ title, children, ariaLabel }: { title: string; children: React.ReactNode; ariaLabel?: string }) {
   return (
     <section className="pt-4 pb-6" aria-label={ariaLabel}>
-      <h2 className="text-sm font-bold text-gray-900 mb-3">{title}</h2>
+      <h2 className="text-sm font-bold text-[#1B4332] mb-3">{title}</h2>
       <div className="grid gap-2" aria-label={`Lista de ${title.toLowerCase()}`}>
         {children}
       </div>
@@ -205,14 +192,14 @@ function Section({ title, children, ariaLabel }: { title: string; children: Reac
 }
 
 function Empty({ label }: { label: string }) {
-  return <div className="text-center text-gray-500 py-8 text-sm">{label}</div>;
+  return <div className="text-center text-[#717973] py-8 text-sm">{label}</div>;
 }
 
 function LoadingRows() {
   return (
     <>
       {[1, 2].map(i => (
-        <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+        <div key={i} className="h-16 bg-[#edeee9] rounded-xl animate-pulse" />
       ))}
     </>
   );
@@ -229,8 +216,8 @@ function summaryLast(last?: Thread["lastEvent"]) {
   if (s.kind === "meeting_changed") return "Ponto de encontro atualizado";
   if (s.kind === "payment_due") return `Pagamento em falta €${s.amount?.toFixed(2)}`;
   if (s.kind === "payment_paid") return "Pagamento confirmado";
-  if (s.kind === "change_confirmed") return "Alteração confirmada";
-  return "Atualização";
+  if (s.kind === "change_confirmed") return "Alteracao confirmada";
+  return "Atualizacao";
 }
 
 function ctaFor(last?: Thread["lastEvent"]) {

@@ -114,11 +114,11 @@ export default function PolicyAcceptanceSheet({ open, role, onClose, onAccepted 
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="mt-0.5 h-4 w-4 rounded border-gray-300"
+              className="mt-0.5 h-4 w-4 rounded border-[#c1c8c2]"
               checked={accepted}
               onChange={(e) => setAccepted(e.target.checked)}
             />
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-[#414844]">
               Li e aceito as regras de viagem do HopOn
             </span>
           </label>
@@ -140,14 +140,14 @@ export default function PolicyAcceptanceSheet({ open, role, onClose, onAccepted 
       }
     >
       <div className="grid gap-5 p-1">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-[#414844]">
           Para {role === "passenger" ? "reservar boleias" : "publicar boleias"} no HopOn, precisas de aceitar as seguintes regras:
         </p>
 
         {policy.sections.map((section) => (
           <div key={section.heading}>
-            <p className="text-sm font-semibold text-gray-800 mb-1">{section.heading}</p>
-            <p className="text-sm text-gray-600">{section.text}</p>
+            <p className="text-sm font-semibold text-[#1A1C19] mb-1">{section.heading}</p>
+            <p className="text-sm text-[#414844]">{section.text}</p>
           </div>
         ))}
       </div>

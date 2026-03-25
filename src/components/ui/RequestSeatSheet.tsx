@@ -236,7 +236,7 @@ export default function RequestSeatSheet({
         {/* ── STRIPE PAYMENT FORM ── */}
         {view === "stripe" && clientSecret && stripePromise && (
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-gray-700">
+            <p className="text-sm font-semibold text-[#414844]">
               {offerTitle} - €{totalCost.toFixed(2)}
             </p>
             {stripePayError && <p className="text-sm text-red-600">{stripePayError}</p>}
@@ -260,65 +260,65 @@ export default function RequestSeatSheet({
         {/* ── CONFIRM VIEW ── */}
         {view === "confirm" && (
           <>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-[#414844]">
               Vais pedir lugar em: <span className="font-semibold">{offerTitle}</span>
             </p>
 
             {meetingPoint && (
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 flex items-start gap-2">
+              <div className="rounded-xl border border-[#e7e9e4] bg-[#f3f4ef] p-3 flex items-start gap-2">
                 <span className="text-base mt-0.5">📍</span>
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">Ponto de encontro</p>
-                  <p className="text-sm text-gray-900">{meetingPoint}</p>
+                  <p className="text-xs font-semibold text-[#717973] uppercase tracking-wide mb-0.5">Ponto de encontro</p>
+                  <p className="text-sm text-[#1A1C19]">{meetingPoint}</p>
                 </div>
               </div>
             )}
 
             {hasCost && (
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 grid gap-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Detalhes do custo</p>
+              <div className="rounded-xl border border-[#e7e9e4] bg-[#f3f4ef] p-4 grid gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#717973] mb-1">Detalhes do custo</p>
 
                 {hasFeeBreakdown ? (
                   <>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">
+                      <span className="text-[#717973]">
                         Combustível + portagens ({seats} {seats > 1 ? "lugares" : "lugar"})
                       </span>
-                      <span className="text-gray-700">€{totalBase.toFixed(2)}</span>
+                      <span className="text-[#414844]">€{totalBase.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Taxa de serviço HopOn (10%)</span>
-                      <span className="text-gray-700">€{totalFee.toFixed(2)}</span>
+                      <span className="text-[#717973]">Taxa de serviço HopOn (10%)</span>
+                      <span className="text-[#414844]">€{totalFee.toFixed(2)}</span>
                     </div>
-                    <div className="my-1 border-t border-gray-200" />
+                    <div className="my-1 border-t border-[#e7e9e4]" />
                     <div className="flex justify-between text-sm font-semibold">
-                      <span className="text-gray-900">Total</span>
-                      <span className="text-gray-900">€{totalCost.toFixed(2)}</span>
+                      <span className="text-[#1A1C19]">Total</span>
+                      <span className="text-[#1A1C19]">€{totalCost.toFixed(2)}</span>
                     </div>
                   </>
                 ) : (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">
+                    <span className="text-[#717973]">
                       Custo ({seats} {seats > 1 ? "lugares" : "lugar"} × €{price!.toFixed(2)})
                     </span>
-                    <span className="font-semibold text-gray-900">€{totalCost.toFixed(2)}</span>
+                    <span className="font-semibold text-[#1A1C19]">€{totalCost.toFixed(2)}</span>
                   </div>
                 )}
               </div>
             )}
 
             {price != null && price > 0 && (
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 grid gap-1">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Política de cancelamento</p>
-                <div className="flex justify-between text-xs text-gray-700">
+              <div className="rounded-xl border border-[#e7e9e4] bg-[#f3f4ef] p-3 grid gap-1">
+                <p className="text-xs font-semibold text-[#717973] uppercase tracking-wide mb-1">Política de cancelamento</p>
+                <div className="flex justify-between text-xs text-[#414844]">
                   <span>Mais de 2h antes da partida</span>
                   <span className="font-semibold text-green-700">Reembolso total</span>
                 </div>
-                <div className="flex justify-between text-xs text-gray-700">
+                <div className="flex justify-between text-xs text-[#414844]">
                   <span>Entre 30min e 2h antes</span>
                   <span className="font-semibold text-amber-700">Reembolso 50%</span>
                 </div>
-                <div className="flex justify-between text-xs text-gray-700">
+                <div className="flex justify-between text-xs text-[#414844]">
                   <span>Menos de 30 minutos antes</span>
                   <span className="font-semibold text-red-700">Sem reembolso</span>
                 </div>
@@ -326,12 +326,12 @@ export default function RequestSeatSheet({
             )}
 
             <div>
-              <label htmlFor="request-message" className="block text-xs font-semibold text-gray-700 mb-1">
+              <label htmlFor="request-message" className="block text-xs font-semibold text-[#414844] mb-1">
                 Mensagem para o condutor (opcional)
               </label>
               <textarea
                 id="request-message"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none"
+                className="w-full px-3 py-2.5 border border-[#e7e9e4] rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none"
                 rows={3}
                 placeholder="Ex.: Oi! Posso encontrar na estação. Obrigado!"
                 value={message}
@@ -339,7 +339,7 @@ export default function RequestSeatSheet({
                 maxLength={300}
                 aria-label="Escrever mensagem para o condutor"
               />
-              <div className="text-xs text-gray-500 mt-1 text-right">{message.length} / 300</div>
+              <div className="text-xs text-[#717973] mt-1 text-right">{message.length} / 300</div>
             </div>
 
             {!hasCost && !message && (

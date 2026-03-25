@@ -87,20 +87,20 @@ export default function PayoutRequestSheet({ open, onClose, balance, onSubmitted
                 <path d="M20 6L9 17l-5-5" />
               </svg>
             </div>
-            <p className="text-base font-semibold text-gray-900">Pedido submetido</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-base font-semibold text-[#1A1C19]">Pedido submetido</p>
+            <p className="text-sm text-[#717973]">
               A equipa HopOn irá processar o teu saque em breve. Serás notificado quando o valor for enviado.
             </p>
           </div>
         ) : (
           <>
-            <section className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
-              <p className="text-xs text-gray-500">Saldo disponível</p>
-              <p className="text-lg font-bold text-gray-900">€{balance.toFixed(2)}</p>
+            <section className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3">
+              <p className="text-xs text-[#717973]">Saldo disponível</p>
+              <p className="text-lg font-bold text-[#1A1C19]">€{balance.toFixed(2)}</p>
             </section>
 
             <div className="space-y-2">
-              <label htmlFor="payout-amount" className="text-xs font-semibold uppercase text-gray-600">
+              <label htmlFor="payout-amount" className="text-xs font-semibold uppercase text-[#414844]">
                 Valor a sacar (€)
               </label>
               <input
@@ -112,7 +112,7 @@ export default function PayoutRequestSheet({ open, onClose, balance, onSubmitted
                 value={amount}
                 onChange={(e) => { setAmount(e.target.value); setError(""); }}
                 placeholder="Ex: 25.00"
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20"
+                className="w-full rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3 text-sm text-[#1A1C19] outline-none placeholder:text-[#717973] focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/20"
               />
               {!isNaN(numAmount) && numAmount > balance && (
                 <p className="text-xs text-red-500">Valor superior ao saldo disponível.</p>
@@ -120,7 +120,7 @@ export default function PayoutRequestSheet({ open, onClose, balance, onSubmitted
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="payout-iban" className="text-xs font-semibold uppercase text-gray-600">
+              <label htmlFor="payout-iban" className="text-xs font-semibold uppercase text-[#414844]">
                 IBAN
               </label>
               <input
@@ -129,11 +129,11 @@ export default function PayoutRequestSheet({ open, onClose, balance, onSubmitted
                 value={iban}
                 onChange={(e) => { setIban(e.target.value.toUpperCase()); setError(""); }}
                 placeholder="PT50 0000 0000 0000 0000 0000 0"
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-mono text-gray-900 uppercase outline-none placeholder:text-gray-400 placeholder:font-sans focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20"
+                className="w-full rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3 text-sm font-mono text-[#1A1C19] uppercase outline-none placeholder:text-[#717973] placeholder:font-sans focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/20"
               />
             </div>
 
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[#717973]">
               O saldo será reservado imediatamente. A equipa HopOn processará a transferência manualmente em 2–5 dias úteis.
             </p>
           </>

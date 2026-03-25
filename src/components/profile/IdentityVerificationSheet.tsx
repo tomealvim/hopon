@@ -19,7 +19,7 @@ const DOC_TYPE_LABELS: Record<DocType, string> = {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; description: string }> = {
-  NONE:     { label: "Não verificado",     color: "text-gray-500",   description: "Ainda não enviaste nenhum documento." },
+  NONE:     { label: "Não verificado",     color: "text-[#717973]",   description: "Ainda não enviaste nenhum documento." },
   PENDING:  { label: "Em análise",         color: "text-amber-600",  description: "O teu documento está a ser analisado pela equipa HopOn. Podes demorar até 24h." },
   VERIFIED: { label: "Verificado",         color: "text-emerald-600",description: "A tua identidade foi verificada com sucesso." },
   REJECTED: { label: "Documento rejeitado",color: "text-red-600",    description: "O documento enviado foi rejeitado. Envia um documento válido e legível." },
@@ -117,13 +117,13 @@ export default function IdentityVerificationSheet({ open, onClose, currentStatus
         {/* Estado atual */}
         <section className={cn(
           "rounded-2xl border px-4 py-3",
-          status === "NONE" && "border-gray-200 bg-gray-50",
+          status === "NONE" && "border-[#e7e9e4] bg-[#f3f4ef]",
           status === "PENDING" && "border-amber-200 bg-amber-50",
           status === "VERIFIED" && "border-emerald-200 bg-emerald-50",
           status === "REJECTED" && "border-red-200 bg-red-50",
         )}>
           <p className={cn("text-sm font-semibold", statusInfo.color)}>{statusInfo.label}</p>
-          <p className="text-sm text-gray-600 mt-0.5">{statusInfo.description}</p>
+          <p className="text-sm text-[#414844] mt-0.5">{statusInfo.description}</p>
         </section>
 
         {done && (
@@ -133,15 +133,15 @@ export default function IdentityVerificationSheet({ open, onClose, currentStatus
                 <path d="M20 6L9 17l-5-5" />
               </svg>
             </div>
-            <p className="text-base font-semibold text-gray-900">Documento enviado</p>
-            <p className="text-sm text-gray-500">A equipa HopOn irá verificar o documento em breve.</p>
+            <p className="text-base font-semibold text-[#1A1C19]">Documento enviado</p>
+            <p className="text-sm text-[#717973]">A equipa HopOn irá verificar o documento em breve.</p>
           </div>
         )}
 
         {!done && canUpload && (
           <>
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase text-gray-600">Tipo de documento</p>
+              <p className="text-xs font-semibold uppercase text-[#414844]">Tipo de documento</p>
               <div className="grid grid-cols-3 gap-2">
                 {(Object.keys(DOC_TYPE_LABELS) as DocType[]).map((type) => (
                   <button
@@ -151,8 +151,8 @@ export default function IdentityVerificationSheet({ open, onClose, currentStatus
                     className={cn(
                       "rounded-2xl border px-2 py-2 text-xs font-semibold transition text-center",
                       docType === type
-                        ? "border-gray-800 bg-gray-800 text-white"
-                        : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100",
+                        ? "border-[#1B4332] bg-[#1B4332] text-white"
+                        : "border-[#e7e9e4] bg-[#f3f4ef] text-[#414844] hover:border-[#c1c8c2] hover:bg-[#f3f4ef]",
                     )}
                   >
                     {DOC_TYPE_LABELS[type]}
@@ -162,7 +162,7 @@ export default function IdentityVerificationSheet({ open, onClose, currentStatus
             </div>
 
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase text-gray-600">Foto do documento</p>
+              <p className="text-xs font-semibold uppercase text-[#414844]">Foto do documento</p>
               <input
                 ref={inputRef}
                 type="file"
@@ -173,21 +173,21 @@ export default function IdentityVerificationSheet({ open, onClose, currentStatus
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
-                className="w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center hover:border-gray-300 hover:bg-gray-100 transition"
+                className="w-full rounded-2xl border-2 border-dashed border-[#e7e9e4] bg-[#f3f4ef] px-4 py-6 text-center hover:border-[#c1c8c2] hover:bg-[#f3f4ef] transition"
               >
                 {preview ? (
                   <img src={preview} alt="preview" className="mx-auto max-h-40 rounded-xl object-contain" />
                 ) : (
                   <div className="space-y-1">
-                    <p className="text-sm font-semibold text-gray-700">Clica para selecionar</p>
-                    <p className="text-xs text-gray-500">JPEG, PNG ou WebP · máx 10MB</p>
+                    <p className="text-sm font-semibold text-[#414844]">Clica para selecionar</p>
+                    <p className="text-xs text-[#717973]">JPEG, PNG ou WebP · máx 10MB</p>
                   </div>
                 )}
               </button>
               {preview && (
                 <button
                   type="button"
-                  className="text-xs text-gray-500 underline"
+                  className="text-xs text-[#717973] underline"
                   onClick={() => { setFile(null); setPreview(null); if (inputRef.current) inputRef.current.value = ""; }}
                 >
                   Remover
@@ -195,7 +195,7 @@ export default function IdentityVerificationSheet({ open, onClose, currentStatus
               )}
             </div>
 
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[#717973]">
               O documento é processado de forma segura e apenas utilizado para verificação de identidade.
               Nunca é partilhado com outros utilizadores.
             </p>

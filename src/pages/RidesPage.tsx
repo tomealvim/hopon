@@ -62,20 +62,20 @@ function RideRequestsForDriver() {
 
   return (
     <section className="pb-6">
-      <h2 className="text-sm font-bold text-gray-900 mb-1">Pedidos de boleia perto de ti</h2>
-      <p className="text-xs text-gray-500 mb-3">Ordenados por proximidade - passageiros que precisam de boleia na tua zona</p>
+      <h2 className="text-sm font-bold text-[#1A1C19] mb-1">Pedidos de boleia perto de ti</h2>
+      <p className="text-xs text-[#717973] mb-3">Ordenados por proximidade - passageiros que precisam de boleia na tua zona</p>
       <div className="flex flex-col gap-2">
         {requests.map((r) => {
           const name = r.passenger?.profile?.name ?? r.passenger?.email ?? "Passageiro";
           const days = (r.daysOfWeek as string[]).map((d) => DAY_LABELS[d] ?? d).join(", ");
           return (
-            <div key={r.id} className="flex items-start gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-              <div className="mt-0.5 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-700 shrink-0">
+            <div key={r.id} className="flex items-start gap-3 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl px-4 py-3">
+              <div className="mt-0.5 w-8 h-8 rounded-full bg-[#edeee9] flex items-center justify-center text-xs font-semibold text-[#414844] shrink-0">
                 {name.slice(0, 2).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <p className="text-sm font-semibold text-gray-900">{name}</p>
+                  <p className="text-sm font-semibold text-[#1A1C19]">{name}</p>
                   <div className="flex items-center gap-1.5">
                     {r.originDistKm != null && (
                       <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">
@@ -89,9 +89,9 @@ function RideRequestsForDriver() {
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-gray-700 truncate mt-0.5">{r.origin} - {r.destination}</p>
-                <p className="text-xs text-gray-500">{r.departTime} · {days}</p>
-                {r.note && <p className="text-xs text-gray-400 mt-0.5 italic">{r.note}</p>}
+                <p className="text-xs text-[#414844] truncate mt-0.5">{r.origin} - {r.destination}</p>
+                <p className="text-xs text-[#717973]">{r.departTime} · {days}</p>
+                {r.note && <p className="text-xs text-[#717973] mt-0.5 italic">{r.note}</p>}
               </div>
             </div>
           );
@@ -158,7 +158,7 @@ function PresenceConfirmBanner({
 
   if (done) {
     return (
-      <div className="text-xs text-gray-500 text-center py-2">
+      <div className="text-xs text-[#717973] text-center py-2">
         Obrigado pela confirmacao
       </div>
     );
@@ -512,36 +512,41 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
 
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 pb-32 bg-white text-gray-900">
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 pb-32 bg-white text-[#1A1C19]">
         <div className="text-4xl mb-4">🚗</div>
-        <p className="text-sm font-semibold text-gray-800 mb-1">As tuas viagens aparecem aqui</p>
-        <p className="text-xs text-gray-500 text-center">Inicia sessão para ver e gerir as tuas boleias e reservas</p>
+        <p className="text-sm font-semibold text-[#1A1C19] mb-1">As tuas viagens aparecem aqui</p>
+        <p className="text-xs text-[#717973] text-center">Inicia sessão para ver e gerir as tuas boleias e reservas</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="relative min-h-screen pb-32 bg-white text-gray-900">
+      <div className="relative min-h-screen pb-32 bg-[#F9FAF5] text-[#1A1C19]">
         <BackgroundGlow />
         <div className="relative z-10 px-4">
           <div className="mx-auto max-w-mobile md:max-w-tablet lg:max-w-desktop">
 
+            {/* Header editorial */}
+            <header className="pt-6 pb-2">
+              <h2 className="font-noto-serif italic text-[2rem] leading-tight text-[#1B4332]">As tuas viagens</h2>
+              <p className="text-[#1B4332]/60 font-medium text-sm mt-1">Gere as tuas boleias e conexoes.</p>
+            </header>
+
             {/* Tab selector: Condutor / Passageiro */}
-            <div className="flex gap-6 pt-4 pb-2 border-b border-gray-100 mb-4">
+            <div className="flex gap-2 pt-4 pb-4 mb-2">
               {(["driver", "passenger"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => setRidesTab(t)}
-                  className={`relative pb-3 text-sm font-semibold transition-colors ${
-                    ridesTab === t ? "text-gray-900" : "text-gray-400 hover:text-gray-700"
+                  className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all ${
+                    ridesTab === t
+                      ? "bg-[#1B4332] text-white shadow-sm"
+                      : "bg-[#edeee9] text-[#1B4332]/70 hover:bg-[#e7e9e4]"
                   }`}
                 >
-                  {t === "driver" ? "Condutor" : "Passageiro"}
-                  {ridesTab === t && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
-                  )}
+                  {t === "driver" ? "Como Condutor" : "Como Passageiro"}
                 </button>
               ))}
             </div>
@@ -551,7 +556,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
 
             {/* Calendário */}
             <section className="pt-4 pb-6">
-              <h2 className="text-sm font-bold text-gray-900 mb-3">Próximas boleias</h2>
+              <h2 className="text-sm font-bold text-[#1A1C19] mb-3">Próximas boleias</h2>
               {isLoading ? (
                 <div className="grid gap-3">
                   {Array.from({ length: 3 }).map((_, i) => (
@@ -560,8 +565,8 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
                 </div>
               ) : ridesData.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-sm text-gray-600 mb-1">Ainda não tens boleias</p>
-                  <p className="text-xs text-gray-500">Usa o botão + para criar uma boleia ou um template</p>
+                  <p className="text-sm text-[#414844] mb-1">Ainda não tens boleias</p>
+                  <p className="text-xs text-[#717973]">Usa o botão + para criar uma boleia ou um template</p>
                 </div>
               ) : (
                 <RidesCalendar rides={ridesData} onRideClick={handleCalendarClick} />
@@ -571,7 +576,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
             {/* Templates */}
             <section className="pb-6">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold text-gray-900">Templates de viagem</h2>
+                <h2 className="text-sm font-bold text-[#1A1C19]">Templates de viagem</h2>
                 <Button variant="secondary" className="text-xs" onClick={() => setOpenScheduleSheet(true)}>
                   Novo template
                 </Button>
@@ -581,9 +586,9 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
                   {Array.from({ length: 2 }).map((_, i) => <EntityCardSkeleton key={i} />)}
                 </div>
               ) : schedules.length === 0 ? (
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-center">
-                  <p className="text-sm text-gray-600">Ainda não tens templates.</p>
-                  <p className="text-xs text-gray-500 mt-1">Cria um para publicar boleias recorrentes (ex.: Seg–Sex às 08:00).</p>
+                <div className="rounded-xl border border-[#e7e9e4] bg-[#f3f4ef] p-4 text-center">
+                  <p className="text-sm text-[#414844]">Ainda não tens templates.</p>
+                  <p className="text-xs text-[#717973] mt-1">Cria um para publicar boleias recorrentes (ex.: Seg–Sex às 08:00).</p>
                   <Button variant="secondary" className="mt-3" onClick={() => setOpenScheduleSheet(true)}>
                     Criar template
                   </Button>
@@ -611,7 +616,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
             {/* As minhas boleias (condutor) */}
             {!isLoading && myRides.filter((r) => r.status !== "CANCELLED").length > 0 && (
               <section className="pb-6">
-                <h2 className="text-sm font-bold text-gray-900 mb-3">As minhas boleias</h2>
+                <h2 className="text-sm font-bold text-[#1A1C19] mb-3">As minhas boleias</h2>
                 <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                   {myRides.filter((r) => r.status !== "CANCELLED").map((ride) => {
                     const pending = pendingBookingsForRide(ride);
@@ -660,13 +665,13 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
             {/* As minhas reservas (passageiro) */}
             {!isLoading && myBookings.filter((b) => b.status !== "CANCELLED" && b.status !== "DECLINED").length === 0 ? (
               <div className="text-center py-12 px-4">
-                <p className="text-sm font-semibold text-gray-800 mb-1">Ainda não tens reservas</p>
-                <p className="text-xs text-gray-500">Vai ao Explorar para encontrar uma boleia.</p>
+                <p className="text-sm font-semibold text-[#1A1C19] mb-1">Ainda não tens reservas</p>
+                <p className="text-xs text-[#717973]">Vai ao Explorar para encontrar uma boleia.</p>
               </div>
             ) : (
               !isLoading && (
                 <section className="pb-6">
-                  <h2 className="text-sm font-bold text-gray-900 mb-3">As minhas reservas</h2>
+                  <h2 className="text-sm font-bold text-[#1A1C19] mb-3">As minhas reservas</h2>
                   <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                     {myBookings
                       .filter((b) => b.status !== "CANCELLED" && b.status !== "DECLINED")
@@ -823,18 +828,18 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
         {sheetView === "passengers" && selectedRide && (
           <div className="grid gap-3 p-1">
             {(selectedRide.bookings ?? []).filter((b) => b.status === "PENDING").length === 0 ? (
-              <p className="text-sm text-gray-600 text-center py-12">Sem reservas pendentes</p>
+              <p className="text-sm text-[#414844] text-center py-12">Sem reservas pendentes</p>
             ) : (
               (selectedRide.bookings ?? [])
                 .filter((b: ApiRideBooking) => b.status === "PENDING")
                 .map((b: ApiRideBooking) => {
                   const name = b.user?.profile?.name ?? b.user?.email ?? "Passageiro";
                   return (
-                    <div key={b.id} className="p-4 border border-gray-200 bg-gray-50 rounded-xl">
+                    <div key={b.id} className="p-4 border border-[#e7e9e4] bg-[#f3f4ef] rounded-xl">
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <div className="font-semibold text-sm text-gray-900">{name}</div>
-                          <div className="text-xs text-gray-500">{b.seats} lugar{b.seats > 1 ? "es" : ""}</div>
+                          <div className="font-semibold text-sm text-[#1A1C19]">{name}</div>
+                          <div className="text-xs text-[#717973]">{b.seats} lugar{b.seats > 1 ? "es" : ""}</div>
                         </div>
                         <span className="text-xs bg-amber-100 text-amber-700 border border-amber-200 rounded-full px-2 py-0.5">
                           Pendente
@@ -875,20 +880,20 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
         {/* Vista: Detalhes da minha boleia (condutor) */}
         {sheetView === "ride" && selectedRide && (
           <div className="grid gap-4 p-1">
-            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <div className="grid gap-2 p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl">
               <Row label="Origem" value={selectedRide.origin} />
-              <div className="h-px bg-gray-100" />
+              <div className="h-px bg-[#f3f4ef]" />
               <Row label="Destino" value={selectedRide.destination} />
             </div>
-            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <div className="grid gap-2 p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl">
               <Row label="Partida" value={formatDateTime(selectedRide.departureTime)} />
               <Row label="Lugares disponíveis" value={`${selectedRide.remainingSeats} / ${selectedRide.availableSeats}`} />
               {selectedRide.price != null && <Row label="Preço/lugar" value={`€${selectedRide.price.toFixed(2)}`} />}
             </div>
             {selectedRide.vehicle && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                <div className="text-xs text-gray-500 mb-1">Veículo</div>
-                <div className="font-semibold text-sm text-gray-900">
+              <div className="p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl">
+                <div className="text-xs text-[#717973] mb-1">Veículo</div>
+                <div className="font-semibold text-sm text-[#1A1C19]">
                   {selectedRide.vehicle.brand} {selectedRide.vehicle.model}
                   {selectedRide.vehicle.color ? ` · ${selectedRide.vehicle.color}` : ""}
                 </div>
@@ -912,8 +917,8 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
               );
             })()}
             {(selectedRide.bookings ?? []).filter((b) => b.status === "CONFIRMED" || b.status === "NO_SHOW").length > 0 && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                <div className="text-xs text-gray-500 mb-2">Passageiros confirmados</div>
+              <div className="p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl">
+                <div className="text-xs text-[#717973] mb-2">Passageiros confirmados</div>
                 <div className="grid gap-2">
                   {(selectedRide.bookings ?? [])
                     .filter((b: ApiRideBooking) => b.status === "CONFIRMED" || b.status === "NO_SHOW")
@@ -921,9 +926,9 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
                       const pendingForPassenger = pendingRatings.find((r) => r.bookingId === b.id && r.role === "driver");
                       const isNoShow = b.status === "NO_SHOW";
                       return (
-                        <div key={b.id} className="flex items-center justify-between text-sm text-gray-900">
+                        <div key={b.id} className="flex items-center justify-between text-sm text-[#1A1C19]">
                           <div>
-                            <span className={isNoShow ? "line-through text-gray-400" : ""}>
+                            <span className={isNoShow ? "line-through text-[#717973]" : ""}>
                               {b.user?.profile?.name ?? b.user?.email ?? "Passageiro"} · {b.seats} lugar{b.seats > 1 ? "es" : ""}
                             </span>
                             {b.user?.phone && !isNoShow && (
@@ -969,7 +974,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
           return (
             <div className="px-1 pb-1">
               <button
-                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl py-3 hover:bg-gray-50 transition"
+                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-[#414844] border border-[#e7e9e4] rounded-xl py-3 hover:bg-[#f3f4ef] transition"
                 onClick={() => {
                   if (navigator.share) {
                     navigator.share({ title: "Boleia HopOn", text: shareText, url: shareUrl }).catch(() => {});
@@ -990,12 +995,12 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
         {/* Vista: Detalhes da minha reserva (passageiro) */}
         {sheetView === "booking" && selectedBooking && selectedBooking.ride && (
           <div className="grid gap-4 p-1">
-            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <div className="grid gap-2 p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl">
               <Row label="Origem" value={selectedBooking.ride.origin} />
-              <div className="h-px bg-gray-100" />
+              <div className="h-px bg-[#f3f4ef]" />
               <Row label="Destino" value={selectedBooking.ride.destination} />
             </div>
-            <div className="grid gap-2 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <div className="grid gap-2 p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl">
               <Row label="Partida" value={formatDateTime(selectedBooking.ride.departureTime)} />
               <Row label="Lugares reservados" value={String(selectedBooking.seats)} />
               {selectedBooking.ride.price != null && (
@@ -1038,10 +1043,10 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
               );
             })()}
             {selectedBooking.ride.driver && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                <div className="text-xs text-gray-500 mb-1">Condutor</div>
+              <div className="p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl">
+                <div className="text-xs text-[#717973] mb-1">Condutor</div>
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="font-semibold text-sm text-gray-900">
+                  <div className="font-semibold text-sm text-[#1A1C19]">
                     {selectedBooking.ride.driver.profile?.name ?? selectedBooking.ride.driver.email}
                   </div>
                   {selectedBooking.ride.driver.isIdentityVerified && (
@@ -1056,14 +1061,14 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
                   </a>
                 )}
                 {selectedBooking.status === "CONFIRMED" && !selectedBooking.ride.driver.phone && (
-                  <p className="text-xs text-gray-400">Condutor sem telemóvel registado</p>
+                  <p className="text-xs text-[#717973]">Condutor sem telemóvel registado</p>
                 )}
               </div>
             )}
             {selectedBooking.ride.vehicle && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                <div className="text-xs text-gray-500 mb-1">Veículo</div>
-                <div className="font-semibold text-sm text-gray-900">
+              <div className="p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl">
+                <div className="text-xs text-[#717973] mb-1">Veículo</div>
+                <div className="font-semibold text-sm text-[#1A1C19]">
                   {selectedBooking.ride.vehicle.brand} {selectedBooking.ride.vehicle.model}
                   {selectedBooking.ride.vehicle.color ? ` · ${selectedBooking.ride.vehicle.color}` : ""}
                 </div>
@@ -1098,8 +1103,8 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className="font-semibold text-gray-900">{value}</span>
+      <span className="text-[#717973]">{label}</span>
+      <span className="font-semibold text-[#1A1C19]">{value}</span>
     </div>
   );
 }

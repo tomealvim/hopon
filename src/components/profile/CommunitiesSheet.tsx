@@ -181,24 +181,24 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
           </div>
 
           {loading ? (
-            <div className="py-8 text-center text-sm text-gray-500">A carregar...</div>
+            <div className="py-8 text-center text-sm text-[#717973]">A carregar...</div>
           ) : communities.length === 0 ? (
             <div className="text-center py-10 px-4">
               <p className="text-2xl mb-2">🏘️</p>
-              <p className="text-sm font-semibold text-gray-900 mb-1">Sem comunidades ainda</p>
-              <p className="text-xs text-gray-500">Cria uma para a tua empresa ou faculdade, ou entra numa com um código de convite.</p>
+              <p className="text-sm font-semibold text-[#1A1C19] mb-1">Sem comunidades ainda</p>
+              <p className="text-xs text-[#717973]">Cria uma para a tua empresa ou faculdade, ou entra numa com um código de convite.</p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
               {communities.map((c) => (
-                <div key={c.id} className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                <div key={c.id} className="bg-[#f3f4ef] rounded-xl px-4 py-3 border border-[#e7e9e4]">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{c.name}</p>
-                      <p className="text-xs text-gray-500">{c.memberCount} membro{c.memberCount !== 1 ? "s" : ""} · {c.myRole === "OWNER" ? "Owner" : "Membro"}</p>
+                      <p className="text-sm font-semibold text-[#1A1C19] truncate">{c.name}</p>
+                      <p className="text-xs text-[#717973]">{c.memberCount} membro{c.memberCount !== 1 ? "s" : ""} · {c.myRole === "OWNER" ? "Owner" : "Membro"}</p>
                     </div>
                     {c.myRole === "OWNER" && (
-                      <button type="button" className="text-xs font-semibold text-gray-400 hover:text-gray-700 shrink-0" onClick={() => openManage(c)}>
+                      <button type="button" className="text-xs font-semibold text-[#717973] hover:text-[#414844] shrink-0" onClick={() => openManage(c)}>
                         Gerir
                       </button>
                     )}
@@ -206,7 +206,7 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
                   <button
                     type="button"
                     onClick={() => shareInvite(c)}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-900 text-white text-xs font-semibold py-2 transition hover:bg-gray-700"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#1B4332] text-white text-xs font-semibold py-2 transition hover:bg-[#274e3d]"
                   >
                     {copiedId === c.id ? (
                       <>
@@ -230,27 +230,27 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
       {/* CREATE */}
       {view === "create" && (
         <div className="flex flex-col gap-4 pb-6">
-          <button type="button" className="text-xs text-gray-500 self-start" onClick={() => setView("list")}>← Voltar</button>
+          <button type="button" className="text-xs text-[#717973] self-start" onClick={() => setView("list")}>← Voltar</button>
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Nome da comunidade</label>
-            <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+            <label className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Nome da comunidade</label>
+            <input className="w-full border border-[#e7e9e4] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]/20"
               placeholder="Ex: Equipa NOS Lisboa, ISCTE 2025..."
               value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Descrição <span className="font-normal text-gray-400 lowercase">(opcional)</span></label>
-            <textarea className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 resize-none"
+            <label className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Descrição <span className="font-normal text-[#717973] lowercase">(opcional)</span></label>
+            <textarea className="w-full border border-[#e7e9e4] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]/20 resize-none"
               placeholder="Ex: Carpooling para colaboradores do escritório de Lisboa"
               rows={2} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={300} />
           </div>
-          <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-3 bg-[#f3f4ef] rounded-xl px-4 py-3">
             <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-900">Aprovação manual</p>
-              <p className="text-xs text-gray-500">Tu aprovais cada pedido de entrada</p>
+              <p className="text-sm font-semibold text-[#1A1C19]">Aprovação manual</p>
+              <p className="text-xs text-[#717973]">Tu aprovais cada pedido de entrada</p>
             </div>
             <button type="button"
               onClick={() => setRequiresApproval(!requiresApproval)}
-              className={cn("w-11 h-6 rounded-full transition-colors relative", requiresApproval ? "bg-gray-900" : "bg-gray-200")}>
+              className={cn("w-11 h-6 rounded-full transition-colors relative", requiresApproval ? "bg-[#1B4332]" : "bg-[#edeee9]")}>
               <span className={cn("absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform", requiresApproval ? "translate-x-5" : "translate-x-0.5")} />
             </button>
           </div>
@@ -264,21 +264,21 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
       {/* JOIN */}
       {view === "join" && (
         <div className="flex flex-col gap-4 pb-6">
-          <button type="button" className="text-xs text-gray-500 self-start" onClick={() => setView("list")}>← Voltar</button>
+          <button type="button" className="text-xs text-[#717973] self-start" onClick={() => setView("list")}>← Voltar</button>
           {joinDone ? (
             <div className="flex flex-col items-center py-12 gap-3">
               <div className="text-4xl">🎉</div>
-              <p className="text-base font-bold text-gray-900">Pedido enviado!</p>
-              <p className="text-sm text-gray-600 text-center max-w-[260px]">O owner da comunidade irá aprovar o teu pedido em breve.</p>
+              <p className="text-base font-bold text-[#1A1C19]">Pedido enviado!</p>
+              <p className="text-sm text-[#414844] text-center max-w-[260px]">O owner da comunidade irá aprovar o teu pedido em breve.</p>
               <Button className="mt-2 w-full" onClick={() => { setView("list"); setJoinDone(false); setInviteCode(""); }}>Fechar</Button>
             </div>
           ) : (
             <>
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Código de convite</label>
+                <label className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Código de convite</label>
                 <div className="flex gap-2">
                   <input
-                    className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm uppercase tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+                    className="flex-1 border border-[#e7e9e4] rounded-xl px-4 py-3 text-sm uppercase tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-[#52B788]/20"
                     placeholder="Ex: A3F9C2B1"
                     value={inviteCode}
                     onChange={(e) => { setInviteCode(e.target.value.toUpperCase()); setJoinPreview(null); setJoinError(""); }}
@@ -289,11 +289,11 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
               </div>
               {joinError && <p className="text-sm text-red-600">{joinError}</p>}
               {joinPreview && (
-                <div className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
-                  <p className="text-sm font-bold text-gray-900">{joinPreview.name}</p>
-                  {joinPreview.description && <p className="text-xs text-gray-500 mt-0.5">{joinPreview.description}</p>}
-                  <p className="text-xs text-gray-500 mt-1">{joinPreview.memberCount} membro{joinPreview.memberCount !== 1 ? "s" : ""} · Owner: {joinPreview.owner?.profile?.name ?? joinPreview.owner?.email}</p>
-                  <p className="text-xs text-gray-400 mt-1">{joinPreview.requiresApproval ? "Requer aprovação do owner" : "Entrada automática"}</p>
+                <div className="bg-[#f3f4ef] rounded-xl px-4 py-3 border border-[#e7e9e4]">
+                  <p className="text-sm font-bold text-[#1A1C19]">{joinPreview.name}</p>
+                  {joinPreview.description && <p className="text-xs text-[#717973] mt-0.5">{joinPreview.description}</p>}
+                  <p className="text-xs text-[#717973] mt-1">{joinPreview.memberCount} membro{joinPreview.memberCount !== 1 ? "s" : ""} · Owner: {joinPreview.owner?.profile?.name ?? joinPreview.owner?.email}</p>
+                  <p className="text-xs text-[#717973] mt-1">{joinPreview.requiresApproval ? "Requer aprovação do owner" : "Entrada automática"}</p>
                 </div>
               )}
               <Button className="w-full" disabled={!inviteCode.trim() || joining} onClick={handleJoin}>
@@ -307,19 +307,19 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
       {/* MANAGE (owner panel) */}
       {view === "manage" && selectedCommunity && (
         <div className="flex flex-col gap-4 pb-6">
-          <button type="button" className="text-xs text-gray-500 self-start" onClick={() => setView("list")}>← Voltar</button>
+          <button type="button" className="text-xs text-[#717973] self-start" onClick={() => setView("list")}>← Voltar</button>
 
           {/* Invite link */}
-          <div className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
-            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Link de convite</p>
-            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 mb-2">
-              <span className="text-xs text-gray-500 truncate flex-1 font-mono">
+          <div className="bg-[#f3f4ef] rounded-xl px-4 py-3 border border-[#e7e9e4]">
+            <p className="text-xs font-semibold text-[#414844] uppercase tracking-wide mb-2">Link de convite</p>
+            <div className="flex items-center gap-2 bg-white border border-[#e7e9e4] rounded-lg px-3 py-2 mb-2">
+              <span className="text-xs text-[#717973] truncate flex-1 font-mono">
                 {window.location.origin}/join/{selectedCommunity.inviteCode}
               </span>
             </div>
             <div className="flex gap-2">
               <button type="button"
-                className="flex-1 text-xs font-semibold bg-gray-900 text-white px-3 py-2 rounded-lg"
+                className="flex-1 text-xs font-semibold bg-[#1B4332] text-white px-3 py-2 rounded-lg"
                 onClick={() => {
                   const link = `${window.location.origin}/join/${selectedCommunity.inviteCode}`;
                   if ("share" in navigator) {
@@ -331,7 +331,7 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
                 {"share" in navigator ? "Partilhar" : "Copiar link"}
               </button>
               <button type="button"
-                className="text-xs text-gray-400 hover:text-gray-700 px-3 py-2 border border-gray-200 rounded-lg"
+                className="text-xs text-[#717973] hover:text-[#414844] px-3 py-2 border border-[#e7e9e4] rounded-lg"
                 onClick={handleRegenCode}>
                 Novo código
               </button>
@@ -340,28 +340,28 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
 
           {/* Members */}
           <div>
-            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Membros</p>
+            <p className="text-xs font-semibold text-[#414844] uppercase tracking-wide mb-2">Membros</p>
             {members.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">Sem membros ainda</p>
+              <p className="text-sm text-[#717973] text-center py-4">Sem membros ainda</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {members.map((m) => {
                   const displayName = m.user.profile?.name ?? m.user.email;
                   return (
-                    <div key={m.id} className="flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-2.5">
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold shrink-0">
+                    <div key={m.id} className="flex items-center gap-3 bg-[#f3f4ef] rounded-xl px-3 py-2.5">
+                      <div className="w-8 h-8 rounded-full bg-[#edeee9] flex items-center justify-center text-xs font-semibold shrink-0">
                         {displayName.slice(0, 2).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
-                        <p className="text-xs text-gray-400">{m.role === "OWNER" ? "Owner" : m.status === "PENDING" ? "Pendente" : m.status === "APPROVED" ? "Membro" : "Rejeitado"}</p>
+                        <p className="text-sm font-medium text-[#1A1C19] truncate">{displayName}</p>
+                        <p className="text-xs text-[#717973]">{m.role === "OWNER" ? "Owner" : m.status === "PENDING" ? "Pendente" : m.status === "APPROVED" ? "Membro" : "Rejeitado"}</p>
                       </div>
                       {m.status === "PENDING" && (
                         <div className="flex gap-1">
                           <button type="button" onClick={() => handleApprove(m.userId)}
-                            className="text-xs bg-gray-900 text-white px-2.5 py-1 rounded-full font-semibold">Aprovar</button>
+                            className="text-xs bg-[#1B4332] text-white px-2.5 py-1 rounded-full font-semibold">Aprovar</button>
                           <button type="button" onClick={() => handleReject(m.userId)}
-                            className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-semibold">Rejeitar</button>
+                            className="text-xs bg-[#f3f4ef] text-[#414844] px-2.5 py-1 rounded-full font-semibold">Rejeitar</button>
                         </div>
                       )}
                       {m.status === "APPROVED" && m.role !== "OWNER" && (

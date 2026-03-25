@@ -97,12 +97,12 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, 
           />
           {f.originLat && (
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Raio de pesquisa: {f.radiusKm} km</label>
+              <label className="block text-xs font-semibold text-[#414844] mb-1">Raio de pesquisa: {f.radiusKm} km</label>
               <input
                 type="range" min={2} max={50} step={1}
                 value={f.radiusKm}
                 onChange={e => setF(prev => ({ ...prev, radiusKm: Number(e.target.value) }))}
-                className="w-full accent-gray-900"
+                className="w-full accent-[#52B788]"
               />
             </div>
           )}
@@ -110,12 +110,12 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, 
 
         {/* Data */}
         <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor={`${uid}-date`}>Data</label>
+          <label className="block text-xs font-semibold text-[#414844] mb-1" htmlFor={`${uid}-date`}>Data</label>
           <input
             id={`${uid}-date`}
             type="date"
             min={today}
-            className="w-full border border-gray-200 bg-gray-50 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+            className="w-full border border-[#e7e9e4] bg-[#f3f4ef] text-[#1A1C19] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/10"
             value={f.date || ""}
             onChange={e => update("date", e.target.value)}
           />
@@ -124,21 +124,21 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, 
         {/* Janela horária (só útil quando data está definida) */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor={`${uid}-from`}>Hora de</label>
+            <label className="block text-xs font-semibold text-[#414844] mb-1" htmlFor={`${uid}-from`}>Hora de</label>
             <input
               id={`${uid}-from`}
               type="time"
-              className="w-full border border-gray-200 bg-gray-50 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+              className="w-full border border-[#e7e9e4] bg-[#f3f4ef] text-[#1A1C19] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/10"
               value={f.departFrom || ""}
               onChange={e => update("departFrom", e.target.value)}
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor={`${uid}-to`}>Hora até</label>
+            <label className="block text-xs font-semibold text-[#414844] mb-1" htmlFor={`${uid}-to`}>Hora até</label>
             <input
               id={`${uid}-to`}
               type="time"
-              className="w-full border border-gray-200 bg-gray-50 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+              className="w-full border border-[#e7e9e4] bg-[#f3f4ef] text-[#1A1C19] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/10"
               value={f.departTo || ""}
               onChange={e => update("departTo", e.target.value)}
             />
@@ -148,20 +148,20 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, 
         {/* Lugares mínimos + Preço máximo */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor={`${uid}-seats`}>Lugares mínimos</label>
+            <label className="block text-xs font-semibold text-[#414844] mb-1" htmlFor={`${uid}-seats`}>Lugares mínimos</label>
             <input
               id={`${uid}-seats`}
-              className="w-full border border-gray-200 bg-gray-50 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+              className="w-full border border-[#e7e9e4] bg-[#f3f4ef] text-[#1A1C19] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/10"
               type="number" min={1} max={8}
               value={f.minSeats}
               onChange={e => update("minSeats", Number(e.target.value))}
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor={`${uid}-price`}>Preço máx. (€/lugar)</label>
+            <label className="block text-xs font-semibold text-[#414844] mb-1" htmlFor={`${uid}-price`}>Preço máx. (€/lugar)</label>
             <input
               id={`${uid}-price`}
-              className="w-full border border-gray-200 bg-gray-50 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-400"
+              className="w-full border border-[#e7e9e4] bg-[#f3f4ef] text-[#1A1C19] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/10 placeholder:text-[#717973]"
               type="number" min={0} step={0.5}
               value={f.maxPrice ?? ""}
               placeholder="Sem limite"
@@ -174,18 +174,18 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, 
         <label className="inline-flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
-            className="w-4 h-4 rounded border-gray-300 bg-gray-50"
+            className="w-4 h-4 rounded border-[#c1c8c2] bg-[#f3f4ef]"
             checked={f.verified}
             onChange={e => update("verified", e.target.checked)}
           />
-          <span className="text-sm text-gray-900">Apenas condutores verificados</span>
+          <span className="text-sm text-[#1A1C19]">Apenas condutores verificados</span>
         </label>
 
         {/* Botão de avançados */}
         <div className="text-center pt-2">
           <button
             type="button"
-            className="text-sm text-gray-500 hover:text-gray-900 font-medium hover:underline"
+            className="text-sm text-[#717973] hover:text-[#1A1C19] font-medium hover:underline"
             aria-expanded={showAdvanced}
             onClick={() => setShowAdvanced(s => !s)}
           >
@@ -195,13 +195,13 @@ export default function DiscoverFiltersSheet({ open, initial, onClose, onApply, 
 
         {/* Avançados */}
         {showAdvanced && (
-          <div className="grid gap-4 pt-4 border-t border-gray-200">
+          <div className="grid gap-4 pt-4 border-t border-[#e7e9e4]">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor={`${uid}-sort`}>Ordenar por</label>
+                <label className="block text-xs font-semibold text-[#414844] mb-1" htmlFor={`${uid}-sort`}>Ordenar por</label>
                 <select
                   id={`${uid}-sort`}
-                  className="w-full border border-gray-200 bg-gray-50 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+                  className="w-full border border-[#e7e9e4] bg-[#f3f4ef] text-[#1A1C19] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/10"
                   value={f.sort}
                   onChange={e => update("sort", e.target.value as DiscoverFilters["sort"])}
                 >

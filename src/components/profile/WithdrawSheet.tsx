@@ -92,27 +92,27 @@ export default function WithdrawSheet({ open, onClose, balance, onSubmitted }: P
             </svg>
           </div>
           <div>
-            <p className="text-lg font-semibold text-gray-900">Reembolso enviado</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{formatCurrency(refunded)}</p>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="text-lg font-semibold text-[#1A1C19]">Reembolso enviado</p>
+            <p className="mt-1 text-2xl font-bold text-[#1A1C19]">{formatCurrency(refunded)}</p>
+            <p className="mt-2 text-sm text-[#717973]">
               O valor será devolvido ao teu cartão em 5–10 dias úteis.
             </p>
           </div>
         </div>
       ) : (
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[#414844]">
             Devolve o saldo não utilizado ao cartão com que carregaste a carteira.
             O reembolso demora 5–10 dias úteis a aparecer na tua conta.
           </p>
 
-          <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-            <p className="text-xs text-gray-500">Saldo disponível</p>
-            <p className="text-lg font-bold text-gray-900">{formatCurrency(balance)}</p>
+          <div className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3">
+            <p className="text-xs text-[#717973]">Saldo disponível</p>
+            <p className="text-lg font-bold text-[#1A1C19]">{formatCurrency(balance)}</p>
           </div>
 
           <div className="relative">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[#717973]">
               €
             </span>
             <input
@@ -123,7 +123,7 @@ export default function WithdrawSheet({ open, onClose, balance, onSubmitted }: P
                 setAmount(e.target.value.replace(/[^\d.,]/g, ""));
                 setError("");
               }}
-              className="w-full rounded-2xl border border-gray-200 bg-white px-10 py-3 text-lg font-semibold text-gray-900 outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 placeholder:text-gray-400"
+              className="w-full rounded-2xl border border-[#e7e9e4] bg-white px-10 py-3 text-lg font-semibold text-[#1A1C19] outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/20 placeholder:text-[#717973]"
             />
           </div>
           {parsed > balance && (
@@ -140,8 +140,8 @@ export default function WithdrawSheet({ open, onClose, balance, onSubmitted }: P
                   className={cn(
                     "rounded-2xl border px-3 py-2 text-sm font-semibold transition",
                     parsed === v
-                      ? "border-gray-800 bg-gray-800 text-white"
-                      : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100",
+                      ? "border-[#1B4332] bg-[#1B4332] text-white"
+                      : "border-[#e7e9e4] bg-[#f3f4ef] text-[#414844] hover:border-[#c1c8c2] hover:bg-[#f3f4ef]",
                   )}
                 >
                   {v === balance ? "Tudo" : `€${v}`}
@@ -150,7 +150,7 @@ export default function WithdrawSheet({ open, onClose, balance, onSubmitted }: P
             </div>
           )}
 
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-[#717973]">
             Só é possível reembolsar o valor que carregaste via cartão. Saldo ganho como
             condutor pode ser levantado via IBAN em "Pedir saque".
           </p>

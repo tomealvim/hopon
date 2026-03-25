@@ -18,15 +18,15 @@ const base =
 
 const variants: Record<Variant, string> = {
   primary:
-    "rounded-full bg-gray-900 text-white font-semibold hover:bg-gray-700 active:bg-gray-800 focus-visible:ring-gray-900 focus-visible:ring-offset-2 shadow-sm",
+    "rounded-full bg-[#52B788] text-white font-semibold hover:brightness-105 active:brightness-95 focus-visible:ring-[#52B788] focus-visible:ring-offset-2 shadow-sm",
   secondary:
-    "rounded-2xl bg-gray-100 text-gray-900 border border-gray-200 hover:bg-gray-200 hover:border-gray-300 focus-visible:ring-gray-400 ring-offset-white",
+    "rounded-2xl bg-[#f3f4ef] text-[#1A1C19] border border-[#e7e9e4] hover:bg-[#edeee9] hover:border-[#c1c8c2] focus-visible:ring-[#52B788] ring-offset-white",
   outline:
-    "rounded-full bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 hover:border-gray-400 focus-visible:ring-gray-400 ring-offset-white",
+    "rounded-full bg-white border border-[#c1c8c2] text-[#1A1C19] hover:bg-[#f3f4ef] hover:border-[#717973] focus-visible:ring-[#52B788] ring-offset-white",
   ghost:
-    "rounded-2xl bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-400 ring-offset-white",
+    "rounded-2xl bg-transparent text-[#414844] hover:bg-[#f3f4ef] focus-visible:ring-[#52B788] ring-offset-white",
   danger:
-    "rounded-full bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 ring-offset-white",
+    "rounded-full bg-[#ba1a1a] text-white hover:bg-[#93000a] focus-visible:ring-[#ba1a1a] ring-offset-white",
 };
 
 const sizes: Record<Size, string> = {

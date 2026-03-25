@@ -73,14 +73,14 @@ export default function ScheduleReviewCards({ schedule, onChange, onSkip, onConf
   return (
     <div className="grid gap-4">
       <div className="grid gap-3">
-        {flat.length === 0 && <div className="text-center text-gray-500 py-8 text-sm">Sem horários detetados</div>}
+        {flat.length === 0 && <div className="text-center text-[#717973] py-8 text-sm">Sem horários detetados</div>}
         {flat.map((item, idx) => (
-          <div key={item.block.id} className="bg-white border border-gray-200 rounded-xl p-4">
+          <div key={item.block.id} className="bg-white border border-[#e7e9e4] rounded-xl p-4">
             <div className="grid gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Dia da semana</label>
+                <label className="block text-xs font-semibold text-[#414844] mb-1">Dia da semana</label>
                 <select
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="w-full px-3 py-2.5 border border-[#e7e9e4] rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   value={item.day}
                   onChange={(e)=>updateItem(idx, { day: e.target.value as DaySchedule["day"] })}
                 >
@@ -89,9 +89,9 @@ export default function ScheduleReviewCards({ schedule, onChange, onSkip, onConf
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Destino / Descrição</label>
+                <label className="block text-xs font-semibold text-[#414844] mb-1">Destino / Descrição</label>
                 <input
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="w-full px-3 py-2.5 border border-[#e7e9e4] rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   value={item.block.title || ""}
                   onChange={(e)=>updateItem(idx, { title: e.target.value })}
                   placeholder="Ex: Trabalho, IST, Faculdade..."
@@ -113,9 +113,9 @@ export default function ScheduleReviewCards({ schedule, onChange, onSkip, onConf
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Local</label>
+                <label className="block text-xs font-semibold text-[#414844] mb-1">Local</label>
                 <input
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="w-full px-3 py-2.5 border border-[#e7e9e4] rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   value={item.block.room || ""}
                   onChange={(e)=>updateItem(idx, { room: e.target.value })}
                   placeholder="Ex: Edifício A..."
@@ -132,7 +132,7 @@ export default function ScheduleReviewCards({ schedule, onChange, onSkip, onConf
       </div>
 
       <div className="flex gap-2">
-        {onSkip && <button className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition" onClick={onSkip}>Voltar</button>}
+        {onSkip && <button className="flex-1 px-4 py-3 border border-[#c1c8c2] text-[#414844] rounded-xl hover:bg-[#f3f4ef] transition" onClick={onSkip}>Voltar</button>}
         {onConfirm && <button className="flex-1 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition" onClick={onConfirm}>Confirmar horários</button>}
       </div>
     </div>

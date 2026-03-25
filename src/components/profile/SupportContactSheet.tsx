@@ -11,7 +11,7 @@ const ADDRESS = "Rua Professor Doutor Manuel Eugénio Machado Macedo, Nº 351, L
 const PHONE = "+351 210 123 456";
 const EMAIL = "support@hopon.com";
 const INPUT_CLASSES =
-  "w-full rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20";
+  "w-full rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-3 py-2 text-sm text-[#1A1C19] placeholder:text-[#717973] focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/20";
 
 type FeedbackState = "idle" | "success";
 
@@ -58,14 +58,14 @@ export default function SupportContactSheet({ open, onClose }: SupportContactShe
       }
     >
       <div className="space-y-4 pr-1 max-h-[65svh] overflow-y-auto">
-        <div className="space-y-2 text-sm text-gray-600">
+        <div className="space-y-2 text-sm text-[#414844]">
           <p>
             Apoio HopOn para boleias, pagamentos e segurança. Estamos disponíveis todos os dias e respondemos em menos
             de 24h úteis.
           </p>
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3 text-center text-sm text-gray-800 space-y-2">
-            <p className="font-semibold text-gray-900">{ADDRESS}</p>
-            <div className="flex flex-col gap-0.5 text-gray-700">
+          <div className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] p-3 text-center text-sm text-[#1A1C19] space-y-2">
+            <p className="font-semibold text-[#1A1C19]">{ADDRESS}</p>
+            <div className="flex flex-col gap-0.5 text-[#414844]">
               <span>{PHONE} (24/7)</span>
               <span>{EMAIL}</span>
             </div>
@@ -99,7 +99,7 @@ export default function SupportContactSheet({ open, onClose }: SupportContactShe
 
           <Field label="Telemóvel" htmlFor="support-phone">
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-900">
+              <div className="flex items-center gap-2 rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-3 py-2 text-sm font-semibold text-[#1A1C19]">
                 <span role="img" aria-label="Portugal" className="text-lg">
                   🇵🇹
                 </span>
@@ -143,7 +143,7 @@ export default function SupportContactSheet({ open, onClose }: SupportContactShe
 function Field({ label, htmlFor, children }: { label: string; htmlFor: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <label htmlFor={htmlFor} className="text-[11px] font-semibold text-gray-600 uppercase tracking-wide">
+      <label htmlFor={htmlFor} className="text-[11px] font-semibold text-[#414844] uppercase tracking-wide">
         {label}
       </label>
       {children}

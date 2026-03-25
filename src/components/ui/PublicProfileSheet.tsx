@@ -31,7 +31,7 @@ function Stars({ score, size = "md" }: { score: number; size?: "sm" | "md" | "lg
       {[1, 2, 3, 4, 5].map((s) => (
         <svg
           key={s}
-          className={`${dim} ${s <= score ? "text-yellow-400" : "text-gray-200"}`}
+          className={`${dim} ${s <= score ? "text-yellow-400" : "text-[#c1c8c2]"}`}
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -69,13 +69,13 @@ export default function PublicProfileSheet({ userId, open, onClose, vehicle }: P
   return (
     <Sheet open={open} onClose={onClose} title="Perfil" height="lg" footer={null}>
       {loading && (
-        <div className="flex items-center justify-center py-16 text-sm text-gray-400">
+        <div className="flex items-center justify-center py-16 text-sm text-[#717973]">
           A carregar...
         </div>
       )}
 
       {!loading && !profile && (
-        <div className="flex items-center justify-center py-16 text-sm text-gray-400">
+        <div className="flex items-center justify-center py-16 text-sm text-[#717973]">
           Perfil nao encontrado.
         </div>
       )}
@@ -91,26 +91,26 @@ export default function PublicProfileSheet({ userId, open, onClose, vehicle }: P
                 <img
                   src={profile.profile.avatarUrl}
                   alt={name}
-                  className="w-20 h-20 rounded-full object-cover shadow-md ring-2 ring-gray-100 mb-3"
+                  className="w-20 h-20 rounded-full object-cover shadow-md ring-2 ring-[#D0E8DC] mb-3"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-gray-900 flex items-center justify-center text-2xl font-bold text-white mb-3 shadow-md">
+                <div className="w-20 h-20 rounded-full bg-[#1B4332] flex items-center justify-center text-2xl font-bold text-white mb-3 shadow-md">
                   {initials}
                 </div>
               )}
-              <h2 className="font-headline font-bold text-gray-900 text-xl mb-0.5">{name}</h2>
+              <h2 className="font-headline font-bold text-[#1A1C19] text-xl mb-0.5">{name}</h2>
               {profile.profile?.username && (
-                <p className="text-xs text-gray-400 mb-1">@{profile.profile.username}</p>
+                <p className="text-xs text-[#717973] mb-1">@{profile.profile.username}</p>
               )}
               <div className="flex items-center gap-2 mt-1">
                 {profile.avgRating != null ? (
                   <>
                     <Stars score={Math.round(profile.avgRating)} size="lg" />
-                    <span className="font-bold text-gray-900 text-base">{profile.avgRating.toFixed(1)}</span>
-                    <span className="text-xs text-gray-400">({profile.totalRatings} avaliacoes)</span>
+                    <span className="font-bold text-[#1A1C19] text-base">{profile.avgRating.toFixed(1)}</span>
+                    <span className="text-xs text-[#717973]">({profile.totalRatings} avaliacoes)</span>
                   </>
                 ) : (
-                  <span className="text-xs text-gray-400">Sem avaliacoes</span>
+                  <span className="text-xs text-[#717973]">Sem avaliacoes</span>
                 )}
               </div>
               {profile.isIdentityVerified && (
@@ -122,38 +122,38 @@ export default function PublicProfileSheet({ userId, open, onClose, vehicle }: P
 
             {/* Stats row */}
             <div className="grid grid-cols-3 gap-2 mb-5">
-              <div className="flex flex-col items-center bg-gray-50 rounded-2xl p-3">
-                <span className="text-lg font-bold text-gray-900">{profile.totalRides}</span>
-                <span className="text-[10px] text-gray-500 text-center mt-0.5 leading-tight">Boleias oferecidas</span>
+              <div className="flex flex-col items-center bg-[#f3f4ef] rounded-2xl p-3">
+                <span className="text-lg font-bold text-[#1A1C19]">{profile.totalRides}</span>
+                <span className="text-[10px] text-[#717973] text-center mt-0.5 leading-tight">Boleias oferecidas</span>
               </div>
-              <div className="flex flex-col items-center bg-gray-50 rounded-2xl p-3">
-                <span className="text-lg font-bold text-gray-900">{yearsActive}</span>
-                <span className="text-[10px] text-gray-500 text-center mt-0.5 leading-tight">
+              <div className="flex flex-col items-center bg-[#f3f4ef] rounded-2xl p-3">
+                <span className="text-lg font-bold text-[#1A1C19]">{yearsActive}</span>
+                <span className="text-[10px] text-[#717973] text-center mt-0.5 leading-tight">
                   {yearsActive === 1 ? "Ano ativo" : "Anos ativo"}
                 </span>
               </div>
-              <div className="flex flex-col items-center bg-gray-50 rounded-2xl p-3">
-                <span className="text-lg font-bold text-gray-900">
+              <div className="flex flex-col items-center bg-[#f3f4ef] rounded-2xl p-3">
+                <span className="text-lg font-bold text-[#1A1C19]">
                   {profile.avgRating != null ? profile.avgRating.toFixed(1) : "-"}
                 </span>
-                <span className="text-[10px] text-gray-500 text-center mt-0.5 leading-tight">Avaliacao media</span>
+                <span className="text-[10px] text-[#717973] text-center mt-0.5 leading-tight">Avaliacao media</span>
               </div>
             </div>
 
             {/* Bio */}
             {profile.profile?.bio && (
-              <p className="text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3 mb-5">
+              <p className="text-sm text-[#414844] bg-[#f3f4ef] rounded-2xl px-4 py-3 mb-5">
                 {profile.profile.bio}
               </p>
             )}
 
             {/* Fiabilidade */}
             {profile.reliability && (
-              <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 mb-5">
+              <div className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3 mb-5">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fiabilidade (30 dias)</span>
+                  <span className="text-xs font-semibold text-[#717973] uppercase tracking-wide">Fiabilidade (30 dias)</span>
                   <span className={
-                    profile.reliability.score === null ? "text-xs text-gray-400" :
+                    profile.reliability.score === null ? "text-xs text-[#717973]" :
                     profile.reliability.score >= 95 ? "text-xs font-bold text-emerald-600" :
                     profile.reliability.score >= 80 ? "text-xs font-bold text-blue-600" :
                     "text-xs font-bold text-amber-600"
@@ -162,7 +162,7 @@ export default function PublicProfileSheet({ userId, open, onClose, vehicle }: P
                   </span>
                 </div>
                 {profile.reliability.score !== null && (
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-1.5">
+                  <div className="h-2 bg-[#edeee9] rounded-full overflow-hidden mb-1.5">
                     <div
                       className={
                         profile.reliability.score >= 95 ? "h-full bg-emerald-500 rounded-full" :
@@ -173,7 +173,7 @@ export default function PublicProfileSheet({ userId, open, onClose, vehicle }: P
                     />
                   </div>
                 )}
-                <p className="text-[10px] text-gray-400">
+                <p className="text-[10px] text-[#717973]">
                   {profile.reliability.totalRides} viagens - {profile.reliability.cancelledRides} canceladas
                 </p>
               </div>
@@ -181,14 +181,14 @@ export default function PublicProfileSheet({ userId, open, onClose, vehicle }: P
 
             {/* Info chips */}
             <div className="flex flex-wrap gap-2 mb-5">
-              <span className="text-xs bg-gray-100 text-gray-600 rounded-full px-3 py-1.5">
+              <span className="text-xs bg-[#f3f4ef] text-[#414844] rounded-full px-3 py-1.5">
                 Anos ativo: {yearsActive}
               </span>
-              <span className={`text-xs rounded-full px-3 py-1.5 ${profile.isIdentityVerified ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+              <span className={`text-xs rounded-full px-3 py-1.5 ${profile.isIdentityVerified ? "bg-green-50 text-green-700" : "bg-[#f3f4ef] text-[#717973]"}`}>
                 Identidade: {profile.isIdentityVerified ? "Concluida" : "Pendente"}
               </span>
               {vehicle && (
-                <span className="text-xs bg-gray-100 text-gray-600 rounded-full px-3 py-1.5">
+                <span className="text-xs bg-[#f3f4ef] text-[#414844] rounded-full px-3 py-1.5">
                   Carro: {vehicle.brand} {vehicle.model}{vehicle.color ? ` ${vehicle.color}` : ""}
                 </span>
               )}
@@ -197,25 +197,25 @@ export default function PublicProfileSheet({ userId, open, onClose, vehicle }: P
             {/* Avaliações recentes */}
             {profile.recentRatings.length > 0 && (
               <div>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Avaliacoes recentes</h3>
+                <h3 className="text-xs font-semibold text-[#717973] uppercase tracking-wide mb-3">Avaliacoes recentes</h3>
                 <div className="grid gap-2">
                   {profile.recentRatings.slice(0, 5).map((r, i) => (
-                    <div key={i} className="bg-gray-50 rounded-2xl px-4 py-3">
+                    <div key={i} className="bg-[#f3f4ef] rounded-2xl px-4 py-3">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           {r.reviewer.avatarUrl ? (
                             <img src={r.reviewer.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
                           ) : (
-                            <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-[10px] font-bold text-gray-600 shrink-0">
+                            <div className="w-6 h-6 rounded-full bg-[#c1c8c2] flex items-center justify-center text-[10px] font-bold text-[#414844] shrink-0">
                               {r.reviewer.name.slice(0, 2).toUpperCase()}
                             </div>
                           )}
-                          <span className="text-xs font-medium text-gray-700">{r.reviewer.name}</span>
+                          <span className="text-xs font-medium text-[#414844]">{r.reviewer.name}</span>
                         </div>
                         <Stars score={r.score} size="sm" />
                       </div>
                       {r.comment && (
-                        <p className="text-xs text-gray-600 mt-1">{r.comment}</p>
+                        <p className="text-xs text-[#414844] mt-1">{r.comment}</p>
                       )}
                     </div>
                   ))}

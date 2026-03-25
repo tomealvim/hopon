@@ -3,7 +3,6 @@ import PhoneInput, { type Country } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { useAuth } from "../contexts/AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
-import AppName from "../components/ui/AppName";
 import Sheet from "../components/ui/Sheet";
 import ImageUpload from "../components/ui/ImageUpload";
 import { LocationInput, type LocationValue } from "../components/ui/LocationInput";
@@ -19,13 +18,13 @@ const STEP_CONFIG: Record<Step, { eyebrow: string; title: string; subtitle: stri
   },
   2: {
     eyebrow: "Contacto",
-    title: "O teu número",
-    subtitle: "Usado para confirmações e alertas de viagem.",
+    title: "O teu numero",
+    subtitle: "Usado para confirmacoes e alertas de viagem.",
   },
   3: {
-    eyebrow: "Localização",
-    title: "Onde é a tua casa?",
-    subtitle: "Usamos para te sugerir boleias perto de ti. Não partilhamos a morada exacta com ninguém.",
+    eyebrow: "Localizacao",
+    title: "Onde e a tua casa?",
+    subtitle: "Usamos para te sugerir boleias perto de ti. Nao partilhamos a morada exacta com ninguem.",
   },
   4: {
     eyebrow: "Pronto",
@@ -70,15 +69,15 @@ export default function ProfileSetupPage() {
 
   function handleNext() {
     if (step === 1 && !name.trim()) {
-      showError("Campo obrigatório", "Indica o teu nome.");
+      showError("Campo obrigatorio", "Indica o teu nome.");
       return;
     }
     if (step === 2 && !phone.trim()) {
-      showError("Campo obrigatório", "Indica o teu número de telemóvel.");
+      showError("Campo obrigatorio", "Indica o teu numero de telemovel.");
       return;
     }
     if (step === 3 && (homeLat == null || homeLng == null)) {
-      showError("Localização necessária", "Usa a localização atual ou seleciona uma morada da lista.");
+      showError("Localizacao necessaria", "Usa a localizacao atual ou seleciona uma morada da lista.");
       return;
     }
     if (step < 4) setStep((step + 1) as Step);
@@ -109,12 +108,12 @@ export default function ProfileSetupPage() {
   }
 
   return (
-    <div className="min-h-[100svh] bg-white flex flex-col" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+    <div className="min-h-[100svh] bg-[#F9FAF5] flex flex-col font-manrope" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
 
       {/* Progress bar */}
-      <div className="h-1 bg-gray-100">
+      <div className="h-1 bg-[#e7e9e4]">
         <div
-          className="h-1 bg-gray-900 transition-all duration-300"
+          className="h-1 bg-[#52B788] transition-all duration-300"
           style={{ width: `${(step / 4) * 100}%` }}
         />
       </div>
@@ -124,24 +123,26 @@ export default function ProfileSetupPage() {
         <button
           type="button"
           onClick={handleBack}
-          className={step === 1 ? "invisible" : "w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition"}
+          className={
+            step === 1
+              ? "invisible"
+              : "w-10 h-10 rounded-full border border-[#e7e9e4] flex items-center justify-center text-[#1B4332] hover:bg-[#f3f4ef] transition"
+          }
           aria-label="Voltar"
         >
-          ←
+          <span className="material-symbols-outlined text-xl">arrow_back</span>
         </button>
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-          <AppName />
-        </span>
-        <span className="text-xs font-medium text-gray-400">{step}/4</span>
+        <span className="font-noto-serif italic font-bold text-[#1B4332] text-lg">HopOn</span>
+        <span className="text-xs font-medium text-[#717973]">{step}/4</span>
       </div>
 
       {/* Content */}
       <div className="flex-1 flex flex-col justify-center px-6 py-4 max-w-sm mx-auto w-full">
 
         {/* Labels */}
-        <p className="text-[11px] uppercase tracking-[0.5em] text-gray-400 mb-1">{meta.eyebrow}</p>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">{meta.title}</h1>
-        <p className="text-sm text-gray-500 mb-8">{meta.subtitle}</p>
+        <p className="text-[11px] uppercase tracking-[0.5em] text-[#717973] mb-1">{meta.eyebrow}</p>
+        <h1 className="text-2xl font-bold text-[#1A1C19] mb-1 font-noto-serif italic">{meta.title}</h1>
+        <p className="text-sm text-[#414844] mb-8">{meta.subtitle}</p>
 
         {/* Step 1: Name + Photo */}
         {step === 1 && (
@@ -149,17 +150,14 @@ export default function ProfileSetupPage() {
             <button
               type="button"
               onClick={() => setShowAvatarSheet(true)}
-              className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden mx-auto hover:border-gray-400 transition"
+              className="w-24 h-24 rounded-full bg-[#f3f4ef] border-2 border-dashed border-[#c1c8c2] flex items-center justify-center overflow-hidden mx-auto hover:border-[#52B788] transition"
               aria-label="Adicionar foto"
             >
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <div className="flex flex-col items-center gap-1 text-gray-400">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <circle cx="12" cy="8" r="4" />
-                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                  </svg>
+                <div className="flex flex-col items-center gap-1 text-[#717973]">
+                  <span className="material-symbols-outlined text-2xl">person</span>
                   <span className="text-[10px] font-medium">Foto</span>
                 </div>
               )}
@@ -167,7 +165,7 @@ export default function ProfileSetupPage() {
             {avatarUrl && (
               <button
                 type="button"
-                className="text-xs text-gray-400 underline text-center -mt-4"
+                className="text-xs text-[#717973] underline text-center -mt-4"
                 onClick={() => setShowAvatarSheet(true)}
               >
                 Alterar foto
@@ -175,17 +173,17 @@ export default function ProfileSetupPage() {
             )}
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+              <label className="text-xs font-semibold text-[#414844] uppercase tracking-wide">
                 Nome completo *
               </label>
               <input
                 type="text"
                 autoFocus
-                placeholder="Ex: João Silva"
+                placeholder="Ex: Joao Silva"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && canAdvance() && handleNext()}
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-400"
+                className="w-full rounded-xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3 text-sm text-[#1A1C19] focus:border-[#1B4332] focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 placeholder:text-[#717973]/50"
               />
             </div>
           </div>
@@ -194,8 +192,8 @@ export default function ProfileSetupPage() {
         {/* Step 2: Phone */}
         {step === 2 && (
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-              Telemóvel *
+            <label className="text-xs font-semibold text-[#414844] uppercase tracking-wide">
+              Telemovel *
             </label>
             <PhoneInput
               international
@@ -206,8 +204,8 @@ export default function ProfileSetupPage() {
               onChange={(val) => setPhone(val ?? "")}
               className="phone-input-wrapper"
             />
-            <p className="text-[11px] text-gray-400 mt-1">
-              Seleciona o país e escreve o número - formata automaticamente.
+            <p className="text-[11px] text-[#717973] mt-1">
+              Seleciona o pais e escreve o numero - formata automaticamente.
             </p>
           </div>
         )}
@@ -215,12 +213,12 @@ export default function ProfileSetupPage() {
         {/* Step 3: Home location */}
         {step === 3 && (
           <div className="flex flex-col gap-3">
-            {/* Botão usar localização atual */}
+            {/* Botao usar localizacao atual */}
             <button
               type="button"
               disabled={locating}
               onClick={async () => {
-                if (!navigator.geolocation) { setLocError("O teu browser não suporta geolocalização."); return; }
+                if (!navigator.geolocation) { setLocError("O teu browser nao suporta geolocalizacao."); return; }
                 setLocating(true); setLocError("");
                 navigator.geolocation.getCurrentPosition(
                   async (pos) => {
@@ -232,31 +230,31 @@ export default function ProfileSetupPage() {
                   },
                   (err) => {
                     setLocating(false);
-                    setLocError(err.code === err.PERMISSION_DENIED ? "Permissão de localização negada." : "Não foi possível obter a localização.");
+                    setLocError(err.code === err.PERMISSION_DENIED ? "Permissao de localizacao negada." : "Nao foi possivel obter a localizacao.");
                   },
                   { enableHighAccuracy: true, timeout: 8000 }
                 );
               }}
-              className="w-full h-12 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center gap-2 text-sm font-semibold text-gray-600 hover:border-gray-900 hover:text-gray-900 transition disabled:opacity-50"
+              className="w-full h-12 rounded-xl border-2 border-dashed border-[#c1c8c2] flex items-center justify-center gap-2 text-sm font-semibold text-[#414844] hover:border-[#52B788] hover:text-[#1B4332] transition disabled:opacity-50"
             >
               {locating ? (
                 <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4" /></svg>
               ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+                <span className="material-symbols-outlined text-lg">my_location</span>
               )}
-              {locating ? "A localizar…" : "Usar a minha localização atual"}
+              {locating ? "A localizar..." : "Usar a minha localizacao atual"}
             </button>
 
             <div className="flex items-center gap-2">
-              <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-xs text-gray-400">ou escreve</span>
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex-1 h-px bg-[#e7e9e4]" />
+              <span className="text-xs text-[#717973]">ou escreve</span>
+              <div className="flex-1 h-px bg-[#e7e9e4]" />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Zona / Morada</label>
+              <label className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Zona / Morada</label>
               <LocationInput
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-400"
+                className="w-full rounded-xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3 text-sm text-[#1A1C19] focus:border-[#1B4332] focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 placeholder:text-[#717973]/50"
                 placeholder="Ex: Amadora, Quinta da Fonte"
                 value={homeAddress}
                 lat={homeLat}
@@ -266,15 +264,16 @@ export default function ProfileSetupPage() {
               />
             </div>
 
-            {locError && <p className="text-xs text-red-500">{locError}</p>}
+            {locError && <p className="text-xs text-[#ba1a1a]">{locError}</p>}
             {homeLat && homeLng && (
-              <p className="text-[11px] text-green-600 font-medium">
-                ✓ Localização confirmada - vamos usá-la para sugerir boleias perto de ti.
+              <p className="text-[11px] text-[#006c48] font-medium flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                Localizacao confirmada - vamos usa-la para sugerir boleias perto de ti.
               </p>
             )}
             {homeAddress && !homeLat && (
-              <p className="text-[11px] text-amber-600 font-medium">
-                Seleciona uma sugestão da lista para confirmar a localização.
+              <p className="text-[11px] text-[#b06b00] font-medium">
+                Seleciona uma sugestao da lista para confirmar a localizacao.
               </p>
             )}
           </div>
@@ -283,26 +282,26 @@ export default function ProfileSetupPage() {
         {/* Step 4: Confirmation */}
         {step === 4 && (
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-4 bg-gray-50 rounded-2xl p-4 border border-gray-100">
-              <div className="w-14 h-14 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
+            <div className="flex items-center gap-4 bg-[#f3f4ef] rounded-2xl p-4 border border-[#e7e9e4]">
+              <div className="w-14 h-14 rounded-full bg-[#D0E8DC] flex-shrink-0 overflow-hidden">
                 {avatarUrl
                   ? <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500">{name.charAt(0).toUpperCase()}</div>
+                  : <div className="w-full h-full flex items-center justify-center text-xl font-bold text-[#1B4332]">{name.charAt(0).toUpperCase()}</div>
                 }
               </div>
               <div>
-                <p className="font-semibold text-gray-900">{name}</p>
-                <p className="text-sm text-gray-500">{phone}</p>
-                <p className="text-sm text-gray-500">{homeAddress}</p>
+                <p className="font-semibold text-[#1A1C19]">{name}</p>
+                <p className="text-sm text-[#717973]">{phone}</p>
+                <p className="text-sm text-[#717973]">{homeAddress}</p>
               </div>
             </div>
 
-            <p className="text-xs text-gray-400 text-center mt-2">
+            <p className="text-xs text-[#717973] text-center mt-2">
               Podes alterar estes dados a qualquer momento no teu perfil.
             </p>
 
             {saveError && (
-              <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 text-center">
+              <div className="rounded-2xl bg-[#ffdad6] border border-[#ba1a1a]/20 px-4 py-3 text-sm text-[#ba1a1a] text-center">
                 {saveError}
               </div>
             )}
@@ -311,16 +310,15 @@ export default function ProfileSetupPage() {
       </div>
 
       {/* Bottom button */}
-      <div
-        className="px-6 pb-8 pt-4 max-w-sm mx-auto w-full"
-      >
+      <div className="px-6 pb-8 pt-4 max-w-sm mx-auto w-full">
         <button
           type="button"
           disabled={!canAdvance() || saving}
           onClick={isLast ? handleFinish : handleNext}
-          className="w-full h-14 rounded-full bg-gray-900 text-white font-bold text-sm tracking-wide shadow-sm active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-900"
+          className="w-full h-14 rounded-full bg-[#52B788] text-white font-bold text-sm shadow-lg shadow-[#52B788]/20 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#52B788] flex items-center justify-center gap-2"
         >
-          {saving ? "A guardar…" : isLast ? "Entrar na app →" : "Continuar →"}
+          {saving ? "A guardar..." : isLast ? "Entrar na app" : "Continuar"}
+          {!saving && <span className="material-symbols-outlined text-xl">arrow_forward</span>}
         </button>
       </div>
 

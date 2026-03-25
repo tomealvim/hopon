@@ -102,9 +102,9 @@ export default function AddRideScheduleSheet({ open, onClose, onAdd, editBlock }
     >
       <div className="grid gap-4">
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">Dia da semana</label>
+          <label className="block text-xs font-semibold text-[#414844] mb-1">Dia da semana</label>
           <select
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="w-full px-3 py-2.5 border border-[#e7e9e4] rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             value={day}
             onChange={(e) => setDay(e.target.value as DaySchedule["day"])}
           >
@@ -117,9 +117,9 @@ export default function AddRideScheduleSheet({ open, onClose, onAdd, editBlock }
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">Destino / Descrição (opcional)</label>
+          <label className="block text-xs font-semibold text-[#414844] mb-1">Destino / Descrição (opcional)</label>
           <input
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="w-full px-3 py-2.5 border border-[#e7e9e4] rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Ex: Trabalho, IST, Faculdade..."
@@ -142,9 +142,9 @@ export default function AddRideScheduleSheet({ open, onClose, onAdd, editBlock }
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">Local (opcional)</label>
+          <label className="block text-xs font-semibold text-[#414844] mb-1">Local (opcional)</label>
           <input
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="w-full px-3 py-2.5 border border-[#e7e9e4] rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             value={room}
             onChange={(e) => setRoom(e.target.value)}
             placeholder="Ex: Edifício A, Piso 2..."

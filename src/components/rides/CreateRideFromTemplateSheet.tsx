@@ -88,22 +88,22 @@ export default function CreateRideFromTemplateSheet({
       }
     >
       <div className="p-1 space-y-4">
-        <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-          <p className="text-sm font-semibold text-gray-900">
+        <div className="rounded-xl border border-[#e7e9e4] bg-[#f3f4ef] p-3">
+          <p className="text-sm font-semibold text-[#1A1C19]">
             {schedule.origin} → {schedule.destination}
           </p>
-          <p className="text-xs text-gray-600 mt-1">
+          <p className="text-xs text-[#414844] mt-1">
             {schedule.time} · {schedule.daysOfWeek.join(", ")} · {schedule.availableSeats} lugares
             {schedule.price != null && schedule.price > 0 && ` · €${schedule.price.toFixed(0)}`}
           </p>
         </div>
         <form onSubmit={handleSubmit} className="grid gap-3">
-          <label htmlFor="create-ride-date" className="block text-xs font-semibold text-gray-600">Data da boleia</label>
+          <label htmlFor="create-ride-date" className="block text-xs font-semibold text-[#414844]">Data da boleia</label>
           <input
             id="create-ride-date"
             type="date"
             aria-label="Data da boleia"
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-gray-900 focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="w-full px-3 py-2.5 border border-[#e7e9e4] rounded-xl text-[#1A1C19] focus:border-primary focus:ring-2 focus:ring-primary/20"
             value={date}
             min={today}
             onChange={(e) => setDate(e.target.value)}

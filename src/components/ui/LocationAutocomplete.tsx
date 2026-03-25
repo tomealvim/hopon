@@ -78,16 +78,16 @@ export default function LocationAutocomplete({ label, placeholder, value, onSele
 
   return (
     <div ref={containerRef} className="relative">
-      <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor={id}>{label}</label>
+      <label className="block text-xs font-semibold text-[#414844] mb-1" htmlFor={id}>{label}</label>
       <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717973] pointer-events-none">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
           </svg>
         </div>
         <input
           id={id}
-          className="w-full border border-gray-200 bg-gray-50 text-gray-900 rounded-xl pl-8 pr-8 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 placeholder:text-gray-400"
+          className="w-full border border-[#e7e9e4] bg-[#f3f4ef] text-[#1A1C19] rounded-xl pl-8 pr-8 py-2.5 text-sm outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/10 placeholder:text-[#717973]"
           placeholder={placeholder ?? "Pesquisar localização..."}
           value={query}
           onChange={handleChange}
@@ -95,7 +95,7 @@ export default function LocationAutocomplete({ label, placeholder, value, onSele
           autoComplete="off"
         />
         {query && (
-          <button type="button" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors" onClick={handleClear} tabIndex={-1}>
+          <button type="button" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#c1c8c2] hover:text-[#717973] transition-colors" onClick={handleClear} tabIndex={-1}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M18 6L6 18M6 6l12 12"/>
             </svg>
@@ -104,9 +104,9 @@ export default function LocationAutocomplete({ label, placeholder, value, onSele
       </div>
 
       {(loading || (open && suggestions.length > 0)) && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-gray-100 rounded-2xl shadow-xl z-[100] overflow-hidden">
+        <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#e7e9e4] rounded-2xl shadow-xl z-[100] overflow-hidden">
           {loading && (
-            <div className="flex items-center gap-2 px-4 py-3 text-xs text-gray-400">
+            <div className="flex items-center gap-2 px-4 py-3 text-xs text-[#717973]">
               <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
               </svg>
@@ -117,17 +117,17 @@ export default function LocationAutocomplete({ label, placeholder, value, onSele
             <button
               key={s.placeId}
               type="button"
-              className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3 border-b border-gray-50 last:border-0"
+              className="w-full text-left px-4 py-3 hover:bg-[#f3f4ef] transition-colors flex items-start gap-3 border-b border-[#e7e9e4] last:border-0"
               onMouseDown={(e) => { e.preventDefault(); handleSelect(s); }}
             >
-              <div className="w-7 h-7 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 mt-0.5">
-                <svg className="w-3.5 h-3.5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <div className="w-7 h-7 rounded-xl bg-[#f3f4ef] flex items-center justify-center shrink-0 mt-0.5">
+                <svg className="w-3.5 h-3.5 text-[#717973]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
                 </svg>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-900 leading-snug">{s.mainText}</p>
-                {s.secondaryText && <p className="text-xs text-gray-400 mt-0.5 truncate">{s.secondaryText}</p>}
+                <p className="text-sm font-semibold text-[#1A1C19] leading-snug">{s.mainText}</p>
+                {s.secondaryText && <p className="text-xs text-[#717973] mt-0.5 truncate">{s.secondaryText}</p>}
               </div>
             </button>
           ))}

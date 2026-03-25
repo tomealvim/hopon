@@ -24,23 +24,23 @@ function NotifRow({ notif, onRead }: { notif: AppNotification; onRead: (id: stri
   return (
     <button
       className={cn(
-        "w-full text-left flex items-start gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition",
+        "w-full text-left flex items-start gap-3 px-4 py-3 border-b border-[#e7e9e4] hover:bg-[#f3f4ef] transition",
         !notif.read && "bg-blue-50/60",
       )}
       onClick={() => !notif.read && onRead(notif.id)}
     >
-      <div className="flex-shrink-0 mt-0.5 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+      <div className="flex-shrink-0 mt-0.5 w-8 h-8 rounded-full bg-[#f3f4ef] flex items-center justify-center">
         <NotifIcon type={notif.type} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className={cn("text-sm font-medium text-gray-900 truncate", !notif.read && "font-semibold")}>
+          <p className={cn("text-sm font-medium text-[#1A1C19] truncate", !notif.read && "font-semibold")}>
             {notif.title}
           </p>
           {!notif.read && <span className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500" />}
         </div>
-        <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{notif.body}</p>
-        <p className="text-[10px] text-gray-400 mt-1">{timeAgo(notif.createdAt)}</p>
+        <p className="text-xs text-[#414844] mt-0.5 line-clamp-2">{notif.body}</p>
+        <p className="text-[10px] text-[#717973] mt-1">{timeAgo(notif.createdAt)}</p>
       </div>
     </button>
   );
@@ -58,7 +58,7 @@ export default function NotificationsSheet({ open, onClose }: Props) {
     <Sheet open={open} onClose={onClose} title="Notificações" height="lg" footer={null}>
       <div className="flex flex-col h-full">
         {unreadCount > 0 && (
-          <div className="px-4 py-2 border-b border-gray-100 flex justify-end">
+          <div className="px-4 py-2 border-b border-[#e7e9e4] flex justify-end">
             <button
               className="text-xs text-blue-600 font-medium hover:underline"
               onClick={markAllRead}
@@ -69,7 +69,7 @@ export default function NotificationsSheet({ open, onClose }: Props) {
         )}
 
         {loading && (
-          <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
+          <div className="flex-1 flex items-center justify-center text-sm text-[#717973]">
             A carregar…
           </div>
         )}
@@ -77,8 +77,8 @@ export default function NotificationsSheet({ open, onClose }: Props) {
         {!loading && notifications.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center px-6 py-12">
             <span className="text-4xl">🔔</span>
-            <p className="text-sm font-medium text-gray-700">Sem notificações</p>
-            <p className="text-xs text-gray-400">Quando tiveres novas reservas ou mensagens, aparecerão aqui.</p>
+            <p className="text-sm font-medium text-[#414844]">Sem notificações</p>
+            <p className="text-xs text-[#717973]">Quando tiveres novas reservas ou mensagens, aparecerão aqui.</p>
           </div>
         )}
 

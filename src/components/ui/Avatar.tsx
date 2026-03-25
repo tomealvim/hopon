@@ -13,7 +13,7 @@ export function Avatar({ src, initials, size = "md", className }: Props) {
   return (
     <div
       className={cn(
-        "rounded-full bg-gray-100 border border-black/5 overflow-hidden flex items-center justify-center",
+        "rounded-full bg-[#f3f4ef] border border-black/5 overflow-hidden flex items-center justify-center",
         sizes[size],
         className
       )}
@@ -21,7 +21,7 @@ export function Avatar({ src, initials, size = "md", className }: Props) {
       {src ? (
         <img src={src} alt="" className="w-full h-full object-cover" role="presentation" aria-hidden="true" />
       ) : (
-        <span className="font-semibold text-gray-700">
+        <span className="font-semibold text-[#414844]">
           {(initials || "?").slice(0, 2).toUpperCase()}
         </span>
       )}

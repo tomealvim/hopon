@@ -143,29 +143,29 @@ export default function RideRequestSheet({ open, onClose, onSaved }: Props) {
       {done ? (
         <div className="flex flex-col items-center justify-center py-16 gap-4">
           <div className="text-5xl">🙋</div>
-          <p className="text-lg font-bold text-gray-900">Pedido publicado!</p>
-          <p className="text-sm text-gray-600 text-center max-w-[280px]">
+          <p className="text-lg font-bold text-[#1A1C19]">Pedido publicado!</p>
+          <p className="text-sm text-[#414844] text-center max-w-[280px]">
             Condutores com rotas semelhantes serão notificados. Recebes uma mensagem quando houver correspondência.
           </p>
           <Button className="mt-4 w-full" onClick={handleClose}>Fechar</Button>
         </div>
       ) : (
         <div className="flex flex-col gap-5 pb-6">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[#414844]">
             Publica a tua necessidade de boleia. Condutores habituais nesta rota serão notificados.
           </p>
 
           {/* Origem */}
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+              <label className="text-xs font-semibold text-[#414844] uppercase tracking-wide">
                 Origem
               </label>
               <button
                 type="button"
                 onClick={handleUseCurrentLocation}
                 disabled={locating}
-                className="flex items-center gap-1 text-xs font-semibold text-gray-900 disabled:opacity-50"
+                className="flex items-center gap-1 text-xs font-semibold text-[#1A1C19] disabled:opacity-50"
               >
                 {locating ? (
                   <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -181,7 +181,7 @@ export default function RideRequestSheet({ open, onClose, onSaved }: Props) {
               </button>
             </div>
             <LocationInput
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+              className="w-full border border-[#e7e9e4] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]/20"
               placeholder="Ex: Lisboa, Marquês de Pombal"
               value={originLabel}
               lat={originLat}
@@ -194,9 +194,9 @@ export default function RideRequestSheet({ open, onClose, onSaved }: Props) {
 
           {/* Destino */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Destino</label>
+            <label className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Destino</label>
             <LocationInput
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+              className="w-full border border-[#e7e9e4] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]/20"
               placeholder="Ex: Porto, Estação de Campanhã"
               value={destLabel}
               lat={destLat}
@@ -208,10 +208,10 @@ export default function RideRequestSheet({ open, onClose, onSaved }: Props) {
 
           {/* Hora */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Hora pretendida</label>
+            <label className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Hora pretendida</label>
             <input
               type="time"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+              className="w-full border border-[#e7e9e4] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]/20"
               value={departTime}
               onChange={(e) => setDepartTime(e.target.value)}
             />
@@ -219,7 +219,7 @@ export default function RideRequestSheet({ open, onClose, onSaved }: Props) {
 
           {/* Dias da semana */}
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Dias</label>
+            <label className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Dias</label>
             <div className="flex gap-2 flex-wrap">
               {ALL_DAYS.map(({ key, label }) => (
                 <button
@@ -229,8 +229,8 @@ export default function RideRequestSheet({ open, onClose, onSaved }: Props) {
                   className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors",
                     days.includes(key)
-                      ? "bg-gray-900 text-white border-gray-900"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                      ? "bg-[#1B4332] text-white border-[#1B4332]"
+                      : "bg-white text-[#414844] border-[#e7e9e4] hover:border-[#c1c8c2]"
                   )}
                 >
                   {label}
@@ -241,11 +241,11 @@ export default function RideRequestSheet({ open, onClose, onSaved }: Props) {
 
           {/* Nota opcional */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-              Nota <span className="font-normal text-gray-400 lowercase">(opcional)</span>
+            <label className="text-xs font-semibold text-[#414844] uppercase tracking-wide">
+              Nota <span className="font-normal text-[#717973] lowercase">(opcional)</span>
             </label>
             <textarea
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 resize-none"
+              className="w-full border border-[#e7e9e4] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]/20 resize-none"
               placeholder="Ex: Saio do trabalho às 18h, flexível +/- 15 min"
               rows={2}
               value={note}

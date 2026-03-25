@@ -213,11 +213,11 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
         {/* ── VISTA PRINCIPAL ── */}
         {view === "list" && (
           <>
-            <section className="rounded-3xl border border-gray-200 bg-gray-50 p-5">
-              <p className="text-sm text-gray-600">Hopon Cash</p>
+            <section className="rounded-3xl border border-[#e7e9e4] bg-[#f3f4ef] p-5">
+              <p className="text-sm text-[#414844]">Hopon Cash</p>
               {loadingBalance
-                ? <div className="mt-1 h-9 w-28 animate-pulse rounded-lg bg-gray-200" />
-                : <p className="text-3xl font-bold text-gray-900">{formatCurrency(balance ?? 0)}</p>
+                ? <div className="mt-1 h-9 w-28 animate-pulse rounded-lg bg-[#edeee9]" />
+                : <p className="text-3xl font-bold text-[#1A1C19]">{formatCurrency(balance ?? 0)}</p>
               }
               {transactions.length > 0 && (
                 <button
@@ -231,21 +231,21 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
             </section>
 
             <div className="flex flex-col gap-2">
-              <p className="text-sm text-gray-500 text-center">
+              <p className="text-sm text-[#717973] text-center">
                 Carrega saldo com cartão, MB Way, Apple Pay ou Google Pay.
               </p>
               {(balance ?? 0) >= 1 && (
                 <div className="flex flex-col items-center gap-1">
                   <button
                     type="button"
-                    className="text-xs font-semibold text-gray-500 underline-offset-2 hover:underline"
+                    className="text-xs font-semibold text-[#717973] underline-offset-2 hover:underline"
                     onClick={() => setWithdrawOpen(true)}
                   >
                     Reembolsar para cartão
                   </button>
                   <button
                     type="button"
-                    className="text-xs text-gray-400 underline-offset-2 hover:underline"
+                    className="text-xs text-[#717973] underline-offset-2 hover:underline"
                     onClick={() => setPayoutOpen(true)}
                   >
                     Pedir saque para IBAN
@@ -259,16 +259,16 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
         {/* ── ESCOLHER VALOR ── */}
         {view === "amount" && (
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-gray-700">Valor a carregar</p>
+            <p className="text-sm font-semibold text-[#414844]">Valor a carregar</p>
             <div className="relative">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500">€</span>
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[#717973]">€</span>
               <input
                 id="wallet-amount"
                 inputMode="decimal"
                 placeholder="Ex.: 25"
                 value={amount}
                 onChange={(e) => { setAmount(e.target.value.replace(/[^\d.,]/g, "")); setIntentError(""); }}
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-10 py-3 text-lg font-semibold text-gray-900 outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 placeholder:text-gray-400"
+                className="w-full rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-10 py-3 text-lg font-semibold text-[#1A1C19] outline-none focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/20 placeholder:text-[#717973]"
               />
             </div>
             {parsedAmount > 500 && <p className="text-xs text-red-500">Máximo €500 por carregamento.</p>}
@@ -283,8 +283,8 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                   className={cn(
                     "rounded-2xl border px-3 py-2 text-sm font-semibold transition",
                     parsedAmount === v
-                      ? "border-gray-800 bg-gray-800 text-white"
-                      : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100",
+                      ? "border-[#1B4332] bg-[#1B4332] text-white"
+                      : "border-[#e7e9e4] bg-[#f3f4ef] text-[#414844] hover:border-[#c1c8c2] hover:bg-[#f3f4ef]",
                   )}
                 >
                   €{v}
@@ -297,7 +297,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
         {/* ── PAGAMENTO STRIPE ── */}
         {view === "payment" && clientSecret && stripePromise && (
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-gray-700">
+            <p className="text-sm font-semibold text-[#414844]">
               Carregar {formatCurrency(parsedAmount)}
             </p>
             {paymentError && (
@@ -323,17 +323,17 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
         {view === "history" && (
           <section className="space-y-2">
             {transactions.length === 0
-              ? <p className="py-10 text-center text-sm text-gray-500">Sem transações ainda.</p>
+              ? <p className="py-10 text-center text-sm text-[#717973]">Sem transações ainda.</p>
               : transactions.map((tx) => {
                   const meta = TX_META[tx.type] ?? TX_META.CREDIT;
                   return (
-                    <div key={tx.id} className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                      <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold border border-gray-100 bg-white", meta.color)}>
+                    <div key={tx.id} className="flex items-center gap-3 rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3">
+                      <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold border border-[#e7e9e4] bg-white", meta.color)}>
                         {meta.sign}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{tx.description ?? meta.label}</p>
-                        <p className="text-xs text-gray-500">{formatDate(tx.createdAt)}</p>
+                        <p className="text-sm font-semibold text-[#1A1C19] truncate">{tx.description ?? meta.label}</p>
+                        <p className="text-xs text-[#717973]">{formatDate(tx.createdAt)}</p>
                       </div>
                       <p className={cn("text-sm font-bold shrink-0", meta.color)}>
                         {meta.sign}{formatCurrency(tx.amount)}
@@ -354,9 +354,9 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </div>
-              <p className="mt-4 text-lg font-semibold text-gray-900">Pagamento recebido</p>
-              <p className="text-sm text-gray-600">O saldo será atualizado em instantes.</p>
-              <p className="mt-4 text-3xl font-bold text-gray-900">{formatCurrency(balance ?? 0)}</p>
+              <p className="mt-4 text-lg font-semibold text-[#1A1C19]">Pagamento recebido</p>
+              <p className="text-sm text-[#414844]">O saldo será atualizado em instantes.</p>
+              <p className="mt-4 text-3xl font-bold text-[#1A1C19]">{formatCurrency(balance ?? 0)}</p>
             </div>
             <button type="button" className="text-sm font-semibold text-primary underline-offset-2 hover:underline" onClick={() => { setView("list"); setAmount(""); }}>
               Fazer novo carregamento

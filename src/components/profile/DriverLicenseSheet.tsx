@@ -12,7 +12,7 @@ type Props = {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; description: string }> = {
-  NONE:     { label: "Não enviada",        color: "text-gray-500",    description: "Ainda não enviaste a tua carta de condução." },
+  NONE:     { label: "Não enviada",        color: "text-[#717973]",    description: "Ainda não enviaste a tua carta de condução." },
   PENDING:  { label: "Em análise",         color: "text-amber-600",   description: "A tua carta está a ser verificada pela equipa HopOn. Pode demorar até 24h." },
   APPROVED: { label: "Verificada",         color: "text-emerald-600", description: "A tua carta de condução foi verificada. Podes adicionar veículos e oferecer boleias." },
   REJECTED: { label: "Documento rejeitado",color: "text-red-600",     description: "A carta enviada foi rejeitada. Envia um documento válido e legível." },
@@ -112,13 +112,13 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
         {/* Estado atual */}
         <section className={cn(
           "rounded-2xl border px-4 py-3",
-          status === "NONE" && "border-gray-200 bg-gray-50",
+          status === "NONE" && "border-[#e7e9e4] bg-[#f3f4ef]",
           status === "PENDING" && "border-amber-200 bg-amber-50",
           status === "APPROVED" && "border-emerald-200 bg-emerald-50",
           status === "REJECTED" && "border-red-200 bg-red-50",
         )}>
           <p className={cn("text-sm font-semibold", statusInfo.color)}>{statusInfo.label}</p>
-          <p className="text-sm text-gray-600 mt-0.5">{statusInfo.description}</p>
+          <p className="text-sm text-[#414844] mt-0.5">{statusInfo.description}</p>
           {status === "REJECTED" && adminNote && (
             <p className="text-xs text-red-500 mt-1">Motivo: {adminNote}</p>
           )}
@@ -139,8 +139,8 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
                 <path d="M20 6L9 17l-5-5" />
               </svg>
             </div>
-            <p className="text-base font-semibold text-gray-900">Carta enviada</p>
-            <p className="text-sm text-gray-500">A equipa HopOn irá verificar o documento em breve (ate 24h).</p>
+            <p className="text-base font-semibold text-[#1A1C19]">Carta enviada</p>
+            <p className="text-sm text-[#717973]">A equipa HopOn irá verificar o documento em breve (ate 24h).</p>
           </div>
         )}
 
@@ -148,20 +148,20 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
           <>
             {/* Campo CC */}
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase text-gray-600">Numero do Cartao de Cidadao</p>
-              <p className="text-xs text-gray-500">Deve estar visivel na tua carta de conducao. Serve para cruzar identidades.</p>
+              <p className="text-xs font-semibold uppercase text-[#414844]">Numero do Cartao de Cidadao</p>
+              <p className="text-xs text-[#717973]">Deve estar visivel na tua carta de conducao. Serve para cruzar identidades.</p>
               <input
                 type="text"
                 value={ccNumber}
                 onChange={e => { setCcNumber(e.target.value); setError(""); }}
                 placeholder="Ex: 12345678 9 ZX4"
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+                className="w-full rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3 text-sm text-[#1A1C19] placeholder:text-[#717973] focus:border-[#1B4332] focus:outline-none focus:ring-2 focus:ring-[#52B788]/20"
               />
             </div>
 
             {/* Upload */}
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase text-gray-600">Foto da carta de conducao</p>
+              <p className="text-xs font-semibold uppercase text-[#414844]">Foto da carta de conducao</p>
               <input
                 ref={inputRef}
                 type="file"
@@ -172,21 +172,21 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
-                className="w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center hover:border-gray-300 hover:bg-gray-100 transition"
+                className="w-full rounded-2xl border-2 border-dashed border-[#e7e9e4] bg-[#f3f4ef] px-4 py-6 text-center hover:border-[#c1c8c2] hover:bg-[#f3f4ef] transition"
               >
                 {preview ? (
                   <img src={preview} alt="preview" className="mx-auto max-h-40 rounded-xl object-contain" />
                 ) : (
                   <div className="space-y-1">
-                    <p className="text-sm font-semibold text-gray-700">Clica para selecionar</p>
-                    <p className="text-xs text-gray-500">JPEG, PNG ou WebP · max 10MB</p>
+                    <p className="text-sm font-semibold text-[#414844]">Clica para selecionar</p>
+                    <p className="text-xs text-[#717973]">JPEG, PNG ou WebP · max 10MB</p>
                   </div>
                 )}
               </button>
               {preview && (
                 <button
                   type="button"
-                  className="text-xs text-gray-500 underline"
+                  className="text-xs text-[#717973] underline"
                   onClick={() => { setFile(null); setPreview(null); if (inputRef.current) inputRef.current.value = ""; }}
                 >
                   Remover
@@ -194,7 +194,7 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
               )}
             </div>
 
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[#717973]">
               A carta e processada de forma segura e utilizada apenas para verificacao de conducao. Nunca e partilhada com outros utilizadores.
             </p>
           </>

@@ -93,20 +93,20 @@ export default function DisputeSheet({ open, onClose, bookingId, rideLabel, onSu
                 <path d="M20 6L9 17l-5-5" />
               </svg>
             </div>
-            <p className="text-base font-semibold text-gray-900">Disputa submetida</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-base font-semibold text-[#1A1C19]">Disputa submetida</p>
+            <p className="text-sm text-[#717973]">
               A equipa HopOn irá analisar a situação e notificar-te quando houver uma resolução.
             </p>
           </div>
         ) : (
           <>
-            <section className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
-              <p className="text-xs text-gray-500">Boleia</p>
-              <p className="text-sm font-semibold text-gray-900">{rideLabel}</p>
+            <section className="rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3">
+              <p className="text-xs text-[#717973]">Boleia</p>
+              <p className="text-sm font-semibold text-[#1A1C19]">{rideLabel}</p>
             </section>
 
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase text-gray-600">Motivo</p>
+              <p className="text-xs font-semibold uppercase text-[#414844]">Motivo</p>
               <div className="space-y-2">
                 {REASONS.map((r) => (
                   <button
@@ -116,8 +116,8 @@ export default function DisputeSheet({ open, onClose, bookingId, rideLabel, onSu
                     className={cn(
                       "flex w-full items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left text-sm transition",
                       reason === r.value
-                        ? "border-gray-800 bg-gray-100 font-semibold text-gray-900"
-                        : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100",
+                        ? "border-[#1B4332] bg-[#f3f4ef] font-semibold text-[#1A1C19]"
+                        : "border-[#e7e9e4] bg-[#f3f4ef] text-[#414844] hover:border-[#c1c8c2] hover:bg-[#f3f4ef]",
                     )}
                   >
                     {r.label}
@@ -127,7 +127,7 @@ export default function DisputeSheet({ open, onClose, bookingId, rideLabel, onSu
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="dispute-desc" className="text-xs font-semibold uppercase text-gray-600">
+              <label htmlFor="dispute-desc" className="text-xs font-semibold uppercase text-[#414844]">
                 Descrição
               </label>
               <textarea
@@ -136,9 +136,9 @@ export default function DisputeSheet({ open, onClose, bookingId, rideLabel, onSu
                 value={description}
                 onChange={(e) => { setDescription(e.target.value); setError(""); }}
                 placeholder="Descreve o que aconteceu com detalhe…"
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 resize-none"
+                className="w-full rounded-2xl border border-[#e7e9e4] bg-[#f3f4ef] px-4 py-3 text-sm text-[#1A1C19] outline-none placeholder:text-[#717973] focus:border-[#1B4332] focus:ring-2 focus:ring-[#52B788]/20 resize-none"
               />
-              <p className="text-xs text-gray-400 text-right">{description.trim().length}/10 mín.</p>
+              <p className="text-xs text-[#717973] text-right">{description.trim().length}/10 mín.</p>
             </div>
           </>
         )}

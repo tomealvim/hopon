@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
-import AppName from '../components/ui/AppName';
 
 type AuthMode = 'login' | 'register';
 type AuthView = 'form' | 'otp';
@@ -48,7 +47,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
     try {
       if (mode === 'login') {
         if (!formData.email || !formData.password) {
-          showError("Campos obrigatórios", "Preenche email e palavra-passe");
+          showError("Campos obrigatorios", "Preenche email e palavra-passe");
           return;
         }
         try {
@@ -58,13 +57,12 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
         } catch (err) {
           const message = err instanceof Error ? err.message : null;
           console.error("Erro no login:", err);
-          showError("Erro no login", message ?? "Credenciais inválidas. Verifica o email e palavra-passe.");
+          showError("Erro no login", message ?? "Credenciais invalidas. Verifica o email e palavra-passe.");
           return;
         }
       } else {
-        // Modo registo - validações
         if (!formData.email || !formData.password) {
-          showError("Campos obrigatórios", "Preenche email e palavra-passe");
+          showError("Campos obrigatorios", "Preenche email e palavra-passe");
           return;
         }
         if (formData.password.length < 6) {
@@ -72,25 +70,23 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
           return;
         }
         if (formData.password !== formData.confirmPassword) {
-          showError("Palavras-passe diferentes", "As palavras-passe não coincidem");
+          showError("Palavras-passe diferentes", "As palavras-passe nao coincidem");
           return;
         }
-
         try {
-          // Registar diretamente sem OTP (OTP será implementado depois)
           await register(formData.email, formData.password);
           onAuthSuccess?.();
           return;
         } catch (err) {
           const message = err instanceof Error ? err.message : null;
           console.error("Erro no registo:", err);
-          showError("Erro no registo", message ?? "Não foi possível criar a conta. Tenta novamente.");
+          showError("Erro no registo", message ?? "Nao foi possivel criar a conta. Tenta novamente.");
           return;
         }
       }
     } catch (error) {
-      console.error('Erro na autenticação:', error);
-      showError("Erro na autenticação", "Tenta novamente.");
+      console.error('Erro na autenticacao:', error);
+      showError("Erro na autenticacao", "Tenta novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -117,11 +113,11 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otpDigits.some((digit) => !digit)) {
-      setOtpError("Introduz o código completo");
+      setOtpError("Introduz o codigo completo");
       return;
     }
     if (!pendingAuth) {
-      showError("Sessão expirada", "Recomeça o processo de autenticação.");
+      showError("Sessao expirada", "Recomeca o processo de autenticacao.");
       setView('form');
       return;
     }
@@ -137,8 +133,8 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
       setView('form');
       setPendingAuth(null);
     } catch (error) {
-      console.error('Erro na autenticação:', error);
-      showError("Erro na autenticação", "Tenta novamente.");
+      console.error('Erro na autenticacao:', error);
+      showError("Erro na autenticacao", "Tenta novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -146,7 +142,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
 
   const handleResendCode = () => {
     setOtpDigits(Array(otpLength).fill(''));
-    setOtpError("Enviámos um novo código.");
+    setOtpError("Enviamos um novo codigo.");
     otpRefs.current[0]?.focus();
   };
 
@@ -156,195 +152,224 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
     setPendingAuth(null);
     setOtpDigits(Array(otpLength).fill(''));
     setOtpError(null);
-    setFormData({
-      email: '',
-      password: '',
-      confirmPassword: ''
-    });
+    setFormData({ email: '', password: '', confirmPassword: '' });
   };
 
   return (
-    <div className="relative min-h-screen bg-white text-gray-900 overflow-hidden flex items-center justify-center">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-gray-300/8 blur-[180px]" />
-        <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-gray-300/8 blur-[160px]" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-gray-200/10 blur-[200px]" />
-      </div>
+    <div className="relative min-h-screen bg-[#F9FAF5] text-[#1A1C19] flex flex-col font-manrope">
+      {/* Blobs decorativos */}
+      <div className="fixed top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[#92f7c3]/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+      <div className="fixed bottom-1/4 left-0 -ml-20 w-48 h-48 bg-[#b0f1cc]/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+      <div className="fixed bottom-0 left-0 w-full h-32 -z-10 bg-gradient-to-t from-[#a5d0b9]/20 to-transparent pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-4xl mx-auto px-5 flex flex-col md:flex-row items-center justify-center gap-6 py-4">
-        <section className="flex-1 text-center md:text-left space-y-2">
-          <p className="text-xs uppercase tracking-[0.45em] text-gray-500">Ready to</p>
-          <h1 className="text-3xl md:text-4xl font-black leading-tight text-gray-900">HOPON</h1>
-          <p className="text-sm text-gray-600 max-w-md mx-auto md:mx-0">
-            Your everyday ride made easy. Entra e encontra boleias pensadas para o teu ritmo.
-          </p>
-        </section>
-
-        <div className="flex-1 w-full max-w-md">
-          <div className="bg-white text-gray-900 rounded-[28px] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
-            {view === 'form' ? (
-              <>
-                <div className="text-center mb-4 space-y-1">
-                  <AppName className="text-xl font-black text-gray-900" />
-                  <p className="text-xs text-gray-500">
-                    {mode === 'login'
-                      ? 'Inicia sessão na tua conta'
-                      : 'Cria uma nova conta'}
-                  </p>
-                </div>
-
-                <form onSubmit={handleSubmit} className="grid gap-3">
-                  <div>
-                    <label htmlFor="email" className="block text-xs font-semibold text-gray-700 mb-1 uppercase tracking-wide">
-                      Email ou telemóvel
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-400"
-                      placeholder="o.teu.email@exemplo.com"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="password" className="block text-xs font-semibold text-gray-700 mb-1 uppercase tracking-wide">
-                      Palavra-passe
-                    </label>
-                    <input
-                      id="password"
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-400"
-                      placeholder="A tua palavra-passe"
-                      required
-                    />
-                  </div>
-
-                  {mode === 'register' && (
-                    <div>
-                      <label htmlFor="confirmPassword" className="block text-xs font-semibold text-gray-700 mb-1 uppercase tracking-wide">
-                        Confirmar palavra-passe
-                      </label>
-                      <input
-                        id="confirmPassword"
-                        type="password"
-                        value={formData.confirmPassword}
-                        onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder:text-gray-400"
-                        placeholder="Confirma a palavra-passe"
-                        required
-                      />
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full h-11 rounded-2xl bg-gray-900 text-white font-semibold transition hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {isLoading && (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    )}
-                    {isLoading
-                      ? 'A processar...'
-                      : mode === 'login' ? 'Iniciar Sessão' : 'Criar Conta'}
-                  </button>
-                </form>
-
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center gap-3 text-xs uppercase text-gray-400">
-                    <span className="flex-1 h-px bg-gray-200" />
-                    ou continua com
-                    <span className="flex-1 h-px bg-gray-200" />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const apiBase = import.meta.env.VITE_API_URL?.replace('/api/v1', '') ?? 'http://localhost:3000';
-                      window.location.href = `${apiBase}/api/v1/auth/google`;
-                    }}
-                    className="w-full h-10 rounded-2xl border border-gray-200 text-gray-800 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">
-                      <path fill="#EA4335" d="M24 9.5c3.1 0 5.9 1.1 8.1 2.9l6-6C34.5 3.1 29.5 1 24 1 14.6 1 6.6 6.7 3.2 14.8l7 5.4C11.8 13.8 17.4 9.5 24 9.5z"/>
-                      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.9 6.8-16.9z"/>
-                      <path fill="#FBBC05" d="M10.2 28.8c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8l-7-5.4C1.6 16.9 1 20.4 1 24s.6 7.1 2.2 10.2l7-5.4z"/>
-                      <path fill="#34A853" d="M24 47c5.5 0 10.1-1.8 13.5-4.9l-7.4-5.7c-1.8 1.2-4.2 2-6.1 2-6.6 0-12.2-4.3-14.2-10.6l-7 5.4C6.6 41.3 14.6 47 24 47z"/>
-                    </svg>
-                    Continuar com Google
-                  </button>
-                </div>
-
-                <div className="mt-4 pt-4 text-center border-t border-gray-100 space-y-2">
-                  <p className="text-xs text-gray-500">
-                    {mode === 'login'
-                      ? 'Não tens conta?'
-                      : 'Já tens conta?'}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={switchMode}
-                    disabled={isLoading}
-                    className="w-full h-10 rounded-2xl border border-gray-200 text-gray-800 font-semibold hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {mode === 'login' ? 'Criar Conta' : 'Iniciar Sessão'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <form onSubmit={handleOtpSubmit} className="grid gap-3 text-center">
-                <div className="space-y-1.5">
-                  <p className="text-xs uppercase tracking-[0.5em] text-gray-400">Verificação</p>
-                  <h2 className="text-xl font-bold text-gray-900">Introduz o código</h2>
-                  <p className="text-xs text-gray-500">
-                    Enviámos um código para <span className="font-semibold">{pendingAuth?.email || formData.email}</span>
-                  </p>
-                </div>
-                <div className="flex justify-center gap-2">
-                  {otpDigits.map((digit, index) => (
-                    <input
-                      key={index}
-                      ref={(el) => { otpRefs.current[index] = el; }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      aria-label={`Código OTP dígito ${index + 1}`}
-                      title={`Código OTP dígito ${index + 1}`}
-                      className="w-10 h-11 rounded-2xl border border-gray-300 text-center text-base font-semibold focus:outline-none focus:ring-2 focus:ring-gray-900"
-                      value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    />
-                  ))}
-                </div>
-                {otpError && <p className="text-xs text-red-500">{otpError}</p>}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-11 rounded-2xl bg-gray-900 text-white font-semibold transition hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {isLoading && (
-                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  )}
-                  Confirmar código
-                </button>
-                <div className="flex flex-col gap-1.5 text-xs text-gray-500">
-                  <button type="button" onClick={handleResendCode} className="text-gray-800 font-semibold hover:underline">
-                    Reenviar código
-                  </button>
-                  <button type="button" onClick={() => { setView('form'); setPendingAuth(null); }} className="hover:underline">
-                    Rever dados de contacto
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
+      {/* TopAppBar */}
+      <nav className="fixed top-0 w-full z-50 bg-[#F8F9F4]/70 backdrop-blur-xl flex items-center px-6 py-4">
+        <div className="w-10">
+          {mode === 'register' && view === 'form' && (
+            <button
+              type="button"
+              onClick={() => setMode('login')}
+              className="flex items-center justify-center w-10 h-10 text-[#1B4332] hover:bg-[#f3f4ef] rounded-full transition-colors active:scale-95"
+              aria-label="Voltar"
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+          )}
         </div>
-      </div>
+        <h1 className="font-noto-serif italic font-bold text-[#1B4332] text-2xl absolute left-1/2 -translate-x-1/2">
+          HopOn
+        </h1>
+        <div className="ml-auto w-10" />
+      </nav>
+
+      <main className="flex-grow pt-24 px-6 pb-12 max-w-md mx-auto w-full flex flex-col">
+        {view === 'form' ? (
+          <>
+            {/* Header */}
+            <header className="mt-8 mb-10">
+              <h2 className="text-[1.75rem] font-noto-serif italic text-[#012d1d] leading-tight">
+                {mode === 'login' ? 'Inicia sessao na tua conta' : 'Criar uma nova conta'}
+              </h2>
+              {mode === 'login' && (
+                <p className="text-[#414844] text-base mt-2">Bem-vindo de volta a HopOn.</p>
+              )}
+            </header>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="block text-[0.7rem] font-semibold uppercase tracking-wider text-[#717973] px-1">
+                  Email / Telefone
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className="w-full h-14 px-4 bg-[#edeee9] border-none rounded-lg text-[#1A1C19] placeholder:text-[#717973]/50 focus:outline-none focus:ring-2 focus:ring-[#012d1d]/25 transition-all"
+                  placeholder="exemplo@email.com"
+                />
+              </div>
+
+              {/* Password */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center px-1">
+                  <label className="text-[0.7rem] font-semibold uppercase tracking-wider text-[#717973]">
+                    Palavra-passe
+                  </label>
+                  {mode === 'login' && (
+                    <button type="button" className="text-sm font-bold text-[#006c48]">
+                      Esqueceste-te?
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  className="w-full h-14 px-4 bg-[#edeee9] border-none rounded-lg text-[#1A1C19] placeholder:text-[#717973]/50 focus:outline-none focus:ring-2 focus:ring-[#012d1d]/25 transition-all"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              {/* Confirm password (register only) */}
+              {mode === 'register' && (
+                <div className="space-y-1.5">
+                  <label className="block text-[0.7rem] font-semibold uppercase tracking-wider text-[#717973] px-1">
+                    Confirmar Palavra-passe
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                    className="w-full h-14 px-4 bg-[#edeee9] border-none rounded-lg text-[#1A1C19] placeholder:text-[#717973]/50 focus:outline-none focus:ring-2 focus:ring-[#012d1d]/25 transition-all"
+                    placeholder="••••••••"
+                  />
+                </div>
+              )}
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-14 bg-[#52B788] text-white font-bold rounded-full flex items-center justify-center gap-2 shadow-lg shadow-[#52B788]/20 hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>{mode === 'login' ? 'Iniciar Sessao' : 'Criar Conta'}</span>
+                    <span className="material-symbols-outlined text-lg">east</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div className="flex items-center gap-4 py-6 mt-2">
+              <div className="h-px flex-grow bg-[#e7e9e4]" />
+              <span className="text-[0.7rem] font-medium text-[#717973] uppercase tracking-widest whitespace-nowrap">
+                Ou continua com
+              </span>
+              <div className="h-px flex-grow bg-[#e7e9e4]" />
+            </div>
+
+            {/* Google */}
+            <button
+              type="button"
+              onClick={() => {
+                const apiBase = import.meta.env.VITE_API_URL?.replace('/api/v1', '') ?? 'http://localhost:3000';
+                window.location.href = `${apiBase}/api/v1/auth/google`;
+              }}
+              className="w-full h-14 flex items-center justify-center gap-3 bg-white border border-[#c1c8c2]/30 rounded-lg hover:bg-[#f3f4ef] transition-colors active:scale-[0.98]"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              <span className="font-bold text-[#1A1C19]">Continuar com Google</span>
+            </button>
+
+            {/* Switch mode */}
+            <footer className="mt-10 text-center">
+              <p className="text-[#414844]">
+                {mode === 'login' ? "Nao tens conta? " : "Ja tens conta? "}
+                <button
+                  type="button"
+                  onClick={switchMode}
+                  disabled={isLoading}
+                  className="text-[#006c48] font-bold underline underline-offset-4 decoration-[#006c48]/30 hover:decoration-[#006c48] transition-all disabled:opacity-50"
+                >
+                  {mode === 'login' ? 'Criar Conta' : 'Iniciar Sessao'}
+                </button>
+              </p>
+            </footer>
+          </>
+        ) : (
+          /* OTP view */
+          <form onSubmit={handleOtpSubmit} className="flex flex-col items-center gap-8 mt-16">
+            <div className="text-center space-y-2">
+              <h2 className="text-[1.75rem] font-noto-serif italic text-[#012d1d] leading-tight">
+                Verificar codigo
+              </h2>
+              <p className="text-[#414844]">
+                Enviamos um codigo para{" "}
+                <span className="font-semibold text-[#1A1C19]">
+                  {pendingAuth?.email || formData.email}
+                </span>
+              </p>
+            </div>
+
+            <div className="flex justify-center gap-2">
+              {otpDigits.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => { otpRefs.current[index] = el; }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  aria-label={`Codigo OTP digito ${index + 1}`}
+                  className="w-12 h-14 bg-[#edeee9] rounded-lg text-center text-lg font-bold text-[#1A1C19] focus:outline-none focus:ring-2 focus:ring-[#012d1d]/25 transition-all"
+                  value={digit}
+                  onChange={(e) => handleOtpChange(index, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                />
+              ))}
+            </div>
+
+            {otpError && <p className="text-sm text-[#ba1a1a]">{otpError}</p>}
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-14 bg-[#52B788] text-white font-bold rounded-full flex items-center justify-center gap-2 shadow-lg shadow-[#52B788]/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : "Confirmar codigo"}
+            </button>
+
+            <div className="flex flex-col gap-2 text-sm text-[#414844] text-center">
+              <button
+                type="button"
+                onClick={handleResendCode}
+                className="font-bold text-[#1A1C19] hover:underline"
+              >
+                Reenviar codigo
+              </button>
+              <button
+                type="button"
+                onClick={() => { setView('form'); setPendingAuth(null); }}
+                className="hover:underline"
+              >
+                Rever dados de contacto
+              </button>
+            </div>
+          </form>
+        )}
+      </main>
     </div>
   );
 }

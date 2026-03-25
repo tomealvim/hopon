@@ -181,11 +181,11 @@ export default function ScheduleScanner({ onScheduleExtracted, onCancel }: Sched
   return (
     <div className="bg-white rounded-2xl p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Digitalizar Horário</h2>
+        <h2 className="text-xl font-bold text-[#1A1C19]">Digitalizar Horário</h2>
         <button
           type="button"
           onClick={onCancel}
-          className="text-3xl text-gray-400 hover:text-gray-600 transition"
+          className="text-3xl text-[#717973] hover:text-[#414844] transition"
           aria-label="Fechar"
         >
           ×
@@ -214,25 +214,25 @@ export default function ScheduleScanner({ onScheduleExtracted, onCancel }: Sched
           />
           
           <div className="grid grid-cols-2 gap-4">
-            <label htmlFor="schedule-upload-camera" className="flex flex-col items-center justify-center gap-3 p-6 bg-gray-50 hover:bg-gray-100 border-2 border-gray-200 border-dashed rounded-xl cursor-pointer transition">
+            <label htmlFor="schedule-upload-camera" className="flex flex-col items-center justify-center gap-3 p-6 bg-[#f3f4ef] hover:bg-[#f3f4ef] border-2 border-[#e7e9e4] border-dashed rounded-xl cursor-pointer transition">
               <div className="text-5xl">📷</div>
-              <p className="text-sm font-medium text-gray-700">Tirar foto</p>
+              <p className="text-sm font-medium text-[#414844]">Tirar foto</p>
             </label>
             
-            <label htmlFor="schedule-upload-file" className="flex flex-col items-center justify-center gap-3 p-6 bg-gray-50 hover:bg-gray-100 border-2 border-gray-200 border-dashed rounded-xl cursor-pointer transition">
+            <label htmlFor="schedule-upload-file" className="flex flex-col items-center justify-center gap-3 p-6 bg-[#f3f4ef] hover:bg-[#f3f4ef] border-2 border-[#e7e9e4] border-dashed rounded-xl cursor-pointer transition">
               <div className="text-5xl">🖼️</div>
-              <p className="text-sm font-medium text-gray-700">Escolher ficheiro</p>
+              <p className="text-sm font-medium text-[#414844]">Escolher ficheiro</p>
             </label>
           </div>
         </div>
       ) : (
         <div className="space-y-4">
-          <img src={image} alt="Horário carregado" className="w-full rounded-xl border border-gray-200" />
+          <img src={image} alt="Horário carregado" className="w-full rounded-xl border border-[#e7e9e4]" />
 
           {isProcessing && (
             <div className="flex flex-col items-center gap-3 py-6">
               <Spinner size="lg" className="text-black" />
-              <p className="text-sm text-gray-600">A extrair texto com Google Vision...</p>
+              <p className="text-sm text-[#414844]">A extrair texto com Google Vision...</p>
             </div>
           )}
 
@@ -241,7 +241,7 @@ export default function ScheduleScanner({ onScheduleExtracted, onCancel }: Sched
               <button
                 type="button"
                 onClick={() => setImage(null)}
-                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition"
+                className="flex-1 px-4 py-3 border border-[#c1c8c2] text-[#414844] rounded-xl hover:bg-[#f3f4ef] transition"
               >
                 Escolher outra
               </button>

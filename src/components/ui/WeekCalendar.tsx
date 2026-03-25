@@ -28,8 +28,8 @@ export default function WeekCalendar({ schedule, onBlockClick, compact = false }
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
         <div className="text-5xl mb-3">📅</div>
-        <div className="text-sm font-semibold text-gray-900 mb-1">Sem horários adicionados</div>
-        <div className="text-xs text-gray-500">Adiciona horários para veres a tua agenda aqui</div>
+        <div className="text-sm font-semibold text-[#1A1C19] mb-1">Sem horários adicionados</div>
+        <div className="text-xs text-[#717973]">Adiciona horários para veres a tua agenda aqui</div>
       </div>
     );
   }
@@ -39,10 +39,10 @@ export default function WeekCalendar({ schedule, onBlockClick, compact = false }
       <div className="flex min-w-max">
         {/* Header com horas (coluna vazia + dias) */}
         <div className={`flex-shrink-0 ${timeColWidth}`}>
-          <div className={`${headerHeight} border-b border-gray-200`}></div>
+          <div className={`${headerHeight} border-b border-[#e7e9e4]`}></div>
           {HOURS.map(h => (
-            <div key={h} className="flex items-start border-b border-gray-100" style={{ height: `${hourHeight}px` }}>
-              <span className={`${compact ? 'text-[8px]' : 'text-[10px]'} text-gray-500 pt-0.5`}>{h.toString().padStart(2, "0")}:00</span>
+            <div key={h} className="flex items-start border-b border-[#e7e9e4]" style={{ height: `${hourHeight}px` }}>
+              <span className={`${compact ? 'text-[8px]' : 'text-[10px]'} text-[#717973] pt-0.5`}>{h.toString().padStart(2, "0")}:00</span>
             </div>
           ))}
         </div>
@@ -52,14 +52,14 @@ export default function WeekCalendar({ schedule, onBlockClick, compact = false }
           const daySchedule = dayMap.get(key);
           
           return (
-            <div key={key} className={`flex-shrink-0 ${dayColWidth} border-l border-gray-200`}>
-              <div className={`${headerHeight} flex items-center justify-center border-b border-gray-200`}>
-                <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-semibold text-gray-700`}>{short}</span>
+            <div key={key} className={`flex-shrink-0 ${dayColWidth} border-l border-[#e7e9e4]`}>
+              <div className={`${headerHeight} flex items-center justify-center border-b border-[#e7e9e4]`}>
+                <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-semibold text-[#414844]`}>{short}</span>
               </div>
               
               <div className="relative">
                 {HOURS.map(h => (
-                  <div key={h} className="border-b border-gray-100" style={{ height: `${hourHeight}px` }} />
+                  <div key={h} className="border-b border-[#e7e9e4]" style={{ height: `${hourHeight}px` }} />
                 ))}
                 
                 {/* Blocos de horários */}
