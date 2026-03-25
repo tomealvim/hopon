@@ -32,7 +32,6 @@ import CommunitiesSheet from "./components/profile/CommunitiesSheet";
 import RideRequestSheet from "./components/discover/RideRequestSheet";
 import RideSharePreview from "./pages/RideSharePreview";
 import PublicProfilePage from "./pages/PublicProfilePage";
-import LandingPage from "./pages/LandingPage";
 
 export type Tab = "discover" | "rides" | "inbox" | "profile";
 
@@ -231,17 +230,15 @@ function AppContent() {
   }
 
   if (isLoading) return <Loading message="A inicializar..." />;
-  if (!user) {
-    if (!authMode) return <LandingPage onStart={setAuthMode} />;
-    return <AuthPage initialMode={authMode} />;
-  }
   if (!hasSeenOnboarding) return (
     <OnboardingPageFull
-      onComplete={() => {
+      onComplete={(mode) => {
         setHasSeenOnboarding(true);
+        if (mode) setAuthMode(mode);
       }}
     />
   );
+  if (!user) return <AuthPage initialMode={authMode ?? "login"} />;
   if (!hasCompletedProfile) return <ProfileSetupPage />;
 
   return (
