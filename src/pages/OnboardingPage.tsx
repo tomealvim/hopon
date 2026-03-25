@@ -24,7 +24,7 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
       setCurrentScreen((prev) => (prev + 1) as OnboardingScreen);
     } else if (agreedToTerms) {
       localStorage.setItem(ONBOARDING_STORAGE_KEY, "true");
-      onComplete("register");
+      onComplete("login");
     }
   };
 

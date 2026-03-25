@@ -182,11 +182,11 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
         <div className="ml-auto w-10" />
       </nav>
 
-      <main className="flex-grow pt-24 px-6 pb-12 max-w-md mx-auto w-full flex flex-col">
+      <main className="flex-grow pt-20 px-6 pb-12 max-w-md mx-auto w-full flex flex-col justify-center gap-0">
         {view === 'form' ? (
           <>
             {/* Header */}
-            <header className="mt-8 mb-10">
+            <header className="mb-8">
               <h2 className="text-[1.75rem] font-noto-serif italic text-[#012d1d] leading-tight">
                 {mode === 'login' ? 'Inicia sessao na tua conta' : 'Criar uma nova conta'}
               </h2>
@@ -293,7 +293,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
             </button>
 
             {/* Switch mode */}
-            <footer className="mt-10 text-center">
+            <footer className="mt-8 text-center">
               <p className="text-[#414844]">
                 {mode === 'login' ? "Nao tens conta? " : "Ja tens conta? "}
                 <button
