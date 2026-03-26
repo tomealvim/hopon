@@ -968,8 +968,8 @@ Não é urgente — o Prisma escala bem até dezenas de milhares de utilizadores
 
 | # | Item | Estado |
 |---|---|---|
-| 14.2.1 | Integrar envio SMS via **Twilio** (ou alternativa mais barata quando houver volume) — substituir o `logger.log` atual no `sendOtp` para `channel=phone` pelo envio real de SMS | ⬜ Por fazer (pago — adiar para quando houver beta users) |
-| 14.2.2 | Rate limiting no envio de OTP por SMS (já existe para email — reutilizar) | ⬜ Por fazer |
+| 14.2.1 | Integrar envio SMS via **Twilio** (ou alternativa mais barata quando houver volume) — substituir o `logger.log` atual no `sendOtp` para `channel=phone` pelo envio real de SMS | ⏳ Adiado — implementar quando houver beta users (custo por SMS) |
+| 14.2.2 | Rate limiting no envio de OTP por SMS (já existe para email — reutilizar) | ⏳ Adiado — depende de 14.2.1 |
 | 14.2.3 | Guard em `POST /bookings` — bloquear se `phoneVerifiedAt` for null (com mensagem clara a pedir verificação) | ✅ Concluído |
 
 ### 14.3 — Frontend: UI de Verificação
@@ -1275,12 +1275,12 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 17.2.1 | Tab "AI" no InboxPage — ícone separado, interface de chat igual ao inbox | ⬜ Por fazer |
-| 17.2.2 | `AssistantModule` no backend — `POST /assistant/message` | ⬜ Por fazer |
-| 17.2.3 | Integração Claude API (Haiku para custo baixo) com system prompt contextualizado (rotas do user, boleias disponíveis) | ⬜ Por fazer |
-| 17.2.4 | Bot usa algoritmo 17.1 internamente para responder a perguntas de "chegar a tempo" | ⬜ Por fazer |
-| 17.2.5 | Respostas com ações inline: card de boleia + botão "Reservar" diretamente no chat | ⬜ Por fazer |
-| 17.2.6 | Histórico de conversa por utilizador (persistido em DB, janela de contexto máx. 20 mensagens) | ⬜ Por fazer |
+| 17.2.1 | Tab "AI" no InboxPage — ícone separado, interface de chat igual ao inbox | ⏳ v2 — adiado |
+| 17.2.2 | `AssistantModule` no backend — `POST /assistant/message` | ⏳ v2 — adiado |
+| 17.2.3 | Integração Claude API (Haiku para custo baixo) com system prompt contextualizado (rotas do user, boleias disponíveis) | ⏳ v2 — adiado |
+| 17.2.4 | Bot usa algoritmo 17.1 internamente para responder a perguntas de "chegar a tempo" | ⏳ v2 — adiado |
+| 17.2.5 | Respostas com ações inline: card de boleia + botão "Reservar" diretamente no chat | ⏳ v2 — adiado |
+| 17.2.6 | Histórico de conversa por utilizador (persistido em DB, janela de contexto máx. 20 mensagens) | ⏳ v2 — adiado |
 
 **Env vars necessárias:**
 ```
