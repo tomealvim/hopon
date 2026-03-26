@@ -970,7 +970,7 @@ Não é urgente — o Prisma escala bem até dezenas de milhares de utilizadores
 |---|---|---|
 | 14.2.1 | Integrar envio SMS via **Twilio** (ou alternativa mais barata quando houver volume) — substituir o `logger.log` atual no `sendOtp` para `channel=phone` pelo envio real de SMS | ⬜ Por fazer (pago — adiar para quando houver beta users) |
 | 14.2.2 | Rate limiting no envio de OTP por SMS (já existe para email — reutilizar) | ⬜ Por fazer |
-| 14.2.3 | Guard em `POST /bookings` — bloquear se `phoneVerifiedAt` for null (com mensagem clara a pedir verificação) | ⬜ Por fazer |
+| 14.2.3 | Guard em `POST /bookings` — bloquear se `phoneVerifiedAt` for null (com mensagem clara a pedir verificação) | ✅ Concluído |
 
 ### 14.3 — Frontend: UI de Verificação
 
@@ -1058,9 +1058,9 @@ O nº do Cartão de Cidadão deve aparecer na foto da carta de condução para c
 
 | # | Item | Estado |
 |---|---|---|
-| 15.5.1 | Adicionar passo de permissão de localização no `OnboardingPage` — antes do utilizador entrar no app, pedir `navigator.geolocation.getCurrentPosition` com mensagem clara: "Para encontrares boleias perto de ti precisamos da tua localização" | ⬜ Por fazer |
-| 15.5.2 | Se o utilizador recusar, guardar preferência e não voltar a pedir (usar fallback de pesquisa por texto) | ⬜ Por fazer |
-| 15.5.3 | Mostrar badge "Localização ativa" no feed com raio atual (ex: "Boleias a menos de 10 km") | ⬜ Por fazer |
+| 15.5.1 | Adicionar passo de permissão de localização no `OnboardingPage` — antes do utilizador entrar no app, pedir `navigator.geolocation.getCurrentPosition` com mensagem clara: "Para encontrares boleias perto de ti precisamos da tua localização" | ✅ Concluído |
+| 15.5.2 | Se o utilizador recusar, guardar preferência e não voltar a pedir (usar fallback de pesquisa por texto) | ✅ Concluído |
+| 15.5.3 | Mostrar badge "Localização ativa" no feed com raio atual (ex: "Boleias a menos de 10 km") | ✅ Concluído |
 | 15.5.4 | Ordenação "Para Ti" por proximidade GPS + hora de partida (já implementado — depende da permissão aceite) | ✅ Concluído |
 
 ---
@@ -1093,7 +1093,7 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 |---|---|---|
 | 15.3.1 | Contar cancelamentos de última hora (<2h) por utilizador nos últimos 30 dias — rolling window via `lateCancelCount` + `lateCancelWindowStart` | ✅ Concluído |
 | 15.3.2 | Ao 3.º cancelamento: suspensão automática (`suspendedAt`) — impedido de criar boleias | ✅ Concluído |
-| 15.3.3 | Ao 5.º: notificação in-app + email (low priority) | ⬜ Por fazer |
+| 15.3.3 | Ao 5.º: notificação in-app + email (low priority) | ✅ Concluído |
 
 ### 15b.4 — Reserva instantânea (auto-accept)
 
@@ -1194,7 +1194,7 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 |---|---|---|
 | 16.5.1 | Feed personalizado baseado em UserRoutes + horário habitual — aparece ao abrir a app | ✅ Concluído (`DiscoverPage.tsx`) |
 | 16.5.2 | Secção "Para amanhã" — boleias que batem com a rota do user no dia seguinte | ✅ Concluído (`DiscoverPage.tsx`) |
-| 16.5.3 | Secção "Habituais" — condutores com quem o user já viajou e têm boleia disponível | ⚠️ Parcial (clustering por data implementado; "habituais" por histórico não confirmado) |
+| 16.5.3 | Secção "Habituais" — condutores com quem o user já viajou e têm boleia disponível | ✅ Concluído (familiarDriverIds via pastBookings CONFIRMED + section 'familiar') |
 | 16.5.4 | Ordenação por score composto: sobreposição de rota + fiabilidade do condutor + reviews + distância ao passageiro | ✅ Concluído |
 
 ### 16.6 — Comunidades (empresa / faculdade)
@@ -1245,12 +1245,12 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 | # | Item | Estado |
 |---|---|---|
-| 17.1.1 | Endpoint `GET /rides/arrive-by?destination=<placeId>&arriveBy=<ISO>&date=<YYYY-MM-DD>` — devolve lista de combinações viáveis ordenadas por score | ⬜ Por fazer |
-| 17.1.2 | Integrar Google Walking Directions API no backend para calcular tempo a pé (ponto de chegada da boleia → destino final) | ⬜ Por fazer |
-| 17.1.3 | Score de viabilidade: `margin = arriveBy - (rideArrival + walkingMinutes)` — só mostrar se margem ≥ 0 | ⬜ Por fazer |
-| 17.1.4 | Frontend: novo modo de pesquisa "Chegar a tempo" no DiscoverPage — input destino + hora de chegada | ⬜ Por fazer |
-| 17.1.5 | Card de resultado mostra: boleia + "X min a pé" + "Chegas às HH:MM" | ⬜ Por fazer |
-| 17.1.6 | Margem configurável pelo utilizador (ex: "quero pelo menos 10 min de margem") | ⬜ Por fazer |
+| 17.1.1 | Endpoint `GET /rides/arrive-by?destination=<placeId>&arriveBy=<ISO>&date=<YYYY-MM-DD>` — devolve lista de combinações viáveis ordenadas por score | ✅ Concluído |
+| 17.1.2 | Integrar Google Walking Directions API no backend para calcular tempo a pé (ponto de chegada da boleia → destino final) | ✅ Concluído |
+| 17.1.3 | Score de viabilidade: `margin = arriveBy - (rideArrival + walkingMinutes)` — só mostrar se margem ≥ 0 | ✅ Concluído |
+| 17.1.4 | Frontend: novo modo de pesquisa "Chegar a tempo" no DiscoverPage — input destino + hora de chegada | ✅ Concluído |
+| 17.1.5 | Card de resultado mostra: boleia + "X min a pé" + "Chegas às HH:MM" | ✅ Concluído |
+| 17.1.6 | Margem configurável pelo utilizador (ex: "quero pelo menos 10 min de margem") | ✅ Concluído |
 
 **APIs necessárias:**
 - Google Directions API (modo walking) — já tens a chave configurada
@@ -1304,3 +1304,22 @@ ANTHROPIC_API_KEY=sk-ant-...
 > Feature para uma segunda versão da app — após lançamento com utilizadores reais e validação do produto core. O 17.1 resolve o problema sem precisar de AI. O assistente é um "nice to have" que adiciona custo e complexidade sem ser essencial para a v1.
 
 Ver detalhe acima — implementar apenas após 17.1 estar sólido e com feedback real de utilizadores.
+
+---
+
+## Fase 18 — Redesign UI/UX
+
+> Polimento visual da app com foco em consistência, espaçamento e fluxo de navegação.
+
+### 18.1 — Fundacao do redesign ✅
+
+| # | Item | Estado |
+|---|---|---|
+| 18.1.1 | Design system verde aplicado globalmente (tokens: `#F9FAF5`, `#1B4332`, `#52B788`, etc.) | ✅ Concluído |
+| 18.1.2 | Navbar em fluxo normal (sem `position: fixed`) — elimina sobreposicao sobre conteudo | ✅ Concluído |
+| 18.1.3 | FAB "Postar" contido dentro da altura da navbar (circulo verde com icone `add`) | ✅ Concluído |
+| 18.1.4 | AuthPage com header em fluxo normal igual ao Onboarding (HopOn na mesma posicao em todos os ecras) | ✅ Concluído |
+| 18.1.5 | AuthPage mostra login por defeito ao sair do Onboarding (opcao de criar conta disponivel) | ✅ Concluído |
+| 18.1.6 | Conteudo da AuthPage centrado verticalmente | ✅ Concluído |
+
+> Commits: `fix: navbar in-flow layout e FAB contido na barra`, `fix: AuthPage header em fluxo normal igual ao Onboarding`

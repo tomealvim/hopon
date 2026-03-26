@@ -371,6 +371,10 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         setOpenPassengerPolicy(true);
         return;
       }
+      if (msg.includes("PHONE_NOT_VERIFIED")) {
+        showError("Telemóvel não verificado", "Para reservar boleias precisas de verificar o teu telemóvel. Vai ao teu Perfil → Verificações.");
+        return;
+      }
       if (msg.toLowerCase().includes("verific") && msg.toLowerCase().includes("email")) {
         showError("Email não confirmado", "Confirma o teu email no Perfil → Verificações antes de reservar.");
         return;

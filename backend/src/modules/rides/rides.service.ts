@@ -1191,9 +1191,15 @@ export class RidesService {
           console.warn(`[RidesService] Utilizador ${userId} auto-suspenso após ${newCount} cancelamentos de última hora`);
         }
 
-        // Aviso por email ao 5.º cancelamento de última hora
+        // Aviso in-app + email ao 5.º cancelamento de última hora
         if (newCount === 5) {
           const userName = fullUser.profile?.name ?? fullUser.email;
+          void this.notificationsService.createNotification(
+            userId,
+            'late_cancel_warning',
+            'Aviso de cancelamentos',
+            `Cancelaste ${newCount} boleias de última hora nos últimos 30 dias. Ao próximo cancelamento a tua conta pode ser suspensa.`,
+          );
           void this.notificationsService.queueLateCancelWarningEmail(fullUser.email, userName, newCount);
         }
       }

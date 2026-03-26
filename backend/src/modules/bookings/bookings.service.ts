@@ -101,13 +101,16 @@ export class BookingsService {
   }
 
   async create(userId: string, rideId: string, dto: CreateBookingDto) {
-    // Verificar se o passageiro aceitou a política de viagens
+    // Verificar se o passageiro aceitou a política de viagens e tem telemóvel verificado
     const passenger = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { passengerPolicyAcceptedAt: true },
+      select: { passengerPolicyAcceptedAt: true, phoneVerifiedAt: true },
     });
     if (!passenger?.passengerPolicyAcceptedAt) {
       throw new ForbiddenException('PASSENGER_POLICY_NOT_ACCEPTED');
+    }
+    if (!passenger?.phoneVerifiedAt) {
+      throw new ForbiddenException('PHONE_NOT_VERIFIED');
     }
 
     const isStripePayment = !!dto.stripePaymentIntentId;
