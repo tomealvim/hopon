@@ -16,6 +16,7 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
   const [currentScreen, setCurrentScreen] = useState<OnboardingScreen>(1);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [locationDenied, setLocationDenied] = useState(false);
   const isFinalScreen = currentScreen === 5;
   const isLocationScreen = currentScreen === 4;
 
@@ -42,9 +43,17 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
   };
 
   const handleAllowLocation = () => {
+    setLocationDenied(false);
     navigator.geolocation.getCurrentPosition(
       () => { localStorage.setItem(LOCATION_PERMISSION_KEY, "granted"); advance(); },
-      () => { localStorage.setItem(LOCATION_PERMISSION_KEY, "declined"); advance(); },
+      (err) => {
+        localStorage.setItem(LOCATION_PERMISSION_KEY, "declined");
+        if (err.code === 1) { // PERMISSION_DENIED
+          setLocationDenied(true);
+        } else {
+          advance();
+        }
+      },
       { timeout: 8000 },
     );
   };
@@ -76,7 +85,7 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
         {currentScreen === 1 && <Screen1 />}
         {currentScreen === 2 && <Screen2 />}
         {currentScreen === 3 && <Screen3 />}
-        {currentScreen === 4 && <Screen4Location onAllow={handleAllowLocation} />}
+        {currentScreen === 4 && <Screen4Location onAllow={handleAllowLocation} denied={locationDenied} onContinue={advance} />}
         {currentScreen === 5 && (
           <Screen5Terms
             agreedToTerms={agreedToTerms}
@@ -115,12 +124,12 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
                 ? "bg-transparent text-[#717973] px-6 h-12 rounded-full text-sm"
                 : "bg-[#1B4332] text-white px-6 h-14 rounded-full text-[15px] shadow-md"
           )}
-          aria-label={isFinalScreen ? "Comecar" : isLocationScreen ? "Agora nao" : "Seguinte"}
+          aria-label={isFinalScreen ? "Começar" : isLocationScreen ? "Agora não" : "Seguinte"}
         >
           {isFinalScreen ? (
-            <>Comecar <span className="material-symbols-outlined text-xl">arrow_forward</span></>
+            <>Começar <span className="material-symbols-outlined text-xl">arrow_forward</span></>
           ) : isLocationScreen ? (
-            <span>Agora nao</span>
+            <span>Agora não</span>
           ) : (
             <>Seguinte <span className="material-symbols-outlined text-xl">arrow_forward</span></>
           )}
@@ -137,8 +146,8 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
             </section>
           ))}
           <p className="text-xs text-[#717973]">
-            Estes Termos e Condicoes sao preliminares e serao validados juridicamente antes do
-            lancamento publico. Ultima atualizacao: {TERMS_LAST_UPDATED}.
+            Estes Termos e Condições são preliminares e serão validados juridicamente antes do
+            lançamento público. Última atualização: {TERMS_LAST_UPDATED}.
           </p>
         </div>
       </Sheet>
@@ -146,7 +155,7 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
   );
 }
 
-// ─── Ecra 1: Boas-vindas com beneficios ──────────────────────────────────────
+// ─── Ecrã 1: Boas-vindas com benefícios ──────────────────────────────────────
 function Screen1() {
   const benefits = [
     { icon: "savings",        text: "Poupar dinheiro nas viagens" },
@@ -162,7 +171,7 @@ function Screen1() {
           HopOn
         </h1>
         <p className="text-[15px] text-[#414844]">
-          Vamos viajar juntos e tornar cada boleia mais simples, segura e economica.
+          Vamos viajar juntos e tornar cada boleia mais simples, segura e económica.
         </p>
       </div>
       <div className="space-y-3">
@@ -184,7 +193,7 @@ function Screen1() {
   );
 }
 
-// ─── Ecra 2: Encontrar uma boleia ─────────────────────────────────────────────
+// ─── Ecrã 2: Encontrar uma boleia ─────────────────────────────────────────────
 function Screen2() {
   return (
     <div className="w-full max-w-sm mx-auto text-center space-y-6">
@@ -202,14 +211,14 @@ function Screen2() {
           Encontrar uma boleia
         </h1>
         <p className="text-[14px] text-[#414844] leading-relaxed">
-          Solicita uma boleia e se recolhido no mesmo percurso pelo condutor. Sabes sempre quem te leva e quando.
+          Solicita uma boleia e sê recolhido no mesmo percurso pelo condutor. Sabes sempre quem te leva e quando.
         </p>
       </div>
     </div>
   );
 }
 
-// ─── Ecra 3: Publicar uma boleia ──────────────────────────────────────────────
+// ─── Ecrã 3: Publicar uma boleia ──────────────────────────────────────────────
 function Screen3() {
   return (
     <div className="w-full max-w-sm mx-auto text-center space-y-6">
@@ -227,19 +236,19 @@ function Screen3() {
           Publicar uma boleia
         </h1>
         <p className="text-[14px] text-[#414844] leading-relaxed">
-          Publica uma boleia e recolhe passageiros pelo caminho. Decide o percurso e mantem o carro cheio.
+          Publica uma boleia e recolhe passageiros pelo caminho. Decide o percurso e mantém o carro cheio.
         </p>
       </div>
     </div>
   );
 }
 
-// ─── Ecra 4: Permissao de localizacao ─────────────────────────────────────────
-function Screen4Location({ onAllow }: { onAllow: () => void }) {
+// ─── Ecrã 4: Permissão de localização ─────────────────────────────────────────
+function Screen4Location({ onAllow, denied, onContinue }: { onAllow: () => void; denied: boolean; onContinue: () => void }) {
   const benefits = [
-    "Boleias ordenadas pela distancia a ti",
-    "Sugestoes automaticas para o teu trajeto",
-    "Alerta quando ha boleia disponivel perto",
+    "Boleias ordenadas pela distância a ti",
+    "Sugestões automáticas para o teu trajeto",
+    "Alerta quando há boleia disponível perto",
   ];
   return (
     <div className="w-full max-w-sm mx-auto text-center space-y-8">
@@ -256,7 +265,7 @@ function Screen4Location({ onAllow }: { onAllow: () => void }) {
           Boleias perto de ti
         </h1>
         <p className="text-[14px] text-[#414844] leading-relaxed">
-          Para encontrares boleias na tua zona e receberes sugestoes personalizadas, precisamos de saber onde estas.
+          Para encontrares boleias na tua zona e receberes sugestões personalizadas, precisamos de saber onde estás.
         </p>
       </div>
       <div className="space-y-3 text-left">
@@ -272,19 +281,38 @@ function Screen4Location({ onAllow }: { onAllow: () => void }) {
           </div>
         ))}
       </div>
-      <button
-        type="button"
-        onClick={onAllow}
-        className="w-full h-14 rounded-full bg-[#1B4332] text-white font-bold text-[15px] transition active:scale-95 shadow-lg shadow-[#1B4332]/20 flex items-center justify-center gap-2"
-      >
-        <span className="material-symbols-outlined text-xl">my_location</span>
-        Permitir localizacao
-      </button>
+      {denied ? (
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-left">
+            <span className="material-symbols-outlined text-amber-600 text-xl flex-shrink-0 mt-0.5">warning</span>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-amber-800">Localização bloqueada</p>
+              <p className="text-xs text-amber-700">Para ativar: Definições do iPhone - Safari - Localização - Perguntar</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onContinue}
+            className="w-full h-12 rounded-full bg-[#edeee9] text-[#1B4332] font-bold text-[15px] transition active:scale-95"
+          >
+            Continuar sem localização
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onAllow}
+          className="w-full h-14 rounded-full bg-[#1B4332] text-white font-bold text-[15px] transition active:scale-95 shadow-lg shadow-[#1B4332]/20 flex items-center justify-center gap-2"
+        >
+          <span className="material-symbols-outlined text-xl">my_location</span>
+          Permitir localização
+        </button>
+      )}
     </div>
   );
 }
 
-// ─── Ecra 5: Termos e condicoes ────────────────────────────────────────────────
+// ─── Ecrã 5: Termos e condições ────────────────────────────────────────────────
 function Screen5Terms({
   agreedToTerms,
   onAgreeChange,
@@ -305,7 +333,7 @@ function Screen5Terms({
         <p className="text-sm tracking-[0.4em] uppercase text-[#717973]">Vamos viajar juntos</p>
       </div>
       <p className="text-base text-[#414844] leading-relaxed px-2">
-        Para comecares a usar a partilha de boleias, por favor concorda com os nossos{" "}
+        Para começares a usar a partilha de boleias, por favor concorda com os nossos{" "}
         <button
           type="button"
           onClick={onOpenTerms}
@@ -327,17 +355,17 @@ function Screen5Terms({
           )}
         </span>
         <span className="text-sm text-[#414844] leading-relaxed">
-          Concordo com os termos e condicoes da partilha de boleias e confirmo que os li com atencao.
+          Concordo com os termos e condições da partilha de boleias e confirmo que os li com atenção.
         </span>
       </label>
       <p className="text-sm text-[#717973]">
-        Ja tens conta?{" "}
+        Já tens conta?{" "}
         <button
           type="button"
           onClick={onLogin}
           className="font-bold text-[#1B4332] underline underline-offset-2 decoration-[#52B788]/60"
         >
-          Iniciar sessao
+          Iniciar sessão
         </button>
       </p>
     </div>
@@ -353,7 +381,7 @@ export function hasCompletedOnboarding(): boolean {
 export function resetOnboarding(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(ONBOARDING_STORAGE_KEY);
-  console.log("Onboarding resetado! Recarrega a pagina para ver o onboarding novamente.");
+  console.log("Onboarding resetado! Recarrega a página para ver o onboarding novamente.");
 }
 
 if (typeof window !== "undefined") {
