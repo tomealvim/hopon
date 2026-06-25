@@ -484,16 +484,17 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
   }
 
   return (
-    <div className="relative min-h-screen pb-32 bg-[#F9FAF5] text-[#1A1C19] overflow-hidden">
+    <div className="relative min-h-screen pb-32 bg-[#F9FAF5] text-[#1A1C19]">
       {/* Glow de fundo verde suave */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="fixed inset-0 pointer-events-none -z-10">
         <div className="absolute -top-24 -left-10 w-[28rem] h-[28rem] bg-[#52B788]/5 blur-[180px]" />
         <div className="absolute top-32 right-0 w-[24rem] h-[24rem] bg-[#95D5B2]/5 blur-[160px]" />
       </div>
 
       <div className="relative z-10">
-      {/* ========== HEADER ========== */}
-      <section className="mt-6 mb-4 mx-4">
+      {/* ========== HEADER + TABS (sticky) ========== */}
+      <div className="sticky top-0 z-40 bg-[#F9FAF5] border-b border-[#D0E8DC]/40">
+      <section className="pt-6 pb-4 mx-4">
         <div className="flex items-center gap-4">
           {/* Avatar */}
           <div className="w-16 h-16 rounded-full bg-[#1B4332] text-white flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden ring-2 ring-[#52B788]/30" aria-hidden>
@@ -528,7 +529,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
       </section>
 
       {/* ========== NAVEGACAO RAPIDA ========== */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-none px-4 mb-4 pb-1">
+      <div className="flex gap-2 overflow-x-auto scrollbar-none px-4 pb-4">
         {([
           { key: "overview", label: "Geral" },
           { key: "driver", label: "Condutor" },
@@ -548,6 +549,9 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           </button>
         ))}
       </div>
+      </div>{/* fim sticky header+tabs */}
+
+      <div className="h-4" />
 
       {/* ========== BLOCO 1: O MEU HORÁRIO ========== */}
       {profileSection === "driver" && (

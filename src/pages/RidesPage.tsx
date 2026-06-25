@@ -534,7 +534,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
             </header>
 
             {/* Tab selector: Condutor / Passageiro */}
-            <div className="flex gap-2 pt-4 pb-4 mb-2">
+            <div className="sticky top-0 z-30 flex gap-2 pt-4 pb-4 mb-2 -mx-4 px-4 bg-[#F9FAF5] border-b border-[#D0E8DC]/40">
               {(["driver", "passenger"] as const).map((t) => (
                 <button
                   key={t}

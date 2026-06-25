@@ -31,6 +31,8 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
   const otpLength = 6;
   const [otpDigits, setOtpDigits] = useState<string[]>(Array(otpLength).fill(''));
   const [otpError, setOtpError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const handleInputChange = (field: string, value: string) => {
@@ -218,13 +220,23 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
                     </button>
                   )}
                 </div>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="w-full h-14 px-4 bg-[#edeee9] border-none rounded-lg text-[#1A1C19] placeholder:text-[#717973]/50 focus:outline-none focus:ring-2 focus:ring-[#012d1d]/25 transition-all"
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    className="w-full h-14 px-4 pr-12 bg-[#edeee9] border-none rounded-lg text-[#1A1C19] placeholder:text-[#717973]/50 focus:outline-none focus:ring-2 focus:ring-[#012d1d]/25 transition-all"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#717973] hover:text-[#1A1C19] transition-colors p-1"
+                    aria-label={showPassword ? "Esconder palavra-passe" : "Mostrar palavra-passe"}
+                  >
+                    <span className="material-symbols-outlined text-xl">{showPassword ? "visibility_off" : "visibility"}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Confirm password (register only) */}
@@ -233,13 +245,23 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
                   <label className="block text-[0.7rem] font-semibold uppercase tracking-wider text-[#717973] px-1">
                     Confirmar Palavra-passe
                   </label>
-                  <input
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    className="w-full h-14 px-4 bg-[#edeee9] border-none rounded-lg text-[#1A1C19] placeholder:text-[#717973]/50 focus:outline-none focus:ring-2 focus:ring-[#012d1d]/25 transition-all"
-                    placeholder="••••••••"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={formData.confirmPassword}
+                      onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                      className="w-full h-14 px-4 pr-12 bg-[#edeee9] border-none rounded-lg text-[#1A1C19] placeholder:text-[#717973]/50 focus:outline-none focus:ring-2 focus:ring-[#012d1d]/25 transition-all"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#717973] hover:text-[#1A1C19] transition-colors p-1"
+                      aria-label={showConfirmPassword ? "Esconder palavra-passe" : "Mostrar palavra-passe"}
+                    >
+                      <span className="material-symbols-outlined text-xl">{showConfirmPassword ? "visibility_off" : "visibility"}</span>
+                    </button>
+                  </div>
                 </div>
               )}
 

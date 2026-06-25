@@ -83,6 +83,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
+  // Refrescar dados do utilizador quando a app ganha foco (volta ao tab / PWA)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        const token = localStorage.getItem(STORAGE_KEY_TOKEN);
+        if (!token) return;
+        apiRequest<User>("/auth/me").then(setUser).catch(() => {});
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   const login = async (email: string, password: string) => {
     try {
       const data = await apiRequest<{ accessToken: string; refreshToken: string; user: User }>("/auth/login", {

@@ -20,6 +20,7 @@ const heightClass: Record<Altura, string> = {
 
 function Sheet({ open, onClose, title, children, footer, height = "md" }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ startY: number; dragging: boolean } | null>(null);
   const [dragY, setDragY] = useState(0);
 
@@ -29,11 +30,73 @@ function Sheet({ open, onClose, title, children, footer, height = "md" }: Props)
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Reset drag offset when sheet opens/closes
   useEffect(() => {
     setDragY(0);
   }, [open]);
 
+  // Bloquear scroll do fundo quando a sheet está aberta
+  useEffect(() => {
+    if (open) {
+      document.body.classList.add("sheet-open");
+    } else {
+      document.body.classList.remove("sheet-open");
+    }
+    return () => document.body.classList.remove("sheet-open");
+  }, [open]);
+
+  // Swipe-to-close a partir do corpo da sheet (quando conteúdo está no topo)
+  useEffect(() => {
+    if (!open) return;
+    const bodyEl = bodyRef.current;
+    if (!bodyEl) return;
+
+    let startY = 0;
+    let active = false;
+    let currentDragY = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      startY = e.touches[0].clientY;
+      active = false;
+      currentDragY = 0;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      const delta = e.touches[0].clientY - startY;
+      if (!active) {
+        // Só ativa se o conteúdo está no topo e o gesto é claramente para baixo
+        if (bodyEl.scrollTop <= 0 && delta > 10) {
+          active = true;
+        } else {
+          return;
+        }
+      }
+      e.preventDefault();
+      currentDragY = Math.max(0, delta);
+      setDragY(currentDragY);
+    };
+
+    const onTouchEnd = () => {
+      if (active && currentDragY > 120) {
+        onClose();
+      } else {
+        setDragY(0);
+      }
+      active = false;
+      currentDragY = 0;
+    };
+
+    bodyEl.addEventListener("touchstart", onTouchStart, { passive: true });
+    bodyEl.addEventListener("touchmove", onTouchMove, { passive: false });
+    bodyEl.addEventListener("touchend", onTouchEnd);
+
+    return () => {
+      bodyEl.removeEventListener("touchstart", onTouchStart);
+      bodyEl.removeEventListener("touchmove", onTouchMove);
+      bodyEl.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [open, onClose]);
+
+  // Drag pelo handle e cabeçalho (pointer events)
   function onPointerDown(e: React.PointerEvent) {
     dragState.current = { startY: e.clientY, dragging: true };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -42,15 +105,12 @@ function Sheet({ open, onClose, title, children, footer, height = "md" }: Props)
   function onPointerMove(e: React.PointerEvent) {
     if (!dragState.current?.dragging) return;
     const delta = e.clientY - dragState.current.startY;
-    setDragY(Math.max(0, delta)); // só deixa arrastar para baixo
+    setDragY(Math.max(0, delta));
   }
 
   function onPointerUp() {
     if (!dragState.current) return;
-    const threshold = 120;
-    if (dragY > threshold) {
-      onClose();
-    }
+    if (dragY > 120) onClose();
     dragState.current = null;
     setDragY(0);
   }
@@ -61,18 +121,15 @@ function Sheet({ open, onClose, title, children, footer, height = "md" }: Props)
 
   return (
     <div className={cn("sheet", !open && "sheet-hidden")}>
-      {/* fundo */}
       <div
         className={cn("sheet-backdrop", open ? "sheet-backdrop--open" : "sheet-backdrop--closed")}
         onClick={onClose}
       />
-      {/* painel */}
       <div
         ref={panelRef}
         className={cn("sheet-panel", open ? "sheet-panel--open" : "sheet-panel--closed", heightClass[height])}
         style={panelStyle}
       >
-        {/* handle — zona de drag */}
         <div
           className="sheet-handle cursor-grab active:cursor-grabbing touch-none"
           onPointerDown={onPointerDown}
@@ -87,7 +144,7 @@ function Sheet({ open, onClose, title, children, footer, height = "md" }: Props)
         >
           <h3 className="sheet-title">{title}</h3>
         </div>
-        <div className="sheet-body">{children}</div>
+        <div ref={bodyRef} className="sheet-body">{children}</div>
         {footer && <div className="sheet-foot">{footer}</div>}
       </div>
     </div>

@@ -50,7 +50,7 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
   };
 
   return (
-    <div className="min-h-[100svh] bg-[#F9FAF5] flex flex-col font-manrope text-[#1A1C19]"
+    <div className="h-[100svh] overflow-hidden bg-[#F9FAF5] flex flex-col font-manrope text-[#1A1C19]"
       style={{ padding: "1.5rem 1.5rem calc(1rem + env(safe-area-inset-bottom))" }}
     >
       {/* Header */}
@@ -71,21 +71,8 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
         <span className="text-sm font-medium text-[#717973]">{currentScreen}/5</span>
       </div>
 
-      {/* Progress bar */}
-      <div className="h-1 bg-[#e7e9e4] rounded-full mb-8">
-        <div
-          className="h-1 bg-[#52B788] rounded-full transition-all duration-300"
-          style={{ width: `${(currentScreen / 5) * 100}%` }}
-        />
-      </div>
-
       {/* Content */}
-      <div
-        className={cn(
-          "flex-1 w-full max-w-md mx-auto flex flex-col",
-          currentScreen === 1 ? "justify-end pb-10" : "justify-center pb-12"
-        )}
-      >
+      <div className="flex-1 w-full max-w-md mx-auto flex flex-col justify-start pt-4">
         {currentScreen === 1 && <Screen1 />}
         {currentScreen === 2 && <Screen2 />}
         {currentScreen === 3 && <Screen3 />}
@@ -102,6 +89,14 @@ export default function OnboardingPage({ onComplete }: OnboardingPageProps) {
             termsTitle={TERMS_TITLE}
           />
         )}
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-1 bg-[#e7e9e4] rounded-full mb-4 w-full max-w-md mx-auto">
+        <div
+          className="h-1 bg-[#52B788] rounded-full transition-all duration-300"
+          style={{ width: `${(currentScreen / 5) * 100}%` }}
+        />
       </div>
 
       {/* Footer navigation */}

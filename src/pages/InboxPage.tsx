@@ -126,7 +126,7 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
   }
 
   return (
-    <main className="relative min-h-screen px-4 pb-32 bg-[#F9FAF5] text-[#1A1C19] overflow-hidden" role="main" aria-label="Caixa de entrada">
+    <main className="relative min-h-screen px-4 pb-32 bg-[#F9FAF5] text-[#1A1C19]" role="main" aria-label="Caixa de entrada">
       <div className="relative z-10">
         {error && (
           <div className="bg-[#ffdad6] border border-[#ba1a1a]/20 text-[#ba1a1a] px-4 py-3 rounded-lg mb-4" role="alert" aria-live="polite">

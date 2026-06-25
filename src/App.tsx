@@ -279,7 +279,7 @@ function AppContent() {
         </header>
       )}
 
-      <div className="flex-1 overflow-y-auto min-h-0 scrollbar-none">
+      <div className="flex-1 overflow-y-auto min-h-0 scrollbar-none overscroll-y-none">
       <main>
         {tab === "discover" && (
           <DiscoverPage
