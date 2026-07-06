@@ -49,7 +49,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
     try {
       if (mode === 'login') {
         if (!formData.email || !formData.password) {
-          showError("Campos obrigatorios", "Preenche email e palavra-passe");
+          showError("Campos obrigatórios", "Preenche email e palavra-passe");
           return;
         }
         try {
@@ -59,12 +59,12 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
         } catch (err) {
           const message = err instanceof Error ? err.message : null;
           console.error("Erro no login:", err);
-          showError("Erro no login", message ?? "Credenciais invalidas. Verifica o email e palavra-passe.");
+          showError("Erro no login", message ?? "Credenciais inválidas. Verifica o email e palavra-passe.");
           return;
         }
       } else {
         if (!formData.email || !formData.password) {
-          showError("Campos obrigatorios", "Preenche email e palavra-passe");
+          showError("Campos obrigatórios", "Preenche email e palavra-passe");
           return;
         }
         if (formData.password.length < 6) {
@@ -72,7 +72,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
           return;
         }
         if (formData.password !== formData.confirmPassword) {
-          showError("Palavras-passe diferentes", "As palavras-passe nao coincidem");
+          showError("Palavras-passe diferentes", "As palavras-passe não coincidem");
           return;
         }
         try {
@@ -82,13 +82,13 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
         } catch (err) {
           const message = err instanceof Error ? err.message : null;
           console.error("Erro no registo:", err);
-          showError("Erro no registo", message ?? "Nao foi possivel criar a conta. Tenta novamente.");
+          showError("Erro no registo", message ?? "Não foi possível criar a conta. Tenta novamente.");
           return;
         }
       }
     } catch (error) {
       console.error('Erro na autenticacao:', error);
-      showError("Erro na autenticacao", "Tenta novamente.");
+      showError("Erro na autenticação", "Tenta novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -115,11 +115,11 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otpDigits.some((digit) => !digit)) {
-      setOtpError("Introduz o codigo completo");
+      setOtpError("Introduz o código completo");
       return;
     }
     if (!pendingAuth) {
-      showError("Sessao expirada", "Recomeca o processo de autenticacao.");
+      showError("Sessão expirada", "Recomeça o processo de autenticação.");
       setView('form');
       return;
     }
@@ -136,7 +136,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
       setPendingAuth(null);
     } catch (error) {
       console.error('Erro na autenticacao:', error);
-      showError("Erro na autenticacao", "Tenta novamente.");
+      showError("Erro na autenticação", "Tenta novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -144,7 +144,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
 
   const handleResendCode = () => {
     setOtpDigits(Array(otpLength).fill(''));
-    setOtpError("Enviamos um novo codigo.");
+    setOtpError("Enviámos um novo código.");
     otpRefs.current[0]?.focus();
   };
 
@@ -185,7 +185,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
             {/* Header */}
             <header className="mb-8">
               <h2 className="text-[1.75rem] font-noto-serif italic text-[#012d1d] leading-tight">
-                {mode === 'login' ? 'Inicia sessao na tua conta' : 'Criar uma nova conta'}
+                {mode === 'login' ? 'Inicia sessão na tua conta' : 'Criar uma nova conta'}
               </h2>
               {mode === 'login' && (
                 <p className="text-[#414844] text-base mt-2">Bem-vindo de volta a HopOn.</p>
@@ -197,7 +197,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
               {/* Email */}
               <div className="space-y-1.5">
                 <label className="block text-[0.7rem] font-semibold uppercase tracking-wider text-[#717973] px-1">
-                  Email / Telefone
+                  Email
                 </label>
                 <input
                   type="email"
@@ -275,7 +275,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
-                    <span>{mode === 'login' ? 'Iniciar Sessao' : 'Criar Conta'}</span>
+                    <span>{mode === 'login' ? 'Iniciar Sessão' : 'Criar Conta'}</span>
                     <span className="material-symbols-outlined text-lg">east</span>
                   </>
                 )}
@@ -312,14 +312,14 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
             {/* Switch mode */}
             <footer className="mt-8 text-center">
               <p className="text-[#414844]">
-                {mode === 'login' ? "Nao tens conta? " : "Ja tens conta? "}
+                {mode === 'login' ? "Não tens conta? " : "Já tens conta? "}
                 <button
                   type="button"
                   onClick={switchMode}
                   disabled={isLoading}
                   className="text-[#006c48] font-bold underline underline-offset-4 decoration-[#006c48]/30 hover:decoration-[#006c48] transition-all disabled:opacity-50"
                 >
-                  {mode === 'login' ? 'Criar Conta' : 'Iniciar Sessao'}
+                  {mode === 'login' ? 'Criar Conta' : 'Iniciar Sessão'}
                 </button>
               </p>
             </footer>
@@ -329,10 +329,10 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
           <form onSubmit={handleOtpSubmit} className="flex flex-col items-center gap-8 mt-16">
             <div className="text-center space-y-2">
               <h2 className="text-[1.75rem] font-noto-serif italic text-[#012d1d] leading-tight">
-                Verificar codigo
+                Verificar código
               </h2>
               <p className="text-[#414844]">
-                Enviamos um codigo para{" "}
+                Enviámos um código para{" "}
                 <span className="font-semibold text-[#1A1C19]">
                   {pendingAuth?.email || formData.email}
                 </span>
@@ -347,7 +347,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
                   type="text"
                   inputMode="numeric"
                   maxLength={1}
-                  aria-label={`Codigo OTP digito ${index + 1}`}
+                  aria-label={`Código OTP dígito ${index + 1}`}
                   className="w-12 h-14 bg-[#edeee9] rounded-lg text-center text-lg font-bold text-[#1A1C19] focus:outline-none focus:ring-2 focus:ring-[#012d1d]/25 transition-all"
                   value={digit}
                   onChange={(e) => handleOtpChange(index, e.target.value)}
@@ -365,7 +365,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : "Confirmar codigo"}
+              ) : "Confirmar código"}
             </button>
 
             <div className="flex flex-col gap-2 text-sm text-[#414844] text-center">
@@ -374,7 +374,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
                 onClick={handleResendCode}
                 className="font-bold text-[#1A1C19] hover:underline"
               >
-                Reenviar codigo
+                Reenviar código
               </button>
               <button
                 type="button"

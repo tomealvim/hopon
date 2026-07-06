@@ -18,13 +18,13 @@ const STEP_CONFIG: Record<Step, { eyebrow: string; title: string; subtitle: stri
   },
   2: {
     eyebrow: "Contacto",
-    title: "O teu numero",
-    subtitle: "Usado para confirmacoes e alertas de viagem.",
+    title: "O teu número",
+    subtitle: "Usado para confirmações e alertas de viagem.",
   },
   3: {
-    eyebrow: "Localizacao",
-    title: "Onde e a tua casa?",
-    subtitle: "Usamos para te sugerir boleias perto de ti. Nao partilhamos a morada exacta com ninguem.",
+    eyebrow: "Localização",
+    title: "Onde é a tua casa?",
+    subtitle: "Usamos para te sugerir boleias perto de ti. Não partilhamos a morada exata com ninguém.",
   },
   4: {
     eyebrow: "Pronto",
@@ -69,15 +69,15 @@ export default function ProfileSetupPage() {
 
   function handleNext() {
     if (step === 1 && !name.trim()) {
-      showError("Campo obrigatorio", "Indica o teu nome.");
+      showError("Campo obrigatório", "Indica o teu nome.");
       return;
     }
     if (step === 2 && !phone.trim()) {
-      showError("Campo obrigatorio", "Indica o teu numero de telemovel.");
+      showError("Campo obrigatório", "Indica o teu número de telemóvel.");
       return;
     }
     if (step === 3 && (homeLat == null || homeLng == null)) {
-      showError("Localizacao necessaria", "Usa a localizacao atual ou seleciona uma morada da lista.");
+      showError("Localização necessária", "Usa a localização atual ou seleciona uma morada da lista.");
       return;
     }
     if (step < 4) setStep((step + 1) as Step);
@@ -205,7 +205,7 @@ export default function ProfileSetupPage() {
               className="phone-input-wrapper"
             />
             <p className="text-[11px] text-[#717973] mt-1">
-              Seleciona o pais e escreve o numero - formata automaticamente.
+              Seleciona o país e escreve o número - formata automaticamente.
             </p>
           </div>
         )}
@@ -218,7 +218,7 @@ export default function ProfileSetupPage() {
               type="button"
               disabled={locating}
               onClick={async () => {
-                if (!navigator.geolocation) { setLocError("O teu browser nao suporta geolocalizacao."); return; }
+                if (!navigator.geolocation) { setLocError("O teu browser não suporta geolocalização."); return; }
                 setLocating(true); setLocError("");
                 navigator.geolocation.getCurrentPosition(
                   async (pos) => {
@@ -232,8 +232,8 @@ export default function ProfileSetupPage() {
                     setLocating(false);
                     setLocError(
                       err.code === err.PERMISSION_DENIED
-                        ? "Permissao negada pelo browser. Clica no cadeado na barra de enderecos para ativar, ou escreve a morada manualmente."
-                        : "Nao foi possivel obter a localizacao (desktop sem GPS?). Escreve a morada no campo abaixo."
+                        ? "Permissão negada pelo browser. Clica no cadeado na barra de endereços para ativar, ou escreve a morada manualmente."
+                        : "Não foi possível obter a localização (desktop sem GPS?). Escreve a morada no campo abaixo."
                     );
                   },
                   { enableHighAccuracy: true, timeout: 8000 }
@@ -246,7 +246,7 @@ export default function ProfileSetupPage() {
               ) : (
                 <span className="material-symbols-outlined text-lg">my_location</span>
               )}
-              {locating ? "A localizar..." : "Usar a minha localizacao atual"}
+              {locating ? "A localizar..." : "Usar a minha localização atual"}
             </button>
 
             <div className="flex items-center gap-2">
@@ -272,12 +272,12 @@ export default function ProfileSetupPage() {
             {homeLat && homeLng && (
               <p className="text-[11px] text-[#006c48] font-medium flex items-center gap-1">
                 <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                Localizacao confirmada - vamos usa-la para sugerir boleias perto de ti.
+                Localização confirmada - vamos usá-la para sugerir boleias perto de ti.
               </p>
             )}
             {homeAddress && !homeLat && (
               <p className="text-[11px] text-[#b06b00] font-medium">
-                Seleciona uma sugestao da lista para confirmar a localizacao.
+                Seleciona uma sugestão da lista para confirmar a localização.
               </p>
             )}
           </div>

@@ -654,9 +654,9 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
             value={values.communityId ?? ""}
             onChange={(e) => set("communityId", e.target.value || undefined)}
           >
-            <option value="">Publica - visivel a todos</option>
+            <option value="">Pública - visível a todos</option>
             {communities.map((c) => (
-              <option key={c.id} value={c.id}>Privada - so para {c.name}</option>
+              <option key={c.id} value={c.id}>Privada - só para {c.name}</option>
             ))}
           </select>
         </div>

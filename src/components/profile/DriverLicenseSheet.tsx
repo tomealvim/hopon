@@ -128,7 +128,7 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
         {canUpload && !done && (
           <section className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-700 space-y-1">
             <p className="font-semibold">Porque pedimos a carta de condução?</p>
-            <p>Confirmar que es condutor habilitado e cruzar a tua identidade com o numero de CC visivel na carta - impede que alguem use documentos de outra pessoa.</p>
+            <p>Confirmar que és condutor habilitado e cruzar a tua identidade com o número de CC visível na carta - impede que alguém use documentos de outra pessoa.</p>
           </section>
         )}
 
@@ -140,7 +140,7 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
               </svg>
             </div>
             <p className="text-base font-semibold text-[#1A1C19]">Carta enviada</p>
-            <p className="text-sm text-[#717973]">A equipa HopOn irá verificar o documento em breve (ate 24h).</p>
+            <p className="text-sm text-[#717973]">A equipa HopOn irá verificar o documento em breve (até 24h).</p>
           </div>
         )}
 
@@ -148,8 +148,8 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
           <>
             {/* Campo CC */}
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase text-[#414844]">Numero do Cartao de Cidadao</p>
-              <p className="text-xs text-[#717973]">Deve estar visivel na tua carta de conducao. Serve para cruzar identidades.</p>
+              <p className="text-xs font-semibold uppercase text-[#414844]">Número do Cartão de Cidadão</p>
+              <p className="text-xs text-[#717973]">Deve estar visível na tua carta de condução. Serve para cruzar identidades.</p>
               <input
                 type="text"
                 value={ccNumber}
@@ -161,7 +161,7 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
 
             {/* Upload */}
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase text-[#414844]">Foto da carta de conducao</p>
+              <p className="text-xs font-semibold uppercase text-[#414844]">Foto da carta de condução</p>
               <input
                 ref={inputRef}
                 type="file"
@@ -179,7 +179,7 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
                 ) : (
                   <div className="space-y-1">
                     <p className="text-sm font-semibold text-[#414844]">Clica para selecionar</p>
-                    <p className="text-xs text-[#717973]">JPEG, PNG ou WebP · max 10MB</p>
+                    <p className="text-xs text-[#717973]">JPEG, PNG ou WebP · máx 10MB</p>
                   </div>
                 )}
               </button>
@@ -195,7 +195,7 @@ export default function DriverLicenseSheet({ open, onClose, currentStatus, admin
             </div>
 
             <p className="text-xs text-[#717973]">
-              A carta e processada de forma segura e utilizada apenas para verificacao de conducao. Nunca e partilhada com outros utilizadores.
+              A carta é processada de forma segura e utilizada apenas para verificação de condução. Nunca é partilhada com outros utilizadores.
             </p>
           </>
         )}

@@ -433,9 +433,9 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                 {/* Header editorial */}
                 <header className="pt-6 pb-4">
                   <h1 className="font-noto-serif italic text-[2rem] leading-tight text-[#1B4332]">
-                    Encontra a tua proxima<br />viagem partilhada.
+                    Encontra a tua próxima<br />viagem partilhada.
                   </h1>
-                  <p className="text-[#1B4332]/60 font-medium text-sm mt-1">Viagens sustentaveis, conexoes reais.</p>
+                  <p className="text-[#1B4332]/60 font-medium text-sm mt-1">Viagens sustentáveis, conexões reais.</p>
                 </header>
                 {/* Chips de filtros activos */}
                 {filterChips.length > 0 && (

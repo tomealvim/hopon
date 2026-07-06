@@ -100,11 +100,11 @@ export default function RideSharePreview({ rideId, onBook, onClose }: Props) {
         <div className="flex flex-wrap gap-2 mb-6">
           {isAvailable ? (
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-              {ride.remainingSeats} lugar{(ride.remainingSeats ?? 0) !== 1 ? "es" : ""} disponivel{(ride.remainingSeats ?? 0) !== 1 ? "s" : ""}
+              {ride.remainingSeats} lugar{(ride.remainingSeats ?? 0) !== 1 ? "es" : ""} {(ride.remainingSeats ?? 0) !== 1 ? "disponíveis" : "disponível"}
             </span>
           ) : (
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#f3f4ef] text-[#717973]">
-              {ride.status === "COMPLETED" ? "Concluida" : ride.status === "CANCELLED" ? "Cancelada" : "Sem lugares"}
+              {ride.status === "COMPLETED" ? "Concluída" : ride.status === "CANCELLED" ? "Cancelada" : "Sem lugares"}
             </span>
           )}
           {ride.price != null && ride.price > 0 && (
@@ -114,7 +114,7 @@ export default function RideSharePreview({ rideId, onBook, onClose }: Props) {
           )}
           {ride.instantBooking && (
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              Reserva instantanea
+              Reserva instantânea
             </span>
           )}
           {ride.community && (
@@ -149,7 +149,7 @@ export default function RideSharePreview({ rideId, onBook, onClose }: Props) {
         {/* Vehicle */}
         {ride.vehicle && (
           <div className="p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl mb-4">
-            <div className="text-xs text-[#717973] mb-0.5">Veiculo</div>
+            <div className="text-xs text-[#717973] mb-0.5">Veículo</div>
             <div className="text-sm font-semibold text-[#1A1C19]">
               {ride.vehicle.brand} {ride.vehicle.model}
               {ride.vehicle.color ? ` - ${ride.vehicle.color}` : ""}
@@ -169,7 +169,7 @@ export default function RideSharePreview({ rideId, onBook, onClose }: Props) {
         <div className="mt-6">
           {!user ? (
             <div className="text-center">
-              <p className="text-xs text-[#717973] mb-3">Inicia sessao para reservar um lugar nesta boleia.</p>
+              <p className="text-xs text-[#717973] mb-3">Inicia sessão para reservar um lugar nesta boleia.</p>
               <Button className="w-full" onClick={onClose}>Entrar no HopOn</Button>
             </div>
           ) : isAvailable ? (

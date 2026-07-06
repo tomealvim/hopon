@@ -249,11 +249,11 @@ function AppContent() {
           <div className="w-full max-w-mobile md:max-w-tablet lg:max-w-desktop mx-auto px-5 h-16 flex items-center justify-between">
             <h1 className="font-noto-serif italic font-bold text-[#1B4332] text-xl"><AppName /></h1>
             <div className="flex items-center gap-2">
-              {/* Sino de notificacoes */}
+              {/* Sino de notificações */}
               <button
                 className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#edeee9] transition-colors"
                 onClick={() => setNotifOpen(true)}
-                aria-label="Notificacoes"
+                aria-label="Notificações"
               >
                 <span className="material-symbols-outlined text-[#1B4332]/60 text-2xl">notifications</span>
                 {notifUnread > 0 && (

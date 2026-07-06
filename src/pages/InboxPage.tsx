@@ -86,7 +86,7 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
       <main className="relative min-h-screen px-4 pb-32 flex flex-col items-center justify-center bg-[#F9FAF5] text-[#1A1C19] overflow-hidden">
         <span className="material-symbols-outlined text-[#D0E8DC] mb-4" style={{ fontSize: "48px" }}>chat</span>
         <p className="text-sm font-semibold text-[#1A1C19] mb-1">As tuas mensagens aparecem aqui</p>
-        <p className="text-xs text-[#717973] text-center">Inicia sessao para ver as tuas conversas com condutores e passageiros</p>
+        <p className="text-xs text-[#717973] text-center">Inicia sessão para ver as tuas conversas com condutores e passageiros</p>
       </main>
     );
   }
@@ -105,7 +105,7 @@ export default function InboxPage({ initialThreadId, onThreadClosed }: InboxPage
   if (openThreadId) {
     const thread = threads.find(t => t.id === openThreadId);
     if (!thread) {
-      setError("Conversa nao encontrada");
+      setError("Conversa não encontrada");
       setOpenThreadId(null);
       return null;
     }

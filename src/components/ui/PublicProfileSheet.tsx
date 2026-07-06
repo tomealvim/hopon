@@ -76,7 +76,7 @@ export default function PublicProfileSheet({ userId, open, onClose, vehicle }: P
 
       {!loading && !profile && (
         <div className="flex items-center justify-center py-16 text-sm text-[#717973]">
-          Perfil nao encontrado.
+          Perfil não encontrado.
         </div>
       )}
 
@@ -107,10 +107,10 @@ export default function PublicProfileSheet({ userId, open, onClose, vehicle }: P
                   <>
                     <Stars score={Math.round(profile.avgRating)} size="lg" />
                     <span className="font-bold text-[#1A1C19] text-base">{profile.avgRating.toFixed(1)}</span>
-                    <span className="text-xs text-[#717973]">({profile.totalRatings} avaliacoes)</span>
+                    <span className="text-xs text-[#717973]">({profile.totalRatings} avaliações)</span>
                   </>
                 ) : (
-                  <span className="text-xs text-[#717973]">Sem avaliacoes</span>
+                  <span className="text-xs text-[#717973]">Sem avaliações</span>
                 )}
               </div>
               {profile.isIdentityVerified && (
@@ -185,7 +185,7 @@ export default function PublicProfileSheet({ userId, open, onClose, vehicle }: P
                 Anos ativo: {yearsActive}
               </span>
               <span className={`text-xs rounded-full px-3 py-1.5 ${profile.isIdentityVerified ? "bg-green-50 text-green-700" : "bg-[#f3f4ef] text-[#717973]"}`}>
-                Identidade: {profile.isIdentityVerified ? "Concluida" : "Pendente"}
+                Identidade: {profile.isIdentityVerified ? "Concluída" : "Pendente"}
               </span>
               {vehicle && (
                 <span className="text-xs bg-[#f3f4ef] text-[#414844] rounded-full px-3 py-1.5">

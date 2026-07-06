@@ -940,7 +940,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                   "w-10 h-6 rounded-full transition-colors relative",
                   pushPrefs[key] !== false ? "bg-[#1B4332]" : "bg-[#edeee9]"
                 )}
-                aria-label={`Notificacoes de ${label}`}
+                aria-label={`Notificações de ${label}`}
               >
                 <span className={cn(
                   "absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform",
@@ -1196,7 +1196,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
               onClick={() => {
                 const link = `${window.location.origin}/ref/${referralCode}`;
                 if (typeof navigator !== "undefined" && "share" in navigator) {
-                  navigator.share({ title: "HopOn - Partilha de custos", text: `Usa o meu código ${referralCode} no HopOn e ambos ganhamos €1 de credito!`, url: link }).catch(() => {});
+                  navigator.share({ title: "HopOn - Partilha de custos", text: `Usa o meu código ${referralCode} no HopOn e ambos ganhamos €1 de crédito!`, url: link }).catch(() => {});
                 } else {
                   (navigator as Navigator).clipboard?.writeText(link);
                   setCopiedReferral(true);
@@ -1213,7 +1213,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           <div className="text-center space-y-1">
             <p className="text-base font-semibold text-[#1A1C19]">Convida amigos, ganhas €1</p>
             <p className="text-sm text-[#1A1C19]/60">
-              Quando um amigo teu fizer a primeira boleia com o teu codigo, ambos recebem €1 de credito na carteira.
+              Quando um amigo teu fizer a primeira boleia com o teu código, ambos recebem €1 de crédito na carteira.
             </p>
           </div>
 
@@ -1225,7 +1225,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
           )}
 
           <div className="rounded-3xl border border-[#e7e9e4] bg-[#f3f4ef] p-4">
-            <div className="text-xs font-semibold text-[#1A1C19]/60 uppercase tracking-wide mb-3">O teu codigo</div>
+            <div className="text-xs font-semibold text-[#1A1C19]/60 uppercase tracking-wide mb-3">O teu código</div>
             {referralCode ? (
               <>
                 <div className="flex items-center justify-between gap-3">
@@ -1234,7 +1234,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                     type="button"
                     onClick={handleCopyReferralCode}
                     className="p-3 rounded-2xl bg-[#f3f4ef] border border-[#e7e9e4] hover:bg-[#edeee9] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-[#1A1C19]"
-                    aria-label="Copiar codigo de convite"
+                    aria-label="Copiar código de convite"
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                       <rect x="7" y="7" width="12" height="12" rx="3" stroke="currentColor" strokeWidth="2" />
@@ -1243,7 +1243,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                   </button>
                 </div>
                 <p className="text-xs text-[#1A1C19]/50 mt-3 min-h-[16px]" aria-live="polite">
-                  {copiedReferral ? "Codigo copiado! Cola em qualquer app de mensagens." : "Toca para copiar e partilha com colegas."}
+                  {copiedReferral ? "Código copiado! Cola em qualquer app de mensagens." : "Toca para copiar e partilha com colegas."}
                 </p>
               </>
             ) : (
@@ -1253,7 +1253,7 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
 
           {!referralInfo?.isReferred && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Tens um codigo de amigo?</p>
+              <p className="text-xs font-semibold text-[#414844] uppercase tracking-wide">Tens um código de amigo?</p>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -1274,10 +1274,10 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                         method: "POST",
                         body: JSON.stringify({ code: applyCodeInput }),
                       });
-                      setApplyCodeMsg({ ok: true, text: `Codigo aplicado! Convidado por ${res.referrerName}.` });
+                      setApplyCodeMsg({ ok: true, text: `Código aplicado! Convidado por ${res.referrerName}.` });
                       setReferralInfo((prev) => prev ? { ...prev, isReferred: true } : prev);
                     } catch (e: any) {
-                      setApplyCodeMsg({ ok: false, text: e?.message ?? "Codigo invalido." });
+                      setApplyCodeMsg({ ok: false, text: e?.message ?? "Código inválido." });
                     } finally {
                       setApplyCodeLoading(false);
                     }
@@ -1300,22 +1300,22 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
               <li className="flex items-start gap-3">
                 <span className="h-8 w-8 rounded-2xl bg-[#f3f4ef] text-[#414844] font-semibold flex items-center justify-center shrink-0">1</span>
                 <div>
-                  <p className="text-sm font-semibold text-[#1A1C19]">Partilha o teu codigo</p>
+                  <p className="text-sm font-semibold text-[#1A1C19]">Partilha o teu código</p>
                   <p className="text-xs text-[#1A1C19]/60">Copia e envia pelo WhatsApp, Instagram ou onde preferires.</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="h-8 w-8 rounded-2xl bg-[#f3f4ef] text-[#414844] font-semibold flex items-center justify-center shrink-0">2</span>
                 <div>
-                  <p className="text-sm font-semibold text-[#1A1C19]">O amigo regista-se e aplica o codigo</p>
-                  <p className="text-xs text-[#1A1C19]/60">No perfil dele, em "Convidar amigos", cola o teu codigo.</p>
+                  <p className="text-sm font-semibold text-[#1A1C19]">O amigo regista-se e aplica o código</p>
+                  <p className="text-xs text-[#1A1C19]/60">No perfil dele, em "Convidar amigos", cola o teu código.</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="h-8 w-8 rounded-2xl bg-[#f3f4ef] text-[#414844] font-semibold flex items-center justify-center shrink-0">3</span>
                 <div>
                   <p className="text-sm font-semibold text-[#1A1C19]">€1 para cada um</p>
-                  <p className="text-xs text-[#1A1C19]/60">Apos a primeira boleia do amigo, ambos recebem €1 na carteira automaticamente.</p>
+                  <p className="text-xs text-[#1A1C19]/60">Após a primeira boleia do amigo, ambos recebem €1 na carteira automaticamente.</p>
                 </div>
               </li>
             </ul>

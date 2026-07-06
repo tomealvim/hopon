@@ -72,17 +72,17 @@ export default function LandingPage({ onStart }: LandingPageProps) {
             <FeatureCard
               icon="directions_car"
               title="Ganha rendimento"
-              desc="Tens carro? Publica uma boleia e recupera os custos das tuas viagens diarias."
+              desc="Tens carro? Publica uma boleia e recupera os custos das tuas viagens diárias."
             />
             <FeatureCard
               icon="verified_user"
               title="Comunidade de confianca"
-              desc="Perfis verificados, avaliacoes reais e historico de viagens. Sabes sempre quem te leva."
+              desc="Perfis verificados, avaliações reais e histórico de viagens. Sabes sempre quem te leva."
             />
             <FeatureCard
               icon="schedule"
-              title="Boleias automaticas"
-              desc="Define o teu horario habitual e as boleias sao criadas e sugeridas automaticamente."
+              title="Boleias automáticas"
+              desc="Define o teu horário habitual e as boleias são criadas e sugeridas automaticamente."
             />
           </div>
         </div>
@@ -98,12 +98,12 @@ export default function LandingPage({ onStart }: LandingPageProps) {
               <Step
                 n={1}
                 title="Cria o teu perfil"
-                desc="Regista-te em 2 minutos. Adiciona o teu veiculo se fores condutor."
+                desc="Regista-te em 2 minutos. Adiciona o teu veículo se fores condutor."
               />
               <Step
                 n={2}
                 title="Define o teu percurso habitual"
-                desc="Cria um template (ex: Porto - Lisboa, Seg-Sex as 08:00) e a app trata do resto."
+                desc="Cria um template (ex: Porto - Lisboa, Seg-Sex às 08:00) e a app trata do resto."
               />
               <Step
                 n={3}

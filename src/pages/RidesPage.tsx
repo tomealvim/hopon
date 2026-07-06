@@ -196,7 +196,7 @@ function PresenceConfirmBanner({
           disabled={loading !== null}
           className="flex-1 text-xs font-semibold py-2 rounded-lg border border-red-200 bg-red-50 text-red-700 disabled:opacity-50"
         >
-          {loading === "no" ? "..." : "Nao embarquei"}
+          {loading === "no" ? "..." : "Não embarquei"}
         </button>
       </div>
     </div>
@@ -530,7 +530,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
             {/* Header editorial */}
             <header className="pt-6 pb-2">
               <h2 className="font-noto-serif italic text-[2rem] leading-tight text-[#1B4332]">As tuas viagens</h2>
-              <p className="text-[#1B4332]/60 font-medium text-sm mt-1">Gere as tuas boleias e conexoes.</p>
+              <p className="text-[#1B4332]/60 font-medium text-sm mt-1">Gere as tuas boleias e conexões.</p>
             </header>
 
             {/* Tab selector: Condutor / Passageiro */}
@@ -970,7 +970,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
         {/* Partilhar boleia */}
         {sheetView === "ride" && selectedRide && selectedRide.status === "SCHEDULED" && (() => {
           const shareUrl = `${window.location.origin}/ride/${selectedRide.id}`;
-          const shareText = `${selectedRide.origin} - ${selectedRide.destination} | ${formatDateTime(selectedRide.departureTime)}${selectedRide.price ? ` | €${selectedRide.price.toFixed(0)}/lugar` : ""} | ${selectedRide.remainingSeats} lugar${selectedRide.remainingSeats !== 1 ? "es" : ""} disponivel${selectedRide.remainingSeats !== 1 ? "s" : ""}`;
+          const shareText = `${selectedRide.origin} - ${selectedRide.destination} | ${formatDateTime(selectedRide.departureTime)}${selectedRide.price ? ` | €${selectedRide.price.toFixed(0)}/lugar` : ""} | ${selectedRide.remainingSeats} lugar${selectedRide.remainingSeats !== 1 ? "es" : ""} ${selectedRide.remainingSeats !== 1 ? "disponíveis" : "disponível"}`;
           return (
             <div className="px-1 pb-1">
               <button
