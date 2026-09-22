@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import type { Profile } from 'passport-google-oauth20';
 import { JwtService } from '@nestjs/jwt';
@@ -409,6 +410,9 @@ export class AuthService {
    * Só ativo quando ALLOW_TEST_VERIFY=1 (usado por test-rides-bookings-advanced.js).
    */
   async verifyEmailForTest(userId: string) {
+    if (this.configService.get<string>('NODE_ENV') === 'production') {
+      throw new ForbiddenException();
+    }
     const v = this.configService.get<string>('ALLOW_TEST_VERIFY');
     const enabled = v === '1' || String(v).trim() === '1' || v === 'true';
     if (!enabled) {
@@ -426,6 +430,9 @@ export class AuthService {
    * Só ativo quando ALLOW_TEST_VERIFY=1.
    */
   async approveDriverLicenseForTest(userId: string) {
+    if (this.configService.get<string>('NODE_ENV') === 'production') {
+      throw new ForbiddenException();
+    }
     const v = this.configService.get<string>('ALLOW_TEST_VERIFY');
     const enabled = v === '1' || String(v).trim() === '1' || v === 'true';
     if (!enabled) {
