@@ -89,9 +89,9 @@ Each option shows: actual distance, estimated time with traffic, toll cost, and 
 
 | Time of cancellation | Refund to passenger | To the driver |
 |---|---|---|
-| More than 24h before departure | 100% | 0% |
-| Between 2h and 24h before departure | 50% | 50% |
-| Less than 2h before departure | 0% | 100% |
+| More than 2h before departure | 100% | 0% |
+| Between 30 minutes and 2h before departure | 50% | 50% |
+| Less than 30 minutes before departure | 0% | 100% |
 | No-show (doesn't show up at the pickup point) | 0% | 100% |
 
 > The refund is returned to the **original payment method** (card/MB WAY).
@@ -243,7 +243,7 @@ Suggested text to show the user:
 > The price of each seat is calculated based on the driver's car's actual fuel consumption, at the current price in Portugal, plus the tolls for the route. We add a 10% service fee. The driver doesn't profit - they only recover what they spend.
 
 > **What if I need to cancel?**
-> You can cancel for free up to 24h before. After that, the refund is partial or none (the driver has to be compensated for the empty seat you left).
+> You can cancel for free up to 2h before. Between 30 minutes and 2h before, you get half back. Under 30 minutes, there's no refund (the driver has to be compensated for the empty seat you left).
 
 > **What if I don't show up?**
 > The driver will wait 10 minutes. If you don't arrive, you lose the trip's value with no refund.
