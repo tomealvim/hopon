@@ -1,4 +1,4 @@
-# Profile Setup — Passo 3 (por completar)
+# Profile Setup - Passo 3 (por completar)
 
 O fluxo de criação de perfil tem atualmente **2 passos**. Este documento descreve como reativar o **Passo 3 (Horários)** quando quiseres completar a funcionalidade.
 
@@ -7,7 +7,7 @@ O fluxo de criação de perfil tem atualmente **2 passos**. Este documento descr
 - **Passo 1:** Identidade (foto + nome)
 - **Passo 2:** Contactos e casa (telemóvel, username, morada) → **Concluir** marca o perfil como completo (`setupCompleted: true`)
 
-## O que falta: Passo 3 — Horários
+## O que falta: Passo 3 - Horários
 
 - **Objetivo:** O utilizador adiciona a agenda semanal (horários) e só depois o perfil fica completo.
 - **Concluir** deve passar a estar no **fim do passo 3**, com validação e gravação do horário e `setupCompleted: true`.

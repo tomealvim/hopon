@@ -9,9 +9,9 @@ import { StripeService } from '../stripe/stripe.service';
 
 function getRefundFraction(departureTime: Date): number {
   const hoursUntil = (departureTime.getTime() - Date.now()) / 3_600_000;
-  if (hoursUntil > 2) return 1.0;    // >2h — reembolso total
-  if (hoursUntil > 0.5) return 0.5;  // 30min–2h — reembolso 50%
-  return 0.0;                         // <30min — sem reembolso
+  if (hoursUntil > 2) return 1.0;    // >2h - reembolso total
+  if (hoursUntil > 0.5) return 0.5;  // 30min–2h - reembolso 50%
+  return 0.0;                         // <30min - sem reembolso
 }
 
 // ── Algoritmo de desvio de rota ────────────────────────────────────────────
@@ -93,7 +93,7 @@ export class BookingsService {
     if (!ride) throw new NotFoundException('Boleia não encontrada');
     if (ride.status !== 'SCHEDULED') throw new BadRequestException('A boleia não está disponível para reservas');
     if (ride.driverId === userId) throw new BadRequestException('Não podes reservar lugar na tua própria boleia');
-    if (!ride.priceCents || ride.priceCents <= 0) throw new BadRequestException('Esta boleia não tem custo — reserva diretamente.');
+    if (!ride.priceCents || ride.priceCents <= 0) throw new BadRequestException('Esta boleia não tem custo - reserva diretamente.');
 
     const totalCents = (ride.priceCents + (ride.platformFeeCents ?? 0)) * seats;
 
@@ -134,7 +134,7 @@ export class BookingsService {
     }
 
     const booking = await this.prisma.$transaction(async (tx) => {
-      // Bloquear a linha da boleia — garante que reservas concorrentes ficam em fila
+      // Bloquear a linha da boleia - garante que reservas concorrentes ficam em fila
       // e não conseguem criar overbooking por race condition
       await tx.$queryRaw`SELECT id FROM rides WHERE id = ${rideId} FOR UPDATE`;
 
@@ -267,13 +267,13 @@ export class BookingsService {
         booking.ride.driverId,
         'booking.new',
         'Reserva confirmada automaticamente',
-        `${passengerName} reservou ${booking.seats} lugar(es) — ponto de embarque na tua rota.`,
+        `${passengerName} reservou ${booking.seats} lugar(es) - ponto de embarque na tua rota.`,
         { bookingId: booking.id, rideId },
       );
     } else {
       // Notificar o driver via SSE que tem uma nova reserva
       const detourSuffix = detourMeters != null
-        ? ` — ${detourLabel(detourMeters)}`
+        ? ` - ${detourLabel(detourMeters)}`
         : '';
 
       this.eventsService.emit(booking.ride.driverId, 'booking.new', {
@@ -383,7 +383,7 @@ export class BookingsService {
         });
       }
 
-      // NO_SHOW: sem reembolso — condutor estava no ponto
+      // NO_SHOW: sem reembolso - condutor estava no ponto
 
       return upd;
     });
@@ -402,7 +402,7 @@ export class BookingsService {
           { paymentIntentId: booking.stripePaymentIntentId, amountCents },
         ]);
       } catch {
-        // Log mas não falhar — o admin pode reembolsar manualmente no Stripe Dashboard
+        // Log mas não falhar - o admin pode reembolsar manualmente no Stripe Dashboard
       }
     }
 
@@ -525,7 +525,7 @@ export class BookingsService {
         const description =
           refundFraction === 1.0
             ? 'Cancelamento de reserva (reembolso total)'
-            : 'Cancelamento de reserva (reembolso 50% — cancelamento entre 30min e 2h antes)';
+            : 'Cancelamento de reserva (reembolso 50% - cancelamento entre 30min e 2h antes)';
         let wallet = await tx.wallet.findFirst({ where: { userId } });
         if (!wallet) wallet = await tx.wallet.create({ data: { userId } });
         await tx.wallet.update({ where: { id: wallet.id }, data: { balanceCents: { increment: refundCents } } });
@@ -535,7 +535,7 @@ export class BookingsService {
       }
     });
 
-    // Reembolso Stripe (fora da transação — API externa)
+    // Reembolso Stripe (fora da transação - API externa)
     if (
       booking.ride.priceCents != null &&
       booking.ride.priceCents > 0 &&
@@ -550,7 +550,7 @@ export class BookingsService {
           { paymentIntentId: booking.stripePaymentIntentId, amountCents: refundCents },
         ]);
       } catch {
-        // Log mas não falhar — admin pode reembolsar manualmente no Stripe Dashboard
+        // Log mas não falhar - admin pode reembolsar manualmente no Stripe Dashboard
       }
     }
 

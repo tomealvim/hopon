@@ -24,15 +24,15 @@ export class SchedulerService {
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
-  // ─── 9.3 — Boleias recorrentes ────────────────────────────────────────────
+  // ─── 9.3 - Boleias recorrentes ────────────────────────────────────────────
 
   /**
-   * Corre todos os dias às 06:00 — cria boleias para os próximos DAYS_AHEAD dias
+   * Corre todos os dias às 06:00 - cria boleias para os próximos DAYS_AHEAD dias
    * a partir de todos os templates ativos.
    */
   @Cron('0 6 * * *', { name: 'generate-upcoming-rides', timeZone: 'Europe/Lisbon' })
   async generateUpcomingRides() {
-    this.logger.log(`[cron] generateUpcomingRides — a gerar boleias para os próximos ${DAYS_AHEAD} dias`);
+    this.logger.log(`[cron] generateUpcomingRides - a gerar boleias para os próximos ${DAYS_AHEAD} dias`);
 
     const templates = await this.prisma.scheduleTemplate.findMany({
       where: { active: true },
@@ -125,7 +125,7 @@ export class SchedulerService {
           });
 
           created++;
-          this.logger.log(`[cron] Ride criada: ${ride.id} — ${date.toISOString().slice(0, 10)} ${template.time}`);
+          this.logger.log(`[cron] Ride criada: ${ride.id} - ${date.toISOString().slice(0, 10)} ${template.time}`);
 
           // Notificar condutor apenas para hoje (d === 0) para não spam
           if (d === 0) {
@@ -186,13 +186,13 @@ export class SchedulerService {
       }
     }
 
-    this.logger.log(`[cron] generateUpcomingRides concluído — criadas: ${created}, ignoradas: ${skipped}`);
+    this.logger.log(`[cron] generateUpcomingRides concluído - criadas: ${created}, ignoradas: ${skipped}`);
   }
 
-  // ─── 9.4 — Lembrete 1h antes da boleia ───────────────────────────────────
+  // ─── 9.4 - Lembrete 1h antes da boleia ───────────────────────────────────
 
   /**
-   * Corre a cada 5 minutos — envia lembrete a passageiros e condutor
+   * Corre a cada 5 minutos - envia lembrete a passageiros e condutor
    * para boleias que partem entre 55 e 65 minutos.
    */
   @Cron('*/5 * * * *', { name: 'ride-reminders', timeZone: 'Europe/Lisbon' })
@@ -245,7 +245,7 @@ export class SchedulerService {
           ride.driverId,
           'ride.reminder',
           'A tua boleia parte em 1 hora',
-          `${route} às ${dep} — ${totalSeats} lugar${totalSeats !== 1 ? 'es' : ''} reservado${totalSeats !== 1 ? 's' : ''}.`,
+          `${route} às ${dep} - ${totalSeats} lugar${totalSeats !== 1 ? 'es' : ''} reservado${totalSeats !== 1 ? 's' : ''}.`,
           { rideId: ride.id },
         );
       }
@@ -254,16 +254,16 @@ export class SchedulerService {
     }
   }
 
-  // ─── 16.1c — Matching background (UserRoutes ↔ ScheduleTemplates) ─────────
+  // ─── 16.1c - Matching background (UserRoutes ↔ ScheduleTemplates) ─────────
 
   /**
-   * Corre duas vezes por dia (7h e 17h) — cruza as rotas habituais dos passageiros
+   * Corre duas vezes por dia (7h e 17h) - cruza as rotas habituais dos passageiros
    * com os templates ativos dos condutores e notifica quando há sobreposição.
    * Deduplicação via Redis: nunca notifica o mesmo par mais do que 1x/dia.
    */
   @Cron('0 7,17 * * *', { name: 'route-matching', timeZone: 'Europe/Lisbon' })
   async matchUserRoutesWithTemplates() {
-    this.logger.log('[cron] matchUserRoutesWithTemplates — a iniciar');
+    this.logger.log('[cron] matchUserRoutesWithTemplates - a iniciar');
 
     const [userRoutes, templates] = await Promise.all([
       this.prisma.userRoute.findMany({
@@ -307,15 +307,15 @@ export class SchedulerService {
 
         const templateDays = template.daysOfWeek as string[];
 
-        // 1 — Sobreposição de dias
+        // 1 - Sobreposição de dias
         const commonDays = routeDays.filter((d) => templateDays.includes(d));
         if (commonDays.length === 0) continue;
 
-        // 2 — Hora compatível (±45 min)
+        // 2 - Hora compatível (±45 min)
         const templateMinutes = this.timeToMinutes(template.time);
         if (Math.abs(routeMinutes - templateMinutes) > 45) continue;
 
-        // 3 — Proximidade de rota
+        // 3 - Proximidade de rota
         const polyline = templatePolylines.get(template.id);
         const withinCorridor = this.isPassengerNearRoute(
           route.originLat!,
@@ -324,7 +324,7 @@ export class SchedulerService {
         );
         if (!withinCorridor) continue;
 
-        // 4 — Passageiro já tem reserva ativa neste template?
+        // 4 - Passageiro já tem reserva ativa neste template?
         const existingBooking = await this.prisma.booking.findFirst({
           where: {
             userId: passengerId,
@@ -334,13 +334,13 @@ export class SchedulerService {
         });
         if (existingBooking) { skipped++; continue; }
 
-        // 5 — Deduplicação Redis (TTL 24h)
+        // 5 - Deduplicação Redis (TTL 24h)
         const dedupKey = `match:${passengerId}:${template.userId}:${template.id}`;
         const alreadyNotified = await this.cache.get(dedupKey);
         if (alreadyNotified) { skipped++; continue; }
         await this.cache.set(dedupKey, true, 24 * 60 * 60 * 1000);
 
-        // 6 — Notificar passageiro
+        // 6 - Notificar passageiro
         const driverName = template.user?.profile?.name ?? 'Um condutor';
         const nextDay = commonDays[0];
         const timeLabel = template.time;
@@ -353,7 +353,7 @@ export class SchedulerService {
           { scheduleTemplateId: template.id, driverId: template.userId },
         );
 
-        // 16.1c.4 — Notificar também o condutor (dedup separado, TTL 24h)
+        // 16.1c.4 - Notificar também o condutor (dedup separado, TTL 24h)
         const driverDedupKey = `match:driver:${template.userId}:${passengerId}:${template.id}`;
         const driverAlreadyNotified = await this.cache.get(driverDedupKey);
         if (!driverAlreadyNotified) {
@@ -373,7 +373,7 @@ export class SchedulerService {
       }
     }
 
-    this.logger.log(`[cron] matchUserRoutesWithTemplates concluído — notificados: ${notified}, ignorados: ${skipped}`);
+    this.logger.log(`[cron] matchUserRoutesWithTemplates concluído - notificados: ${notified}, ignorados: ${skipped}`);
   }
 
   // ─── Helpers de matching ──────────────────────────────────────────────────
@@ -408,7 +408,7 @@ export class SchedulerService {
 
   /**
    * Verifica se o ponto do passageiro está dentro do corredor da rota do condutor.
-   * Threshold: 1500m (mais permissivo que o booking — é uma sugestão, não confirmação).
+   * Threshold: 1500m (mais permissivo que o booking - é uma sugestão, não confirmação).
    * Se não houver polilinha, usa Haversine ponto-a-ponto como fallback.
    */
   private isPassengerNearRoute(
@@ -439,17 +439,17 @@ export class SchedulerService {
     return map[day] ?? day;
   }
 
-  // ─── 16.4 — Match ride requests com schedule templates ───────────────────
+  // ─── 16.4 - Match ride requests com schedule templates ───────────────────
 
   /**
-   * Corre diariamente às 9h — cruza pedidos de boleia abertos (RideRequest)
+   * Corre diariamente às 9h - cruza pedidos de boleia abertos (RideRequest)
    * com templates de condutores ativos (ScheduleTemplate).
    * Notifica condutores quando há passageiro à procura na sua rota.
    * Deduplicação via Redis: nunca notificar o mesmo par mais de 1x/dia.
    */
   @Cron('0 9 * * *', { name: 'ride-request-matching', timeZone: 'Europe/Lisbon' })
   async matchRideRequestsWithTemplates() {
-    this.logger.log('[cron] matchRideRequestsWithTemplates — a iniciar');
+    this.logger.log('[cron] matchRideRequestsWithTemplates - a iniciar');
 
     const [rideRequests, templates] = await Promise.all([
       this.rideRequestsService.findAllOpen(),
@@ -483,10 +483,10 @@ export class SchedulerService {
         const templateMin = th * 60 + tm;
         if (Math.abs(requestMin - templateMin) > 45) continue;
 
-        // Proximidade geográfica (corredor 2km) — se temos coords
+        // Proximidade geográfica (corredor 2km) - se temos coords
         if (
           request.originLat != null && request.originLng != null &&
-          template.user // template não tem coords diretas — usar text overlap como fallback
+          template.user // template não tem coords diretas - usar text overlap como fallback
         ) {
           // Texto de origem/destino deve ter alguma sobreposição
           const origMatch = this.textOverlap(request.origin, template.origin);
@@ -523,7 +523,7 @@ export class SchedulerService {
       }
     }
 
-    this.logger.log(`[cron] matchRideRequestsWithTemplates concluído — notificados: ${notified}, ignorados: ${skipped}`);
+    this.logger.log(`[cron] matchRideRequestsWithTemplates concluído - notificados: ${notified}, ignorados: ${skipped}`);
   }
 
   /** Trigger manual para testes */

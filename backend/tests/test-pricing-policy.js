@@ -3,11 +3,11 @@
  * Testes do módulo de Pricing e Política de Viagens.
  *
  * Cobre:
- * - POST /auth/me/accept-policy — aceitar política de passageiro e condutor
+ * - POST /auth/me/accept-policy - aceitar política de passageiro e condutor
  * - Guard PASSENGER_POLICY_NOT_ACCEPTED em POST /bookings/rides/:rideId
  * - Guard DRIVER_POLICY_NOT_ACCEPTED em POST /rides
- * - POST /pricing/calculate — cálculo de rota real (requer GOOGLE_MAPS_API_KEY)
- * - GET /pricing/fuel-prices — preços de combustível DGEG (com fallback)
+ * - POST /pricing/calculate - cálculo de rota real (requer GOOGLE_MAPS_API_KEY)
+ * - GET /pricing/fuel-prices - preços de combustível DGEG (com fallback)
  * - Fluxo completo: criar boleia com routeData → reservar com breakdown visível
  *
  * Requisitos:
@@ -120,7 +120,7 @@ async function run() {
     passed++;
   }) && passed++;
 
-  // Corrigir — aceitar política de condutor
+  // Corrigir - aceitar política de condutor
   const driverPolicyRes = await request("POST", "/auth/me/accept-policy", { role: "driver" }, driver.token);
   assert(driverPolicyRes.ok, `Aceitar política de condutor falhou: ${driverPolicyRes.status}`);
   console.log("   → Política de condutor aceite");
@@ -138,7 +138,7 @@ async function run() {
 
   let rideId = null;
   if (await step("2) POST /rides após aceitar política de condutor funciona", async () => {
-    assert(rideRes.ok, `Criar boleia falhou: ${rideRes.status} — ${JSON.stringify(rideRes.data)}`);
+    assert(rideRes.ok, `Criar boleia falhou: ${rideRes.status} - ${JSON.stringify(rideRes.data)}`);
     assert(rideRes.data?.id, "Resposta deve conter id");
     rideId = rideRes.data.id;
     passed++;
@@ -161,7 +161,7 @@ async function run() {
   console.log("   → Política de passageiro aceite");
 
   total++;
-  if (await step("4) POST /auth/me/accept-policy — GET /auth/me reflete datas de aceitação", async () => {
+  if (await step("4) POST /auth/me/accept-policy - GET /auth/me reflete datas de aceitação", async () => {
     const meRes = await request("GET", "/auth/me", null, driver.token);
     assert(meRes.ok, `GET /auth/me falhou: ${meRes.status}`);
     const policy = meRes.data?.policy;
@@ -174,7 +174,7 @@ async function run() {
   if (await step("5) POST /bookings após aceitar política de passageiro funciona", async () => {
     if (!rideId) { passed++; return; }
     const res = await request("POST", `/bookings/rides/${rideId}`, { seats: 1 }, passenger.token);
-    assert(res.ok, `Reserva falhou: ${res.status} — ${JSON.stringify(res.data)}`);
+    assert(res.ok, `Reserva falhou: ${res.status} - ${JSON.stringify(res.data)}`);
     assert(res.data?.id, "Resposta deve conter id da reserva");
     passed++;
   })) { /* ok */ }
@@ -250,7 +250,7 @@ async function run() {
     passed++;
   })) { /* ok */ }
 
-  // Teste real de rota — pode falhar se API key não configurada
+  // Teste real de rota - pode falhar se API key não configurada
   total++;
   if (await step("13) POST /pricing/calculate Lisboa→Porto devolve rotas com breakdown", async () => {
     const res = await request("POST", "/pricing/calculate", {
@@ -262,7 +262,7 @@ async function run() {
     }, driver.token);
 
     if (res.status === 502) {
-      console.log(`   ⚠️  Google Maps API indisponível (502) — GOOGLE_MAPS_API_KEY pode não estar configurada`);
+      console.log(`   ⚠️  Google Maps API indisponível (502) - GOOGLE_MAPS_API_KEY pode não estar configurada`);
       passed++; // não falhar se API key não está configurada
       return;
     }
@@ -285,7 +285,7 @@ async function run() {
     assert(Math.abs(bd.passengerPays - (bd.pricePerSeat + bd.platformFee)) < 0.05, "passengerPays = pricePerSeat + platformFee");
     assert(bd.suggestedMaxPrice >= bd.pricePerSeat, "suggestedMaxPrice >= pricePerSeat");
 
-    console.log(`   Rota: ${route.label} — ${route.distanceKm}km, ${route.durationMin}min`);
+    console.log(`   Rota: ${route.label} - ${route.distanceKm}km, ${route.durationMin}min`);
     console.log(`   Breakdown: combustível €${bd.fuelCost}, portagens €${bd.tollCost}, por lugar €${bd.pricePerSeat}, taxa €${bd.platformFee}`);
     passed++;
   })) { /* ok */ }
@@ -309,7 +309,7 @@ async function run() {
       fuelType: "eletrico",
       avgConsumption: 17.0,
     }, driver.token);
-    assert(patchRes.ok, `PATCH /vehicles falhou: ${patchRes.status} — ${JSON.stringify(patchRes.data)}`);
+    assert(patchRes.ok, `PATCH /vehicles falhou: ${patchRes.status} - ${JSON.stringify(patchRes.data)}`);
     assert(patchRes.data.fuelType === "eletrico", `fuelType esperado eletrico, got: ${patchRes.data.fuelType}`);
     assert(patchRes.data.avgConsumption === 17.0, `avgConsumption esperado 17.0, got: ${patchRes.data.avgConsumption}`);
     passed++;

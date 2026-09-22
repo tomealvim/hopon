@@ -1,4 +1,4 @@
-# HopOn — Política de Viagens
+# HopOn - Política de Viagens
 
 > Documento de referência para implementação técnica e texto legal da app.
 > Todas as regras aqui definidas têm de ser aceites explicitamente pelo utilizador antes de poder reservar ou publicar uma boleia.
@@ -9,7 +9,7 @@
 
 ### 1.1 Princípio base
 O HopOn é uma plataforma de **partilha de custos**, não de transporte pago.
-O condutor **não ganha dinheiro** — apenas recupera os custos reais da viagem (combustível + portagens).
+O condutor **não ganha dinheiro** - apenas recupera os custos reais da viagem (combustível + portagens).
 A HopOn cobra uma comissão de serviço de **10%** sobre o valor por lugar, paga pelo passageiro.
 
 ### 1.2 Fórmula de cálculo do preço
@@ -36,7 +36,7 @@ hopon_recebe      = comissão_hopon
 | Elétrico | consumo (kWh/100km) × preço médio eletricidade Portugal |
 | Híbrido | consumo combinado (L/100km) × preço DGEG gasolina 95 |
 
-> **Fonte preços combustível:** API pública DGEG (Direção-Geral de Energia e Geologia) — atualizada semanalmente.
+> **Fonte preços combustível:** API pública DGEG (Direção-Geral de Energia e Geologia) - atualizada semanalmente.
 > **Fonte consumo do veículo:** introduzido pelo condutor ao registar o carro (consumo real, não WLTP).
 
 ### 1.4 Transparência de preços
@@ -85,7 +85,7 @@ Cada opção mostra: distância real, tempo estimado com tráfego, custo de port
 
 ---
 
-## 3. Política de Cancelamento — Passageiro
+## 3. Política de Cancelamento - Passageiro
 
 | Momento do cancelamento | Reembolso ao passageiro | Para o condutor |
 |---|---|---|
@@ -99,14 +99,14 @@ Cada opção mostra: distância real, tempo estimado com tráfego, custo de port
 
 ---
 
-## 4. Política de Cancelamento — Condutor
+## 4. Política de Cancelamento - Condutor
 
 | Momento do cancelamento | Consequência |
 |---|---|
 | Qualquer altura antes da partida | Reembolso total (100%) a todos os passageiros |
 | Cancelamentos frequentes | Penalização no perfil (badge de fiabilidade reduzido) |
 
-> O condutor não pode cancelar apenas para alguns passageiros — o cancelamento é sempre total.
+> O condutor não pode cancelar apenas para alguns passageiros - o cancelamento é sempre total.
 
 ---
 
@@ -167,7 +167,7 @@ Página de política obrigatória com checkbox explícito:
 | Cancelamento com reembolso | Devolução ao cartão original (3-5 dias úteis) ou wallet |
 | No-show | Transferência imediata para o condutor |
 | Alteração de rota aceite (mais cara) | Débito da diferença ao passageiro |
-| Alteração de rota — saída do passageiro | Reembolso total ao passageiro |
+| Alteração de rota - saída do passageiro | Reembolso total ao passageiro |
 
 ### 7.3 Comissão HopOn
 - **10%** sobre o preço por lugar
@@ -209,7 +209,7 @@ Se o condutor tiver de cancelar por emergência (acidente, doença, etc.):
 - O condutor submete a prova na app → equipa HopOn valida em 24h.
 - Sem prova → cancelamento normal (penaliza perfil).
 
-### 8.5 Isenção de responsabilidade — Seguro
+### 8.5 Isenção de responsabilidade - Seguro
 O HopOn é uma plataforma de mediação de partilha de custos entre particulares.
 A HopOn **não é responsável** por acidentes, danos, ou lesões ocorridas durante as viagens.
 O seguro do veículo é da responsabilidade exclusiva do condutor.
@@ -231,7 +231,7 @@ Para que o cálculo seja preciso, o condutor tem de preencher ao registar o carr
 | Matrícula | AA-00-BB | ✅ |
 | Nº de lugares | 5 | ✅ |
 
-> O consumo médio real é introduzido pelo condutor — é o valor que conhece do dia-a-dia, não o valor WLTP do manual.
+> O consumo médio real é introduzido pelo condutor - é o valor que conhece do dia-a-dia, não o valor WLTP do manual.
 
 ---
 
@@ -240,7 +240,7 @@ Para que o cálculo seja preciso, o condutor tem de preencher ao registar o carr
 Texto sugerido para mostrar ao utilizador:
 
 > **Como funciona o preço?**
-> O preço de cada lugar é calculado com base no combustível real do carro do condutor, ao preço atual em Portugal, mais as portagens da rota. Adicionamos uma taxa de serviço de 10%. O condutor não lucra — apenas recupera o que gasta.
+> O preço de cada lugar é calculado com base no combustível real do carro do condutor, ao preço atual em Portugal, mais as portagens da rota. Adicionamos uma taxa de serviço de 10%. O condutor não lucra - apenas recupera o que gasta.
 
 > **E se precisar de cancelar?**
 > Podes cancelar grátis até 24h antes. Depois disso, o reembolso é parcial ou nulo (o condutor tem de ser compensado pelo lugar vazio que deixaste).

@@ -23,7 +23,7 @@ export class EventsController {
   ) {}
 
   @Sse('stream')
-  @SkipThrottle() // ligação SSE persistente — não contar como pedidos HTTP normais
+  @SkipThrottle() // ligação SSE persistente - não contar como pedidos HTTP normais
   async stream(@Query('token') token: string): Promise<Observable<SseEvent>> {
     if (!token) {
       throw new UnauthorizedException('Token em falta');

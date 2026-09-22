@@ -1,5 +1,5 @@
 /**
- * MapPicker — modal com mapa interativo para o utilizador colocar um pin.
+ * MapPicker - modal com mapa interativo para o utilizador colocar um pin.
  * Usa Leaflet + OpenStreetMap (sem token necessário).
  */
 import { useEffect, useRef, useState } from "react";

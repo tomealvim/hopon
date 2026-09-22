@@ -1,4 +1,4 @@
-/** Templates de email HTML para o HopOn — estilos inline para compatibilidade máxima */
+/** Templates de email HTML para o HopOn - estilos inline para compatibilidade máxima */
 
 const BASE = {
   bg: '#F5E6D3',
@@ -173,7 +173,7 @@ export function bookingDeclinedEmailHtml(
     </p>
     ${routeCard(origin, destination, departureTime)}
     <p style="margin:0;font-size:14px;color:${BASE.muted};">
-      Não desanimes — há mais boleias disponíveis na app!
+      Não desanimes - há mais boleias disponíveis na app!
     </p>
     ${ctaButton('Explorar boleias')}
   `);

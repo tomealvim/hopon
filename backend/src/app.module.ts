@@ -69,7 +69,7 @@ const backendEnv = join(__dirname, '..', '.env');
       {
         name: 'default',
         ttl: 60_000,
-        limit: 300,  // 300 req/min por IP (5/s) — protege contra abuso sem bloquear testes
+        limit: 300,  // 300 req/min por IP (5/s) - protege contra abuso sem bloquear testes
       },
     ]),
     LoggerModule.forRoot({

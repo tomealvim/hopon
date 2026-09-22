@@ -23,7 +23,7 @@ function check(name, condition, detail = '') {
     checks.push({ name, ok: true });
     passed++;
   } else {
-    console.log(`  ❌ ${name}${detail ? ` — ${detail}` : ''}`);
+    console.log(`  ❌ ${name}${detail ? ` - ${detail}` : ''}`);
     checks.push({ name, ok: false, detail });
     failed++;
   }
@@ -87,7 +87,7 @@ async function registerAndVerify(label) {
 
 async function run() {
   console.log('\n═══════════════════════════════════════════════════════════');
-  console.log('🔍 DB VERIFY — Consistência da BD via API');
+  console.log('🔍 DB VERIFY - Consistência da BD via API');
   console.log(`   Target: ${API_BASE}`);
   console.log('═══════════════════════════════════════════════════════════\n');
 
@@ -144,7 +144,7 @@ async function run() {
   let rideId;
 
   if (!vehicleId) {
-    check('Boleia (ignorada — veículo não criado)', false, 'depende da etapa anterior');
+    check('Boleia (ignorada - veículo não criado)', false, 'depende da etapa anterior');
   } else {
     const tomorrow = new Date(Date.now() + 86400000).toISOString();
     const ridePayload = {
@@ -157,7 +157,7 @@ async function run() {
     };
 
     const createRideRes = await req('POST', '/rides', ridePayload, driverToken);
-    check('POST /rides retorna 201', createRideRes.status === 201, `status: ${createRideRes.status} — ${JSON.stringify(createRideRes.data)}`);
+    check('POST /rides retorna 201', createRideRes.status === 201, `status: ${createRideRes.status} - ${JSON.stringify(createRideRes.data)}`);
     rideId = createRideRes.data.id;
 
     const myRidesRes = await req('GET', '/rides/my', null, driverToken);
@@ -177,10 +177,10 @@ async function run() {
   let bookingId;
 
   if (!rideId) {
-    check('Reserva (ignorada — boleia não criada)', false, 'depende da etapa anterior');
+    check('Reserva (ignorada - boleia não criada)', false, 'depende da etapa anterior');
   } else {
     const bookingRes = await req('POST', `/bookings/rides/${rideId}`, { seats: 1 }, passengerToken);
-    check('POST /bookings/rides/:id retorna 201', bookingRes.status === 201, `status: ${bookingRes.status} — ${JSON.stringify(bookingRes.data)}`);
+    check('POST /bookings/rides/:id retorna 201', bookingRes.status === 201, `status: ${bookingRes.status} - ${JSON.stringify(bookingRes.data)}`);
     bookingId = bookingRes.data.id;
 
     const myBookingsRes = await req('GET', '/bookings/my', null, passengerToken);
@@ -195,7 +195,7 @@ async function run() {
   }
 
   // ─── 5. INBOX ──────────────────────────────────────────────────────────────
-  console.log('\n── 5. Inbox — conversa após reserva ──');
+  console.log('\n── 5. Inbox - conversa após reserva ──');
 
   const convRes = await req('GET', '/inbox/conversations', null, passengerToken);
   check('GET /inbox/conversations retorna 200', convRes.status === 200);
@@ -221,7 +221,7 @@ async function run() {
 
 function printSummary() {
   console.log('\n═══════════════════════════════════════════════════════════');
-  console.log('📊 RESUMO — DB VERIFY');
+  console.log('📊 RESUMO - DB VERIFY');
   console.log('═══════════════════════════════════════════════════════════');
   console.log(`✅ Passaram: ${passed}   ❌ Falharam: ${failed}   Total: ${passed + failed}`);
   console.log('');
@@ -229,12 +229,12 @@ function printSummary() {
   if (failed > 0) {
     console.log('Falhas:');
     checks.filter(c => !c.ok).forEach(c => {
-      console.log(`  ❌ ${c.name}${c.detail ? ` — ${c.detail}` : ''}`);
+      console.log(`  ❌ ${c.name}${c.detail ? ` - ${c.detail}` : ''}`);
     });
     console.log('');
     process.exit(1);
   } else {
-    console.log('🎉 Todos os checks passaram — BD consistente!');
+    console.log('🎉 Todos os checks passaram - BD consistente!');
     console.log('');
     process.exit(0);
   }

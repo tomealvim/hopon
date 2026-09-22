@@ -21,11 +21,11 @@ export class PushService {
         webpush.setVapidDetails(email, publicKey, privateKey);
         this.ready = true;
       } catch (err: any) {
-        this.logger.error(`VAPID keys inválidas — push notifications desativadas: ${err.message}`);
+        this.logger.error(`VAPID keys inválidas - push notifications desativadas: ${err.message}`);
         this.ready = false;
       }
     } else {
-      this.logger.warn('VAPID keys não configuradas — push notifications desativadas');
+      this.logger.warn('VAPID keys não configuradas - push notifications desativadas');
       this.ready = false;
     }
   }
@@ -63,7 +63,7 @@ export class PushService {
         );
       } catch (err: any) {
         if (err.statusCode === 410 || err.statusCode === 404) {
-          // Subscription expired — remove
+          // Subscription expired - remove
           await this.prisma.pushSubscription.deleteMany({ where: { endpoint: sub.endpoint } }).catch(() => {});
         } else {
           this.logger.error(`Push send failed for user ${userId}: ${err.message}`);

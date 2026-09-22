@@ -13,32 +13,32 @@ export class WalletController {
     private readonly moduleRef: ModuleRef,
   ) {}
 
-  /** GET /wallet — saldo actual */
+  /** GET /wallet - saldo actual */
   @Get()
   getBalance(@Request() req: any) {
     return this.walletService.getBalance(req.user.id);
   }
 
-  /** GET /wallet/transactions?limit=30 — histórico de transações */
+  /** GET /wallet/transactions?limit=30 - histórico de transações */
   @Get('transactions')
   getTransactions(@Request() req: any, @Query('limit') limit?: string) {
     return this.walletService.getTransactions(req.user.id, limit ? parseInt(limit) : 30);
   }
 
-  /** POST /wallet/topup/intent — criar PaymentIntent Stripe */
+  /** POST /wallet/topup/intent - criar PaymentIntent Stripe */
   @Post('topup/intent')
   topupIntent(@Request() req: any, @Body() dto: TopupDto) {
     const stripeService = this.moduleRef.get(StripeService, { strict: false });
     return stripeService.createPaymentIntent(req.user.id, dto.amountCents);
   }
 
-  /** POST /wallet/topup — carregar saldo (demo) */
+  /** POST /wallet/topup - carregar saldo (demo) */
   @Post('topup')
   topup(@Request() req: any, @Body() dto: TopupDto) {
     return this.walletService.topup(req.user.id, dto.amountCents, dto.description);
   }
 
-  /** POST /wallet/withdraw — passageiro reembolsa saldo não usado para o cartão original */
+  /** POST /wallet/withdraw - passageiro reembolsa saldo não usado para o cartão original */
   @Post('withdraw')
   async withdraw(@Request() req: any, @Body() body: { amountCents: number }) {
     const amountCents = Math.round(Number(body.amountCents));
@@ -61,13 +61,13 @@ export class WalletController {
     return { success: true, refundedAmountCents: amountCents };
   }
 
-  /** POST /wallet/payout-request — condutor pede levantamento para IBAN */
+  /** POST /wallet/payout-request - condutor pede levantamento para IBAN */
   @Post('payout-request')
   createPayoutRequest(@Request() req: any, @Body() body: { amountCents: number; iban: string }) {
     return this.walletService.createPayoutRequest(req.user.id, Math.round(Number(body.amountCents)), body.iban);
   }
 
-  /** GET /wallet/payout-requests — histórico de pedidos de levantamento */
+  /** GET /wallet/payout-requests - histórico de pedidos de levantamento */
   @Get('payout-requests')
   getMyPayoutRequests(@Request() req: any) {
     return this.walletService.getMyPayoutRequests(req.user.id);

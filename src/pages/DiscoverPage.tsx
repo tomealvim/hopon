@@ -77,12 +77,12 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
       (pos) => setUserGps({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => { /* sem permissão — fallback para ordenação por hora */ },
+      () => { /* sem permissão - fallback para ordenação por hora */ },
       { maximumAge: 5 * 60 * 1000, timeout: 5000 }
     );
   }, []);
 
-  // "Para Ti" — boleias que batem com os templates/rotas do utilizador
+  // "Para Ti" - boleias que batem com os templates/rotas do utilizador
   const [forYouRides, setForYouRides]   = useState<ApiRide[]>([]);
   const [forYouLoading, setForYouLoading] = useState(false);
   const [forYouLoaded, setForYouLoaded]   = useState(false);
@@ -110,7 +110,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
   // Colapsável "As minhas configurações"
   const [showMyConfig, setShowMyConfig] = useState(false);
 
-  // "Disponível agora" — boleias nas próximas 2h
+  // "Disponível agora" - boleias nas próximas 2h
   const [nowRides, setNowRides] = useState<ApiRide[]>([]);
   const [nowLoading, setNowLoading] = useState(false);
 
@@ -204,7 +204,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
     } catch { /* ignore */ }
   }
 
-  // Helper — converte os filtros em query params para o backend
+  // Helper - converte os filtros em query params para o backend
   function buildSearchParams(f: typeof filters): URLSearchParams {
     const params = new URLSearchParams();
     if (f.origin?.trim()) params.set("origin", f.origin.trim());
@@ -896,7 +896,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                   </button>
                 </div>
 
-                {/* Arranjos pendentes — aviso se o passageiro tem proposta por responder */}
+                {/* Arranjos pendentes - aviso se o passageiro tem proposta por responder */}
                 {arrangements.asPassenger.filter((a) => a.status === "PENDING").map((a) => (
                   <div key={a.id} className="mb-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
                     <p className="text-sm font-semibold text-amber-900 mb-1">Proposta de boleia recorrente</p>
@@ -1025,7 +1025,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
         />
       )}
 
-      {/* Política de passageiro — aparece quando tenta reservar sem aceitar */}
+      {/* Política de passageiro - aparece quando tenta reservar sem aceitar */}
       <PolicyAcceptanceSheet
         open={openPassengerPolicy}
         role="passenger"

@@ -14,7 +14,7 @@ export type DiscoverFilters = {
   routeOverlapPct: number;  // 0..100
 
   // Tempo
-  date?: string;            // "YYYY-MM-DD" — dia específico (vazio = qualquer dia)
+  date?: string;            // "YYYY-MM-DD" - dia específico (vazio = qualquer dia)
   departFrom?: string;      // "08:00"
   departTo?: string;        // "10:00"
   toleranceMin: number;     // 0..20

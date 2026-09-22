@@ -135,14 +135,14 @@ export class RidesService {
     // Invalidar cache de pesquisa para resultados imediatos
     void this.cache.clear();
 
-    // 16.2.3 — Se a boleia parte nas próximas 2h, notificar utilizadores próximos com rota compatível
+    // 16.2.3 - Se a boleia parte nas próximas 2h, notificar utilizadores próximos com rota compatível
     const now = new Date();
     const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     if (originCoords && ride.departureTime <= twoHoursLater) {
       void this.notifyNearbyUsersForNow(userId, ride.id, originCoords.lat, originCoords.lng, ride.origin, ride.destination);
     }
 
-    // 16.4.5 — Notificar autores de ride requests compatíveis com esta boleia
+    // 16.4.5 - Notificar autores de ride requests compatíveis com esta boleia
     void this.notifyMatchingRideRequests(userId, ride.id, ride.origin, ride.destination, originCoords, destCoords);
 
     return this.toResponse(ride);
@@ -219,7 +219,7 @@ export class RidesService {
 
     if (!ride) throw new NotFoundException('Boleia não encontrada');
 
-    // Boleia privada — verificar se o utilizador é membro da comunidade
+    // Boleia privada - verificar se o utilizador é membro da comunidade
     if (ride.communityId) {
       const isMember = userId
         ? await this.prisma.communityMember.findFirst({
@@ -405,7 +405,7 @@ export class RidesService {
         const patternHasOriginCoords = pattern.originLat != null && pattern.originLng != null;
         const patternHasDestCoords = pattern.destinationLat != null && pattern.destinationLng != null;
 
-        // Origem — corredor se polilinha disponível, senão GPS 5km, senão text overlap
+        // Origem - corredor se polilinha disponível, senão GPS 5km, senão text overlap
         if (polyline && polyline.length > 0 && patternHasOriginCoords) {
           const distOrigin = this.minDistToPolylineM(
             pattern.originLat!, pattern.originLng!, polyline,
@@ -424,7 +424,7 @@ export class RidesService {
           }
         }
 
-        // Destino — corredor se polilinha + coords disponíveis, senão text overlap
+        // Destino - corredor se polilinha + coords disponíveis, senão text overlap
         if (polyline && polyline.length > 0 && patternHasDestCoords) {
           const distDest = this.minDistToPolylineM(
             pattern.destinationLat!, pattern.destinationLng!, polyline,
@@ -589,7 +589,7 @@ export class RidesService {
       .map((r) => this.toResponse(r));
   }
 
-  /** 17.1 — "Chegar a tempo": boleias que chegam ao destino antes da hora pretendida */
+  /** 17.1 - "Chegar a tempo": boleias que chegam ao destino antes da hora pretendida */
   async findArrivingBy(dto: ArrivingByDto, userId: string | null = null) {
     const {
       destinationLat,
@@ -738,14 +738,14 @@ export class RidesService {
       const orPrivacy = [{ communityId: null }, ...(myCommunityIds.length > 0 ? [{ communityId: { in: myCommunityIds } }] : [])];
       where.OR = where.OR ? [...(where.OR as any[]), ...orPrivacy] : orPrivacy;
     } else {
-      // Utilizador não autenticado — só vê boleias públicas
+      // Utilizador não autenticado - só vê boleias públicas
       where.communityId = null;
     }
 
     // Pesquisa por proximidade: filtrar por IDs de rides cujo origin está dentro do raio
     if (dto.lat != null && dto.lng != null) {
       const radiusKm = dto.radius ?? 10;
-      // Haversine em SQL — filtra locations de origem dentro do raio
+      // Haversine em SQL - filtra locations de origem dentro do raio
       const nearbyOrigins = await this.prisma.$queryRaw<{ id: string }[]>`
         SELECT id FROM locations
         WHERE lat IS NOT NULL AND lng IS NOT NULL
@@ -852,7 +852,7 @@ export class RidesService {
       }
     }
 
-    // Campos que afetam passageiros com reservas ativas — geram notificação
+    // Campos que afetam passageiros com reservas ativas - geram notificação
     const impactfulFields: string[] = [];
     if (dto.origin !== undefined) impactfulFields.push('origin');
     if (dto.destination !== undefined) impactfulFields.push('destination');
@@ -992,7 +992,7 @@ export class RidesService {
         await tx.booking.update({ where: { id: booking.id }, data: { status: 'COMPLETED' } });
       }
 
-      // NO_SHOW bookings mantêm status — condutor já estava no ponto, sem reembolso
+      // NO_SHOW bookings mantêm status - condutor já estava no ponto, sem reembolso
 
       // Cancelar reservas pendentes e reembolsar (não chegaram a embarcar)
       for (const booking of pendingBookings) {
@@ -1011,7 +1011,7 @@ export class RidesService {
       // Creditar condutor pelo total das reservas confirmadas + NO_SHOW
       const paidBookings = [...confirmedBookings, ...noShowBookings];
       if (ride.priceCents != null && ride.priceCents > 0 && paidBookings.length > 0) {
-        // Condutor recebe só o preço por lugar — a platformFee fica retida pela HopOn
+        // Condutor recebe só o preço por lugar - a platformFee fica retida pela HopOn
         const totalCents = paidBookings.reduce((sum, b) => sum + ride.priceCents! * b.seats, 0);
         let wallet = await tx.wallet.findFirst({ where: { userId: driverId } });
         if (!wallet) wallet = await tx.wallet.create({ data: { userId: driverId } });
@@ -1087,7 +1087,7 @@ export class RidesService {
       }
     }
 
-    // Invalidar cache — boleia COMPLETED não deve aparecer na pesquisa
+    // Invalidar cache - boleia COMPLETED não deve aparecer na pesquisa
     void this.cache.clear();
 
     return { message: 'Boleia concluída com sucesso' };
@@ -1242,7 +1242,7 @@ export class RidesService {
       orderBy: { ride: { departureTime: 'desc' } },
     });
 
-    // Deduplicate (se for driver e passenger ao mesmo tempo — improvável mas seguro)
+    // Deduplicate (se for driver e passenger ao mesmo tempo - improvável mas seguro)
     const driverRideIds = new Set(asDriver.map((r) => r.id));
     const passengerBookingMap = new Map(
       asPassenger.map((b) => [b.rideId, b.id]),
@@ -1379,7 +1379,7 @@ export class RidesService {
     };
   }
 
-  /** 16.2.3 — Notificar utilizadores próximos quando uma boleia "agora" é criada */
+  /** 16.2.3 - Notificar utilizadores próximos quando uma boleia "agora" é criada */
   private async notifyNearbyUsersForNow(
     driverId: string,
     rideId: string,
@@ -1413,7 +1413,7 @@ export class RidesService {
     }
   }
 
-  /** 16.4.5 — Notificar autores de ride requests que batem com a boleia criada */
+  /** 16.4.5 - Notificar autores de ride requests que batem com a boleia criada */
   private async notifyMatchingRideRequests(
     driverId: string,
     rideId: string,

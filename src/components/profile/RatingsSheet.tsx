@@ -26,7 +26,7 @@ interface ApiRatingsResponse {
 interface RatingsSheetProps {
   open: boolean;
   onClose: () => void;
-  // Submit mode — when provided, shows the submission form
+  // Submit mode - when provided, shows the submission form
   bookingId?: string;
   revieweeId?: string;
   revieweeName?: string;

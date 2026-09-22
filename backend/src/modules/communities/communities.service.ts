@@ -85,7 +85,7 @@ export class CommunitiesService {
     if (existing) {
       if (existing.status === 'APPROVED') throw new ConflictException('Já és membro desta comunidade');
       if (existing.status === 'PENDING') throw new ConflictException('O teu pedido já está pendente');
-      // REJECTED — allow re-apply
+      // REJECTED - allow re-apply
       const newStatus = community.requiresApproval ? 'PENDING' : 'APPROVED';
       await this.prisma.communityMember.update({
         where: { id: existing.id },

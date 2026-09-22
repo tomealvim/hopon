@@ -79,7 +79,7 @@ export class CreateRideDto {
   @Min(0)
   platformFeeCents?: number;
 
-  @ApiPropertyOptional({ example: true, description: 'Reserva instantânea — passageiros na rota são confirmados automaticamente' })
+  @ApiPropertyOptional({ example: true, description: 'Reserva instantânea - passageiros na rota são confirmados automaticamente' })
   @IsOptional()
   @IsBoolean()
   instantBooking?: boolean;
@@ -89,7 +89,7 @@ export class CreateRideDto {
   @IsString()
   meetingPoint?: string;
 
-  @ApiPropertyOptional({ example: 'abc123', description: 'ID de comunidade — boleia visível só a membros aprovados' })
+  @ApiPropertyOptional({ example: 'abc123', description: 'ID de comunidade - boleia visível só a membros aprovados' })
   @IsOptional()
   @IsString()
   communityId?: string;

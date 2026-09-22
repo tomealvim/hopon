@@ -15,7 +15,7 @@ export default defineConfig({
       manifest: {
         name: 'HopOn',
         short_name: 'HopOn',
-        description: 'Carpooling de partilha de custos — boleias diárias inteligentes',
+        description: 'Carpooling de partilha de custos - boleias diárias inteligentes',
         theme_color: '#F5E6D3',
         background_color: '#ffffff',
         display: 'standalone',

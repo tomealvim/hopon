@@ -73,7 +73,7 @@ export class RideRequestsService {
   }
 
   /**
-   * Para o condutor — devolve pedidos OPEN ordenados por:
+   * Para o condutor - devolve pedidos OPEN ordenados por:
    * 1. Proximidade da origem do pedido à posição atual do condutor (se driverLat/Lng fornecidos)
    * 2. Sobreposição de destino (se driverDestLat/Lng fornecidos)
    * 3. Compatibilidade de dias com os templates do condutor

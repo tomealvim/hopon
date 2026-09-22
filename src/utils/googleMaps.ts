@@ -30,7 +30,7 @@ export async function getPlaceSuggestions(
   if (!GOOGLE_KEY || query.trim().length < 2) return [];
   await loadGoogleMaps();
   try {
-    // Nova API (Places API New) — obrigatória para novos clientes desde março 2025
+    // Nova API (Places API New) - obrigatória para novos clientes desde março 2025
     const { AutocompleteSuggestion } = await google.maps.importLibrary("places") as any;
     const request: any = {
       input: query,

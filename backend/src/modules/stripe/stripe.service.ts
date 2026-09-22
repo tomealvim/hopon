@@ -28,11 +28,11 @@ export class StripeService {
     if (this.enabled) {
       this.stripe = new Stripe(secretKey!, { apiVersion: '2026-02-25.clover' });
     } else {
-      this.logger.warn('STRIPE_SECRET_KEY não definida — Stripe desativado.');
+      this.logger.warn('STRIPE_SECRET_KEY não definida - Stripe desativado.');
     }
   }
 
-  /** Criar PaymentIntent para carregar saldo (amountCents em cêntimos — unidade nativa do Stripe) */
+  /** Criar PaymentIntent para carregar saldo (amountCents em cêntimos - unidade nativa do Stripe) */
   async createPaymentIntent(userId: string, amountCents: number) {
     if (!this.enabled || !this.stripe) {
       throw new BadRequestException(
@@ -175,7 +175,7 @@ export class StripeService {
       if (!userId || !amountCents || isBooking) {
         if (!isBooking) {
           this.logger.warn(
-            `PaymentIntent ${intent.id} sem metadata userId/amount — ignorado.`,
+            `PaymentIntent ${intent.id} sem metadata userId/amount - ignorado.`,
           );
         }
         return { received: true };

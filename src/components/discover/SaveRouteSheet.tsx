@@ -164,7 +164,7 @@ export default function SaveRouteSheet({ open, onClose, onSaved, onSkip, isOnboa
             <div className="bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl p-4">
               <p className="text-sm font-semibold text-[#1A1C19] mb-1">Bem-vindo ao HopOn!</p>
               <p className="text-xs text-[#414844]">
-                Diz-nos o teu trajeto diário e vamos encontrar boleias que batem certo — sem teres de pesquisar.
+                Diz-nos o teu trajeto diário e vamos encontrar boleias que batem certo - sem teres de pesquisar.
               </p>
             </div>
           ) : (

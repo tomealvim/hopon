@@ -14,10 +14,10 @@ export default {
       colors: {
         // ── HopOn Green Design System ──────────────────────────────
         // Paleta principal verde (usada em todo o novo design)
-        'hopon-dark':    '#1B4332',  // verde escuro — headlines, header
-        'hopon-medium':  '#52B788',  // verde médio — CTAs, tabs ativos
-        'hopon-light':   '#95D5B2',  // verde claro — icon bgs, badges
-        'hopon-muted':   '#D0E8DC',  // verde muted — dots inativos
+        'hopon-dark':    '#1B4332',  // verde escuro - headlines, header
+        'hopon-medium':  '#52B788',  // verde médio - CTAs, tabs ativos
+        'hopon-light':   '#95D5B2',  // verde claro - icon bgs, badges
+        'hopon-muted':   '#D0E8DC',  // verde muted - dots inativos
         'hopon-bg':      '#F9FAF5',  // background principal
         'hopon-surface': '#F3F4EF',  // superfície cards
         'hopon-border':  '#E7E9E4',  // bordas suaves

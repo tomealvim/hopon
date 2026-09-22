@@ -22,7 +22,7 @@ export interface UserProfile {
   username?: string;
   contactEmail?: string;
   avatarUrl?: string;
-  address?: string; // legacy — usar homeAddress
+  address?: string; // legacy - usar homeAddress
   homeAddress?: string;
   homeLat?: number;
   homeLng?: number;

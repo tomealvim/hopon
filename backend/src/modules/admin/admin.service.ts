@@ -235,7 +235,7 @@ export class AdminService {
       await this.walletService.refund(
         dispute.booking.userId,
         dto.refundAmountCents,
-        `Reembolso — disputa ${disputeId}`,
+        `Reembolso - disputa ${disputeId}`,
         disputeId,
       );
     }
@@ -251,7 +251,7 @@ export class AdminService {
 
     // Notificar o utilizador que abriu a disputa
     const notifTitle =
-      dto.action === 'REFUND' ? 'Disputa resolvida — reembolso processado' : 'Disputa encerrada';
+      dto.action === 'REFUND' ? 'Disputa resolvida - reembolso processado' : 'Disputa encerrada';
     const notifBody =
       dto.action === 'REFUND'
         ? `A tua disputa foi resolvida. Foi creditado €${((dto.refundAmountCents ?? 0) / 100).toFixed(2)} na tua carteira.`
@@ -300,7 +300,7 @@ export class AdminService {
       await this.walletService.refund(
         request.userId,
         request.amountCents,
-        `Pedido de levantamento rejeitado — ${dto.adminNote ?? 'sem nota'}`,
+        `Pedido de levantamento rejeitado - ${dto.adminNote ?? 'sem nota'}`,
         requestId,
       );
     }

@@ -76,7 +76,7 @@ export class GeocodingService {
   /**
    * Obtém a polilinha de uma rota via Google Directions API.
    * Retorna array de {lat,lng} já descodificado, ou null se falhar.
-   * Usar apenas uma vez por rota — guardar resultado na DB para não re-chamar.
+   * Usar apenas uma vez por rota - guardar resultado na DB para não re-chamar.
    */
   /**
    * Calcula duração a pé entre dois pontos via Google Directions API (mode: walking).
@@ -119,7 +119,7 @@ export class GeocodingService {
   /**
    * Obtém a polilinha de uma rota via Google Directions API.
    * Retorna array de {lat,lng} já descodificado, ou null se falhar.
-   * Usar apenas uma vez por rota — guardar resultado na DB para não re-chamar.
+   * Usar apenas uma vez por rota - guardar resultado na DB para não re-chamar.
    */
   async getRoutePolyline(
     originLat: number,

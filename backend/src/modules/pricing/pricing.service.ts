@@ -47,7 +47,7 @@ const DEFAULT_CONSUMPTION: Record<string, number> = {
   hibrido: 5.5,
 };
 
-// Preço de fallback por tipo de combustível (€/L ou €/kWh) — atualizado manualmente
+// Preço de fallback por tipo de combustível (€/L ou €/kWh) - atualizado manualmente
 const FALLBACK_FUEL_PRICES: Record<string, number> = {
   gasolina95: 1.72,
   gasoleo: 1.59,
@@ -185,7 +185,7 @@ export class PricingService {
 
       if (!response.ok) {
         const errText = await response.text();
-        throw new Error(`Google Routes API: ${response.status} — ${errText}`);
+        throw new Error(`Google Routes API: ${response.status} - ${errText}`);
       }
 
       routesData = await response.json();
@@ -208,7 +208,7 @@ export class PricingService {
       );
       const durationMin = Math.round(durationSec / 60);
 
-      // Extrair custo de portagens — API retorna em mikro-unidades ou object
+      // Extrair custo de portagens - API retorna em mikro-unidades ou object
       const tollInfo = route.travelAdvisory?.tollInfo;
       let tollCost = 0;
       if (tollInfo?.estimatedPrice) {
@@ -266,7 +266,7 @@ export class PricingService {
 
     // Custo de combustível total para a viagem, em cêntimos.
     // O cálculo intermédio usa floats (preços/L, consumo) mas o resultado é
-    // arredondado a cêntimos inteiros uma única vez — a partir daqui é tudo Int.
+    // arredondado a cêntimos inteiros uma única vez - a partir daqui é tudo Int.
     const fuelCostCents = Math.round((distanceKm * consumption * fuelPrice) / 100 * 100);
     const tollCostCents = Math.round(tollCost * 100);
 

@@ -49,7 +49,7 @@ async function bootstrap() {
   // Security headers
   app.use(helmet({ contentSecurityPolicy: false }));
 
-  // CORS — suporta múltiplas origens via FRONTEND_URL (vírgulas)
+  // CORS - suporta múltiplas origens via FRONTEND_URL (vírgulas)
   const configService = app.get(ConfigService);
   const allowedOrigins = configService
     .get<string>('FRONTEND_URL', 'http://localhost:5173')
@@ -57,7 +57,7 @@ async function bootstrap() {
     .map((o) => o.trim());
   app.enableCors({ origin: allowedOrigins, credentials: true });
 
-  // Swagger — apenas em desenvolvimento
+  // Swagger - apenas em desenvolvimento
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('Hopon API')

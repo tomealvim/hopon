@@ -61,7 +61,7 @@ export class RidesController {
 
   @Get('arrive-by')
   @UseGuards(OptionalJwtAuthGuard)
-  @ApiOperation({ summary: 'Boleias que chegam ao destino antes da hora pretendida (17.1 — Chegar a tempo)' })
+  @ApiOperation({ summary: 'Boleias que chegam ao destino antes da hora pretendida (17.1 - Chegar a tempo)' })
   findArrivingBy(@Request() req, @Query() dto: ArrivingByDto) {
     return this.ridesService.findArrivingBy(dto, req.user?.id ?? null);
   }
@@ -100,7 +100,7 @@ export class RidesController {
   @Post(':id/on-the-way')
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Condutor anuncia que está a caminho — notifica passageiros confirmados' })
+  @ApiOperation({ summary: 'Condutor anuncia que está a caminho - notifica passageiros confirmados' })
   onTheWay(@Request() req, @Param('id') id: string) {
     return this.ridesService.onTheWay(req.user.id, id);
   }

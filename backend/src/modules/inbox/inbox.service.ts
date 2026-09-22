@@ -114,7 +114,7 @@ export class InboxService {
     return { success: true };
   }
 
-  /** Cria (ou devolve existente) a conversa de grupo da boleia — condutor é o primeiro participante */
+  /** Cria (ou devolve existente) a conversa de grupo da boleia - condutor é o primeiro participante */
   async getOrCreateRideGroupConversation(rideId: string, driverId: string) {
     const existing = await this.prisma.conversation.findFirst({
       where: { rideId, bookingId: null },

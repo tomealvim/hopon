@@ -65,7 +65,7 @@ function AppContent() {
     return () => clearTimeout(t);
   }, [user, hasCompletedProfile, pushSupported, pushSubscribed, subscribePush]);
 
-  // 16.2.3 — Partilhar localização GPS com o backend (para matching "agora")
+  // 16.2.3 - Partilhar localização GPS com o backend (para matching "agora")
   useEffect(() => {
     if (!user) return;
     function sendLocation() {
@@ -108,7 +108,7 @@ function AppContent() {
   const [openDriverPolicy, setOpenDriverPolicy] = useState(false);
   const [pendingOfferValues, setPendingOfferValues] = useState<OfferRideFormValues | null>(null);
 
-  // Deep link: /ref/:code — store code in localStorage to apply after login
+  // Deep link: /ref/:code - store code in localStorage to apply after login
   useEffect(() => {
     const match = window.location.pathname.match(/^\/ref\/([A-Z0-9]{6,10})$/i);
     if (match) {
@@ -356,7 +356,7 @@ function AppContent() {
       {/* Painel de notificações */}
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
 
-      {/* Política de condutor — aparece quando o condutor tenta publicar sem aceitar */}
+      {/* Política de condutor - aparece quando o condutor tenta publicar sem aceitar */}
       <PolicyAcceptanceSheet
         open={openDriverPolicy}
         role="driver"
@@ -375,7 +375,7 @@ function AppContent() {
         }}
       />
 
-      {/* Bem-vindo — mostrado uma vez após criar perfil */}
+      {/* Bem-vindo - mostrado uma vez após criar perfil */}
       <WelcomeSheet
         open={showWelcome}
         onClose={() => setShowWelcome(false)}
@@ -383,14 +383,14 @@ function AppContent() {
         onGoToRides={() => { setShowWelcome(false); setTab('rides'); }}
       />
 
-      {/* Pedir boleia — publicar necessidade de passageiro */}
+      {/* Pedir boleia - publicar necessidade de passageiro */}
       <RideRequestSheet
         open={openRideRequest}
         onClose={() => setOpenRideRequest(false)}
         onSaved={() => setOpenRideRequest(false)}
       />
 
-      {/* Deep link /join/:code — abre sheet de comunidade diretamente */}
+      {/* Deep link /join/:code - abre sheet de comunidade diretamente */}
       <CommunitiesSheet
         open={openJoinSheet}
         initialInviteCode={joinCode}
@@ -402,7 +402,7 @@ function AppContent() {
       />
 
 
-      {/* Deep link /ride/:id — preview público de boleia partilhada */}
+      {/* Deep link /ride/:id - preview público de boleia partilhada */}
       {openRidePreview && sharedRideId && (
         <RideSharePreview
           rideId={sharedRideId}
@@ -420,7 +420,7 @@ function AppContent() {
         />
       )}
 
-      {/* Deep link /u/:id — perfil público de utilizador */}
+      {/* Deep link /u/:id - perfil público de utilizador */}
       {openPublicProfile && publicProfileId && (
         <PublicProfilePage
           userId={publicProfileId}

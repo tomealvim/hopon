@@ -51,7 +51,7 @@ export class WalletService {
     if (!amountCents || amountCents < 1000 || amountCents > 50000) {
       throw new BadRequestException('O valor deve estar entre €10 e €500.');
     }
-    // Retorna os dados necessários ao frontend — o StripeService faz o trabalho real
+    // Retorna os dados necessários ao frontend - o StripeService faz o trabalho real
     // Este método existe para que WalletController possa usar StripeService
     return { amountCents };
   }
@@ -86,7 +86,7 @@ export class WalletService {
     });
   }
 
-  /** Carregamento de saldo (demo — sem gateway de pagamento real) */
+  /** Carregamento de saldo (demo - sem gateway de pagamento real) */
   async topup(userId: string, amountCents: number, description?: string) {
     if (!amountCents || amountCents < 1000) {
       throw new BadRequestException('O valor mínimo de carregamento é €10.');
@@ -119,7 +119,7 @@ export class WalletService {
     });
   }
 
-  /** Débito interno (usado por outros serviços — ex: pagamento de boleia) */
+  /** Débito interno (usado por outros serviços - ex: pagamento de boleia) */
   async debit(userId: string, amountCents: number, description: string, reference?: string) {
     const wallet = await this.getOrCreate(userId);
 
@@ -218,7 +218,7 @@ export class WalletService {
           walletId: wallet.id,
           type: 'PAYOUT_PENDING',
           amountCents,
-          description: 'Pedido de levantamento — aguarda processamento',
+          description: 'Pedido de levantamento - aguarda processamento',
         },
       });
     });

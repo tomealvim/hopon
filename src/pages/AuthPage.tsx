@@ -161,7 +161,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }: AuthP
     <div className="min-h-[100svh] bg-[#F9FAF5] text-[#1A1C19] flex flex-col font-manrope"
       style={{ padding: "1.5rem 1.5rem calc(1rem + env(safe-area-inset-bottom))" }}
     >
-      {/* Header — igual ao Onboarding */}
+      {/* Header - igual ao Onboarding */}
       <div className="flex items-center justify-between mb-5">
         <div className="w-10 h-10">
           {mode === 'register' && view === 'form' && (

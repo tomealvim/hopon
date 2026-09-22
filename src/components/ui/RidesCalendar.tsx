@@ -179,7 +179,7 @@ export default function RidesCalendar({ rides, onRideClick }: RidesCalendarProps
 
               <div className="p-2 space-y-2 min-h-[120px]">
                 {day.rides.length === 0 ? (
-                  <div className="text-center text-[#c1c8c2] text-2xl pt-8">—</div>
+                  <div className="text-center text-[#c1c8c2] text-2xl pt-8">-</div>
                 ) : (
                   day.rides.map((ride) => (
                     <button

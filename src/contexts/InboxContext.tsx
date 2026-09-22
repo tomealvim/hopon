@@ -120,7 +120,7 @@ export function InboxProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  // Polling de fallback (60s) — SSE é o canal principal
+  // Polling de fallback (60s) - SSE é o canal principal
   useEffect(() => {
     if (!user) {
       setThreads([]);
@@ -135,7 +135,7 @@ export function InboxProvider({ children }: { children: ReactNode }) {
     };
   }, [user, fetchConversations]);
 
-  // SSE — nova mensagem recebida em tempo real
+  // SSE - nova mensagem recebida em tempo real
   useEffect(() => {
     return subscribe("message.new", (data) => {
       const conversationId = data.conversationId as string;
@@ -147,7 +147,7 @@ export function InboxProvider({ children }: { children: ReactNode }) {
       // Adicionar mensagem à conversa se já estiver carregada
       setMessagesByThread((prev) => {
         if (!prev[conversationId]) return prev; // conversa não aberta, ignorar
-        // Deduplicar — pode ter chegado via POST + SSE
+        // Deduplicar - pode ter chegado via POST + SSE
         const existing = prev[conversationId];
         if (existing.some((m) => m.id === newMessage.id)) return prev;
         return { ...prev, [conversationId]: [...existing, newMessage] };

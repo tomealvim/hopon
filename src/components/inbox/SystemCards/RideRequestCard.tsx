@@ -12,8 +12,8 @@ export default function RideRequestCard({
   return (
     <div className="bg-white border border-[#e7e9e4] rounded-xl p-4 shadow-sm">
       <div className="text-xs font-semibold text-[#717973] mb-2 uppercase tracking-wide">Pedido de lugar</div>
-      <div className="text-sm text-[#1A1C19] font-medium mb-1">{seats} lugar · {when ?? "—:—"}</div>
-      <div className="text-xs text-[#414844] mb-3">{origin ?? "—"} → {dest ?? "—"}</div>
+      <div className="text-sm text-[#1A1C19] font-medium mb-1">{seats} lugar · {when ?? "-:-"}</div>
+      <div className="text-xs text-[#414844] mb-3">{origin ?? "-"} → {dest ?? "-"}</div>
 
       {message && (
         <div className="bg-[#f3f4ef] border-l-2 border-[#c1c8c2] rounded py-2 px-3 mb-3">

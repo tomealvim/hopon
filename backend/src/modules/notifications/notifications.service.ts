@@ -91,7 +91,7 @@ export class NotificationsService {
       createdAt: notification.createdAt,
     });
 
-    // Push notification (web push) — verifica preferencias antes de enviar
+    // Push notification (web push) - verifica preferencias antes de enviar
     const tab = NotificationsService.TAB_BY_TYPE[type] ?? 'discover';
     const category = NotificationsService.PUSH_CATEGORY[type];
     if (category) {
@@ -311,7 +311,7 @@ export class NotificationsService {
     });
 
     this.logger.log(
-      `Boleia cancelada: ${rideOrigin} → ${rideDestination} — ${confirmedUserIds.length} confirmados, ${pendingUserIds.length} pendentes`,
+      `Boleia cancelada: ${rideOrigin} → ${rideDestination} - ${confirmedUserIds.length} confirmados, ${pendingUserIds.length} pendentes`,
     );
 
     const route = `${rideOrigin} → ${rideDestination}`;

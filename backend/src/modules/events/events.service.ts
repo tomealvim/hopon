@@ -6,7 +6,7 @@ export interface SseEvent {
 }
 
 /**
- * EventsService — broadcast de eventos SSE por utilizador.
+ * EventsService - broadcast de eventos SSE por utilizador.
  *
  * Cada utilizador tem um Subject partilhado entre todas as suas ligações (tabs).
  * O cleanup é feito por referência: quando todas as ligações de um user fecham,
@@ -17,7 +17,7 @@ export class EventsService {
   private subjects = new Map<string, Subject<SseEvent>>();
   private counts = new Map<string, number>();
 
-  /** Chamado pelo controller SSE — devolve Observable para este utilizador */
+  /** Chamado pelo controller SSE - devolve Observable para este utilizador */
   subscribe(userId: string): Observable<SseEvent> {
     if (!this.subjects.has(userId)) {
       this.subjects.set(userId, new Subject<SseEvent>());

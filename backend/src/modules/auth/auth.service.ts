@@ -463,7 +463,7 @@ export class AuthService {
     });
 
     if (!user) {
-      // Tentar encontrar por email (utilizador existente — ligar conta Google)
+      // Tentar encontrar por email (utilizador existente - ligar conta Google)
       const existing = await this.prisma.user.findUnique({
         where: { email },
         include: { profile: true, vehicles: true },
@@ -484,7 +484,7 @@ export class AuthService {
           include: { profile: true, vehicles: true },
         });
       } else {
-        // Criar novo utilizador — Google já verificou o email
+        // Criar novo utilizador - Google já verificou o email
         const googleReferralCode = randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
         user = await this.prisma.user.create({
           data: {

@@ -16,7 +16,7 @@ export class StripeController {
 
   /**
    * POST /stripe/webhook
-   * Recebe eventos do Stripe. Não tem JwtAuthGuard — é chamado pelo Stripe.
+   * Recebe eventos do Stripe. Não tem JwtAuthGuard - é chamado pelo Stripe.
    * O body chega como Buffer (express.raw middleware em main.ts).
    */
   @Post('webhook')

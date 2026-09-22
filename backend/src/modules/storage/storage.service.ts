@@ -29,7 +29,7 @@ export class StorageService {
         forcePathStyle: true, // necessário para MinIO e R2 com endpoint personalizado
       });
     } else {
-      this.logger.warn('S3_ENDPOINT não definido — upload de avatars desativado.');
+      this.logger.warn('S3_ENDPOINT não definido - upload de avatars desativado.');
     }
   }
 
@@ -47,7 +47,7 @@ export class StorageService {
         Key: key,
         Body: buffer,
         ContentType: mimeType,
-        CacheControl: 'max-age=31536000', // 1 ano — URL é determinística por userId
+        CacheControl: 'max-age=31536000', // 1 ano - URL é determinística por userId
       }),
     );
 

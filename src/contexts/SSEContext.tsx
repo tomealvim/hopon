@@ -1,5 +1,5 @@
 /**
- * SSEContext — ligação Server-Sent Events partilhada por toda a app.
+ * SSEContext - ligação Server-Sent Events partilhada por toda a app.
  *
  * Mantém uma única ligação SSE por sessão autenticada.
  * Outros contextos (InboxContext, etc.) subscrevem eventos específicos via useSSE().
@@ -85,7 +85,7 @@ export function SSEProvider({ children }: { children: ReactNode }) {
       esRef.current = null;
       setConnected(false);
     };
-  }, []); // ligação única por montagem — token lido dinamicamente em cada connect()
+  }, []); // ligação única por montagem - token lido dinamicamente em cada connect()
 
   const subscribe = useCallback(
     (eventType: string, handler: EventHandler): (() => void) => {

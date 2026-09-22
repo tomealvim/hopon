@@ -1,5 +1,5 @@
 /**
- * LocationInput — campo de texto para localização com Google Places Autocomplete.
+ * LocationInput - campo de texto para localização com Google Places Autocomplete.
  * Requer VITE_GOOGLE_MAPS_KEY no .env do frontend.
  */
 
@@ -31,7 +31,7 @@ type LocationInputProps = {
   lng?: number;
   /** Chamado quando o utilizador edita manualmente (limpa coordenadas) */
   onLabelChange: (label: string) => void;
-  /** Chamado quando uma sugestão é seleccionada — recebe label + coords */
+  /** Chamado quando uma sugestão é seleccionada - recebe label + coords */
   onLocationSelect?: (location: LocationValue) => void;
   onBlur?: () => void;
   "aria-invalid"?: boolean;

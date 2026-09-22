@@ -47,8 +47,8 @@ export class NotificationsProcessor extends WorkerHost {
       case 'email.otp': {
         const { to, code, purpose, expiryMinutes } = job.data as OtpEmailPayload;
         const subject = purpose === 'email'
-          ? 'Código de verificação — HopOn'
-          : 'Código de verificação de telefone — HopOn';
+          ? 'Código de verificação - HopOn'
+          : 'Código de verificação de telefone - HopOn';
         if (resendKey) {
           const resend = new Resend(resendKey);
           await resend.emails.send({ from: fromEmail, to, subject, html: otpEmailHtml(code, purpose, expiryMinutes) });
@@ -66,7 +66,7 @@ export class NotificationsProcessor extends WorkerHost {
           await resend.emails.send({
             from: fromEmail,
             to: driverEmail,
-            subject: 'Nova reserva pendente — HopOn',
+            subject: 'Nova reserva pendente - HopOn',
             html: bookingCreatedEmailHtml(driverName, passengerName, origin, destination, departureTime, seats),
           });
         } else {
@@ -85,7 +85,7 @@ export class NotificationsProcessor extends WorkerHost {
           await resend.emails.send({
             from: fromEmail,
             to: passengerEmail,
-            subject: isConfirmed ? 'Reserva confirmada — HopOn' : 'Reserva não aceite — HopOn',
+            subject: isConfirmed ? 'Reserva confirmada - HopOn' : 'Reserva não aceite - HopOn',
             html: isConfirmed
               ? bookingConfirmedEmailHtml(passengerName, origin, destination, departureTime)
               : bookingDeclinedEmailHtml(passengerName, origin, destination, departureTime),
@@ -104,7 +104,7 @@ export class NotificationsProcessor extends WorkerHost {
           await resend.emails.send({
             from: fromEmail,
             to: driverEmail,
-            subject: 'Reserva cancelada — HopOn',
+            subject: 'Reserva cancelada - HopOn',
             html: bookingCancelledEmailHtml(driverName, passengerName, origin, destination, departureTime),
           });
         } else {
@@ -121,7 +121,7 @@ export class NotificationsProcessor extends WorkerHost {
           await resend.emails.send({
             from: fromEmail,
             to: userEmail,
-            subject: 'Boleia cancelada — HopOn',
+            subject: 'Boleia cancelada - HopOn',
             html: rideCancelledEmailHtml(userName, origin, destination, departureTime),
           });
         } else {
