@@ -7,11 +7,18 @@ import { WalletService } from '../wallet/wallet.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { StripeService } from '../stripe/stripe.service';
 
-function getRefundFraction(departureTime: Date): number {
-  const hoursUntil = (departureTime.getTime() - Date.now()) / 3_600_000;
-  if (hoursUntil > 2) return 1.0;    // >2h - reembolso total
-  if (hoursUntil > 0.5) return 0.5;  // 30min–2h - reembolso 50%
-  return 0.0;                         // <30min - sem reembolso
+const FULL_REFUND_HOURS = 2;
+const PARTIAL_REFUND_HOURS = 0.5;
+const PARTIAL_REFUND_FRACTION = 0.5;
+
+export function getRefundFraction(
+  departureTime: Date,
+  now: Date = new Date(),
+): number {
+  const hoursUntil = (departureTime.getTime() - now.getTime()) / 3_600_000;
+  if (hoursUntil > FULL_REFUND_HOURS) return 1.0;
+  if (hoursUntil > PARTIAL_REFUND_HOURS) return PARTIAL_REFUND_FRACTION;
+  return 0.0;
 }
 
 // ── Algoritmo de desvio de rota ────────────────────────────────────────────
