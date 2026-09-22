@@ -1,4 +1,6 @@
-# Scripts de Teste da API
+# Scripts de Teste Manual da API
+
+> ⚠️ Estes são scripts de smoke test manuais (batem num servidor já a correr, não isolados, não correm em CI). Os testes automatizados "reais" do projeto vivem em `src/**/*.spec.ts` (Jest + Supertest, com BD de teste dedicada). Usa esta pasta para validação rápida durante o desenvolvimento, não como prova de cobertura de testes.
 
 Esta pasta contém scripts de teste end-to-end para validar a API do backend. Todos os scripts assumem que o servidor está a correr em `http://localhost:3000`.
 
