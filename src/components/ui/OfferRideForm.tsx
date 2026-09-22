@@ -245,7 +245,8 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
     if (!values.destino.trim()) e.destino = "Obrigatório";
     if (!values.data) e.data = "Obrigatório";
     if (!values.hora) e.hora = "Obrigatório";
-    if (values.lugares < 1) e.lugares = "Mínimo 1";
+    if (!Number.isFinite(values.lugares) || values.lugares < 1) e.lugares = "Mínimo 1";
+    else if (values.lugares > 6) e.lugares = "Máximo 6";
     if (values.aceitaDesvios && (values.desvioMaxMin < 0 || values.desvioMaxMin > 60)) e.desvioMaxMin = "0–60 min";
     if (priceExceedsCeiling) e.price = `Máx. permitido: €${centsToFixed(selectedRoute!.breakdown.suggestedMaxPriceCents)} (+20% sobre custo real)`;
     return e;
@@ -384,7 +385,10 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
           min={1}
           max={6}
           value={values.lugares}
-          onChange={(e) => set("lugares", Number(e.target.value))}
+          onChange={(e) => {
+            const n = Number(e.target.value);
+            set("lugares", Number.isNaN(n) ? 0 : n);
+          }}
           onBlur={() => setTouchedField("lugares")}
           aria-invalid={!!errors.lugares}
         />
