@@ -21,6 +21,15 @@ export function getRefundFraction(
   return 0.0;
 }
 
+export function calculateRefundCents(
+  fullCents: number,
+  departureTime: Date,
+  now: Date = new Date(),
+): number {
+  const fraction = getRefundFraction(departureTime, now);
+  return Math.round(fullCents * fraction);
+}
+
 // ── Algoritmo de desvio de rota ────────────────────────────────────────────
 
 function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -528,7 +537,7 @@ export class BookingsService {
         booking.paymentMethod !== 'STRIPE'
       ) {
         const fullCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
-        const refundCents = Math.round(fullCents * refundFraction);
+        const refundCents = calculateRefundCents(fullCents, booking.ride.departureTime);
         const description =
           refundFraction === 1.0
             ? 'Cancelamento de reserva (reembolso total)'
@@ -551,7 +560,7 @@ export class BookingsService {
       booking.stripePaymentIntentId
     ) {
       const fullCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
-      const refundCents = Math.round(fullCents * refundFraction);
+      const refundCents = calculateRefundCents(fullCents, booking.ride.departureTime);
       try {
         await this.stripeService.createRefunds([
           { paymentIntentId: booking.stripePaymentIntentId, amountCents: refundCents },
