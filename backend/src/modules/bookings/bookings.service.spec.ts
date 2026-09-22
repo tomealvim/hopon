@@ -1,4 +1,4 @@
-import { getRefundFraction } from './bookings.service';
+import { getRefundFraction, calculateRefundCents } from './bookings.service';
 
 describe('getRefundFraction', () => {
   const NOW = new Date('2026-06-15T10:00:00.000Z');
@@ -73,5 +73,29 @@ describe('getRefundFraction', () => {
       expect(refundCents).toBe(0);
       expect(Object.is(refundCents, -0)).toBe(false);
     });
+  });
+});
+
+describe('calculateRefundCents', () => {
+  const NOW = new Date('2026-06-15T10:00:00.000Z');
+
+  const hoursFromNow = (hours: number): Date =>
+    new Date(NOW.getTime() + hours * 3_600_000);
+
+  it('combines getRefundFraction and rounding in one call - full refund', () => {
+    expect(calculateRefundCents(351, hoursFromNow(24), NOW)).toBe(351);
+  });
+
+  it('combines getRefundFraction and rounding in one call - partial refund with odd cents', () => {
+    expect(calculateRefundCents(351, hoursFromNow(1), NOW)).toBe(176);
+  });
+
+  it('combines getRefundFraction and rounding in one call - no refund', () => {
+    expect(calculateRefundCents(351, hoursFromNow(-1), NOW)).toBe(0);
+  });
+
+  it('defaults now to the current time when not provided', () => {
+    const farFuture = new Date(Date.now() + 100 * 3_600_000);
+    expect(calculateRefundCents(351, farFuture)).toBe(351);
   });
 });
