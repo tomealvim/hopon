@@ -711,10 +711,6 @@ export class RidesService {
       }
     }
 
-    if (dto.minSeats) {
-      where.availableSeats = { gte: dto.minSeats };
-    }
-
     if (dto.maxPriceCents != null) {
       // Incluir boleias gratuitas (priceCents null) e boleias até ao preço máximo
       where.OR = [{ priceCents: null }, { priceCents: { lte: dto.maxPriceCents } }];
@@ -793,12 +789,21 @@ export class RidesService {
       orderBy: { departureTime: 'asc' },
     });
 
+    // Excluir boleias sem lugares suficientes (lugares que sobram, não o total)
+    const minSeats = dto.minSeats ?? 1;
+    const availableRides = rides.filter((r) => {
+      const booked = r.bookings
+        .filter((b) => b.status === 'CONFIRMED' || b.status === 'PENDING')
+        .reduce((sum, b) => sum + b.seats, 0);
+      return r.availableSeats - booked >= minSeats;
+    });
+
     // Badge de comunidade partilhada (só se autenticado)
     const sharedCommunityMap = userId
       ? await this.communitiesService.getSharedCommunityMap(userId)
       : new Map<string, { id: string; name: string }>();
 
-    let result = rides.map((ride) => ({
+    let result = availableRides.map((ride) => ({
       ...this.toResponse(ride),
       sharedCommunity: sharedCommunityMap.get(ride.driverId) ?? null,
     }));
