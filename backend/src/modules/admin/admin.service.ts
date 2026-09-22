@@ -290,7 +290,7 @@ export class AdminService {
       include: { user: { select: { id: true, email: true } } },
     });
 
-    if (!request) throw new NotFoundException('Pedido de saque não encontrado.');
+    if (!request) throw new NotFoundException('Pedido de levantamento não encontrado.');
     if (request.status === 'PROCESSED') {
       throw new BadRequestException('Pedido já foi processado.');
     }
@@ -300,7 +300,7 @@ export class AdminService {
       await this.walletService.refund(
         request.userId,
         request.amountCents,
-        `Pedido de saque rejeitado — ${dto.adminNote ?? 'sem nota'}`,
+        `Pedido de levantamento rejeitado — ${dto.adminNote ?? 'sem nota'}`,
         requestId,
       );
     }
@@ -311,9 +311,9 @@ export class AdminService {
     });
 
     const notifMap: Record<string, [string, string]> = {
-      APPROVED: ['Saque aprovado', 'O teu pedido de saque foi aprovado e será processado em breve.'],
-      PROCESSED: ['Saque processado', `O teu saque de €${(request.amountCents / 100).toFixed(2)} foi enviado para o IBAN indicado.`],
-      REJECTED: ['Saque rejeitado', `O teu pedido de saque foi rejeitado. ${dto.adminNote ? `Motivo: ${dto.adminNote}` : ''} O valor foi devolvido à tua carteira.`],
+      APPROVED: ['Levantamento aprovado', 'O teu pedido de levantamento foi aprovado e será processado em breve.'],
+      PROCESSED: ['Levantamento processado', `O teu levantamento de €${(request.amountCents / 100).toFixed(2)} foi enviado para o IBAN indicado.`],
+      REJECTED: ['Levantamento rejeitado', `O teu pedido de levantamento foi rejeitado. ${dto.adminNote ? `Motivo: ${dto.adminNote}` : ''} O valor foi devolvido à tua carteira.`],
     };
 
     const [title, body] = notifMap[dto.status];

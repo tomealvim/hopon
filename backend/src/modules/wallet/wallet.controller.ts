@@ -61,13 +61,13 @@ export class WalletController {
     return { success: true, refundedAmountCents: amountCents };
   }
 
-  /** POST /wallet/payout-request — condutor pede saque para IBAN */
+  /** POST /wallet/payout-request — condutor pede levantamento para IBAN */
   @Post('payout-request')
   createPayoutRequest(@Request() req: any, @Body() body: { amountCents: number; iban: string }) {
     return this.walletService.createPayoutRequest(req.user.id, Math.round(Number(body.amountCents)), body.iban);
   }
 
-  /** GET /wallet/payout-requests — histórico de pedidos de saque */
+  /** GET /wallet/payout-requests — histórico de pedidos de levantamento */
   @Get('payout-requests')
   getMyPayoutRequests(@Request() req: any) {
     return this.walletService.getMyPayoutRequests(req.user.id);

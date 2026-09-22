@@ -186,10 +186,10 @@ export class WalletService {
     });
   }
 
-  /** Criar pedido de payout (condutor solicita saque para IBAN) */
+  /** Criar pedido de payout (condutor solicita levantamento para IBAN) */
   async createPayoutRequest(userId: string, amountCents: number, iban: string) {
     if (!amountCents || amountCents < 100) {
-      throw new BadRequestException('O valor mínimo de saque é €1.');
+      throw new BadRequestException('O valor mínimo de levantamento é €1.');
     }
     if (amountCents > 500000) {
       throw new BadRequestException('O valor máximo por pedido é €5000.');
@@ -218,7 +218,7 @@ export class WalletService {
           walletId: wallet.id,
           type: 'PAYOUT_PENDING',
           amountCents,
-          description: 'Pedido de saque — aguarda processamento',
+          description: 'Pedido de levantamento — aguarda processamento',
         },
       });
     });
@@ -278,7 +278,7 @@ export class WalletService {
       }
       throw new BadRequestException(
         `Apenas €${euros(totalRefundable)} do teu saldo são reembolsáveis via cartão. ` +
-          'Para levantar o restante, usa o pedido de saque para IBAN.',
+          'Para levantar o restante, usa o pedido de levantamento para IBAN.',
       );
     }
 

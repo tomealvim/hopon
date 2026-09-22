@@ -153,7 +153,7 @@ export default function WithdrawSheet({ open, onClose, balance, onSubmitted }: P
 
           <p className="text-xs text-[#717973]">
             Só é possível reembolsar o valor que carregaste via cartão. Saldo ganho como
-            condutor pode ser levantado via IBAN em "Pedir saque".
+            condutor pode ser levantado via IBAN em "Pedir levantamento".
           </p>
         </div>
       )}

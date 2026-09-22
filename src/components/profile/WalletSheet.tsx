@@ -30,7 +30,7 @@ const TX_META: Record<WalletTransaction["type"], { label: string; color: string;
   DEBIT:          { label: "Pagamento",           color: "text-red-500",     sign: "−" },
   REFUND:         { label: "Reembolso",           color: "text-blue-500",    sign: "+" },
   PAYOUT:         { label: "Levantamento",        color: "text-orange-500",  sign: "−" },
-  PAYOUT_PENDING: { label: "Saque pendente",      color: "text-yellow-600",  sign: "−" },
+  PAYOUT_PENDING: { label: "Levantamento pendente", color: "text-yellow-600",  sign: "−" },
   WITHDRAW:       { label: "Reembolso p/ cartão", color: "text-purple-600",  sign: "−" },
 };
 
@@ -249,7 +249,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                     className="text-xs text-[#717973] underline-offset-2 hover:underline"
                     onClick={() => setPayoutOpen(true)}
                   >
-                    Pedir saque para IBAN
+                    Pedir levantamento para IBAN
                   </button>
                 </div>
               )}

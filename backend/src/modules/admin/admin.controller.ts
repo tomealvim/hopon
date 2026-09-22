@@ -92,13 +92,13 @@ export class AdminController {
   }
 
   @Get('payout-requests')
-  @ApiOperation({ summary: 'Listar pedidos de saque' })
+  @ApiOperation({ summary: 'Listar pedidos de levantamento' })
   getPayoutRequests(@Query('status') status?: string) {
     return this.adminService.getPayoutRequests(status);
   }
 
   @Patch('payout-requests/:id')
-  @ApiOperation({ summary: 'Aprovar, processar ou rejeitar pedido de saque' })
+  @ApiOperation({ summary: 'Aprovar, processar ou rejeitar pedido de levantamento' })
   processPayoutRequest(@Param('id') id: string, @Body() dto: { status: string; adminNote?: string }) {
     return this.adminService.processPayoutRequest(id, dto);
   }

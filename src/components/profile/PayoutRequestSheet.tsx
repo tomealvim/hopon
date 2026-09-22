@@ -55,7 +55,7 @@ export default function PayoutRequestSheet({ open, onClose, balance, onSubmitted
     <Sheet
       open={open}
       onClose={handleClose}
-      title="Pedir saque"
+      title="Pedir levantamento"
       height="lg"
       footer={
         done ? (
@@ -73,7 +73,7 @@ export default function PayoutRequestSheet({ open, onClose, balance, onSubmitted
                 disabled={!canSubmit}
                 onClick={handleSubmit}
               >
-                {submitting ? "A enviar…" : "Pedir saque"}
+                {submitting ? "A enviar…" : "Pedir levantamento"}
               </Button>
             </div>
           </div>
@@ -90,7 +90,7 @@ export default function PayoutRequestSheet({ open, onClose, balance, onSubmitted
             </div>
             <p className="text-base font-semibold text-[#1A1C19]">Pedido submetido</p>
             <p className="text-sm text-[#717973]">
-              A equipa HopOn irá processar o teu saque em breve. Serás notificado quando o valor for enviado.
+              A equipa HopOn irá processar o teu levantamento em breve. Serás notificado quando o valor for enviado.
             </p>
           </div>
         ) : (
@@ -102,7 +102,7 @@ export default function PayoutRequestSheet({ open, onClose, balance, onSubmitted
 
             <div className="space-y-2">
               <label htmlFor="payout-amount" className="text-xs font-semibold uppercase text-[#414844]">
-                Valor a sacar (€)
+                Valor a levantar (€)
               </label>
               <input
                 id="payout-amount"
