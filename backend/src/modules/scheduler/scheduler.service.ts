@@ -114,7 +114,7 @@ export class SchedulerService {
               destination: template.destination,
               departureTime,
               availableSeats: template.availableSeats,
-              price: template.price ?? null,
+              priceCents: template.priceCents ?? null,
               status: 'SCHEDULED',
               scheduleTemplateId: template.id,
               ...(originLocationId && { originLocationId }),

@@ -229,23 +229,23 @@ export class AdminService {
     const newStatus = dto.action === 'REFUND' ? 'RESOLVED' : 'DISMISSED';
 
     if (dto.action === 'REFUND') {
-      if (!dto.refundAmount || dto.refundAmount <= 0) {
+      if (!dto.refundAmountCents || dto.refundAmountCents <= 0) {
         throw new BadRequestException('Indica o valor do reembolso.');
       }
       await this.walletService.refund(
         dispute.booking.userId,
-        dto.refundAmount,
+        dto.refundAmountCents,
         `Reembolso — disputa ${disputeId}`,
         disputeId,
       );
     }
 
-    await (this.prisma as any).dispute.update({
+    await this.prisma.dispute.update({
       where: { id: disputeId },
       data: {
         status: newStatus,
         resolution: dto.resolution,
-        refundAmount: dto.refundAmount ?? null,
+        refundAmountCents: dto.refundAmountCents ?? null,
       },
     });
 
@@ -254,7 +254,7 @@ export class AdminService {
       dto.action === 'REFUND' ? 'Disputa resolvida — reembolso processado' : 'Disputa encerrada';
     const notifBody =
       dto.action === 'REFUND'
-        ? `A tua disputa foi resolvida. Foi creditado €${dto.refundAmount?.toFixed(2)} na tua carteira.`
+        ? `A tua disputa foi resolvida. Foi creditado €${((dto.refundAmountCents ?? 0) / 100).toFixed(2)} na tua carteira.`
         : `A tua disputa foi analisada: ${dto.resolution}`;
 
     void this.notificationsService.createNotification(
@@ -299,7 +299,7 @@ export class AdminService {
     if (dto.status === 'REJECTED' && request.status !== 'REJECTED') {
       await this.walletService.refund(
         request.userId,
-        request.amount,
+        request.amountCents,
         `Pedido de saque rejeitado — ${dto.adminNote ?? 'sem nota'}`,
         requestId,
       );
@@ -312,7 +312,7 @@ export class AdminService {
 
     const notifMap: Record<string, [string, string]> = {
       APPROVED: ['Saque aprovado', 'O teu pedido de saque foi aprovado e será processado em breve.'],
-      PROCESSED: ['Saque processado', `O teu saque de €${request.amount.toFixed(2)} foi enviado para o IBAN indicado.`],
+      PROCESSED: ['Saque processado', `O teu saque de €${(request.amountCents / 100).toFixed(2)} foi enviado para o IBAN indicado.`],
       REJECTED: ['Saque rejeitado', `O teu pedido de saque foi rejeitado. ${dto.adminNote ? `Motivo: ${dto.adminNote}` : ''} O valor foi devolvido à tua carteira.`],
     };
 

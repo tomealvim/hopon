@@ -3,6 +3,7 @@ import Sheet from "../ui/Sheet";
 import { Button } from "../ui/Button";
 import { cn } from "../../utils/cn";
 import { apiRequest } from "../../services/api";
+import { centsToEuros, eurosToCents } from "../../utils/money";
 
 type Props = {
   open: boolean;
@@ -37,11 +38,11 @@ export default function WithdrawSheet({ open, onClose, balance, onSubmitted }: P
     setLoading(true);
     setError("");
     try {
-      const res = await apiRequest<{ refundedAmount: number }>("/wallet/withdraw", {
+      const res = await apiRequest<{ refundedAmountCents: number }>("/wallet/withdraw", {
         method: "POST",
-        body: JSON.stringify({ amount: parsed }),
+        body: JSON.stringify({ amountCents: eurosToCents(parsed) }),
       });
-      setRefunded(res.refundedAmount);
+      setRefunded(centsToEuros(res.refundedAmountCents));
       setDone(true);
       onSubmitted();
     } catch (err) {

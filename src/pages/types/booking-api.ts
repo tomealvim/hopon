@@ -15,7 +15,7 @@ export interface ApiBooking {
     destination: string;
     departureTime: string;
     availableSeats: number;
-    price?: number | null;
+    priceCents?: number | null;
     status: string;
     vehicle?: {
       id: string;

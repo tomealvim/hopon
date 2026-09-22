@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Sheet from "./Sheet";
 import { Button } from "./Button";
 import { apiRequest } from "../../services/api";
+import { centsToFixed } from "../../utils/money";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
@@ -11,8 +12,8 @@ type Props = {
   onConfirm: (opts?: { message?: string; stripePaymentIntentId?: string; pickupLat?: number; pickupLng?: number }) => void;
   offerTitle: string;
   rideId: string;
-  price?: number | null;
-  platformFee?: number | null;
+  priceCents?: number | null;
+  platformFeeCents?: number | null;
   seats?: number;
   departureTime?: string | null;
   pickupLat?: number | null;
@@ -81,8 +82,8 @@ export default function RequestSeatSheet({
   onConfirm,
   offerTitle,
   rideId,
-  price,
-  platformFee,
+  priceCents,
+  platformFeeCents,
   seats = 1,
   departureTime: _departureTime,
   pickupLat,
@@ -100,20 +101,21 @@ export default function RequestSeatSheet({
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [stripePayError, setStripePayError] = useState("");
 
-  const hasCost       = price != null && price > 0;
-  const totalCost     = hasCost ? price * seats : 0;
-  const hasEnoughWallet = walletBalance != null && hasCost && walletBalance >= totalCost;
+  // Cálculos em cêntimos; conversão para € só na apresentação
+  const hasCost       = priceCents != null && priceCents > 0;
+  const totalCostCents = hasCost ? priceCents * seats : 0;
+  const hasEnoughWallet = walletBalance != null && hasCost && walletBalance >= totalCostCents;
 
-  const hasFeeBreakdown  = hasCost && platformFee != null && platformFee > 0;
-  const baseCostPerSeat  = hasFeeBreakdown ? price - platformFee! : price ?? 0;
-  const totalBase        = baseCostPerSeat * seats;
-  const totalFee         = hasFeeBreakdown ? platformFee! * seats : 0;
+  const hasFeeBreakdown  = hasCost && platformFeeCents != null && platformFeeCents > 0;
+  const baseCostPerSeatCents = hasFeeBreakdown ? priceCents - platformFeeCents! : priceCents ?? 0;
+  const totalBaseCents       = baseCostPerSeatCents * seats;
+  const totalFeeCents        = hasFeeBreakdown ? platformFeeCents! * seats : 0;
 
   useEffect(() => {
     if (!open || !hasCost) return;
     setBalanceLoading(true);
-    apiRequest<{ balance: number }>("/wallet")
-      .then((data) => setWalletBalance(Number(data.balance)))
+    apiRequest<{ balanceCents: number }>("/wallet")
+      .then((data) => setWalletBalance(Number(data.balanceCents)))
       .catch(() => setWalletBalance(null))
       .finally(() => setBalanceLoading(false));
   }, [open, hasCost]);
@@ -193,9 +195,9 @@ export default function RequestSeatSheet({
               {balanceLoading
                 ? "A verificar saldo…"
                 : hasEnoughWallet
-                ? `HopOn Cash  ·  €${walletBalance?.toFixed(2)}`
+                ? `HopOn Cash  ·  €${centsToFixed(walletBalance!)}`
                 : walletBalance != null
-                ? `Saldo insuficiente (€${walletBalance.toFixed(2)})`
+                ? `Saldo insuficiente (€${centsToFixed(walletBalance)})`
                 : "HopOn Cash"}
             </Button>
 
@@ -237,7 +239,7 @@ export default function RequestSeatSheet({
         {view === "stripe" && clientSecret && stripePromise && (
           <div className="space-y-4">
             <p className="text-sm font-semibold text-[#414844]">
-              {offerTitle} - €{totalCost.toFixed(2)}
+              {offerTitle} - €{centsToFixed(totalCostCents)}
             </p>
             {stripePayError && <p className="text-sm text-red-600">{stripePayError}</p>}
             <Elements
@@ -284,30 +286,30 @@ export default function RequestSeatSheet({
                       <span className="text-[#717973]">
                         Combustível + portagens ({seats} {seats > 1 ? "lugares" : "lugar"})
                       </span>
-                      <span className="text-[#414844]">€{totalBase.toFixed(2)}</span>
+                      <span className="text-[#414844]">€{centsToFixed(totalBaseCents)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-[#717973]">Taxa de serviço HopOn (10%)</span>
-                      <span className="text-[#414844]">€{totalFee.toFixed(2)}</span>
+                      <span className="text-[#414844]">€{centsToFixed(totalFeeCents)}</span>
                     </div>
                     <div className="my-1 border-t border-[#e7e9e4]" />
                     <div className="flex justify-between text-sm font-semibold">
                       <span className="text-[#1A1C19]">Total</span>
-                      <span className="text-[#1A1C19]">€{totalCost.toFixed(2)}</span>
+                      <span className="text-[#1A1C19]">€{centsToFixed(totalCostCents)}</span>
                     </div>
                   </>
                 ) : (
                   <div className="flex justify-between text-sm">
                     <span className="text-[#717973]">
-                      Custo ({seats} {seats > 1 ? "lugares" : "lugar"} × €{price!.toFixed(2)})
+                      Custo ({seats} {seats > 1 ? "lugares" : "lugar"} × €{centsToFixed(priceCents!)})
                     </span>
-                    <span className="font-semibold text-[#1A1C19]">€{totalCost.toFixed(2)}</span>
+                    <span className="font-semibold text-[#1A1C19]">€{centsToFixed(totalCostCents)}</span>
                   </div>
                 )}
               </div>
             )}
 
-            {price != null && price > 0 && (
+            {priceCents != null && priceCents > 0 && (
               <div className="rounded-xl border border-[#e7e9e4] bg-[#f3f4ef] p-3 grid gap-1">
                 <p className="text-xs font-semibold text-[#717973] uppercase tracking-wide mb-1">Política de cancelamento</p>
                 <div className="flex justify-between text-xs text-[#414844]">

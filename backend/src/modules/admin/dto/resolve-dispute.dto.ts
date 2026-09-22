@@ -1,17 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsNumber, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
 
 export class ResolveDisputeDto {
   @ApiProperty({ enum: ['REFUND', 'DISMISS'] })
   @IsIn(['REFUND', 'DISMISS'])
   action: 'REFUND' | 'DISMISS';
 
-  @ApiPropertyOptional({ example: 5.0 })
+  @ApiPropertyOptional({ example: 500, description: 'Reembolso em cêntimos' })
   @IsOptional()
-  @IsNumber()
-  @Min(0.01)
-  @Max(500)
-  refundAmount?: number;
+  @IsInt()
+  @Min(1)
+  @Max(50000)
+  refundAmountCents?: number;
 
   @ApiProperty({ example: 'Valor incorreto confirmado. Reembolso processado.' })
   @IsString()

@@ -10,6 +10,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { SSEProvider } from "./contexts/SSEContext";
 import { AppNotificationsProvider } from "./contexts/AppNotificationsContext";
 import { apiRequest } from "./services/api";
+import { eurosToCents } from "./utils/money";
 import BottomNav from "./components/ui/BottomNav";
 import { usePushNotifications } from "./hooks/usePushNotifications";
 import { hasCompletedOnboarding } from "./pages/OnboardingPage";
@@ -185,15 +186,15 @@ function AppContent() {
         destination: vals.destino,
         departureTime,
         availableSeats: vals.lugares,
-        price: vals.price ?? null,
+        priceCents: vals.price != null ? eurosToCents(vals.price) : null,
         originLat: vals.origemLat,
         originLng: vals.origemLng,
         destinationLat: vals.destinoLat,
         destinationLng: vals.destinoLng,
         routeDistanceKm: vals.routeDistanceKm,
         routeDurationMin: vals.routeDurationMin,
-        routeTollCost: vals.routeTollCost,
-        platformFee: vals.platformFee,
+        routeTollCostCents: vals.routeTollCostCents,
+        platformFeeCents: vals.platformFeeCents,
         instantBooking: vals.instantBooking,
         ...(vals.pontoEncontro && { meetingPoint: vals.pontoEncontro }),
         ...(vals.communityId && { communityId: vals.communityId }),

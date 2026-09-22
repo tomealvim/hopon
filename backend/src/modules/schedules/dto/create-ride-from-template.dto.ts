@@ -16,7 +16,9 @@ export class CreateRideFromTemplateDto {
   @Max(8)
   availableSeats?: number;
 
-  @ApiPropertyOptional({ example: 15.50 })
+  @ApiPropertyOptional({ example: 1550, description: 'Preço por lugar em cêntimos' })
   @IsOptional()
-  price?: number;
+  @IsInt()
+  @Min(0)
+  priceCents?: number;
 }

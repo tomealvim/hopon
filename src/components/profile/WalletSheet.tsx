@@ -3,6 +3,7 @@ import Sheet from "../ui/Sheet";
 import { Button } from "../ui/Button";
 import { cn } from "../../utils/cn";
 import { apiRequest } from "../../services/api";
+import { centsToEuros, eurosToCents } from "../../utils/money";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import PayoutRequestSheet from "./PayoutRequestSheet";
@@ -18,7 +19,7 @@ type WalletView = "list" | "amount" | "payment" | "success" | "history";
 type WalletTransaction = {
   id: string;
   type: "CREDIT" | "DEBIT" | "REFUND" | "PAYOUT" | "PAYOUT_PENDING" | "WITHDRAW";
-  amount: number;
+  amountCents: number;
   description: string | null;
   reference: string | null;
   createdAt: string;
@@ -113,10 +114,10 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
   const fetchWallet = useCallback(async () => {
     setLoadingBalance(true);
     try {
-      const data = await apiRequest<{ balance: number; currency: string; transactions: WalletTransaction[] }>(
+      const data = await apiRequest<{ balanceCents: number; currency: string; transactions: WalletTransaction[] }>(
         "/wallet/transactions",
       );
-      setBalance(data.balance);
+      setBalance(centsToEuros(data.balanceCents));
       setTransactions(data.transactions);
     } catch {
       setBalance(0);
@@ -144,7 +145,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
     try {
       const data = await apiRequest<{ clientSecret: string; publishableKey: string }>(
         "/wallet/topup/intent",
-        { method: "POST", body: JSON.stringify({ amount: parsedAmount }) },
+        { method: "POST", body: JSON.stringify({ amountCents: eurosToCents(parsedAmount) }) },
       );
       setClientSecret(data.clientSecret);
       // Usar a publishableKey que vem do backend (ou fallback para VITE env)
@@ -336,7 +337,7 @@ export default function WalletSheet({ open, onClose }: WalletSheetProps) {
                         <p className="text-xs text-[#717973]">{formatDate(tx.createdAt)}</p>
                       </div>
                       <p className={cn("text-sm font-bold shrink-0", meta.color)}>
-                        {meta.sign}{formatCurrency(tx.amount)}
+                        {meta.sign}{formatCurrency(centsToEuros(tx.amountCents))}
                       </p>
                     </div>
                   );

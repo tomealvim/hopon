@@ -87,17 +87,17 @@ export class BookingsService {
 
     const ride = await this.prisma.ride.findUnique({
       where: { id: rideId },
-      select: { price: true, platformFee: true, status: true, availableSeats: true, driverId: true },
+      select: { priceCents: true, platformFeeCents: true, status: true, availableSeats: true, driverId: true },
     });
 
     if (!ride) throw new NotFoundException('Boleia não encontrada');
     if (ride.status !== 'SCHEDULED') throw new BadRequestException('A boleia não está disponível para reservas');
     if (ride.driverId === userId) throw new BadRequestException('Não podes reservar lugar na tua própria boleia');
-    if (!ride.price || Number(ride.price) <= 0) throw new BadRequestException('Esta boleia não tem custo — reserva diretamente.');
+    if (!ride.priceCents || ride.priceCents <= 0) throw new BadRequestException('Esta boleia não tem custo — reserva diretamente.');
 
-    const totalAmount = (Number(ride.price) + Number(ride.platformFee ?? 0)) * seats;
+    const totalCents = (ride.priceCents + (ride.platformFeeCents ?? 0)) * seats;
 
-    return this.stripeService.createBookingPaymentIntent(userId, rideId, seats, totalAmount);
+    return this.stripeService.createBookingPaymentIntent(userId, rideId, seats, totalCents);
   }
 
   async create(userId: string, rideId: string, dto: CreateBookingDto) {
@@ -120,14 +120,14 @@ export class BookingsService {
       await this.stripeService.verifyBookingPaymentIntent(dto.stripePaymentIntentId!, userId, rideId);
     } else {
       // Pré-verificar saldo antes de criar a reserva (wallet path)
-      const rideCheck = await this.prisma.ride.findUnique({ where: { id: rideId }, select: { price: true, platformFee: true } });
-      if (rideCheck?.price != null && Number(rideCheck.price) > 0) {
-        const needed = (Number(rideCheck.price) + Number(rideCheck.platformFee ?? 0)) * dto.seats;
+      const rideCheck = await this.prisma.ride.findUnique({ where: { id: rideId }, select: { priceCents: true, platformFeeCents: true } });
+      if (rideCheck?.priceCents != null && rideCheck.priceCents > 0) {
+        const neededCents = (rideCheck.priceCents + (rideCheck.platformFeeCents ?? 0)) * dto.seats;
         const wallet = await this.prisma.wallet.findFirst({ where: { userId } });
-        const balance = wallet ? Number(wallet.balance) : 0;
-        if (balance < needed) {
+        const balanceCents = wallet?.balanceCents ?? 0;
+        if (balanceCents < neededCents) {
           throw new BadRequestException(
-            `Saldo insuficiente. Tens €${balance.toFixed(2)}, mas precisas de €${needed.toFixed(2)}.`,
+            `Saldo insuficiente. Tens €${(balanceCents / 100).toFixed(2)}, mas precisas de €${(neededCents / 100).toFixed(2)}.`,
           );
         }
       }
@@ -222,12 +222,12 @@ export class BookingsService {
     });
 
     // Debitar carteira do passageiro se a boleia tiver preço e pagamento for wallet
-    if (!isStripePayment && booking.ride.price != null && Number(booking.ride.price) > 0) {
-      const amount = (Number(booking.ride.price) + Number(booking.ride.platformFee ?? 0)) * booking.seats;
+    if (!isStripePayment && booking.ride.priceCents != null && booking.ride.priceCents > 0) {
+      const amountCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
       try {
         await this.walletService.debit(
           userId,
-          amount,
+          amountCents,
           `Boleia ${booking.ride.origin} → ${booking.ride.destination}`,
           booking.id,
         );
@@ -370,16 +370,16 @@ export class BookingsService {
       // Reembolsar passageiro via WALLET se recusado (apenas para pagamentos wallet)
       if (
         status === 'DECLINED' &&
-        booking.ride.price != null &&
-        Number(booking.ride.price) > 0 &&
+        booking.ride.priceCents != null &&
+        booking.ride.priceCents > 0 &&
         booking.paymentMethod !== 'STRIPE'
       ) {
-        const amount = (Number(booking.ride.price) + Number(booking.ride.platformFee ?? 0)) * booking.seats;
+        const amountCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
         let wallet = await tx.wallet.findFirst({ where: { userId: booking.userId } });
         if (!wallet) wallet = await tx.wallet.create({ data: { userId: booking.userId } });
-        await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: amount } } });
+        await tx.wallet.update({ where: { id: wallet.id }, data: { balanceCents: { increment: amountCents } } });
         await tx.walletTransaction.create({
-          data: { walletId: wallet.id, type: 'REFUND', amount, description: 'Reserva recusada pelo condutor', reference: bookingId },
+          data: { walletId: wallet.id, type: 'REFUND', amountCents, description: 'Reserva recusada pelo condutor', reference: bookingId },
         });
       }
 
@@ -391,15 +391,15 @@ export class BookingsService {
     // Reembolsar via Stripe se o pagamento foi feito com cartão e driver recusou
     if (
       status === 'DECLINED' &&
-      booking.ride.price != null &&
-      Number(booking.ride.price) > 0 &&
+      booking.ride.priceCents != null &&
+      booking.ride.priceCents > 0 &&
       booking.paymentMethod === 'STRIPE' &&
       booking.stripePaymentIntentId
     ) {
-      const amount = (Number(booking.ride.price) + Number(booking.ride.platformFee ?? 0)) * booking.seats;
+      const amountCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
       try {
         await this.stripeService.createRefunds([
-          { paymentIntentId: booking.stripePaymentIntentId, amountCents: Math.round(amount * 100) },
+          { paymentIntentId: booking.stripePaymentIntentId, amountCents },
         ]);
       } catch {
         // Log mas não falhar — o admin pode reembolsar manualmente no Stripe Dashboard
@@ -515,39 +515,39 @@ export class BookingsService {
 
       // Reembolso wallet (apenas para pagamentos wallet)
       if (
-        booking.ride.price != null &&
-        Number(booking.ride.price) > 0 &&
+        booking.ride.priceCents != null &&
+        booking.ride.priceCents > 0 &&
         refundFraction > 0 &&
         booking.paymentMethod !== 'STRIPE'
       ) {
-        const fullAmount = (Number(booking.ride.price) + Number(booking.ride.platformFee ?? 0)) * booking.seats;
-        const refundAmount = fullAmount * refundFraction;
+        const fullCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
+        const refundCents = Math.round(fullCents * refundFraction);
         const description =
           refundFraction === 1.0
             ? 'Cancelamento de reserva (reembolso total)'
             : 'Cancelamento de reserva (reembolso 50% — cancelamento entre 30min e 2h antes)';
         let wallet = await tx.wallet.findFirst({ where: { userId } });
         if (!wallet) wallet = await tx.wallet.create({ data: { userId } });
-        await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: refundAmount } } });
+        await tx.wallet.update({ where: { id: wallet.id }, data: { balanceCents: { increment: refundCents } } });
         await tx.walletTransaction.create({
-          data: { walletId: wallet.id, type: 'REFUND', amount: refundAmount, description, reference: bookingId },
+          data: { walletId: wallet.id, type: 'REFUND', amountCents: refundCents, description, reference: bookingId },
         });
       }
     });
 
     // Reembolso Stripe (fora da transação — API externa)
     if (
-      booking.ride.price != null &&
-      Number(booking.ride.price) > 0 &&
+      booking.ride.priceCents != null &&
+      booking.ride.priceCents > 0 &&
       refundFraction > 0 &&
       booking.paymentMethod === 'STRIPE' &&
       booking.stripePaymentIntentId
     ) {
-      const fullAmount = (Number(booking.ride.price) + Number(booking.ride.platformFee ?? 0)) * booking.seats;
-      const refundAmount = fullAmount * refundFraction;
+      const fullCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
+      const refundCents = Math.round(fullCents * refundFraction);
       try {
         await this.stripeService.createRefunds([
-          { paymentIntentId: booking.stripePaymentIntentId, amountCents: Math.round(refundAmount * 100) },
+          { paymentIntentId: booking.stripePaymentIntentId, amountCents: refundCents },
         ]);
       } catch {
         // Log mas não falhar — admin pode reembolsar manualmente no Stripe Dashboard
@@ -607,7 +607,7 @@ export class BookingsService {
             destination: booking.ride.destination,
             departureTime: booking.ride.departureTime,
             availableSeats: booking.ride.availableSeats,
-            price: booking.ride.price,
+            priceCents: booking.ride.priceCents,
             status: booking.ride.status,
             vehicle: booking.ride.vehicle
               ? {

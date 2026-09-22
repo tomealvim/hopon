@@ -45,7 +45,7 @@ export class SchedulesService {
         time: dto.time,
         daysOfWeek: dto.daysOfWeek,
         availableSeats: dto.availableSeats,
-        price: dto.price ?? null,
+        priceCents: dto.priceCents ?? null,
         acceptDetours: dto.acceptDetours ?? true,
         detourMaxMin: dto.detourMaxMin ?? 10,
         meetingPoint: dto.meetingPoint ?? null,
@@ -102,7 +102,7 @@ export class SchedulesService {
     }
     if (dto.daysOfWeek !== undefined) updateData.daysOfWeek = dto.daysOfWeek;
     if (dto.availableSeats !== undefined) updateData.availableSeats = dto.availableSeats;
-    if (dto.price !== undefined) updateData.price = dto.price;
+    if (dto.priceCents !== undefined) updateData.priceCents = dto.priceCents;
     if (dto.active !== undefined) updateData.active = dto.active;
     if (dto.acceptDetours !== undefined) updateData.acceptDetours = dto.acceptDetours;
     if (dto.detourMaxMin !== undefined) updateData.detourMaxMin = dto.detourMaxMin;
@@ -212,7 +212,7 @@ export class SchedulesService {
         destination: template.destination,
         departureTime: departureDate,
         availableSeats,
-        price: dto.price ?? template.price ?? null,
+        priceCents: dto.priceCents ?? template.priceCents ?? null,
         status: 'SCHEDULED',
         scheduleTemplateId: templateId,
         ...(originLocationId && { originLocationId }),
@@ -241,7 +241,7 @@ export class SchedulesService {
       time: schedule.time,
       daysOfWeek,
       availableSeats: schedule.availableSeats,
-      price: schedule.price,
+      priceCents: schedule.priceCents,
       acceptDetours: schedule.acceptDetours ?? true,
       detourMaxMin: schedule.detourMaxMin ?? 10,
       meetingPoint: schedule.meetingPoint ?? null,

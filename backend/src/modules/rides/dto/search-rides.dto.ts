@@ -50,12 +50,12 @@ export class SearchRidesDto {
   @Min(1)
   radius?: number;
 
-  @ApiPropertyOptional({ example: 5, description: 'Preço máximo por lugar (€)' })
+  @ApiPropertyOptional({ example: 500, description: 'Preço máximo por lugar em cêntimos' })
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
+  @IsInt()
   @Min(0)
-  maxPrice?: number;
+  maxPriceCents?: number;
 
   @ApiPropertyOptional({ description: 'Filtrar só boleias de condutores na mesma comunidade' })
   @IsOptional()

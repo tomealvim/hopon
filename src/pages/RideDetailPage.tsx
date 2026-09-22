@@ -1,5 +1,6 @@
 import { Button } from "../components/ui/Button";
 import { cn } from "../utils/cn";
+import { centsToFixed } from "../utils/money";
 import type { ApiRide } from "./types/ride-api";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
@@ -177,11 +178,11 @@ export default function RideDetailPage({
               </div>
 
               {/* Preço + lugares */}
-              {ride.price != null && ride.price > 0 && (
+              {ride.priceCents != null && ride.priceCents > 0 && (
                 <div className="flex items-center justify-between bg-[#f3f4ef] rounded-2xl p-4 mb-5">
                   <div>
                     <p className="text-xs text-[#717973]">Preço por lugar</p>
-                    <p className="font-headline font-extrabold text-[#1A1C19] text-2xl">€{ride.price.toFixed(2)}</p>
+                    <p className="font-headline font-extrabold text-[#1A1C19] text-2xl">€{centsToFixed(ride.priceCents)}</p>
                   </div>
                   <div className="bg-white rounded-xl px-3 py-2 border border-[#e7e9e4] text-center">
                     <p className="font-bold text-[#1A1C19] text-sm">{ride.bookedSeats}/{ride.availableSeats}</p>

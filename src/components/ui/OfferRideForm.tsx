@@ -6,6 +6,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { LocationInput } from "./LocationInput";
 import type { Vehicle } from "../../pages/types/user";
 import { apiRequest } from "../../services/api";
+import { centsToEuros, centsToFixed, eurosToCents } from "../../utils/money";
 
 export type OfferRideFormValues = {
   vehicleId: string;
@@ -18,11 +19,11 @@ export type OfferRideFormValues = {
   data: string; // YYYY-MM-DD
   hora: string; // HH:MM
   lugares: number;
-  price?: number; // preço por lugar em €
+  price?: number; // preço por lugar em € (só na UI; a API fala em cêntimos)
   routeDistanceKm?: number;
   routeDurationMin?: number;
-  routeTollCost?: number;
-  platformFee?: number;
+  routeTollCostCents?: number;
+  platformFeeCents?: number;
   instantBooking: boolean;
   aceitaDesvios: boolean;
   desvioMaxMin: number; // minutos
@@ -46,16 +47,17 @@ export type OfferRideFormProps = {
   onRequireVehicleSetup?: () => void;
 };
 
+// Valores monetários da API de pricing em cêntimos
 interface PriceBreakdown {
   distanceKm: number;
   durationMin: number;
-  fuelCost: number;
-  tollCost: number;
-  pricePerSeat: number;
-  platformFee: number;
-  passengerPays: number;
-  driverReceives: number;
-  suggestedMaxPrice: number;
+  fuelCostCents: number;
+  tollCostCents: number;
+  pricePerSeatCents: number;
+  platformFeeCents: number;
+  passengerPaysCents: number;
+  driverReceivesCents: number;
+  suggestedMaxPriceCents: number;
 }
 
 interface RouteOption {
@@ -63,7 +65,7 @@ interface RouteOption {
   label: string;
   distanceKm: number;
   durationMin: number;
-  tollCost: number;
+  tollCostCents: number;
   breakdown: PriceBreakdown;
   polyline: string;
 }
@@ -164,11 +166,11 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
         setSelectedRouteId(first.routeId);
         setValues((prev) => ({
           ...prev,
-          price: first.breakdown.pricePerSeat,
+          price: centsToEuros(first.breakdown.pricePerSeatCents),
           routeDistanceKm: first.distanceKm,
           routeDurationMin: first.durationMin,
-          routeTollCost: first.tollCost,
-          platformFee: first.breakdown.platformFee,
+          routeTollCostCents: first.tollCostCents,
+          platformFeeCents: first.breakdown.platformFeeCents,
         }));
       }
     } catch (err: any) {
@@ -213,11 +215,11 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
     setSelectedRouteId(route.routeId);
     setValues((prev) => ({
       ...prev,
-      price: route.breakdown.pricePerSeat,
+      price: centsToEuros(route.breakdown.pricePerSeatCents),
       routeDistanceKm: route.distanceKm,
       routeDurationMin: route.durationMin,
-      routeTollCost: route.tollCost,
-      platformFee: route.breakdown.platformFee,
+      routeTollCostCents: route.tollCostCents,
+      platformFeeCents: route.breakdown.platformFeeCents,
     }));
   };
 
@@ -234,7 +236,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
   const priceExceedsCeiling =
     values.price != null &&
     selectedRoute != null &&
-    values.price > selectedRoute.breakdown.suggestedMaxPrice;
+    eurosToCents(values.price) > selectedRoute.breakdown.suggestedMaxPriceCents;
 
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
@@ -245,7 +247,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
     if (!values.hora) e.hora = "Obrigatório";
     if (values.lugares < 1) e.lugares = "Mínimo 1";
     if (values.aceitaDesvios && (values.desvioMaxMin < 0 || values.desvioMaxMin > 60)) e.desvioMaxMin = "0–60 min";
-    if (priceExceedsCeiling) e.price = `Máx. permitido: €${selectedRoute!.breakdown.suggestedMaxPrice.toFixed(2)} (+20% sobre custo real)`;
+    if (priceExceedsCeiling) e.price = `Máx. permitido: €${centsToFixed(selectedRoute!.breakdown.suggestedMaxPriceCents)} (+20% sobre custo real)`;
     return e;
   }, [values, priceExceedsCeiling, selectedRoute]);
 
@@ -440,16 +442,16 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
                       <span className="text-sm font-semibold text-[#1A1C19]">{route.label}</span>
                     </div>
                     <span className="text-sm font-bold text-emerald-700">
-                      €{route.breakdown.pricePerSeat.toFixed(2)}<span className="text-xs font-normal text-[#717973]">/lugar</span>
+                      €{centsToFixed(route.breakdown.pricePerSeatCents)}<span className="text-xs font-normal text-[#717973]">/lugar</span>
                     </span>
                   </div>
                   <div className="mt-1.5 pl-6 grid gap-1 text-xs text-[#717973]">
                     <span>{route.distanceKm} km · {route.durationMin} min com tráfego</span>
-                    {route.tollCost > 0 && (
-                      <span>Portagens: €{route.tollCost.toFixed(2)}</span>
+                    {route.tollCostCents > 0 && (
+                      <span>Portagens: €{centsToFixed(route.tollCostCents)}</span>
                     )}
                     <span>
-                      Combustível: €{route.breakdown.fuelCost.toFixed(2)} · Taxa HopOn: €{route.breakdown.platformFee.toFixed(2)} · Passageiro paga: <strong className="text-[#414844]">€{route.breakdown.passengerPays.toFixed(2)}</strong>
+                      Combustível: €{centsToFixed(route.breakdown.fuelCostCents)} · Taxa HopOn: €{centsToFixed(route.breakdown.platformFeeCents)} · Passageiro paga: <strong className="text-[#414844]">€{centsToFixed(route.breakdown.passengerPaysCents)}</strong>
                     </span>
                   </div>
                 </button>
@@ -464,7 +466,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
             Preço por lugar (€)
             {selectedRoute && (
               <span className="ml-1 font-normal text-[#717973]">
-                - máx. €{selectedRoute.breakdown.suggestedMaxPrice.toFixed(2)}
+                - máx. €{centsToFixed(selectedRoute.breakdown.suggestedMaxPriceCents)}
               </span>
             )}
           </label>
@@ -479,7 +481,7 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
                 ? "border-red-400 focus:border-red-400"
                 : "border-[#e7e9e4] focus:border-[#1B4332]"
             )}
-            placeholder={selectedRoute ? `Sugestão: €${selectedRoute.breakdown.pricePerSeat.toFixed(2)}` : "0.00"}
+            placeholder={selectedRoute ? `Sugestão: €${centsToFixed(selectedRoute.breakdown.pricePerSeatCents)}` : "0.00"}
             value={values.price ?? ""}
             onChange={(e) => set("price", e.target.value !== "" ? Number(e.target.value) : undefined)}
             onBlur={() => setTouchedField("price")}

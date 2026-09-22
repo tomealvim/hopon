@@ -6,6 +6,7 @@ import Sheet from "../ui/Sheet";
 import { Button } from "../ui/Button";
 import TimePicker from "../ui/TimePicker";
 import { cn } from "../../utils/cn";
+import { eurosToCents } from "../../utils/money";
 import type { ApiSchedule, CreateSchedulePayload } from "../../pages/types/schedule-api";
 import type { Vehicle } from "../../pages/types/user";
 
@@ -84,7 +85,7 @@ export default function CreateScheduleSheet({ open, onClose, onSuccess }: Create
         notes: notes.trim() || undefined,
         preferences,
       };
-      if (price.trim() !== "" && !Number.isNaN(parseFloat(price))) payload.price = parseFloat(price);
+      if (price.trim() !== "" && !Number.isNaN(parseFloat(price))) payload.priceCents = eurosToCents(parseFloat(price));
       const schedule = await apiRequest<ApiSchedule>("/schedules", {
         method: "POST",
         body: JSON.stringify(payload),

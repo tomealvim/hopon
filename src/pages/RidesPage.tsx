@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useInbox } from "../contexts/InboxContext";
 import { apiRequest } from "../services/api";
+import { centsToFixed, centsToShortEuros } from "../utils/money";
 import { useNotifications } from "../contexts/NotificationContext";
 import { useSSE } from "../contexts/SSEContext";
 import EntityCard from "../components/ui/EntityCard";
@@ -600,7 +601,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
                       key={s.id}
                       title={`${s.origin} → ${s.destination}`}
                       subtitle={`${s.time} · ${s.daysOfWeek.join(", ")}`}
-                      meta={`${s.availableSeats} lugares${s.price != null && s.price > 0 ? ` · €${s.price.toFixed(0)}` : ""}`}
+                      meta={`${s.availableSeats} lugares${s.priceCents != null && s.priceCents > 0 ? ` · €${centsToShortEuros(s.priceCents)}` : ""}`}
                       badges={s.active ? [{ label: "Ativo", tone: "success" }] : [{ label: "Inativo" }]}
                       avatar={{ initials: s.vehicle ? `${s.vehicle.brand[0]}${s.vehicle.model[0]}` : "?" }}
                       primaryLabel="Criar boleia"
@@ -630,7 +631,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
                         key={ride.id}
                         title={`${ride.origin} → ${ride.destination}`}
                         subtitle={formatDateTime(ride.departureTime)}
-                        meta={`${ride.remainingSeats} lugares livres${ride.price ? ` · €${ride.price.toFixed(0)}` : ""}`}
+                        meta={`${ride.remainingSeats} lugares livres${ride.priceCents ? ` · €${centsToShortEuros(ride.priceCents)}` : ""}`}
                         badges={[
                           { label: "Condutor", tone: "brand" },
                           ...(pending.length > 0 ? [{ label: `${pending.length} pendente${pending.length > 1 ? "s" : ""}`, tone: "warning" as const }] : []),
@@ -682,7 +683,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
                             key={booking.id}
                             title={booking.ride ? `${booking.ride.origin} → ${booking.ride.destination}` : "Boleia"}
                             subtitle={booking.ride ? formatDateTime(booking.ride.departureTime) : ""}
-                            meta={`${booking.seats} lugar${booking.seats > 1 ? "es" : ""}${booking.ride?.price ? ` · €${(booking.ride.price * booking.seats).toFixed(0)}` : ""}`}
+                            meta={`${booking.seats} lugar${booking.seats > 1 ? "es" : ""}${booking.ride?.priceCents ? ` · €${centsToShortEuros(booking.ride.priceCents * booking.seats)}` : ""}`}
                             badges={[{ label: STATUS_LABEL[booking.status] ?? booking.status, tone: STATUS_TONE[booking.status] }]}
                             avatar={{
                               src: booking.ride?.driver?.profile?.avatarUrl ?? undefined,
@@ -888,7 +889,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
             <div className="grid gap-2 p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl">
               <Row label="Partida" value={formatDateTime(selectedRide.departureTime)} />
               <Row label="Lugares disponíveis" value={`${selectedRide.remainingSeats} / ${selectedRide.availableSeats}`} />
-              {selectedRide.price != null && <Row label="Preço/lugar" value={`€${selectedRide.price.toFixed(2)}`} />}
+              {selectedRide.priceCents != null && <Row label="Preço/lugar" value={`€${centsToFixed(selectedRide.priceCents)}`} />}
             </div>
             {selectedRide.vehicle && (
               <div className="p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl">
@@ -970,7 +971,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
         {/* Partilhar boleia */}
         {sheetView === "ride" && selectedRide && selectedRide.status === "SCHEDULED" && (() => {
           const shareUrl = `${window.location.origin}/ride/${selectedRide.id}`;
-          const shareText = `${selectedRide.origin} - ${selectedRide.destination} | ${formatDateTime(selectedRide.departureTime)}${selectedRide.price ? ` | €${selectedRide.price.toFixed(0)}/lugar` : ""} | ${selectedRide.remainingSeats} lugar${selectedRide.remainingSeats !== 1 ? "es" : ""} ${selectedRide.remainingSeats !== 1 ? "disponíveis" : "disponível"}`;
+          const shareText = `${selectedRide.origin} - ${selectedRide.destination} | ${formatDateTime(selectedRide.departureTime)}${selectedRide.priceCents ? ` | €${centsToShortEuros(selectedRide.priceCents)}/lugar` : ""} | ${selectedRide.remainingSeats} lugar${selectedRide.remainingSeats !== 1 ? "es" : ""} ${selectedRide.remainingSeats !== 1 ? "disponíveis" : "disponível"}`;
           return (
             <div className="px-1 pb-1">
               <button
@@ -1003,8 +1004,8 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
             <div className="grid gap-2 p-4 bg-[#f3f4ef] border border-[#e7e9e4] rounded-xl">
               <Row label="Partida" value={formatDateTime(selectedBooking.ride.departureTime)} />
               <Row label="Lugares reservados" value={String(selectedBooking.seats)} />
-              {selectedBooking.ride.price != null && (
-                <Row label="Custo total" value={`€${(selectedBooking.ride.price * selectedBooking.seats).toFixed(2)}`} />
+              {selectedBooking.ride.priceCents != null && (
+                <Row label="Custo total" value={`€${centsToFixed(selectedBooking.ride.priceCents * selectedBooking.seats)}`} />
               )}
               <Row label="Estado" value={STATUS_LABEL[selectedBooking.status] ?? selectedBooking.status} />
             </div>
@@ -1027,7 +1028,7 @@ export default function RidesPage({ onOpenGroupChat, initialRateBookingId }: Rid
                 }}
               />
             )}
-            {(selectedBooking.status === "PENDING" || selectedBooking.status === "CONFIRMED") && selectedBooking.ride.price != null && selectedBooking.ride.price > 0 && (() => {
+            {(selectedBooking.status === "PENDING" || selectedBooking.status === "CONFIRMED") && selectedBooking.ride.priceCents != null && selectedBooking.ride.priceCents > 0 && (() => {
               const hoursUntil = (new Date(selectedBooking.ride.departureTime).getTime() - Date.now()) / 3_600_000;
               const policyText =
                 hoursUntil > 2

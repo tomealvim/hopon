@@ -94,14 +94,14 @@ export class RidesService {
         destination: dto.destination,
         departureTime: new Date(dto.departureTime),
         availableSeats: dto.availableSeats,
-        price: dto.price ?? null,
+        priceCents: dto.priceCents ?? null,
         status: 'SCHEDULED',
         ...(originLocationId && { originLocationId }),
         ...(destinationLocationId && { destinationLocationId }),
         ...(dto.routeDistanceKm != null && { routeDistanceKm: dto.routeDistanceKm }),
         ...(dto.routeDurationMin != null && { routeDurationMin: dto.routeDurationMin }),
-        ...(dto.routeTollCost != null && { routeTollCost: dto.routeTollCost }),
-        ...(dto.platformFee != null && { platformFee: dto.platformFee }),
+        ...(dto.routeTollCostCents != null && { routeTollCostCents: dto.routeTollCostCents }),
+        ...(dto.platformFeeCents != null && { platformFeeCents: dto.platformFeeCents }),
         ...(routePolyline && { routePolyline }),
         instantBooking: dto.instantBooking ?? false,
         ...(dto.meetingPoint && { meetingPoint: dto.meetingPoint }),
@@ -250,7 +250,7 @@ export class RidesService {
       departureTime: ride.departureTime,
       availableSeats: ride.availableSeats,
       remainingSeats,
-      price: ride.price,
+      priceCents: ride.priceCents,
       status: ride.status,
       meetingPoint: ride.meetingPoint ?? null,
       instantBooking: ride.instantBooking,
@@ -715,9 +715,9 @@ export class RidesService {
       where.availableSeats = { gte: dto.minSeats };
     }
 
-    if (dto.maxPrice != null) {
-      // Incluir boleias gratuitas (price null) e boleias até ao preço máximo
-      where.OR = [{ price: null }, { price: { lte: dto.maxPrice } }];
+    if (dto.maxPriceCents != null) {
+      // Incluir boleias gratuitas (priceCents null) e boleias até ao preço máximo
+      where.OR = [{ priceCents: null }, { priceCents: { lte: dto.maxPriceCents } }];
     }
 
     // Filtro de comunidade: só boleias de condutores aprovados nessa comunidade
@@ -863,7 +863,7 @@ export class RidesService {
     if (dto.destination !== undefined) updateData.destination = dto.destination;
     if (dto.departureTime !== undefined) updateData.departureTime = new Date(dto.departureTime);
     if (dto.availableSeats !== undefined) updateData.availableSeats = dto.availableSeats;
-    if (dto.price !== undefined) updateData.price = dto.price;
+    if (dto.priceCents !== undefined) updateData.priceCents = dto.priceCents;
     if (dto.status !== undefined) updateData.status = dto.status;
 
     const ride = await this.prisma.ride.update({
@@ -997,29 +997,30 @@ export class RidesService {
       // Cancelar reservas pendentes e reembolsar (não chegaram a embarcar)
       for (const booking of pendingBookings) {
         await tx.booking.update({ where: { id: booking.id }, data: { status: 'CANCELLED' } });
-        if (ride.price != null && Number(ride.price) > 0) {
-          const amount = (Number(ride.price) + Number(ride.platformFee ?? 0)) * booking.seats;
+        if (ride.priceCents != null && ride.priceCents > 0) {
+          const amountCents = (ride.priceCents + (ride.platformFeeCents ?? 0)) * booking.seats;
           let wallet = await tx.wallet.findFirst({ where: { userId: booking.userId } });
           if (!wallet) wallet = await tx.wallet.create({ data: { userId: booking.userId } });
-          await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: amount } } });
+          await tx.wallet.update({ where: { id: wallet.id }, data: { balanceCents: { increment: amountCents } } });
           await tx.walletTransaction.create({
-            data: { walletId: wallet.id, type: 'REFUND', amount, description: 'Boleia concluída sem confirmação', reference: booking.id },
+            data: { walletId: wallet.id, type: 'REFUND', amountCents, description: 'Boleia concluída sem confirmação', reference: booking.id },
           });
         }
       }
 
       // Creditar condutor pelo total das reservas confirmadas + NO_SHOW
       const paidBookings = [...confirmedBookings, ...noShowBookings];
-      if (ride.price != null && Number(ride.price) > 0 && paidBookings.length > 0) {
-        const totalAmount = paidBookings.reduce((sum, b) => sum + Number(ride.price) * b.seats, 0);
+      if (ride.priceCents != null && ride.priceCents > 0 && paidBookings.length > 0) {
+        // Condutor recebe só o preço por lugar — a platformFee fica retida pela HopOn
+        const totalCents = paidBookings.reduce((sum, b) => sum + ride.priceCents! * b.seats, 0);
         let wallet = await tx.wallet.findFirst({ where: { userId: driverId } });
         if (!wallet) wallet = await tx.wallet.create({ data: { userId: driverId } });
-        await tx.wallet.update({ where: { id: wallet.id }, data: { balance: { increment: totalAmount } } });
+        await tx.wallet.update({ where: { id: wallet.id }, data: { balanceCents: { increment: totalCents } } });
         await tx.walletTransaction.create({
           data: {
             walletId: wallet.id,
             type: 'PAYOUT',
-            amount: totalAmount,
+            amountCents: totalCents,
             description: `Boleia concluída ${ride.origin} → ${ride.destination}`,
             reference: rideId,
           },
@@ -1124,12 +1125,12 @@ export class RidesService {
 
     // Reembolsar reservas pagas (PENDING e CONFIRMED)
     const bookingsToRefund = [...pendingBookings, ...confirmedBookings];
-    if (ride.price != null && Number(ride.price) > 0) {
+    if (ride.priceCents != null && ride.priceCents > 0) {
       for (const booking of bookingsToRefund) {
         try {
           await this.walletService.refund(
             booking.userId,
-            (Number(ride.price) + Number(ride.platformFee ?? 0)) * booking.seats,
+            (ride.priceCents + (ride.platformFeeCents ?? 0)) * booking.seats,
             'Boleia cancelada pelo condutor',
             booking.id,
           );
@@ -1311,11 +1312,11 @@ export class RidesService {
       availableSeats: ride.availableSeats,
       bookedSeats,
       remainingSeats: ride.availableSeats - bookedSeats,
-      price: ride.price,
+      priceCents: ride.priceCents,
       routeDistanceKm: ride.routeDistanceKm ?? null,
       routeDurationMin: ride.routeDurationMin ?? null,
-      routeTollCost: ride.routeTollCost ?? null,
-      platformFee: ride.platformFee ?? null,
+      routeTollCostCents: ride.routeTollCostCents ?? null,
+      platformFeeCents: ride.platformFeeCents ?? null,
       routePolyline: ride.routePolyline ?? null,
       instantBooking: ride.instantBooking ?? false,
       meetingPoint: ride.meetingPoint ?? null,

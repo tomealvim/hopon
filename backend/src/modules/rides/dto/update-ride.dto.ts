@@ -25,11 +25,11 @@ export class UpdateRideDto extends PartialType(CreateRideDto) {
   @Max(8)
   availableSeats?: number;
 
-  @ApiPropertyOptional({ example: 15.50, minimum: 0 })
+  @ApiPropertyOptional({ example: 1550, minimum: 0, description: 'Preço por lugar em cêntimos' })
   @IsOptional()
-  @IsNumber()
-  @MinNumber(0)
-  price?: number;
+  @IsInt()
+  @Min(0)
+  priceCents?: number;
 
   @ApiPropertyOptional({ example: 'SCHEDULED', enum: ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] })
   @IsOptional()

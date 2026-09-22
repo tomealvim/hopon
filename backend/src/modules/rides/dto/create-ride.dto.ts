@@ -49,11 +49,11 @@ export class CreateRideDto {
   @Max(8)
   availableSeats: number;
 
-  @ApiPropertyOptional({ example: 15.50, minimum: 0 })
+  @ApiPropertyOptional({ example: 1550, minimum: 0, description: 'Preço por lugar em cêntimos' })
   @IsOptional()
-  @IsNumber()
-  @MinNumber(0)
-  price?: number;
+  @IsInt()
+  @Min(0)
+  priceCents?: number;
 
   @ApiPropertyOptional({ example: 312.5, description: 'Distância da rota em km (da API de pricing)' })
   @IsOptional()
@@ -67,17 +67,17 @@ export class CreateRideDto {
   @Min(0)
   routeDurationMin?: number;
 
-  @ApiPropertyOptional({ example: 23.35, description: 'Custo de portagens da rota selecionada' })
+  @ApiPropertyOptional({ example: 2335, description: 'Custo de portagens da rota selecionada, em cêntimos' })
   @IsOptional()
-  @IsNumber()
-  @MinNumber(0)
-  routeTollCost?: number;
+  @IsInt()
+  @Min(0)
+  routeTollCostCents?: number;
 
-  @ApiPropertyOptional({ example: 1.40, description: 'Taxa de plataforma (10% do preço por lugar)' })
+  @ApiPropertyOptional({ example: 140, description: 'Taxa de plataforma em cêntimos (10% do preço por lugar)' })
   @IsOptional()
-  @IsNumber()
-  @MinNumber(0)
-  platformFee?: number;
+  @IsInt()
+  @Min(0)
+  platformFeeCents?: number;
 
   @ApiPropertyOptional({ example: true, description: 'Reserva instantânea — passageiros na rota são confirmados automaticamente' })
   @IsOptional()

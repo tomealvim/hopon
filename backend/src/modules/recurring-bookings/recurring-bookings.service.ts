@@ -92,7 +92,7 @@ export class RecurringBookingsService {
             destination: t.destination,
             time: t.time,
             daysOfWeek: t.daysOfWeek,
-            price: t.price ?? null,
+            priceCents: t.priceCents ?? null,
             meetingPoint: t.meetingPoint ?? null,
             driver: t.user
               ? {

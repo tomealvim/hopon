@@ -15,16 +15,17 @@ export interface LatLng {
   lng: number;
 }
 
+// Todos os valores monetários em cêntimos (Int)
 export interface PriceBreakdown {
   distanceKm: number;
   durationMin: number;
-  fuelCost: number;
-  tollCost: number;
-  pricePerSeat: number;
-  platformFee: number;
-  passengerPays: number;
-  driverReceives: number;
-  suggestedMaxPrice: number;
+  fuelCostCents: number;
+  tollCostCents: number;
+  pricePerSeatCents: number;
+  platformFeeCents: number;
+  passengerPaysCents: number;
+  driverReceivesCents: number;
+  suggestedMaxPriceCents: number;
 }
 
 export interface RouteOption {
@@ -32,7 +33,7 @@ export interface RouteOption {
   label: string;
   distanceKm: number;
   durationMin: number;
-  tollCost: number;
+  tollCostCents: number;
   breakdown: PriceBreakdown;
   polyline: string;
 }
@@ -241,7 +242,7 @@ export class PricingService {
         label,
         distanceKm: Math.round(distanceKm * 10) / 10,
         durationMin,
-        tollCost: Math.round(tollCost * 100) / 100,
+        tollCostCents: Math.round(tollCost * 100),
         breakdown,
         polyline: route.polyline?.encodedPolyline ?? '',
       };
@@ -263,31 +264,34 @@ export class PricingService {
       vehicle.avgConsumption ?? DEFAULT_CONSUMPTION[fuelType] ?? 7.5;
     const fuelPrice = fuelPrices[fuelType] ?? FALLBACK_FUEL_PRICES[fuelType] ?? 1.72;
 
-    // Custo de combustível total para a viagem
-    const fuelCost = (distanceKm * consumption * fuelPrice) / 100;
+    // Custo de combustível total para a viagem, em cêntimos.
+    // O cálculo intermédio usa floats (preços/L, consumo) mas o resultado é
+    // arredondado a cêntimos inteiros uma única vez — a partir daqui é tudo Int.
+    const fuelCostCents = Math.round((distanceKm * consumption * fuelPrice) / 100 * 100);
+    const tollCostCents = Math.round(tollCost * 100);
 
     // Dividir custos pelos passageiros (seats = lugares vendidos)
     const safeSeats = Math.max(seats, 1);
-    const pricePerSeat = (fuelCost + tollCost) / safeSeats;
+    const pricePerSeatCents = Math.round((fuelCostCents + tollCostCents) / safeSeats);
 
     // Comissão HopOn: 10% sobre o preço por lugar
-    const platformFee = pricePerSeat * 0.1;
-    const passengerPays = pricePerSeat + platformFee;
-    const driverReceives = pricePerSeat;
+    const platformFeeCents = Math.round(pricePerSeatCents * 0.1);
+    const passengerPaysCents = pricePerSeatCents + platformFeeCents;
+    const driverReceivesCents = pricePerSeatCents;
 
     // Teto: preço base + 20%
-    const suggestedMaxPrice = pricePerSeat * 1.2;
+    const suggestedMaxPriceCents = Math.round(pricePerSeatCents * 1.2);
 
     return {
       distanceKm: Math.round(distanceKm * 10) / 10,
       durationMin,
-      fuelCost: Math.round(fuelCost * 100) / 100,
-      tollCost: Math.round(tollCost * 100) / 100,
-      pricePerSeat: Math.round(pricePerSeat * 100) / 100,
-      platformFee: Math.round(platformFee * 100) / 100,
-      passengerPays: Math.round(passengerPays * 100) / 100,
-      driverReceives: Math.round(driverReceives * 100) / 100,
-      suggestedMaxPrice: Math.round(suggestedMaxPrice * 100) / 100,
+      fuelCostCents,
+      tollCostCents,
+      pricePerSeatCents,
+      platformFeeCents,
+      passengerPaysCents,
+      driverReceivesCents,
+      suggestedMaxPriceCents,
     };
   }
 }

@@ -17,7 +17,7 @@ export class UsersService {
         status: 'COMPLETED',
       },
       include: {
-        ride: { select: { routeDistanceKm: true, price: true } },
+        ride: { select: { routeDistanceKm: true, priceCents: true } },
       },
     });
 
@@ -41,7 +41,7 @@ export class UsersService {
     // Poupança em € como passageiro: custo de carro próprio (€0.25/km) - custo pago na boleia
     const moneySavedEur = passengerBookings.reduce((sum, b) => {
       const drivingCost = (b.ride.routeDistanceKm ?? 0) * 0.25 * b.seats;
-      const paidCost = Number(b.ride.price ?? 0) * b.seats;
+      const paidCost = ((b.ride.priceCents ?? 0) / 100) * b.seats;
       return sum + Math.max(0, drivingCost - paidCost);
     }, 0);
 

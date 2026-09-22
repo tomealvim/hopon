@@ -59,7 +59,8 @@ export interface ApiRide {
   availableSeats: number;
   bookedSeats: number;
   remainingSeats: number;
-  price?: number | null;
+  priceCents?: number | null;
+  platformFeeCents?: number | null;
   status: string;
   vehicle: ApiRideVehicle | null;
   driver: ApiRideDriver | null;

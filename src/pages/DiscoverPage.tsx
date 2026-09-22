@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import { apiRequest } from "../services/api";
+import { centsToShortEuros, eurosToCents } from "../utils/money";
 import DiscoverTopBar, { type DiscoverTab } from "../components/ui/DiscoverTopBar";
 import DiscoverFiltersSheet from "../components/ui/DiscoverFiltersSheet";
 import RequestSeatSheet from "../components/ui/RequestSeatSheet";
@@ -209,7 +210,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
     if (f.origin?.trim()) params.set("origin", f.origin.trim());
     if (f.destination?.trim()) params.set("destination", f.destination.trim());
     if (f.minSeats > 1) params.set("minSeats", String(f.minSeats));
-    if (f.maxPrice != null) params.set("maxPrice", String(f.maxPrice));
+    if (f.maxPrice != null) params.set("maxPriceCents", String(eurosToCents(f.maxPrice)));
     if (f.communityId) params.set("communityId", f.communityId);
     if (f.date) {
       const from = f.departFrom ? `${f.date}T${f.departFrom}:00` : `${f.date}T00:00:00`;
@@ -532,8 +533,8 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                               ...(ride.driver?.isIdentityVerified
                                 ? [{ label: "Verificado", tone: "success" as const }]
                                 : []),
-                              ...(ride.price != null && ride.price > 0
-                                ? [{ label: `€${ride.price.toFixed(0)}/lugar` }]
+                              ...(ride.priceCents != null && ride.priceCents > 0
+                                ? [{ label: `€${centsToShortEuros(ride.priceCents)}/lugar` }]
                                 : []),
                             ]}
                             avatar={{
@@ -680,7 +681,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                             : []),
                           ...(ride.instantBooking ? [{ label: "Instantanea", tone: "success" as const }] : []),
                           ...(ride.driver?.isIdentityVerified ? [{ label: "Verificado", tone: "success" as const }] : []),
-                          ...(ride.price != null && ride.price > 0 ? [{ label: `€${ride.price.toFixed(0)}/lugar` }] : []),
+                          ...(ride.priceCents != null && ride.priceCents > 0 ? [{ label: `€${centsToShortEuros(ride.priceCents)}/lugar` }] : []),
                         ]}
                         avatar={{ src: ride.driver?.profile?.avatarUrl ?? undefined, initials: driverName.slice(0, 2).toUpperCase() }}
                         primaryLabel="Reservar"
@@ -856,7 +857,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                               { label: `Chegas as ${arrivalStr}`, tone: "success" },
                               { label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`, tone: seatsLeft >= 3 ? "success" : "warning" },
                               ...(ride.instantBooking ? [{ label: "Instantanea", tone: "success" as const }] : []),
-                              ...(ride.price != null && ride.price > 0 ? [{ label: `€${ride.price.toFixed(0)}/lugar` }] : []),
+                              ...(ride.priceCents != null && ride.priceCents > 0 ? [{ label: `€${centsToShortEuros(ride.priceCents)}/lugar` }] : []),
                             ]}
                             avatar={{ src: ride.driver?.profile?.avatarUrl ?? undefined, initials: driverName.slice(0, 2).toUpperCase() }}
                             primaryLabel="Reservar"
@@ -969,7 +970,7 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
                               { label: timeLabel, tone: minsUntil < 30 ? "brand" : "warning" },
                               { label: `${seatsLeft} lugar${seatsLeft !== 1 ? "es" : ""}`, tone: seatsLeft >= 3 ? "success" : "warning" },
                               ...(ride.instantBooking ? [{ label: "Instantânea", tone: "success" as const }] : []),
-                              ...(ride.price != null && ride.price > 0 ? [{ label: `€${ride.price.toFixed(0)}/lugar` }] : []),
+                              ...(ride.priceCents != null && ride.priceCents > 0 ? [{ label: `€${centsToShortEuros(ride.priceCents)}/lugar` }] : []),
                             ]}
                             avatar={{ src: ride.driver?.profile?.avatarUrl ?? undefined, initials: driverName.slice(0, 2).toUpperCase() }}
                             primaryLabel="Reservar"
@@ -1007,8 +1008,8 @@ export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPage
             onConfirm={handleConfirmBook}
             offerTitle={ride ? `${ride.origin} → ${ride.destination} (${t})` : ""}
             rideId={selectedRideId}
-            price={ride?.price}
-            platformFee={(ride as any)?.platformFee}
+            priceCents={ride?.priceCents}
+            platformFeeCents={ride?.platformFeeCents}
             seats={1}
             meetingPoint={ride?.meetingPoint}
           />

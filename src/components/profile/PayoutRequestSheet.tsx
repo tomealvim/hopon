@@ -2,6 +2,7 @@ import { useState } from "react";
 import Sheet from "../ui/Sheet";
 import { Button } from "../ui/Button";
 import { apiRequest } from "../../services/api";
+import { eurosToCents } from "../../utils/money";
 
 type Props = {
   open: boolean;
@@ -31,7 +32,7 @@ export default function PayoutRequestSheet({ open, onClose, balance, onSubmitted
     try {
       await apiRequest("/wallet/payout-request", {
         method: "POST",
-        body: JSON.stringify({ amount: numAmount, iban: iban.replace(/\s/g, "") }),
+        body: JSON.stringify({ amountCents: eurosToCents(numAmount), iban: iban.replace(/\s/g, "") }),
       });
       setDone(true);
       onSubmitted?.();

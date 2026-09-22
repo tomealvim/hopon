@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/ui/Button";
+import { centsToFixed } from "../utils/money";
 
 interface RidePreview {
   id: string;
@@ -11,7 +12,7 @@ interface RidePreview {
   departureTime: string;
   remainingSeats?: number;
   availableSeats?: number;
-  price?: number | null;
+  priceCents?: number | null;
   status?: string;
   meetingPoint?: string | null;
   instantBooking?: boolean;
@@ -107,9 +108,9 @@ export default function RideSharePreview({ rideId, onBook, onClose }: Props) {
               {ride.status === "COMPLETED" ? "Concluída" : ride.status === "CANCELLED" ? "Cancelada" : "Sem lugares"}
             </span>
           )}
-          {ride.price != null && ride.price > 0 && (
+          {ride.priceCents != null && ride.priceCents > 0 && (
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#f3f4ef] text-[#414844]">
-              €{ride.price.toFixed(2)}/lugar
+              €{centsToFixed(ride.priceCents)}/lugar
             </span>
           )}
           {ride.instantBooking && (

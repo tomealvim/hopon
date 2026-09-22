@@ -29,42 +29,42 @@ export class WalletController {
   @Post('topup/intent')
   topupIntent(@Request() req: any, @Body() dto: TopupDto) {
     const stripeService = this.moduleRef.get(StripeService, { strict: false });
-    return stripeService.createPaymentIntent(req.user.id, dto.amount);
+    return stripeService.createPaymentIntent(req.user.id, dto.amountCents);
   }
 
   /** POST /wallet/topup — carregar saldo (demo) */
   @Post('topup')
   topup(@Request() req: any, @Body() dto: TopupDto) {
-    return this.walletService.topup(req.user.id, dto.amount, dto.description);
+    return this.walletService.topup(req.user.id, dto.amountCents, dto.description);
   }
 
   /** POST /wallet/withdraw — passageiro reembolsa saldo não usado para o cartão original */
   @Post('withdraw')
-  async withdraw(@Request() req: any, @Body() body: { amount: number }) {
-    const amount = parseFloat(String(body.amount));
-    if (!amount || amount < 1) {
+  async withdraw(@Request() req: any, @Body() body: { amountCents: number }) {
+    const amountCents = Math.round(Number(body.amountCents));
+    if (!amountCents || amountCents < 100) {
       throw new BadRequestException('O valor mínimo é €1.');
     }
 
     // Validar saldo e calcular plano de reembolso
-    const { walletId, plan } = await this.walletService.buildStripeRefundPlan(req.user.id, amount);
+    const { walletId, plan } = await this.walletService.buildStripeRefundPlan(req.user.id, amountCents);
 
     // Executar reembolsos no Stripe
     const stripeService = this.moduleRef.get(StripeService, { strict: false });
     await stripeService.createRefunds(
-      plan.map((r) => ({ paymentIntentId: r.pi, amountCents: Math.round(r.amount * 100) })),
+      plan.map((r) => ({ paymentIntentId: r.pi, amountCents: r.amountCents })),
     );
 
     // Debitar wallet e registar transações (atómico)
-    await this.walletService.finalizeWithdraw(walletId, amount, plan);
+    await this.walletService.finalizeWithdraw(walletId, amountCents, plan);
 
-    return { success: true, refundedAmount: amount };
+    return { success: true, refundedAmountCents: amountCents };
   }
 
   /** POST /wallet/payout-request — condutor pede saque para IBAN */
   @Post('payout-request')
-  createPayoutRequest(@Request() req: any, @Body() body: { amount: number; iban: string }) {
-    return this.walletService.createPayoutRequest(req.user.id, body.amount, body.iban);
+  createPayoutRequest(@Request() req: any, @Body() body: { amountCents: number; iban: string }) {
+    return this.walletService.createPayoutRequest(req.user.id, Math.round(Number(body.amountCents)), body.iban);
   }
 
   /** GET /wallet/payout-requests — histórico de pedidos de saque */

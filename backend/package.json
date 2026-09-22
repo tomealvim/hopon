@@ -28,7 +28,11 @@
     "test:db:verify": "node tests/test-db-verify.js",
     "test:db:verify:prod": "API_BASE=https://hopon-production-5bd2.up.railway.app/api/v1 node tests/test-db-verify.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1000.0",

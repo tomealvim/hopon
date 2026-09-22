@@ -5,6 +5,7 @@ import Sheet from "../ui/Sheet";
 import { Button } from "../ui/Button";
 import type { ApiSchedule } from "../../pages/types/schedule-api";
 import type { ApiRide } from "../../pages/types/ride-api";
+import { centsToShortEuros } from "../../utils/money";
 
 type CreateRideFromTemplateSheetProps = {
   open: boolean;
@@ -38,7 +39,7 @@ export default function CreateRideFromTemplateSheet({
         body: JSON.stringify({
           departureTime,
           availableSeats: schedule.availableSeats,
-          price: schedule.price ?? undefined,
+          priceCents: schedule.priceCents ?? undefined,
         }),
       });
       showSuccess("Boleia criada", `${schedule.origin} → ${schedule.destination} no dia ${dep.toLocaleDateString("pt-PT")}.`);
@@ -94,7 +95,7 @@ export default function CreateRideFromTemplateSheet({
           </p>
           <p className="text-xs text-[#414844] mt-1">
             {schedule.time} · {schedule.daysOfWeek.join(", ")} · {schedule.availableSeats} lugares
-            {schedule.price != null && schedule.price > 0 && ` · €${schedule.price.toFixed(0)}`}
+            {schedule.priceCents != null && schedule.priceCents > 0 && ` · €${centsToShortEuros(schedule.priceCents)}`}
           </p>
         </div>
         <form onSubmit={handleSubmit} className="grid gap-3">

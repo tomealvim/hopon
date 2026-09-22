@@ -188,12 +188,12 @@ model Ride {
   destinationLocation   Location? @relation("DestinationLocation", fields: [destinationLocationId], references: [id], onDelete: SetNull)
 
   availableSeats Int
-  price          Float?
+  priceCents     Int?     // preço por lugar em cêntimos
 
-  routeDistanceKm  Float?
-  routeDurationMin Int?
-  routeTollCost    Float?
-  platformFee      Float?
+  routeDistanceKm    Float?
+  routeDurationMin   Int?
+  routeTollCostCents Int?  // portagens em cêntimos
+  platformFeeCents   Int?  // comissão HopOn por lugar em cêntimos
   routePolyline    Json?    // array de {lat,lng} — calculado via Google Directions na criação
   instantBooking   Boolean  @default(false) // reserva auto-confirmada se passageiro estiver na rota
   meetingPoint     String?  // ponto de encontro definido pelo condutor
@@ -233,7 +233,7 @@ model ScheduleTemplate {
   daysOfWeek     Json      // array: ["segunda","terca",...]
   
   availableSeats Int       @default(3)
-  price          Float?
+  priceCents     Int?      // preço por lugar em cêntimos
   
   acceptDetours  Boolean   @default(true)
   detourMaxMin   Int       @default(10)
@@ -336,8 +336,8 @@ model Wallet {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  balance   Float    @default(0)
-  currency  String   @default("EUR")
+  balanceCents Int     @default(0) // saldo em cêntimos
+  currency     String  @default("EUR")
 
   transactions WalletTransaction[]
 
@@ -352,7 +352,7 @@ model WalletTransaction {
   walletId    String
   wallet      Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
   type        String   // CREDIT | DEBIT | REFUND | PAYOUT
-  amount      Float
+  amountCents Int      // valor em cêntimos
   reference   String?  // bookingId, rideId, etc.
   description String?
   createdAt   DateTime @default(now())
@@ -456,7 +456,7 @@ model Dispute {
   description  String
   status       String   @default("OPEN")
   resolution   String?
-  refundAmount Float?
+  refundAmountCents Int? // reembolso em cêntimos
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -516,9 +516,9 @@ model RideRequest {
 model PayoutRequest {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  amount    Float
-  iban      String
+  user        User     @relation(fields: [userId], references: [id])
+  amountCents Int      // valor em cêntimos
+  iban        String
   status    String   @default("PENDING")  // PENDING | APPROVED | PROCESSED | REJECTED
   adminNote String?
   createdAt DateTime @default(now())

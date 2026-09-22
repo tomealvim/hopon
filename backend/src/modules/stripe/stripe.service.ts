@@ -32,24 +32,22 @@ export class StripeService {
     }
   }
 
-  /** Criar PaymentIntent para carregar saldo */
-  async createPaymentIntent(userId: string, amountEuros: number) {
+  /** Criar PaymentIntent para carregar saldo (amountCents em cêntimos — unidade nativa do Stripe) */
+  async createPaymentIntent(userId: string, amountCents: number) {
     if (!this.enabled || !this.stripe) {
       throw new BadRequestException(
         'Pagamento via Stripe não está configurado neste servidor.',
       );
     }
 
-    if (!amountEuros || amountEuros < 10 || amountEuros > 500) {
+    if (!amountCents || amountCents < 1000 || amountCents > 50000) {
       throw new BadRequestException('O valor deve estar entre €10 e €500.');
     }
-
-    const amountCents = Math.round(amountEuros * 100);
 
     const intent = await this.stripe.paymentIntents.create({
       amount: amountCents,
       currency: 'eur',
-      metadata: { userId, amountEuros: String(amountEuros) },
+      metadata: { userId, type: 'topup' },
       payment_method_types: ['card', 'mb_way'],
     });
 
@@ -65,15 +63,13 @@ export class StripeService {
     userId: string,
     rideId: string,
     seats: number,
-    amountEuros: number,
+    amountCents: number,
   ) {
     if (!this.enabled || !this.stripe) {
       throw new BadRequestException(
         'Pagamento via Stripe não está configurado neste servidor.',
       );
     }
-
-    const amountCents = Math.round(amountEuros * 100);
 
     const intent = await this.stripe.paymentIntents.create({
       amount: amountCents,
@@ -83,7 +79,6 @@ export class StripeService {
         rideId,
         seats: String(seats),
         type: 'booking',
-        amountEuros: String(amountEuros),
       },
       payment_method_types: ['card', 'mb_way'],
     });
@@ -172,18 +167,23 @@ export class StripeService {
     if (event.type === 'payment_intent.succeeded') {
       const intent = event.data.object as Stripe.PaymentIntent;
       const userId = intent.metadata?.userId;
-      const amountEuros = parseFloat(intent.metadata?.amountEuros ?? '0');
+      // Só topups creditam a wallet; bookings pagos via Stripe são tratados no fluxo de booking
+      const isBooking = intent.metadata?.type === 'booking';
+      // intent.amount é a fonte de verdade (cêntimos), não a metadata
+      const amountCents = intent.amount;
 
-      if (!userId || !amountEuros) {
-        this.logger.warn(
-          `PaymentIntent ${intent.id} sem metadata userId/amountEuros — ignorado.`,
-        );
+      if (!userId || !amountCents || isBooking) {
+        if (!isBooking) {
+          this.logger.warn(
+            `PaymentIntent ${intent.id} sem metadata userId/amount — ignorado.`,
+          );
+        }
         return { received: true };
       }
 
-      await this.walletService.creditFromStripe(intent.id, userId, amountEuros);
+      await this.walletService.creditFromStripe(intent.id, userId, amountCents);
       this.logger.log(
-        `Wallet creditada: userId=${userId} amount=€${amountEuros} pi=${intent.id}`,
+        `Wallet creditada: userId=${userId} amount=€${(amountCents / 100).toFixed(2)} pi=${intent.id}`,
       );
     }
 

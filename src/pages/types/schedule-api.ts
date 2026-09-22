@@ -25,7 +25,7 @@ export interface ApiSchedule {
   time: string;
   daysOfWeek: string[];
   availableSeats: number;
-  price: number | null;
+  priceCents: number | null;
   acceptDetours?: boolean;
   detourMaxMin?: number;
   meetingPoint?: string | null;
@@ -44,7 +44,7 @@ export type CreateSchedulePayload = {
   time: string;
   daysOfWeek: string[];
   availableSeats: number;
-  price?: number;
+  priceCents?: number;
   acceptDetours?: boolean;
   detourMaxMin?: number;
   meetingPoint?: string;
@@ -55,5 +55,5 @@ export type CreateSchedulePayload = {
 export type CreateRideFromTemplatePayload = {
   departureTime: string; // ISO date string
   availableSeats?: number;
-  price?: number;
+  priceCents?: number;
 };
