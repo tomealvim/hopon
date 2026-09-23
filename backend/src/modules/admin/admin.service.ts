@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WalletService } from '../wallet/wallet.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -17,8 +21,22 @@ export class AdminService {
     const reports = await this.prisma.report.findMany({
       where,
       include: {
-        reporter: { select: { id: true, email: true, profile: { select: { name: true } } } },
-        target: { select: { id: true, email: true, profile: { select: { name: true } }, suspendedAt: true, isIdentityVerified: true } },
+        reporter: {
+          select: {
+            id: true,
+            email: true,
+            profile: { select: { name: true } },
+          },
+        },
+        target: {
+          select: {
+            id: true,
+            email: true,
+            profile: { select: { name: true } },
+            suspendedAt: true,
+            isIdentityVerified: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -28,29 +46,50 @@ export class AdminService {
       details: r.details,
       status: r.status,
       createdAt: r.createdAt,
-      reporter: { id: r.reporter.id, email: r.reporter.email, name: r.reporter.profile?.name },
-      target: { id: r.target.id, email: r.target.email, name: r.target.profile?.name, suspendedAt: r.target.suspendedAt, isIdentityVerified: r.target.isIdentityVerified },
+      reporter: {
+        id: r.reporter.id,
+        email: r.reporter.email,
+        name: r.reporter.profile?.name,
+      },
+      target: {
+        id: r.target.id,
+        email: r.target.email,
+        name: r.target.profile?.name,
+        suspendedAt: r.target.suspendedAt,
+        isIdentityVerified: r.target.isIdentityVerified,
+      },
     }));
   }
 
   async updateReportStatus(reportId: string, status: string) {
     const valid = ['PENDING', 'REVIEWED', 'DISMISSED'];
-    if (!valid.includes(status)) throw new BadRequestException('Estado inválido.');
-    return this.prisma.report.update({ where: { id: reportId }, data: { status } });
+    if (!valid.includes(status))
+      throw new BadRequestException('Estado inválido.');
+    return this.prisma.report.update({
+      where: { id: reportId },
+      data: { status },
+    });
   }
 
   async suspendUser(adminId: string, targetId: string, reason: string) {
-    if (adminId === targetId) throw new BadRequestException('Não podes suspender-te a ti mesmo.');
+    if (adminId === targetId)
+      throw new BadRequestException('Não podes suspender-te a ti mesmo.');
     const user = await this.prisma.user.findUnique({ where: { id: targetId } });
     if (!user) throw new NotFoundException('Utilizador não encontrado.');
-    await this.prisma.user.update({ where: { id: targetId }, data: { suspendedAt: new Date(), suspensionReason: reason } });
+    await this.prisma.user.update({
+      where: { id: targetId },
+      data: { suspendedAt: new Date(), suspensionReason: reason },
+    });
     return { message: `Utilizador ${targetId} suspenso.` };
   }
 
   async unsuspendUser(targetId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: targetId } });
     if (!user) throw new NotFoundException('Utilizador não encontrado.');
-    await this.prisma.user.update({ where: { id: targetId }, data: { suspendedAt: null, suspensionReason: null } });
+    await this.prisma.user.update({
+      where: { id: targetId },
+      data: { suspendedAt: null, suspensionReason: null },
+    });
     return { message: `Utilizador ${targetId} reativado.` };
   }
 
@@ -153,7 +192,9 @@ export class AdminService {
     const user = await this.prisma.user.findUnique({ where: { id: targetId } });
     if (!user) throw new NotFoundException('Utilizador não encontrado.');
     if (user.driverLicenseStatus !== 'PENDING') {
-      throw new BadRequestException('Carta de condução não está pendente de verificação.');
+      throw new BadRequestException(
+        'Carta de condução não está pendente de verificação.',
+      );
     }
     await this.prisma.user.update({
       where: { id: targetId },
@@ -194,12 +235,21 @@ export class AdminService {
       where,
       include: {
         openedBy: {
-          select: { id: true, email: true, profile: { select: { name: true } } },
+          select: {
+            id: true,
+            email: true,
+            profile: { select: { name: true } },
+          },
         },
         booking: {
           include: {
             ride: {
-              select: { origin: true, destination: true, departureTime: true, driverId: true },
+              select: {
+                origin: true,
+                destination: true,
+                departureTime: true,
+                driverId: true,
+              },
             },
           },
         },
@@ -251,7 +301,9 @@ export class AdminService {
 
     // Notificar o utilizador que abriu a disputa
     const notifTitle =
-      dto.action === 'REFUND' ? 'Disputa resolvida - reembolso processado' : 'Disputa encerrada';
+      dto.action === 'REFUND'
+        ? 'Disputa resolvida - reembolso processado'
+        : 'Disputa encerrada';
     const notifBody =
       dto.action === 'REFUND'
         ? `A tua disputa foi resolvida. Foi creditado €${((dto.refundAmountCents ?? 0) / 100).toFixed(2)} na tua carteira.`
@@ -273,16 +325,27 @@ export class AdminService {
     return (this.prisma as any).payoutRequest.findMany({
       where,
       include: {
-        user: { select: { id: true, email: true, profile: { select: { name: true } } } },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            profile: { select: { name: true } },
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async processPayoutRequest(requestId: string, dto: { status: string; adminNote?: string }) {
+  async processPayoutRequest(
+    requestId: string,
+    dto: { status: string; adminNote?: string },
+  ) {
     const validStatuses = ['APPROVED', 'PROCESSED', 'REJECTED'];
     if (!validStatuses.includes(dto.status)) {
-      throw new BadRequestException('Estado inválido. Use APPROVED, PROCESSED ou REJECTED.');
+      throw new BadRequestException(
+        'Estado inválido. Use APPROVED, PROCESSED ou REJECTED.',
+      );
     }
 
     const request = await (this.prisma as any).payoutRequest.findUnique({
@@ -290,7 +353,8 @@ export class AdminService {
       include: { user: { select: { id: true, email: true } } },
     });
 
-    if (!request) throw new NotFoundException('Pedido de levantamento não encontrado.');
+    if (!request)
+      throw new NotFoundException('Pedido de levantamento não encontrado.');
     if (request.status === 'PROCESSED') {
       throw new BadRequestException('Pedido já foi processado.');
     }
@@ -311,13 +375,28 @@ export class AdminService {
     });
 
     const notifMap: Record<string, [string, string]> = {
-      APPROVED: ['Levantamento aprovado', 'O teu pedido de levantamento foi aprovado e será processado em breve.'],
-      PROCESSED: ['Levantamento processado', `O teu levantamento de €${(request.amountCents / 100).toFixed(2)} foi enviado para o IBAN indicado.`],
-      REJECTED: ['Levantamento rejeitado', `O teu pedido de levantamento foi rejeitado. ${dto.adminNote ? `Motivo: ${dto.adminNote}` : ''} O valor foi devolvido à tua carteira.`],
+      APPROVED: [
+        'Levantamento aprovado',
+        'O teu pedido de levantamento foi aprovado e será processado em breve.',
+      ],
+      PROCESSED: [
+        'Levantamento processado',
+        `O teu levantamento de €${(request.amountCents / 100).toFixed(2)} foi enviado para o IBAN indicado.`,
+      ],
+      REJECTED: [
+        'Levantamento rejeitado',
+        `O teu pedido de levantamento foi rejeitado. ${dto.adminNote ? `Motivo: ${dto.adminNote}` : ''} O valor foi devolvido à tua carteira.`,
+      ],
     };
 
     const [title, body] = notifMap[dto.status];
-    void this.notificationsService.createNotification(request.userId, 'payout.update', title, body, { requestId, status: dto.status });
+    void this.notificationsService.createNotification(
+      request.userId,
+      'payout.update',
+      title,
+      body,
+      { requestId, status: dto.status },
+    );
 
     return { message: `Pedido ${requestId} atualizado para ${dto.status}.` };
   }

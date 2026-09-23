@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  Query,
+} from '@nestjs/common';
 import { RidesService } from './rides.service';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
@@ -17,7 +28,9 @@ export class RidesController {
   @Post()
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Criar nova boleia (requer email e telefone verificados)' })
+  @ApiOperation({
+    summary: 'Criar nova boleia (requer email e telefone verificados)',
+  })
   create(@Request() req, @Body() dto: CreateRideDto) {
     return this.ridesService.create(req.user.id, dto);
   }
@@ -32,7 +45,10 @@ export class RidesController {
 
   @Get('search')
   @UseGuards(OptionalJwtAuthGuard)
-  @ApiOperation({ summary: 'Procurar boleias disponíveis (público; autenticado filtra privadas)' })
+  @ApiOperation({
+    summary:
+      'Procurar boleias disponíveis (público; autenticado filtra privadas)',
+  })
   search(@Request() req, @Query() dto: SearchRidesDto) {
     return this.ridesService.search(dto, req.user?.id ?? null);
   }
@@ -40,13 +56,17 @@ export class RidesController {
   @Get('for-you')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Boleias que batem certo com os templates do utilizador' })
+  @ApiOperation({
+    summary: 'Boleias que batem certo com os templates do utilizador',
+  })
   findForUser(@Request() req) {
     return this.ridesService.findForUser(req.user.id);
   }
 
   @Get('available-now')
-  @ApiOperation({ summary: 'Boleias que partem nas próximas 2h com lugares disponíveis' })
+  @ApiOperation({
+    summary: 'Boleias que partem nas próximas 2h com lugares disponíveis',
+  })
   findAvailableNow() {
     return this.ridesService.findAvailableNow();
   }
@@ -54,14 +74,19 @@ export class RidesController {
   @Get('history')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Histórico de boleias (como condutor e passageiro)' })
+  @ApiOperation({
+    summary: 'Histórico de boleias (como condutor e passageiro)',
+  })
   findHistory(@Request() req) {
     return this.ridesService.findHistory(req.user.id);
   }
 
   @Get('arrive-by')
   @UseGuards(OptionalJwtAuthGuard)
-  @ApiOperation({ summary: 'Boleias que chegam ao destino antes da hora pretendida (17.1 - Chegar a tempo)' })
+  @ApiOperation({
+    summary:
+      'Boleias que chegam ao destino antes da hora pretendida (17.1 - Chegar a tempo)',
+  })
   findArrivingBy(@Request() req, @Query() dto: ArrivingByDto) {
     return this.ridesService.findArrivingBy(dto, req.user?.id ?? null);
   }
@@ -76,7 +101,10 @@ export class RidesController {
   @Get(':id')
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obter detalhes de uma boleia (requer email e telefone verificados)' })
+  @ApiOperation({
+    summary:
+      'Obter detalhes de uma boleia (requer email e telefone verificados)',
+  })
   findOne(@Request() req, @Param('id') id: string) {
     return this.ridesService.findOne(req.user.id, id);
   }
@@ -84,7 +112,9 @@ export class RidesController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Atualizar boleia (requer email e telefone verificados)' })
+  @ApiOperation({
+    summary: 'Atualizar boleia (requer email e telefone verificados)',
+  })
   update(@Request() req, @Param('id') id: string, @Body() dto: UpdateRideDto) {
     return this.ridesService.update(req.user.id, id, dto);
   }
@@ -92,7 +122,9 @@ export class RidesController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Cancelar boleia (requer email e telefone verificados)' })
+  @ApiOperation({
+    summary: 'Cancelar boleia (requer email e telefone verificados)',
+  })
   remove(@Request() req, @Param('id') id: string) {
     return this.ridesService.remove(req.user.id, id);
   }
@@ -100,7 +132,10 @@ export class RidesController {
   @Post(':id/on-the-way')
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Condutor anuncia que está a caminho - notifica passageiros confirmados' })
+  @ApiOperation({
+    summary:
+      'Condutor anuncia que está a caminho - notifica passageiros confirmados',
+  })
   onTheWay(@Request() req, @Param('id') id: string) {
     return this.ridesService.onTheWay(req.user.id, id);
   }
@@ -116,9 +151,10 @@ export class RidesController {
   @Post(':id/complete')
   @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Marcar boleia como concluída e processar pagamentos' })
+  @ApiOperation({
+    summary: 'Marcar boleia como concluída e processar pagamentos',
+  })
   complete(@Request() req, @Param('id') id: string) {
     return this.ridesService.complete(req.user.id, id);
   }
 }
-

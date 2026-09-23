@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
@@ -35,7 +45,11 @@ export class SchedulesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Atualizar template de horário' })
-  update(@Request() req, @Param('id') id: string, @Body() dto: UpdateScheduleDto) {
+  update(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() dto: UpdateScheduleDto,
+  ) {
     return this.schedulesService.update(req.user.id, id, dto);
   }
 
@@ -46,7 +60,9 @@ export class SchedulesController {
   }
 
   @Post('scan-image')
-  @ApiOperation({ summary: 'Extrair texto de imagem de horário (OCR via Google Vision)' })
+  @ApiOperation({
+    summary: 'Extrair texto de imagem de horário (OCR via Google Vision)',
+  })
   scanImage(@Body() dto: ScanImageDto) {
     return this.schedulesService.scanImage(dto.imageDataUrl);
   }
@@ -58,6 +74,10 @@ export class SchedulesController {
     @Param('id') templateId: string,
     @Body() dto: CreateRideFromTemplateDto,
   ) {
-    return this.schedulesService.createRideFromTemplate(req.user.id, templateId, dto);
+    return this.schedulesService.createRideFromTemplate(
+      req.user.id,
+      templateId,
+      dto,
+    );
   }
 }

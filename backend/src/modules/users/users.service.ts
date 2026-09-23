@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -77,7 +81,15 @@ export class UsersService {
           },
         },
         ratingsReceived: {
-          select: { score: true, comment: true, tags: true, createdAt: true, reviewer: { select: { profile: { select: { name: true, avatarUrl: true } } } } },
+          select: {
+            score: true,
+            comment: true,
+            tags: true,
+            createdAt: true,
+            reviewer: {
+              select: { profile: { select: { name: true, avatarUrl: true } } },
+            },
+          },
           orderBy: { createdAt: 'desc' },
           take: 10,
         },
@@ -92,14 +104,34 @@ export class UsersService {
     const ratings = user.ratingsReceived;
     const avgRating =
       ratings.length > 0
-        ? Math.round((ratings.reduce((s, r) => s + r.score, 0) / ratings.length) * 10) / 10
+        ? Math.round(
+            (ratings.reduce((s, r) => s + r.score, 0) / ratings.length) * 10,
+          ) / 10
         : null;
 
     // Calcular fiabilidade como condutor (últimos 30 dias)
     const since = new Date(Date.now() - 30 * 24 * 3_600_000);
-    const [completedRides, cancelledRides, vehicles, routeGroups, totalPassengerRides] = await Promise.all([
-      this.prisma.ride.count({ where: { driverId: id, status: 'COMPLETED', departureTime: { gte: since } } }),
-      this.prisma.ride.count({ where: { driverId: id, status: 'CANCELLED', cancelledAt: { gte: since } } }),
+    const [
+      completedRides,
+      cancelledRides,
+      vehicles,
+      routeGroups,
+      totalPassengerRides,
+    ] = await Promise.all([
+      this.prisma.ride.count({
+        where: {
+          driverId: id,
+          status: 'COMPLETED',
+          departureTime: { gte: since },
+        },
+      }),
+      this.prisma.ride.count({
+        where: {
+          driverId: id,
+          status: 'CANCELLED',
+          cancelledAt: { gte: since },
+        },
+      }),
       this.prisma.vehicle.findMany({
         where: { userId: id },
         select: {
@@ -120,14 +152,20 @@ export class UsersService {
       this.prisma.booking.count({ where: { userId: id, status: 'COMPLETED' } }),
     ]);
     const totalDriverRides = completedRides + cancelledRides;
-    const reliabilityScore = totalDriverRides >= 3
-      ? Math.round((completedRides / totalDriverRides) * 100)
-      : null;
-    const reliabilityLabel = reliabilityScore === null ? 'Novo condutor'
-      : reliabilityScore >= 98 ? 'Excelente'
-      : reliabilityScore >= 90 ? 'Bom'
-      : reliabilityScore >= 75 ? 'Regular'
-      : 'Baixo';
+    const reliabilityScore =
+      totalDriverRides >= 3
+        ? Math.round((completedRides / totalDriverRides) * 100)
+        : null;
+    const reliabilityLabel =
+      reliabilityScore === null
+        ? 'Novo condutor'
+        : reliabilityScore >= 98
+          ? 'Excelente'
+          : reliabilityScore >= 90
+            ? 'Bom'
+            : reliabilityScore >= 75
+              ? 'Regular'
+              : 'Baixo';
 
     return {
       id: user.id,
@@ -202,14 +240,16 @@ export class UsersService {
       select: { id: true, profile: { select: { name: true } } },
     });
     if (!referrer) throw new BadRequestException('Código de convite inválido');
-    if (referrer.id === userId) throw new BadRequestException('Não podes usar o teu próprio código');
+    if (referrer.id === userId)
+      throw new BadRequestException('Não podes usar o teu próprio código');
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { referredById: true },
     });
     if (!user) throw new NotFoundException('Utilizador não encontrado');
-    if (user.referredById) throw new BadRequestException('Já tens um código de convite aplicado');
+    if (user.referredById)
+      throw new BadRequestException('Já tens um código de convite aplicado');
 
     await this.prisma.user.update({
       where: { id: userId },
@@ -218,4 +258,3 @@ export class UsersService {
     return { ok: true, referrerName: referrer.profile?.name ?? 'Utilizador' };
   }
 }
-

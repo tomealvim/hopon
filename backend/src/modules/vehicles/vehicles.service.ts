@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
@@ -100,7 +104,8 @@ export class VehiclesService {
     features?: VehicleFeaturesDto | null,
   ): VehicleFeatures {
     return {
-      airConditioning: features?.airConditioning ?? this.DEFAULT_FEATURES.airConditioning,
+      airConditioning:
+        features?.airConditioning ?? this.DEFAULT_FEATURES.airConditioning,
       heater: features?.heater ?? this.DEFAULT_FEATURES.heater,
     };
   }
@@ -112,4 +117,3 @@ export class VehiclesService {
     };
   }
 }
-

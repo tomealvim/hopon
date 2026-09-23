@@ -22,10 +22,7 @@ export class StripeController {
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Webhook Stripe (uso interno)' })
-  webhook(
-    @Req() req: any,
-    @Headers('stripe-signature') signature: string,
-  ) {
+  webhook(@Req() req: any, @Headers('stripe-signature') signature: string) {
     const rawBody: Buffer = Buffer.isBuffer(req.body)
       ? req.body
       : Buffer.from(JSON.stringify(req.body));

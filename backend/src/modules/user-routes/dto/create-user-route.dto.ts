@@ -1,4 +1,11 @@
-import { IsString, IsArray, IsOptional, IsNumber, Matches, ArrayMinSize } from 'class-validator';
+import {
+  IsString,
+  IsArray,
+  IsOptional,
+  IsNumber,
+  Matches,
+  ArrayMinSize,
+} from 'class-validator';
 
 export class CreateUserRouteDto {
   @IsString()
@@ -24,7 +31,9 @@ export class CreateUserRouteDto {
   destinationLng?: number;
 
   @IsString()
-  @Matches(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, { message: 'departTime deve estar no formato HH:mm' })
+  @Matches(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, {
+    message: 'departTime deve estar no formato HH:mm',
+  })
   departTime: string;
 
   @IsArray()

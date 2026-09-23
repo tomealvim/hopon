@@ -1,7 +1,28 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsInt, Min, Max, IsOptional, IsNumber, IsArray, ArrayMinSize, IsIn, IsBoolean, IsObject, Min as MinNumber } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  IsOptional,
+  IsNumber,
+  IsArray,
+  ArrayMinSize,
+  IsIn,
+  IsBoolean,
+  IsObject,
+  Min as MinNumber,
+} from 'class-validator';
 
-const DAYS_OF_WEEK = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'] as const;
+const DAYS_OF_WEEK = [
+  'segunda',
+  'terca',
+  'quarta',
+  'quinta',
+  'sexta',
+  'sabado',
+  'domingo',
+] as const;
 
 export class UpdateScheduleDto {
   @ApiPropertyOptional({ example: 'Lisboa, Praça do Comércio' })
@@ -14,15 +35,18 @@ export class UpdateScheduleDto {
   @IsString()
   destination?: string;
 
-  @ApiPropertyOptional({ example: '08:00', description: 'Hora de partida em formato HH:mm' })
+  @ApiPropertyOptional({
+    example: '08:00',
+    description: 'Hora de partida em formato HH:mm',
+  })
   @IsOptional()
   @IsString()
   time?: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     example: ['segunda', 'terca', 'quarta', 'quinta', 'sexta'],
     description: 'Dias da semana em que a boleia ocorre',
-    type: [String]
+    type: [String],
   })
   @IsOptional()
   @IsArray()
@@ -37,7 +61,11 @@ export class UpdateScheduleDto {
   @Max(8)
   availableSeats?: number;
 
-  @ApiPropertyOptional({ example: 1550, minimum: 0, description: 'Preço por lugar em cêntimos' })
+  @ApiPropertyOptional({
+    example: 1550,
+    minimum: 0,
+    description: 'Preço por lugar em cêntimos',
+  })
   @IsOptional()
   @IsNumber()
   @MinNumber(0)
@@ -73,5 +101,10 @@ export class UpdateScheduleDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  preferences?: { musica?: boolean; falar?: boolean; bagagem?: boolean; animais?: boolean };
+  preferences?: {
+    musica?: boolean;
+    falar?: boolean;
+    bagagem?: boolean;
+    animais?: boolean;
+  };
 }

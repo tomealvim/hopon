@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
@@ -21,7 +25,9 @@ export class SchedulesService {
     });
 
     if (!vehicle) {
-      throw new NotFoundException('Veículo não encontrado ou não pertence ao utilizador');
+      throw new NotFoundException(
+        'Veículo não encontrado ou não pertence ao utilizador',
+      );
     }
 
     // Verificar se há lugares suficientes
@@ -33,7 +39,9 @@ export class SchedulesService {
 
     // Validar formato de hora (HH:mm)
     if (!/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/.test(dto.time)) {
-      throw new BadRequestException('Formato de hora inválido. Use HH:mm (ex: 08:00)');
+      throw new BadRequestException(
+        'Formato de hora inválido. Use HH:mm (ex: 08:00)',
+      );
     }
 
     const schedule = await this.prisma.scheduleTemplate.create({
@@ -96,19 +104,26 @@ export class SchedulesService {
     if (dto.destination !== undefined) updateData.destination = dto.destination;
     if (dto.time !== undefined) {
       if (!/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/.test(dto.time)) {
-        throw new BadRequestException('Formato de hora inválido. Use HH:mm (ex: 08:00)');
+        throw new BadRequestException(
+          'Formato de hora inválido. Use HH:mm (ex: 08:00)',
+        );
       }
       updateData.time = dto.time;
     }
     if (dto.daysOfWeek !== undefined) updateData.daysOfWeek = dto.daysOfWeek;
-    if (dto.availableSeats !== undefined) updateData.availableSeats = dto.availableSeats;
+    if (dto.availableSeats !== undefined)
+      updateData.availableSeats = dto.availableSeats;
     if (dto.priceCents !== undefined) updateData.priceCents = dto.priceCents;
     if (dto.active !== undefined) updateData.active = dto.active;
-    if (dto.acceptDetours !== undefined) updateData.acceptDetours = dto.acceptDetours;
-    if (dto.detourMaxMin !== undefined) updateData.detourMaxMin = dto.detourMaxMin;
-    if (dto.meetingPoint !== undefined) updateData.meetingPoint = dto.meetingPoint;
+    if (dto.acceptDetours !== undefined)
+      updateData.acceptDetours = dto.acceptDetours;
+    if (dto.detourMaxMin !== undefined)
+      updateData.detourMaxMin = dto.detourMaxMin;
+    if (dto.meetingPoint !== undefined)
+      updateData.meetingPoint = dto.meetingPoint;
     if (dto.notes !== undefined) updateData.notes = dto.notes;
-    if (dto.preferences !== undefined) updateData.preferences = dto.preferences ?? null;
+    if (dto.preferences !== undefined)
+      updateData.preferences = dto.preferences ?? null;
 
     // Se estiver a atualizar lugares, verificar veículo
     if (dto.availableSeats !== undefined) {
@@ -144,11 +159,17 @@ export class SchedulesService {
     return { message: 'Template de horário eliminado com sucesso' };
   }
 
-  async createRideFromTemplate(userId: string, templateId: string, dto: CreateRideFromTemplateDto) {
+  async createRideFromTemplate(
+    userId: string,
+    templateId: string,
+    dto: CreateRideFromTemplateDto,
+  ) {
     const template = await this.findOne(userId, templateId);
 
     if (!template.active) {
-      throw new BadRequestException('Não é possível criar boleia a partir de um template inativo');
+      throw new BadRequestException(
+        'Não é possível criar boleia a partir de um template inativo',
+      );
     }
 
     const departureDate = new Date(dto.departureTime);
@@ -171,7 +192,9 @@ export class SchedulesService {
     });
 
     if (!vehicle) {
-      throw new NotFoundException('Veículo não encontrado ou não pertence ao utilizador');
+      throw new NotFoundException(
+        'Veículo não encontrado ou não pertence ao utilizador',
+      );
     }
 
     const availableSeats = dto.availableSeats ?? template.availableSeats;
@@ -192,14 +215,22 @@ export class SchedulesService {
 
     if (originCoords) {
       const loc = await this.prisma.location.create({
-        data: { label: template.origin, lat: originCoords.lat, lng: originCoords.lng },
+        data: {
+          label: template.origin,
+          lat: originCoords.lat,
+          lng: originCoords.lng,
+        },
       });
       originLocationId = loc.id;
     }
 
     if (destCoords) {
       const loc = await this.prisma.location.create({
-        data: { label: template.destination, lat: destCoords.lat, lng: destCoords.lng },
+        data: {
+          label: template.destination,
+          lat: destCoords.lat,
+          lng: destCoords.lng,
+        },
       });
       destinationLocationId = loc.id;
     }
@@ -224,13 +255,22 @@ export class SchedulesService {
   }
 
   private getDayOfWeek(date: Date): string {
-    const days = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+    const days = [
+      'domingo',
+      'segunda',
+      'terca',
+      'quarta',
+      'quinta',
+      'sexta',
+      'sabado',
+    ];
     return days[date.getDay()];
   }
 
   private toResponse(schedule: any) {
     const daysOfWeek = (schedule.daysOfWeek as string[]) ?? [];
-    const preferences = (schedule.preferences as Record<string, boolean>) ?? null;
+    const preferences =
+      (schedule.preferences as Record<string, boolean>) ?? null;
 
     return {
       id: schedule.id,
@@ -265,7 +305,8 @@ export class SchedulesService {
 
   async scanImage(imageDataUrl: string): Promise<{ text: string }> {
     const apiKey = this.configService.get<string>('GOOGLE_VISION_API_KEY');
-    if (!apiKey) throw new BadRequestException('GOOGLE_VISION_API_KEY não configurada');
+    if (!apiKey)
+      throw new BadRequestException('GOOGLE_VISION_API_KEY não configurada');
 
     const base64Image = imageDataUrl.split(',')[1];
     if (!base64Image) throw new BadRequestException('Imagem inválida');
@@ -275,18 +316,22 @@ export class SchedulesService {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        requests: [{
-          image: { content: base64Image },
-          features: [{ type: 'TEXT_DETECTION', maxResults: 1 }],
-        }],
+        requests: [
+          {
+            image: { content: base64Image },
+            features: [{ type: 'TEXT_DETECTION', maxResults: 1 }],
+          },
+        ],
       }),
     });
 
-    if (!response.ok) throw new BadRequestException('Erro na Google Vision API');
+    if (!response.ok)
+      throw new BadRequestException('Erro na Google Vision API');
 
     const data = await response.json();
     const text = data.responses?.[0]?.textAnnotations?.[0]?.description;
-    if (!text) throw new BadRequestException('Nenhum texto encontrado na imagem');
+    if (!text)
+      throw new BadRequestException('Nenhum texto encontrado na imagem');
 
     return { text };
   }

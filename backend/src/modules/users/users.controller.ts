@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Patch, Param, Body, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
@@ -14,7 +23,10 @@ export class UsersController {
   }
 
   @Patch('me/location')
-  updateLocation(@Request() req: any, @Body() body: { lat: number; lng: number }) {
+  updateLocation(
+    @Request() req: any,
+    @Body() body: { lat: number; lng: number },
+  ) {
     return this.usersService.updateLocation(req.user.id, body.lat, body.lng);
   }
 
@@ -34,4 +46,3 @@ export class UsersController {
     return this.usersService.findPublicProfile(id);
   }
 }
-

@@ -1,7 +1,21 @@
 import {
-  Controller, Post, Body, Get, UseGuards, Request, Patch, Headers,
-  UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator,
-  HttpCode, HttpStatus, Query, Res,
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Request,
+  Patch,
+  Headers,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  HttpCode,
+  HttpStatus,
+  Query,
+  Res,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -93,7 +107,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Patch('me')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Atualizar dados do perfil do utilizador autenticado' })
+  @ApiOperation({
+    summary: 'Atualizar dados do perfil do utilizador autenticado',
+  })
   updateProfile(@Request() req, @Body() dto: UpdateProfileDto) {
     return this.authService.updateProfile(req.user.id, dto);
   }
@@ -102,7 +118,9 @@ export class AuthController {
   @Post('otp/send')
   @Throttle({ default: { ttl: 900_000, limit: 3 } }) // 3 envios / 15 min por IP
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Enviar código OTP para verificar email ou telefone' })
+  @ApiOperation({
+    summary: 'Enviar código OTP para verificar email ou telefone',
+  })
   sendOtp(@Request() req, @Body() dto: OtpSendDto) {
     return this.authService.sendOtp(req.user.id, dto.purpose);
   }
@@ -110,7 +128,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('otp/verify')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Verificar código OTP e marcar email/telefone como verificado' })
+  @ApiOperation({
+    summary: 'Verificar código OTP e marcar email/telefone como verificado',
+  })
   verifyOtp(@Request() req, @Body() dto: OtpVerifyDto) {
     return this.authService.verifyOtp(req.user.id, dto.purpose, dto.code);
   }
@@ -139,7 +159,9 @@ export class AuthController {
   @Post('me/accept-policy')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Aceitar política de viagens (passageiro ou condutor)' })
+  @ApiOperation({
+    summary: 'Aceitar política de viagens (passageiro ou condutor)',
+  })
   acceptPolicy(@Request() req, @Body() dto: AcceptPolicyDto) {
     return this.authService.acceptPolicy(req.user.id, dto.role);
   }
@@ -147,7 +169,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('me/driver-license')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Upload de carta de condução com nº CC (JPEG/PNG/WebP, máx 10MB)' })
+  @ApiOperation({
+    summary: 'Upload de carta de condução com nº CC (JPEG/PNG/WebP, máx 10MB)',
+  })
   @UseInterceptors(FileInterceptor('document', { storage: memoryStorage() }))
   uploadDriverLicense(
     @Request() req,
@@ -162,13 +186,19 @@ export class AuthController {
     )
     file: Express.Multer.File,
   ) {
-    return this.authService.uploadDriverLicense(req.user.id, file, ccNumber ?? '');
+    return this.authService.uploadDriverLicense(
+      req.user.id,
+      file,
+      ccNumber ?? '',
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('me/identity-document')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Upload de documento de identidade (JPEG/PNG/WebP, máx 10MB)' })
+  @ApiOperation({
+    summary: 'Upload de documento de identidade (JPEG/PNG/WebP, máx 10MB)',
+  })
   @UseInterceptors(FileInterceptor('document', { storage: memoryStorage() }))
   uploadIdentityDocument(
     @Request() req,
@@ -183,7 +213,11 @@ export class AuthController {
     )
     file: Express.Multer.File,
   ) {
-    return this.authService.uploadIdentityDocument(req.user.id, file, documentType ?? 'cc');
+    return this.authService.uploadIdentityDocument(
+      req.user.id,
+      file,
+      documentType ?? 'cc',
+    );
   }
 
   @Get('google')
@@ -199,7 +233,10 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Callback OAuth do Google' })
   async googleCallback(@Request() req, @Res() res: Response) {
-    const { accessToken, refreshToken } = req.user as { accessToken: string; refreshToken: string };
+    const { accessToken, refreshToken } = req.user as {
+      accessToken: string;
+      refreshToken: string;
+    };
     const frontendUrl = this.configService
       .get<string>('FRONTEND_URL', 'http://localhost:5173')
       .split(',')[0]
@@ -212,7 +249,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('test/verify-email')
   @ApiBearerAuth()
-  @ApiOperation({ summary: '[Só testes] Marcar email como verificado (ALLOW_TEST_VERIFY=1)' })
+  @ApiOperation({
+    summary: '[Só testes] Marcar email como verificado (ALLOW_TEST_VERIFY=1)',
+  })
   verifyEmailForTest(@Request() req) {
     return this.authService.verifyEmailForTest(req.user.id);
   }
@@ -220,7 +259,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('test/approve-driver-license')
   @ApiBearerAuth()
-  @ApiOperation({ summary: '[Só testes] Aprovar carta de condução (ALLOW_TEST_VERIFY=1)' })
+  @ApiOperation({
+    summary: '[Só testes] Aprovar carta de condução (ALLOW_TEST_VERIFY=1)',
+  })
   approveDriverLicenseForTest(@Request() req) {
     return this.authService.approveDriverLicenseForTest(req.user.id);
   }

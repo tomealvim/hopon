@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -10,18 +15,37 @@ export class RecurringArrangementsService {
   ) {}
 
   /** Condutor propõe arranjo recorrente a um passageiro de uma boleia já concluída */
-  async propose(proposerId: string, rideId: string, passengerId: string, note?: string) {
+  async propose(
+    proposerId: string,
+    rideId: string,
+    passengerId: string,
+    note?: string,
+  ) {
     const ride = await this.prisma.ride.findUnique({
       where: { id: rideId },
       include: { bookings: true },
     });
     if (!ride) throw new NotFoundException('Boleia não encontrada');
-    if (ride.driverId !== proposerId) throw new ForbiddenException('Só o condutor pode propor arranjos desta boleia');
-    if (ride.status !== 'COMPLETED') throw new BadRequestException('Só é possível propor arranjos após a boleia estar concluída');
-    if (!ride.scheduleTemplateId) throw new BadRequestException('Esta boleia não tem um template de horário associado');
+    if (ride.driverId !== proposerId)
+      throw new ForbiddenException(
+        'Só o condutor pode propor arranjos desta boleia',
+      );
+    if (ride.status !== 'COMPLETED')
+      throw new BadRequestException(
+        'Só é possível propor arranjos após a boleia estar concluída',
+      );
+    if (!ride.scheduleTemplateId)
+      throw new BadRequestException(
+        'Esta boleia não tem um template de horário associado',
+      );
 
-    const booking = ride.bookings.find((b) => b.userId === passengerId && b.status === 'CONFIRMED');
-    if (!booking) throw new BadRequestException('O passageiro não tem reserva confirmada nesta boleia');
+    const booking = ride.bookings.find(
+      (b) => b.userId === passengerId && b.status === 'CONFIRMED',
+    );
+    if (!booking)
+      throw new BadRequestException(
+        'O passageiro não tem reserva confirmada nesta boleia',
+      );
 
     const arrangement = await this.prisma.recurringArrangement.upsert({
       where: {
@@ -69,8 +93,10 @@ export class RecurringArrangementsService {
       include: { scheduleTemplate: true },
     });
     if (!arrangement) throw new NotFoundException('Arranjo não encontrado');
-    if (arrangement.passengerId !== userId) throw new ForbiddenException('Só o destinatário pode responder');
-    if (arrangement.status !== 'PENDING') throw new BadRequestException('Arranjo já foi respondido');
+    if (arrangement.passengerId !== userId)
+      throw new ForbiddenException('Só o destinatário pode responder');
+    if (arrangement.status !== 'PENDING')
+      throw new BadRequestException('Arranjo já foi respondido');
 
     if (accept) {
       await this.prisma.recurringArrangement.update({
@@ -164,9 +190,12 @@ export class RecurringArrangementsService {
     });
     if (!arrangement) throw new NotFoundException('Arranjo não encontrado');
     if (arrangement.driverId !== userId && arrangement.passengerId !== userId) {
-      throw new ForbiddenException('Só os participantes podem terminar o arranjo');
+      throw new ForbiddenException(
+        'Só os participantes podem terminar o arranjo',
+      );
     }
-    if (arrangement.status === 'ENDED') throw new BadRequestException('Arranjo já terminado');
+    if (arrangement.status === 'ENDED')
+      throw new BadRequestException('Arranjo já terminado');
 
     await this.prisma.recurringArrangement.update({
       where: { id: arrangementId },
@@ -182,7 +211,10 @@ export class RecurringArrangementsService {
       data: { status: 'CANCELLED' },
     });
 
-    const otherUserId = userId === arrangement.driverId ? arrangement.passengerId : arrangement.driverId;
+    const otherUserId =
+      userId === arrangement.driverId
+        ? arrangement.passengerId
+        : arrangement.driverId;
     const terminator = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { profile: true },

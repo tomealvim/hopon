@@ -62,7 +62,9 @@ export class GeocodingService {
 
       const data: {
         status: string;
-        results: Array<{ geometry: { location: { lat: number; lng: number } } }>;
+        results: Array<{
+          geometry: { location: { lat: number; lng: number } };
+        }>;
       } = await res.json();
 
       if (data.status !== 'OK' || data.results.length === 0) return null;

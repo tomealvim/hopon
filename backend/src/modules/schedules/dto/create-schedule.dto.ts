@@ -1,7 +1,28 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsInt, Min, Max, IsOptional, IsNumber, IsArray, ArrayMinSize, IsIn, IsBoolean, IsObject, Min as MinNumber } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  IsOptional,
+  IsNumber,
+  IsArray,
+  ArrayMinSize,
+  IsIn,
+  IsBoolean,
+  IsObject,
+  Min as MinNumber,
+} from 'class-validator';
 
-const DAYS_OF_WEEK = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'] as const;
+const DAYS_OF_WEEK = [
+  'segunda',
+  'terca',
+  'quarta',
+  'quinta',
+  'sexta',
+  'sabado',
+  'domingo',
+] as const;
 
 export class CreateScheduleDto {
   @ApiProperty({ example: 'vehicle-uuid-here' })
@@ -16,14 +37,17 @@ export class CreateScheduleDto {
   @IsString()
   destination: string;
 
-  @ApiProperty({ example: '08:00', description: 'Hora de partida em formato HH:mm' })
+  @ApiProperty({
+    example: '08:00',
+    description: 'Hora de partida em formato HH:mm',
+  })
   @IsString()
   time: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: ['segunda', 'terca', 'quarta', 'quinta', 'sexta'],
     description: 'Dias da semana em que a boleia ocorre',
-    type: [String]
+    type: [String],
   })
   @IsArray()
   @ArrayMinSize(1)
@@ -36,7 +60,11 @@ export class CreateScheduleDto {
   @Max(8)
   availableSeats: number;
 
-  @ApiPropertyOptional({ example: 1550, minimum: 0, description: 'Preço por lugar em cêntimos' })
+  @ApiPropertyOptional({
+    example: 1550,
+    minimum: 0,
+    description: 'Preço por lugar em cêntimos',
+  })
   @IsOptional()
   @IsNumber()
   @MinNumber(0)
@@ -64,8 +92,15 @@ export class CreateScheduleDto {
   @IsString()
   notes?: string;
 
-  @ApiPropertyOptional({ description: 'Preferências: { musica, falar, bagagem, animais }' })
+  @ApiPropertyOptional({
+    description: 'Preferências: { musica, falar, bagagem, animais }',
+  })
   @IsOptional()
   @IsObject()
-  preferences?: { musica?: boolean; falar?: boolean; bagagem?: boolean; animais?: boolean };
+  preferences?: {
+    musica?: boolean;
+    falar?: boolean;
+    bagagem?: boolean;
+    animais?: boolean;
+  };
 }

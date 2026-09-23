@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRecurringBookingDto } from './dto/create-recurring-booking.dto';
 
@@ -14,28 +19,45 @@ export class RecurringBookingsService {
     });
 
     if (!template || !template.active) {
-      throw new NotFoundException('Template de boleia não encontrado ou inativo');
+      throw new NotFoundException(
+        'Template de boleia não encontrado ou inativo',
+      );
     }
 
     if (template.userId === userId) {
-      throw new ForbiddenException('Não podes subscrever a tua própria boleia recorrente');
+      throw new ForbiddenException(
+        'Não podes subscrever a tua própria boleia recorrente',
+      );
     }
 
     // Verificar duplicado
     const existing = await this.prisma.recurringBooking.findUnique({
-      where: { passengerId_scheduleTemplateId: { passengerId: userId, scheduleTemplateId: dto.scheduleTemplateId } },
+      where: {
+        passengerId_scheduleTemplateId: {
+          passengerId: userId,
+          scheduleTemplateId: dto.scheduleTemplateId,
+        },
+      },
     });
 
     if (existing) {
       if (existing.status === 'ACTIVE') {
-        throw new ConflictException('Já tens uma subscrição ativa para esta boleia recorrente');
+        throw new ConflictException(
+          'Já tens uma subscrição ativa para esta boleia recorrente',
+        );
       }
       // Reativar se estava cancelada/pausada
-      return this.prisma.recurringBooking.update({
-        where: { id: existing.id },
-        data: { status: 'ACTIVE', seats: dto.seats ?? 1 },
-        include: { scheduleTemplate: { include: { user: { include: { profile: true } } } } },
-      }).then(this.toResponse);
+      return this.prisma.recurringBooking
+        .update({
+          where: { id: existing.id },
+          data: { status: 'ACTIVE', seats: dto.seats ?? 1 },
+          include: {
+            scheduleTemplate: {
+              include: { user: { include: { profile: true } } },
+            },
+          },
+        })
+        .then(this.toResponse);
     }
 
     const rb = await this.prisma.recurringBooking.create({
@@ -45,7 +67,9 @@ export class RecurringBookingsService {
         seats: dto.seats ?? 1,
         status: 'ACTIVE',
       },
-      include: { scheduleTemplate: { include: { user: { include: { profile: true } } } } },
+      include: {
+        scheduleTemplate: { include: { user: { include: { profile: true } } } },
+      },
     });
 
     return this.toResponse(rb);
@@ -68,7 +92,8 @@ export class RecurringBookingsService {
     const rb = await this.prisma.recurringBooking.findUnique({ where: { id } });
 
     if (!rb) throw new NotFoundException('Subscrição não encontrada');
-    if (rb.passengerId !== userId) throw new ForbiddenException('Sem permissão');
+    if (rb.passengerId !== userId)
+      throw new ForbiddenException('Sem permissão');
 
     await this.prisma.recurringBooking.update({
       where: { id },
@@ -98,12 +123,19 @@ export class RecurringBookingsService {
               ? {
                   id: t.user.id,
                   profile: t.user.profile
-                    ? { name: t.user.profile.name, avatarUrl: t.user.profile.avatarUrl }
+                    ? {
+                        name: t.user.profile.name,
+                        avatarUrl: t.user.profile.avatarUrl,
+                      }
                     : null,
                 }
               : null,
             vehicle: t.vehicle
-              ? { brand: t.vehicle.brand, model: t.vehicle.model, color: t.vehicle.color }
+              ? {
+                  brand: t.vehicle.brand,
+                  model: t.vehicle.model,
+                  color: t.vehicle.color,
+                }
               : null,
           }
         : null,

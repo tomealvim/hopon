@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class CalculatePriceDto {
   @ApiProperty({ example: 38.7071 })
@@ -31,7 +38,10 @@ export class CalculatePriceDto {
   @Min(1)
   seats: number;
 
-  @ApiPropertyOptional({ example: 'AA', description: 'Código de país para portagens (default: PT)' })
+  @ApiPropertyOptional({
+    example: 'AA',
+    description: 'Código de país para portagens (default: PT)',
+  })
   @IsOptional()
   @IsString()
   countryCode?: string;

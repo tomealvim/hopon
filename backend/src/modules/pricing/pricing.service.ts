@@ -217,7 +217,9 @@ export class PricingService {
         );
         if (priceEntry) {
           tollCost = parseFloat(
-            priceEntry.units != null ? priceEntry.units : (priceEntry.nanos / 1e9 || 0),
+            priceEntry.units != null
+              ? priceEntry.units
+              : priceEntry.nanos / 1e9 || 0,
           );
         }
       }
@@ -226,7 +228,7 @@ export class PricingService {
         route.description ??
         (route.labels?.includes('FUEL_EFFICIENT')
           ? 'Mais eficiente'
-          : routeLabels[idx] ?? `Rota ${idx + 1}`);
+          : (routeLabels[idx] ?? `Rota ${idx + 1}`));
 
       const breakdown = this.calculatePrice(
         distanceKm,
@@ -262,17 +264,22 @@ export class PricingService {
     const fuelType = vehicle.fuelType ?? 'gasolina95';
     const consumption =
       vehicle.avgConsumption ?? DEFAULT_CONSUMPTION[fuelType] ?? 7.5;
-    const fuelPrice = fuelPrices[fuelType] ?? FALLBACK_FUEL_PRICES[fuelType] ?? 1.72;
+    const fuelPrice =
+      fuelPrices[fuelType] ?? FALLBACK_FUEL_PRICES[fuelType] ?? 1.72;
 
     // Custo de combustível total para a viagem, em cêntimos.
     // O cálculo intermédio usa floats (preços/L, consumo) mas o resultado é
     // arredondado a cêntimos inteiros uma única vez - a partir daqui é tudo Int.
-    const fuelCostCents = Math.round((distanceKm * consumption * fuelPrice) / 100 * 100);
+    const fuelCostCents = Math.round(
+      ((distanceKm * consumption * fuelPrice) / 100) * 100,
+    );
     const tollCostCents = Math.round(tollCost * 100);
 
     // Dividir custos pelos passageiros (seats = lugares vendidos)
     const safeSeats = Math.max(seats, 1);
-    const pricePerSeatCents = Math.round((fuelCostCents + tollCostCents) / safeSeats);
+    const pricePerSeatCents = Math.round(
+      (fuelCostCents + tollCostCents) / safeSeats,
+    );
 
     // Comissão HopOn: 10% sobre o preço por lugar
     const platformFeeCents = Math.round(pricePerSeatCents * 0.1);

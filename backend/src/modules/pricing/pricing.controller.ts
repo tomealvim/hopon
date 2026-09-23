@@ -1,10 +1,4 @@
-import {
-  Body,
-  Controller,
-  Post,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PricingService } from './pricing.service';
@@ -23,7 +17,7 @@ export class PricingController {
     description:
       'Usa Google Maps Routes API + DGEG para retornar alternativas de rota com preço por lugar e comissão.',
   })
-  async calculate(@Body() dto: CalculatePriceDto, @Request() req: any) {
+  async calculate(@Body() dto: CalculatePriceDto) {
     return this.pricingService.getRoutes(
       { lat: dto.originLat, lng: dto.originLng },
       { lat: dto.destLat, lng: dto.destLng },

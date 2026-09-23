@@ -28,7 +28,11 @@ export class WalletService {
   /** Saldo + moeda */
   async getBalance(userId: string) {
     const wallet = await this.getOrCreate(userId);
-    return { id: wallet.id, balanceCents: wallet.balanceCents, currency: wallet.currency };
+    return {
+      id: wallet.id,
+      balanceCents: wallet.balanceCents,
+      currency: wallet.currency,
+    };
   }
 
   /** Saldo + últimas transações */
@@ -60,7 +64,11 @@ export class WalletService {
    * Creditar wallet após confirmação Stripe (idempotente via paymentIntentId).
    * Chamado pelo StripeService no webhook payment_intent.succeeded.
    */
-  async creditFromStripe(paymentIntentId: string, userId: string, amountCents: number) {
+  async creditFromStripe(
+    paymentIntentId: string,
+    userId: string,
+    amountCents: number,
+  ) {
     const wallet = await this.getOrCreate(userId);
 
     // Idempotência: não creditar se já existe transação com este paymentIntentId
@@ -120,7 +128,12 @@ export class WalletService {
   }
 
   /** Débito interno (usado por outros serviços - ex: pagamento de boleia) */
-  async debit(userId: string, amountCents: number, description: string, reference?: string) {
+  async debit(
+    userId: string,
+    amountCents: number,
+    description: string,
+    reference?: string,
+  ) {
     const wallet = await this.getOrCreate(userId);
 
     return this.prisma.$transaction(async (tx) => {
@@ -145,7 +158,12 @@ export class WalletService {
   }
 
   /** Reembolso (reserva cancelada ou recusada) */
-  async refund(userId: string, amountCents: number, description: string, reference?: string) {
+  async refund(
+    userId: string,
+    amountCents: number,
+    description: string,
+    reference?: string,
+  ) {
     const wallet = await this.getOrCreate(userId);
 
     return this.prisma.$transaction(async (tx) => {
@@ -166,7 +184,12 @@ export class WalletService {
   }
 
   /** Payout ao condutor quando viagem é concluída */
-  async credit(userId: string, amountCents: number, description: string, reference?: string) {
+  async credit(
+    userId: string,
+    amountCents: number,
+    description: string,
+    reference?: string,
+  ) {
     const wallet = await this.getOrCreate(userId);
 
     return this.prisma.$transaction(async (tx) => {
@@ -245,18 +268,27 @@ export class WalletService {
 
     // Todos os carregamentos via Stripe (CREDIT com referência pi_xxx)
     const credits = await this.prisma.walletTransaction.findMany({
-      where: { walletId: wallet.id, type: TRANSACTION_TYPES.CREDIT, reference: { startsWith: 'pi_' } },
+      where: {
+        walletId: wallet.id,
+        type: TRANSACTION_TYPES.CREDIT,
+        reference: { startsWith: 'pi_' },
+      },
       orderBy: { createdAt: 'asc' },
     });
 
     // Levantamentos já processados por pi_ (para não ultrapassar o limite de cada PaymentIntent)
     const withdrawals = await this.prisma.walletTransaction.findMany({
-      where: { walletId: wallet.id, type: TRANSACTION_TYPES.WITHDRAW, reference: { startsWith: 'pi_' } },
+      where: {
+        walletId: wallet.id,
+        type: TRANSACTION_TYPES.WITHDRAW,
+        reference: { startsWith: 'pi_' },
+      },
     });
     const withdrawnByPi: Record<string, number> = {};
     for (const w of withdrawals) {
       if (w.reference) {
-        withdrawnByPi[w.reference] = (withdrawnByPi[w.reference] ?? 0) + w.amountCents;
+        withdrawnByPi[w.reference] =
+          (withdrawnByPi[w.reference] ?? 0) + w.amountCents;
       }
     }
 
@@ -264,7 +296,10 @@ export class WalletService {
     const refundable = credits
       .map((c) => ({
         pi: c.reference!,
-        remaining: Math.max(0, c.amountCents - (withdrawnByPi[c.reference!] ?? 0)),
+        remaining: Math.max(
+          0,
+          c.amountCents - (withdrawnByPi[c.reference!] ?? 0),
+        ),
       }))
       .filter((r) => r.remaining > 0);
 
@@ -296,7 +331,11 @@ export class WalletService {
   }
 
   /** Debitar wallet + registar transações WITHDRAW após reembolsos Stripe confirmados */
-  async finalizeWithdraw(walletId: string, amountCents: number, plan: { pi: string; amountCents: number }[]) {
+  async finalizeWithdraw(
+    walletId: string,
+    amountCents: number,
+    plan: { pi: string; amountCents: number }[],
+  ) {
     return this.prisma.$transaction(async (tx) => {
       const wallet = await tx.wallet.findUnique({ where: { id: walletId } });
       if (!wallet || wallet.balanceCents < amountCents) {

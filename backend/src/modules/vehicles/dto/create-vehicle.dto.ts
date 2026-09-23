@@ -59,7 +59,9 @@ export class CreateVehicleDto {
   @Type(() => VehicleFeaturesDto)
   features?: VehicleFeaturesDto;
 
-  @ApiPropertyOptional({ enum: ['gasolina95', 'gasoleo', 'gpl', 'eletrico', 'hibrido'] })
+  @ApiPropertyOptional({
+    enum: ['gasolina95', 'gasoleo', 'gpl', 'eletrico', 'hibrido'],
+  })
   @IsOptional()
   @IsString()
   fuelType?: string;
@@ -70,4 +72,3 @@ export class CreateVehicleDto {
   @Min(0)
   avgConsumption?: number;
 }
-

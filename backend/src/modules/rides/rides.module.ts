@@ -10,10 +10,16 @@ import { CommunitiesModule } from '../communities/communities.module';
 import { InboxModule } from '../inbox/inbox.module';
 
 @Module({
-  imports: [PrismaModule, NotificationsModule, WalletModule, GeocodingModule, CommunitiesModule, InboxModule],
+  imports: [
+    PrismaModule,
+    NotificationsModule,
+    WalletModule,
+    GeocodingModule,
+    CommunitiesModule,
+    InboxModule,
+  ],
   controllers: [RidesController],
   providers: [RidesService, VerifiedUserGuard],
   exports: [RidesService],
 })
 export class RidesModule {}
-

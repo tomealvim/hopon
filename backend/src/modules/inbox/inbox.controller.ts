@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Param, Body, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { InboxService } from './inbox.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { SendMessageDto } from './dto/send-message.dto';
@@ -19,7 +27,11 @@ export class InboxController {
   }
 
   @Post('conversations/:id/messages')
-  sendMessage(@Request() req: any, @Param('id') id: string, @Body() dto: SendMessageDto) {
+  sendMessage(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() dto: SendMessageDto,
+  ) {
     return this.inboxService.sendMessage(req.user.id, id, dto.body);
   }
 
@@ -30,6 +42,9 @@ export class InboxController {
 
   @Get('group/:rideId')
   getGroupConversation(@Request() req: any, @Param('rideId') rideId: string) {
-    return this.inboxService.getOrCreateRideGroupConversation(rideId, req.user.id);
+    return this.inboxService.getOrCreateRideGroupConversation(
+      rideId,
+      req.user.id,
+    );
   }
 }

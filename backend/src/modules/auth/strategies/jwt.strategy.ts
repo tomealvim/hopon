@@ -28,12 +28,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     }
 
     if (user.suspendedAt) {
-      throw new UnauthorizedException('A tua conta foi suspensa. Contacta o suporte para mais informações.');
+      throw new UnauthorizedException(
+        'A tua conta foi suspensa. Contacta o suporte para mais informações.',
+      );
     }
 
     // Remover passwordHash do objeto user retornado no request
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash, ...result } = user;
     return result;
   }
 }
-

@@ -1,6 +1,13 @@
 import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { CreateRideDto } from './create-ride.dto';
-import { IsString, IsDateString, IsInt, Min, Max, IsOptional, IsNumber, Min as MinNumber } from 'class-validator';
+import {
+  IsString,
+  IsDateString,
+  IsInt,
+  Min,
+  Max,
+  IsOptional,
+} from 'class-validator';
 
 export class UpdateRideDto extends PartialType(CreateRideDto) {
   @ApiPropertyOptional({ example: 'Lisboa, Praça do Comércio' })
@@ -25,15 +32,21 @@ export class UpdateRideDto extends PartialType(CreateRideDto) {
   @Max(8)
   availableSeats?: number;
 
-  @ApiPropertyOptional({ example: 1550, minimum: 0, description: 'Preço por lugar em cêntimos' })
+  @ApiPropertyOptional({
+    example: 1550,
+    minimum: 0,
+    description: 'Preço por lugar em cêntimos',
+  })
   @IsOptional()
   @IsInt()
   @Min(0)
   priceCents?: number;
 
-  @ApiPropertyOptional({ example: 'SCHEDULED', enum: ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] })
+  @ApiPropertyOptional({
+    example: 'SCHEDULED',
+    enum: ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
+  })
   @IsOptional()
   @IsString()
   status?: string;
 }
-

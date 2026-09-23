@@ -14,7 +14,9 @@ export class NotificationsController {
 
   @Get('unread-count')
   unreadCount(@Req() req: any) {
-    return this.notificationsService.countUnread(req.user.id).then((count) => ({ count }));
+    return this.notificationsService
+      .countUnread(req.user.id)
+      .then((count) => ({ count }));
   }
 
   @Patch('read-all')

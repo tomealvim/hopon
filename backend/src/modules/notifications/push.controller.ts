@@ -1,4 +1,12 @@
-import { Controller, Post, Delete, Body, Get, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Delete,
+  Body,
+  Get,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { IsString } from 'class-validator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PushService } from './push.service';
@@ -25,7 +33,12 @@ export class PushController {
 
   @Post('subscribe')
   subscribe(@Req() req: any, @Body() dto: SubscribeDto) {
-    return this.pushService.subscribe(req.user.id, dto.endpoint, dto.p256dh, dto.auth);
+    return this.pushService.subscribe(
+      req.user.id,
+      dto.endpoint,
+      dto.p256dh,
+      dto.auth,
+    );
   }
 
   @Delete('unsubscribe')

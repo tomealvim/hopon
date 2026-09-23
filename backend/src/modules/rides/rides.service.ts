@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+} from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -12,7 +18,7 @@ import { GeocodingService } from '../geocoding/geocoding.service';
 import { CommunitiesService } from '../communities/communities.service';
 import { InboxService } from '../inbox/inbox.service';
 
-const SEARCH_TTL_MS = 30_000;  // 30s
+const SEARCH_TTL_MS = 30_000; // 30s
 const FOR_YOU_TTL_MS = 60_000; // 60s
 
 @Injectable()
@@ -43,36 +49,51 @@ export class RidesService {
     });
 
     if (!vehicle) {
-      throw new NotFoundException('Veículo não encontrado ou não pertence ao utilizador');
+      throw new NotFoundException(
+        'Veículo não encontrado ou não pertence ao utilizador',
+      );
     }
 
     // Verificar se há lugares suficientes
     if (dto.availableSeats > vehicle.seats) {
-      throw new BadRequestException(`Número de lugares disponíveis (${dto.availableSeats}) excede os lugares do veículo (${vehicle.seats})`);
+      throw new BadRequestException(
+        `Número de lugares disponíveis (${dto.availableSeats}) excede os lugares do veículo (${vehicle.seats})`,
+      );
     }
 
     // Criar registos de Location com coordenadas (frontend ou geocoding como fallback)
     let originLocationId: string | null = null;
     let destinationLocationId: string | null = null;
 
-    const originCoords = (dto.originLat != null && dto.originLng != null)
-      ? { lat: dto.originLat, lng: dto.originLng }
-      : await this.geocodingService.geocodeText(dto.origin);
+    const originCoords =
+      dto.originLat != null && dto.originLng != null
+        ? { lat: dto.originLat, lng: dto.originLng }
+        : await this.geocodingService.geocodeText(dto.origin);
 
     if (originCoords) {
       const loc = await this.prisma.location.create({
-        data: { label: dto.origin, lat: originCoords.lat, lng: originCoords.lng, city: dto.city ?? null },
+        data: {
+          label: dto.origin,
+          lat: originCoords.lat,
+          lng: originCoords.lng,
+          city: dto.city ?? null,
+        },
       });
       originLocationId = loc.id;
     }
 
-    const destCoords = (dto.destinationLat != null && dto.destinationLng != null)
-      ? { lat: dto.destinationLat, lng: dto.destinationLng }
-      : await this.geocodingService.geocodeText(dto.destination);
+    const destCoords =
+      dto.destinationLat != null && dto.destinationLng != null
+        ? { lat: dto.destinationLat, lng: dto.destinationLng }
+        : await this.geocodingService.geocodeText(dto.destination);
 
     if (destCoords) {
       const loc = await this.prisma.location.create({
-        data: { label: dto.destination, lat: destCoords.lat, lng: destCoords.lng },
+        data: {
+          label: dto.destination,
+          lat: destCoords.lat,
+          lng: destCoords.lng,
+        },
       });
       destinationLocationId = loc.id;
     }
@@ -81,8 +102,10 @@ export class RidesService {
     let routePolyline: { lat: number; lng: number }[] | null = null;
     if (originCoords && destCoords) {
       routePolyline = await this.geocodingService.getRoutePolyline(
-        originCoords.lat, originCoords.lng,
-        destCoords.lat, destCoords.lng,
+        originCoords.lat,
+        originCoords.lng,
+        destCoords.lat,
+        destCoords.lng,
       );
     }
 
@@ -98,10 +121,18 @@ export class RidesService {
         status: 'SCHEDULED',
         ...(originLocationId && { originLocationId }),
         ...(destinationLocationId && { destinationLocationId }),
-        ...(dto.routeDistanceKm != null && { routeDistanceKm: dto.routeDistanceKm }),
-        ...(dto.routeDurationMin != null && { routeDurationMin: dto.routeDurationMin }),
-        ...(dto.routeTollCostCents != null && { routeTollCostCents: dto.routeTollCostCents }),
-        ...(dto.platformFeeCents != null && { platformFeeCents: dto.platformFeeCents }),
+        ...(dto.routeDistanceKm != null && {
+          routeDistanceKm: dto.routeDistanceKm,
+        }),
+        ...(dto.routeDurationMin != null && {
+          routeDurationMin: dto.routeDurationMin,
+        }),
+        ...(dto.routeTollCostCents != null && {
+          routeTollCostCents: dto.routeTollCostCents,
+        }),
+        ...(dto.platformFeeCents != null && {
+          platformFeeCents: dto.platformFeeCents,
+        }),
         ...(routePolyline && { routePolyline }),
         instantBooking: dto.instantBooking ?? false,
         ...(dto.meetingPoint && { meetingPoint: dto.meetingPoint }),
@@ -139,11 +170,25 @@ export class RidesService {
     const now = new Date();
     const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     if (originCoords && ride.departureTime <= twoHoursLater) {
-      void this.notifyNearbyUsersForNow(userId, ride.id, originCoords.lat, originCoords.lng, ride.origin, ride.destination);
+      void this.notifyNearbyUsersForNow(
+        userId,
+        ride.id,
+        originCoords.lat,
+        originCoords.lng,
+        ride.origin,
+        ride.destination,
+      );
     }
 
     // 16.4.5 - Notificar autores de ride requests compatíveis com esta boleia
-    void this.notifyMatchingRideRequests(userId, ride.id, ride.origin, ride.destination, originCoords, destCoords);
+    void this.notifyMatchingRideRequests(
+      userId,
+      ride.id,
+      ride.origin,
+      ride.destination,
+      originCoords,
+      destCoords,
+    );
 
     return this.toResponse(ride);
   }
@@ -212,7 +257,10 @@ export class RidesService {
       include: {
         driver: { include: { profile: true } },
         vehicle: true,
-        bookings: { where: { status: { in: ['CONFIRMED', 'PENDING'] } }, select: { seats: true } },
+        bookings: {
+          where: { status: { in: ['CONFIRMED', 'PENDING'] } },
+          select: { seats: true },
+        },
         community: { select: { id: true, name: true } },
       },
     });
@@ -223,7 +271,11 @@ export class RidesService {
     if (ride.communityId) {
       const isMember = userId
         ? await this.prisma.communityMember.findFirst({
-            where: { userId, communityId: ride.communityId, status: 'APPROVED' },
+            where: {
+              userId,
+              communityId: ride.communityId,
+              status: 'APPROVED',
+            },
           })
         : null;
       if (!isMember) {
@@ -231,7 +283,9 @@ export class RidesService {
         return {
           id: ride.id,
           private: true,
-          community: ride.community ? { id: ride.community.id, name: ride.community.name } : null,
+          community: ride.community
+            ? { id: ride.community.id, name: ride.community.name }
+            : null,
           origin: ride.origin,
           destination: ride.destination,
           departureTime: ride.departureTime,
@@ -254,18 +308,24 @@ export class RidesService {
       status: ride.status,
       meetingPoint: ride.meetingPoint ?? null,
       instantBooking: ride.instantBooking,
-      community: ride.community ? { id: ride.community.id, name: ride.community.name } : null,
-      driver: ride.driver ? {
-        id: ride.driver.id,
-        name: ride.driver.profile?.name ?? ride.driver.email,
-        avatarUrl: ride.driver.profile?.avatarUrl ?? null,
-        isIdentityVerified: ride.driver.isIdentityVerified ?? false,
-      } : null,
-      vehicle: ride.vehicle ? {
-        brand: ride.vehicle.brand,
-        model: ride.vehicle.model,
-        color: ride.vehicle.color ?? null,
-      } : null,
+      community: ride.community
+        ? { id: ride.community.id, name: ride.community.name }
+        : null,
+      driver: ride.driver
+        ? {
+            id: ride.driver.id,
+            name: ride.driver.profile?.name ?? ride.driver.email,
+            avatarUrl: ride.driver.profile?.avatarUrl ?? null,
+            isIdentityVerified: ride.driver.isIdentityVerified ?? false,
+          }
+        : null,
+      vehicle: ride.vehicle
+        ? {
+            brand: ride.vehicle.brand,
+            model: ride.vehicle.model,
+            color: ride.vehicle.color ?? null,
+          }
+        : null,
     };
   }
 
@@ -275,17 +335,20 @@ export class RidesService {
     if (cached) return cached;
 
     // Obter templates, rotas habituais, condutores familiares e mapa de comunidades partilhadas
-    const [templates, userRoutes, pastBookings, sharedCommunityMap] = await Promise.all([
-      this.prisma.scheduleTemplate.findMany({ where: { userId, active: true } }),
-      this.prisma.userRoute.findMany({ where: { userId, active: true } }),
-      this.prisma.booking.findMany({
-        where: { userId, status: 'CONFIRMED' },
-        include: { ride: { select: { driverId: true } } },
-        orderBy: { createdAt: 'desc' },
-        take: 50,
-      }),
-      this.communitiesService.getSharedCommunityMap(userId),
-    ]);
+    const [templates, userRoutes, pastBookings, sharedCommunityMap] =
+      await Promise.all([
+        this.prisma.scheduleTemplate.findMany({
+          where: { userId, active: true },
+        }),
+        this.prisma.userRoute.findMany({ where: { userId, active: true } }),
+        this.prisma.booking.findMany({
+          where: { userId, status: 'CONFIRMED' },
+          include: { ride: { select: { driverId: true } } },
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        }),
+        this.communitiesService.getSharedCommunityMap(userId),
+      ]);
 
     // IDs de condutores com quem o user já viajou
     const familiarDriverIds = new Set(pastBookings.map((b) => b.ride.driverId));
@@ -329,10 +392,12 @@ export class RidesService {
     const tomorrowEnd = new Date(tomorrow);
     tomorrowEnd.setHours(23, 59, 59, 999);
 
-    const myCommunityIds = await this.prisma.communityMember.findMany({
-      where: { userId, status: 'APPROVED' },
-      select: { communityId: true },
-    }).then((ms) => ms.map((m) => m.communityId));
+    const myCommunityIds = await this.prisma.communityMember
+      .findMany({
+        where: { userId, status: 'APPROVED' },
+        select: { communityId: true },
+      })
+      .then((ms) => ms.map((m) => m.communityId));
 
     const rides = await this.prisma.ride.findMany({
       where: {
@@ -340,10 +405,7 @@ export class RidesService {
         driverId: { not: userId },
         departureTime: { gte: now, lte: in7Days },
         // Excluir boleias privadas de comunidades das quais o user não é membro
-        OR: [
-          { communityId: null },
-          { communityId: { in: myCommunityIds } },
-        ],
+        OR: [{ communityId: null }, { communityId: { in: myCommunityIds } }],
       },
       include: {
         vehicle: { include: { user: { include: { profile: true } } } },
@@ -360,10 +422,26 @@ export class RidesService {
       return [];
     }
 
-    const DAY_NAMES = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+    const DAY_NAMES = [
+      'domingo',
+      'segunda',
+      'terca',
+      'quarta',
+      'quinta',
+      'sexta',
+      'sabado',
+    ];
 
     // matchScore e overlapPct acumulam por cada padrão que faz match com a ride
-    const scores = new Map<string, { ride: (typeof rides)[0]; score: number; overlapPct: number; familiar: boolean }>();
+    const scores = new Map<
+      string,
+      {
+        ride: (typeof rides)[0];
+        score: number;
+        overlapPct: number;
+        familiar: boolean;
+      }
+    >();
 
     // Pré-popular com condutores familiares (score base = 5)
     for (const ride of rides) {
@@ -372,7 +450,12 @@ export class RidesService {
           .filter((b) => b.status === 'CONFIRMED' || b.status === 'PENDING')
           .reduce((s, b) => s + b.seats, 0);
         if (ride.availableSeats - booked > 0) {
-          scores.set(ride.id, { ride, score: 5, overlapPct: 0, familiar: true });
+          scores.set(ride.id, {
+            ride,
+            score: 5,
+            overlapPct: 0,
+            familiar: true,
+          });
         }
       }
     }
@@ -387,7 +470,8 @@ export class RidesService {
         if (!pattern.daysOfWeek.includes(rideDay)) continue;
 
         // Hora ±30 min
-        const rideMin = ride.departureTime.getHours() * 60 + ride.departureTime.getMinutes();
+        const rideMin =
+          ride.departureTime.getHours() * 60 + ride.departureTime.getMinutes();
         const timeDiff = Math.abs(rideMin - patternMin);
         if (timeDiff > 30) continue;
 
@@ -402,21 +486,29 @@ export class RidesService {
           ? (ride.routePolyline as unknown as { lat: number; lng: number }[])
           : null;
 
-        const patternHasOriginCoords = pattern.originLat != null && pattern.originLng != null;
-        const patternHasDestCoords = pattern.destinationLat != null && pattern.destinationLng != null;
+        const patternHasOriginCoords =
+          pattern.originLat != null && pattern.originLng != null;
+        const patternHasDestCoords =
+          pattern.destinationLat != null && pattern.destinationLng != null;
 
         // Origem - corredor se polilinha disponível, senão GPS 5km, senão text overlap
         if (polyline && polyline.length > 0 && patternHasOriginCoords) {
           const distOrigin = this.minDistToPolylineM(
-            pattern.originLat!, pattern.originLng!, polyline,
+            pattern.originLat!,
+            pattern.originLng!,
+            polyline,
           );
           if (distOrigin > 2000) continue; // fora de corredor de 2km
         } else {
-          const rideHasOriginCoords = ride.originLocation?.lat != null && ride.originLocation?.lng != null;
+          const rideHasOriginCoords =
+            ride.originLocation?.lat != null &&
+            ride.originLocation?.lng != null;
           if (rideHasOriginCoords && patternHasOriginCoords) {
             const distKm = this.haversineKm(
-              ride.originLocation!.lat!, ride.originLocation!.lng!,
-              pattern.originLat!, pattern.originLng!,
+              ride.originLocation!.lat!,
+              ride.originLocation!.lng!,
+              pattern.originLat!,
+              pattern.originLng!,
             );
             if (distKm > 5) continue;
           } else {
@@ -427,19 +519,29 @@ export class RidesService {
         // Destino - corredor se polilinha + coords disponíveis, senão text overlap
         if (polyline && polyline.length > 0 && patternHasDestCoords) {
           const distDest = this.minDistToPolylineM(
-            pattern.destinationLat!, pattern.destinationLng!, polyline,
+            pattern.destinationLat!,
+            pattern.destinationLng!,
+            polyline,
           );
           if (distDest > 2000) continue;
         } else {
-          if (!this.textOverlap(ride.destination, pattern.destination)) continue;
+          if (!this.textOverlap(ride.destination, pattern.destination))
+            continue;
         }
 
         // Calcular overlapPct se temos coords de origem e destino do passageiro
         let overlapPct = 0;
-        if (polyline && polyline.length > 0 && patternHasOriginCoords && patternHasDestCoords) {
+        if (
+          polyline &&
+          polyline.length > 0 &&
+          patternHasOriginCoords &&
+          patternHasDestCoords
+        ) {
           overlapPct = this.calcOverlapPct(
-            pattern.originLat!, pattern.originLng!,
-            pattern.destinationLat!, pattern.destinationLng!,
+            pattern.originLat!,
+            pattern.originLng!,
+            pattern.destinationLat!,
+            pattern.destinationLng!,
             polyline,
           );
         }
@@ -454,7 +556,12 @@ export class RidesService {
           if (overlapPct > prev.overlapPct) prev.overlapPct = overlapPct;
           prev.familiar = prev.familiar || familiarDriverIds.has(ride.driverId);
         } else {
-          scores.set(ride.id, { ride, score: timeScore + overlapBonus + familiarBonus, overlapPct, familiar: familiarDriverIds.has(ride.driverId) });
+          scores.set(ride.id, {
+            ride,
+            score: timeScore + overlapBonus + familiarBonus,
+            overlapPct,
+            familiar: familiarDriverIds.has(ride.driverId),
+          });
         }
       }
     }
@@ -468,8 +575,11 @@ export class RidesService {
       .map(({ ride, score, overlapPct, familiar }) => {
         const dep = ride.departureTime;
         const isTomorrow = dep >= tomorrow && dep <= tomorrowEnd;
-        const section: 'tomorrow' | 'familiar' | 'this_week' =
-          isTomorrow ? 'tomorrow' : familiar ? 'familiar' : 'this_week';
+        const section: 'tomorrow' | 'familiar' | 'this_week' = isTomorrow
+          ? 'tomorrow'
+          : familiar
+            ? 'familiar'
+            : 'this_week';
         const sharedCommunity = sharedCommunityMap.get(ride.driverId) ?? null;
         return {
           ...this.toResponse(ride),
@@ -487,14 +597,23 @@ export class RidesService {
    * Distância mínima (metros) de um ponto a uma polilinha (segmentos consecutivos).
    */
   private minDistToPolylineM(
-    lat: number, lng: number,
+    lat: number,
+    lng: number,
     polyline: { lat: number; lng: number }[],
   ): number {
     if (polyline.length === 0) return Infinity;
-    if (polyline.length === 1) return this.haversineM(lat, lng, polyline[0].lat, polyline[0].lng);
+    if (polyline.length === 1)
+      return this.haversineM(lat, lng, polyline[0].lat, polyline[0].lng);
     let minDist = Infinity;
     for (let i = 0; i < polyline.length - 1; i++) {
-      const d = this.pointToSegmentM(lat, lng, polyline[i].lat, polyline[i].lng, polyline[i + 1].lat, polyline[i + 1].lng);
+      const d = this.pointToSegmentM(
+        lat,
+        lng,
+        polyline[i].lat,
+        polyline[i].lng,
+        polyline[i + 1].lat,
+        polyline[i + 1].lng,
+      );
       if (d < minDist) minDist = d;
     }
     return minDist;
@@ -503,12 +622,22 @@ export class RidesService {
   /**
    * Distância ponto-a-segmento em metros (projeção perpendicular).
    */
-  private pointToSegmentM(pLat: number, pLng: number, aLat: number, aLng: number, bLat: number, bLng: number): number {
+  private pointToSegmentM(
+    pLat: number,
+    pLng: number,
+    aLat: number,
+    aLng: number,
+    bLat: number,
+    bLng: number,
+  ): number {
     const dx = bLat - aLat;
     const dy = bLng - aLng;
     const lenSq = dx * dx + dy * dy;
     if (lenSq === 0) return this.haversineM(pLat, pLng, aLat, aLng);
-    const t = Math.max(0, Math.min(1, ((pLat - aLat) * dx + (pLng - aLng) * dy) / lenSq));
+    const t = Math.max(
+      0,
+      Math.min(1, ((pLat - aLat) * dx + (pLng - aLng) * dy) / lenSq),
+    );
     return this.haversineM(pLat, pLng, aLat + t * dx, aLng + t * dy);
   }
 
@@ -518,8 +647,10 @@ export class RidesService {
    * e verifica quantos ficam a ≤500m da polilinha do condutor.
    */
   private calcOverlapPct(
-    originLat: number, originLng: number,
-    destLat: number, destLng: number,
+    originLat: number,
+    originLng: number,
+    destLat: number,
+    destLng: number,
     polyline: { lat: number; lng: number }[],
   ): number {
     const SAMPLES = 20;
@@ -529,22 +660,35 @@ export class RidesService {
       const t = i / (SAMPLES - 1);
       const sLat = originLat + t * (destLat - originLat);
       const sLng = originLng + t * (destLng - originLng);
-      if (this.minDistToPolylineM(sLat, sLng, polyline) <= THRESHOLD_M) inside++;
+      if (this.minDistToPolylineM(sLat, sLng, polyline) <= THRESHOLD_M)
+        inside++;
     }
     return (inside / SAMPLES) * 100;
   }
 
-  private haversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  private haversineM(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number,
+  ): number {
     return this.haversineKm(lat1, lng1, lat2, lng2) * 1000;
   }
 
-  private haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  private haversineKm(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number,
+  ): number {
     const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLng = ((lng2 - lng1) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) ** 2 +
-      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
@@ -604,11 +748,20 @@ export class RidesService {
     const dayStart = new Date(`${date}T00:00:00`);
     const dayEnd = new Date(`${date}T23:59:59`);
 
-    function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    function haversineKm(
+      lat1: number,
+      lng1: number,
+      lat2: number,
+      lng2: number,
+    ): number {
       const R = 6371;
       const dLat = ((lat2 - lat1) * Math.PI) / 180;
       const dLng = ((lng2 - lng1) * Math.PI) / 180;
-      const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos((lat1 * Math.PI) / 180) *
+          Math.cos((lat2 * Math.PI) / 180) *
+          Math.sin(dLng / 2) ** 2;
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
@@ -642,13 +795,26 @@ export class RidesService {
 
     // 3. Filtrar pelo destino próximo do utilizador (Haversine ≤ maxWalkKm)
     const nearby = withSeats.filter((r) => {
-      if (r.destinationLocation?.lat == null || r.destinationLocation?.lng == null) return false;
-      return haversineKm(destinationLat, destinationLng, r.destinationLocation.lat, r.destinationLocation.lng) <= maxWalkKm;
+      if (
+        r.destinationLocation?.lat == null ||
+        r.destinationLocation?.lng == null
+      )
+        return false;
+      return (
+        haversineKm(
+          destinationLat,
+          destinationLng,
+          r.destinationLocation.lat,
+          r.destinationLocation.lng,
+        ) <= maxWalkKm
+      );
     });
 
     // 4. Pré-filtro: chegada estimada (sem caminhada) deve ser ≤ arriveBy
     const feasible = nearby.filter((r) => {
-      const rideArrivalMs = new Date(r.departureTime).getTime() + (r.routeDurationMin ?? 0) * 60_000;
+      const rideArrivalMs =
+        new Date(r.departureTime).getTime() +
+        (r.routeDurationMin ?? 0) * 60_000;
       return rideArrivalMs <= arriveByMs;
     });
 
@@ -657,16 +823,34 @@ export class RidesService {
       feasible.map(async (r) => {
         const destLat = r.destinationLocation!.lat;
         const destLng = r.destinationLocation!.lng;
-        const distKm = haversineKm(destLat, destLng, destinationLat, destinationLng);
+        const distKm = haversineKm(
+          destLat,
+          destLng,
+          destinationLat,
+          destinationLng,
+        );
         const walkingMin =
-          (await this.geocodingService.getWalkingDuration(destLat, destLng, destinationLat, destinationLng))
-          ?? Math.ceil(distKm * 12); // fallback: ~5 km/h = 12 min/km
+          (await this.geocodingService.getWalkingDuration(
+            destLat,
+            destLng,
+            destinationLat,
+            destinationLng,
+          )) ?? Math.ceil(distKm * 12); // fallback: ~5 km/h = 12 min/km
 
-        const rideArrivalMs = new Date(r.departureTime).getTime() + (r.routeDurationMin ?? 0) * 60_000;
+        const rideArrivalMs =
+          new Date(r.departureTime).getTime() +
+          (r.routeDurationMin ?? 0) * 60_000;
         const totalArrivalMs = rideArrivalMs + walkingMin * 60_000;
-        const marginMinutes = Math.floor((arriveByMs - totalArrivalMs) / 60_000);
+        const marginMinutes = Math.floor(
+          (arriveByMs - totalArrivalMs) / 60_000,
+        );
 
-        return { ride: r, walkingMinutes: walkingMin, estimatedArrival: new Date(totalArrivalMs).toISOString(), marginMinutes };
+        return {
+          ride: r,
+          walkingMinutes: walkingMin,
+          estimatedArrival: new Date(totalArrivalMs).toISOString(),
+          marginMinutes,
+        };
       }),
     );
 
@@ -684,7 +868,9 @@ export class RidesService {
 
   async search(dto: SearchRidesDto, userId: string | null = null) {
     const cacheKey = `rides:search:${userId ?? 'anon'}:${JSON.stringify(
-      Object.fromEntries(Object.entries(dto).sort(([a], [b]) => a.localeCompare(b))),
+      Object.fromEntries(
+        Object.entries(dto).sort(([a], [b]) => a.localeCompare(b)),
+      ),
     )}`;
     const cached = await this.cache.get<any[]>(cacheKey);
     if (cached) return cached;
@@ -713,7 +899,10 @@ export class RidesService {
 
     if (dto.maxPriceCents != null) {
       // Incluir boleias gratuitas (priceCents null) e boleias até ao preço máximo
-      where.OR = [{ priceCents: null }, { priceCents: { lte: dto.maxPriceCents } }];
+      where.OR = [
+        { priceCents: null },
+        { priceCents: { lte: dto.maxPriceCents } },
+      ];
     }
 
     // Filtro de comunidade: só boleias de condutores aprovados nessa comunidade
@@ -727,11 +916,18 @@ export class RidesService {
 
     // Filtrar boleias privadas: só mostrar se o user é membro da comunidade
     if (userId) {
-      const myCommunityIds = await this.prisma.communityMember.findMany({
-        where: { userId, status: 'APPROVED' },
-        select: { communityId: true },
-      }).then((ms) => ms.map((m) => m.communityId));
-      const orPrivacy = [{ communityId: null }, ...(myCommunityIds.length > 0 ? [{ communityId: { in: myCommunityIds } }] : [])];
+      const myCommunityIds = await this.prisma.communityMember
+        .findMany({
+          where: { userId, status: 'APPROVED' },
+          select: { communityId: true },
+        })
+        .then((ms) => ms.map((m) => m.communityId));
+      const orPrivacy = [
+        { communityId: null },
+        ...(myCommunityIds.length > 0
+          ? [{ communityId: { in: myCommunityIds } }]
+          : []),
+      ];
       where.OR = where.OR ? [...(where.OR as any[]), ...orPrivacy] : orPrivacy;
     } else {
       // Utilizador não autenticado - só vê boleias públicas
@@ -816,8 +1012,12 @@ export class RidesService {
         where: { revieweeId: { in: driverIds } },
         _avg: { score: true },
       });
-      const avgMap = new Map(ratingRows.map((r) => [r.revieweeId, r._avg.score ?? 0]));
-      result = result.sort((a, b) => (avgMap.get(b.driverId) ?? 0) - (avgMap.get(a.driverId) ?? 0));
+      const avgMap = new Map(
+        ratingRows.map((r) => [r.revieweeId, r._avg.score ?? 0]),
+      );
+      result = result.sort(
+        (a, b) => (avgMap.get(b.driverId) ?? 0) - (avgMap.get(a.driverId) ?? 0),
+      );
     }
     await this.cache.set(cacheKey, result, SEARCH_TTL_MS);
     return result;
@@ -853,7 +1053,9 @@ export class RidesService {
       });
 
       if (vehicle && dto.availableSeats > vehicle.seats) {
-        throw new BadRequestException(`Número de lugares disponíveis (${dto.availableSeats}) excede os lugares do veículo (${vehicle.seats})`);
+        throw new BadRequestException(
+          `Número de lugares disponíveis (${dto.availableSeats}) excede os lugares do veículo (${vehicle.seats})`,
+        );
       }
     }
 
@@ -866,8 +1068,10 @@ export class RidesService {
     const updateData: any = {};
     if (dto.origin !== undefined) updateData.origin = dto.origin;
     if (dto.destination !== undefined) updateData.destination = dto.destination;
-    if (dto.departureTime !== undefined) updateData.departureTime = new Date(dto.departureTime);
-    if (dto.availableSeats !== undefined) updateData.availableSeats = dto.availableSeats;
+    if (dto.departureTime !== undefined)
+      updateData.departureTime = new Date(dto.departureTime);
+    if (dto.availableSeats !== undefined)
+      updateData.availableSeats = dto.availableSeats;
     if (dto.priceCents !== undefined) updateData.priceCents = dto.priceCents;
     if (dto.status !== undefined) updateData.status = dto.status;
 
@@ -913,12 +1117,20 @@ export class RidesService {
     });
 
     if (!ride) throw new NotFoundException('Boleia não encontrada');
-    if (ride.driverId !== driverId) throw new ForbiddenException('Não tens permissão para gerir esta boleia');
-    if (ride.status !== 'SCHEDULED') throw new BadRequestException('A boleia não está em estado SCHEDULED');
-    if (ride.onTheWayAt) throw new BadRequestException('Já anunciaste que estás a caminho para esta boleia');
+    if (ride.driverId !== driverId)
+      throw new ForbiddenException('Não tens permissão para gerir esta boleia');
+    if (ride.status !== 'SCHEDULED')
+      throw new BadRequestException('A boleia não está em estado SCHEDULED');
+    if (ride.onTheWayAt)
+      throw new BadRequestException(
+        'Já anunciaste que estás a caminho para esta boleia',
+      );
 
     const minsUntil = (ride.departureTime.getTime() - Date.now()) / 60_000;
-    if (minsUntil > 120) throw new BadRequestException('Só podes anunciar "a caminho" até 2 horas antes da partida');
+    if (minsUntil > 120)
+      throw new BadRequestException(
+        'Só podes anunciar "a caminho" até 2 horas antes da partida',
+      );
 
     await this.prisma.ride.update({
       where: { id: rideId },
@@ -939,7 +1151,11 @@ export class RidesService {
       );
     }
 
-    void this.inboxService.sendSystemMessageToGroup(rideId, driverId, 'Condutor esta a caminho');
+    void this.inboxService.sendSystemMessageToGroup(
+      rideId,
+      driverId,
+      'Condutor esta a caminho',
+    );
 
     return { message: 'Passageiros notificados que estás a caminho.' };
   }
@@ -951,8 +1167,10 @@ export class RidesService {
     });
 
     if (!ride) throw new NotFoundException('Boleia não encontrada');
-    if (ride.driverId !== driverId) throw new ForbiddenException('Não tens permissão para gerir esta boleia');
-    if (ride.status !== 'SCHEDULED') throw new BadRequestException('A boleia não está em estado SCHEDULED');
+    if (ride.driverId !== driverId)
+      throw new ForbiddenException('Não tens permissão para gerir esta boleia');
+    if (ride.status !== 'SCHEDULED')
+      throw new BadRequestException('A boleia não está em estado SCHEDULED');
 
     await this.prisma.ride.update({
       where: { id: rideId },
@@ -965,10 +1183,19 @@ export class RidesService {
       .map((b) => b.userId);
 
     if (confirmedPassengerIds.length > 0) {
-      void this.notificationsService.notifyDriverArrived(rideId, ride.origin, ride.destination, confirmedPassengerIds);
+      void this.notificationsService.notifyDriverArrived(
+        rideId,
+        ride.origin,
+        ride.destination,
+        confirmedPassengerIds,
+      );
     }
 
-    void this.inboxService.sendSystemMessageToGroup(rideId, driverId, 'Condutor chegou ao ponto de encontro');
+    void this.inboxService.sendSystemMessageToGroup(
+      rideId,
+      driverId,
+      'Condutor chegou ao ponto de encontro',
+    );
 
     return { message: 'Chegada marcada. Passageiros notificados.' };
   }
@@ -980,47 +1207,89 @@ export class RidesService {
     });
 
     if (!ride) throw new NotFoundException('Boleia não encontrada');
-    if (ride.driverId !== driverId) throw new ForbiddenException('Não tens permissão para concluir esta boleia');
+    if (ride.driverId !== driverId)
+      throw new ForbiddenException(
+        'Não tens permissão para concluir esta boleia',
+      );
     if (ride.status !== 'SCHEDULED' && ride.status !== 'IN_PROGRESS') {
-      throw new BadRequestException('A boleia não está em estado SCHEDULED ou IN_PROGRESS');
+      throw new BadRequestException(
+        'A boleia não está em estado SCHEDULED ou IN_PROGRESS',
+      );
     }
 
-    const confirmedBookings = ride.bookings.filter((b) => b.status === 'CONFIRMED');
+    const confirmedBookings = ride.bookings.filter(
+      (b) => b.status === 'CONFIRMED',
+    );
     const noShowBookings = ride.bookings.filter((b) => b.status === 'NO_SHOW');
     const pendingBookings = ride.bookings.filter((b) => b.status === 'PENDING');
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.ride.update({ where: { id: rideId }, data: { status: 'COMPLETED' } });
+      await tx.ride.update({
+        where: { id: rideId },
+        data: { status: 'COMPLETED' },
+      });
 
       // Marcar reservas confirmadas como concluídas
       for (const booking of confirmedBookings) {
-        await tx.booking.update({ where: { id: booking.id }, data: { status: 'COMPLETED' } });
+        await tx.booking.update({
+          where: { id: booking.id },
+          data: { status: 'COMPLETED' },
+        });
       }
 
       // NO_SHOW bookings mantêm status - condutor já estava no ponto, sem reembolso
 
       // Cancelar reservas pendentes e reembolsar (não chegaram a embarcar)
       for (const booking of pendingBookings) {
-        await tx.booking.update({ where: { id: booking.id }, data: { status: 'CANCELLED' } });
+        await tx.booking.update({
+          where: { id: booking.id },
+          data: { status: 'CANCELLED' },
+        });
         if (ride.priceCents != null && ride.priceCents > 0) {
-          const amountCents = (ride.priceCents + (ride.platformFeeCents ?? 0)) * booking.seats;
-          let wallet = await tx.wallet.findFirst({ where: { userId: booking.userId } });
-          if (!wallet) wallet = await tx.wallet.create({ data: { userId: booking.userId } });
-          await tx.wallet.update({ where: { id: wallet.id }, data: { balanceCents: { increment: amountCents } } });
+          const amountCents =
+            (ride.priceCents + (ride.platformFeeCents ?? 0)) * booking.seats;
+          let wallet = await tx.wallet.findFirst({
+            where: { userId: booking.userId },
+          });
+          if (!wallet)
+            wallet = await tx.wallet.create({
+              data: { userId: booking.userId },
+            });
+          await tx.wallet.update({
+            where: { id: wallet.id },
+            data: { balanceCents: { increment: amountCents } },
+          });
           await tx.walletTransaction.create({
-            data: { walletId: wallet.id, type: 'REFUND', amountCents, description: 'Boleia concluída sem confirmação', reference: booking.id },
+            data: {
+              walletId: wallet.id,
+              type: 'REFUND',
+              amountCents,
+              description: 'Boleia concluída sem confirmação',
+              reference: booking.id,
+            },
           });
         }
       }
 
       // Creditar condutor pelo total das reservas confirmadas + NO_SHOW
       const paidBookings = [...confirmedBookings, ...noShowBookings];
-      if (ride.priceCents != null && ride.priceCents > 0 && paidBookings.length > 0) {
+      if (
+        ride.priceCents != null &&
+        ride.priceCents > 0 &&
+        paidBookings.length > 0
+      ) {
         // Condutor recebe só o preço por lugar - a platformFee fica retida pela HopOn
-        const totalCents = paidBookings.reduce((sum, b) => sum + ride.priceCents! * b.seats, 0);
+        const totalCents = paidBookings.reduce(
+          (sum, b) => sum + ride.priceCents! * b.seats,
+          0,
+        );
         let wallet = await tx.wallet.findFirst({ where: { userId: driverId } });
-        if (!wallet) wallet = await tx.wallet.create({ data: { userId: driverId } });
-        await tx.wallet.update({ where: { id: wallet.id }, data: { balanceCents: { increment: totalCents } } });
+        if (!wallet)
+          wallet = await tx.wallet.create({ data: { userId: driverId } });
+        await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balanceCents: { increment: totalCents } },
+        });
         await tx.walletTransaction.create({
           data: {
             walletId: wallet.id,
@@ -1066,7 +1335,11 @@ export class RidesService {
       );
     }
 
-    void this.inboxService.sendSystemMessageToGroup(rideId, driverId, 'Boleia concluida!');
+    void this.inboxService.sendSystemMessageToGroup(
+      rideId,
+      driverId,
+      'Boleia concluida!',
+    );
 
     // Pagar bónus de referral se for a primeira boleia completada do passageiro
     const REFERRAL_REWARD = 1; // €1
@@ -1077,12 +1350,26 @@ export class RidesService {
       });
       if (passenger?.referredById && !passenger.referralPaidAt) {
         const prevCompleted = await this.prisma.booking.count({
-          where: { userId: booking.userId, status: 'COMPLETED', id: { not: booking.id } },
+          where: {
+            userId: booking.userId,
+            status: 'COMPLETED',
+            id: { not: booking.id },
+          },
         });
         if (prevCompleted === 0) {
           await Promise.all([
-            this.walletService.credit(booking.userId, REFERRAL_REWARD, 'Bonus de boas-vindas por convite', 'referral'),
-            this.walletService.credit(passenger.referredById, REFERRAL_REWARD, 'Bonus de convite aceite', 'referral'),
+            this.walletService.credit(
+              booking.userId,
+              REFERRAL_REWARD,
+              'Bonus de boas-vindas por convite',
+              'referral',
+            ),
+            this.walletService.credit(
+              passenger.referredById,
+              REFERRAL_REWARD,
+              'Bonus de convite aceite',
+              'referral',
+            ),
           ]);
           await this.prisma.user.update({
             where: { id: booking.userId },
@@ -1108,9 +1395,11 @@ export class RidesService {
 
     if (!ride) throw new NotFoundException('Boleia não encontrada');
 
-    const confirmedBookings = ride.bookings.filter((b) => b.status === 'CONFIRMED');
-    const pendingBookings   = ride.bookings.filter((b) => b.status === 'PENDING');
-    const affectedUserIds   = [...new Set(ride.bookings.map((b) => b.userId))];
+    const confirmedBookings = ride.bookings.filter(
+      (b) => b.status === 'CONFIRMED',
+    );
+    const pendingBookings = ride.bookings.filter((b) => b.status === 'PENDING');
+    const affectedUserIds = [...new Set(ride.bookings.map((b) => b.userId))];
 
     const now = new Date();
     const minsUntil = (ride.departureTime.getTime() - now.getTime()) / 60_000;
@@ -1140,14 +1429,17 @@ export class RidesService {
             booking.id,
           );
         } catch (err) {
-          console.error(`[RidesService] Erro ao reembolsar booking ${booking.id}:`, err);
+          console.error(
+            `[RidesService] Erro ao reembolsar booking ${booking.id}:`,
+            err,
+          );
         }
       }
     }
 
     // Notificar utilizadores afetados (confirmados recebem push urgente, pendentes recebem in-app normal)
     const confirmedUserIds = confirmedBookings.map((b) => b.userId);
-    const pendingUserIds   = pendingBookings.map((b) => b.userId);
+    const pendingUserIds = pendingBookings.map((b) => b.userId);
     if (affectedUserIds.length > 0) {
       try {
         await this.notificationsService.notifyRideCancelled(
@@ -1163,7 +1455,11 @@ export class RidesService {
       }
     }
 
-    void this.inboxService.sendSystemMessageToGroup(rideId, userId, 'Boleia cancelada pelo condutor');
+    void this.inboxService.sendSystemMessageToGroup(
+      rideId,
+      userId,
+      'Boleia cancelada pelo condutor',
+    );
 
     // Rastrear cancelamentos de última hora e auto-suspender se necessário
     if (isLateCancel) {
@@ -1174,7 +1470,9 @@ export class RidesService {
 
       if (driver) {
         const windowStart = driver.lateCancelWindowStart;
-        const windowExpired = !windowStart || (now.getTime() - windowStart.getTime()) > 30 * 24 * 3_600_000;
+        const windowExpired =
+          !windowStart ||
+          now.getTime() - windowStart.getTime() > 30 * 24 * 3_600_000;
 
         const newCount = windowExpired ? 1 : driver.lateCancelCount + 1;
         const newWindowStart = windowExpired ? now : windowStart;
@@ -1194,7 +1492,9 @@ export class RidesService {
         });
 
         if (newCount >= 3) {
-          console.warn(`[RidesService] Utilizador ${userId} auto-suspenso após ${newCount} cancelamentos de última hora`);
+          console.warn(
+            `[RidesService] Utilizador ${userId} auto-suspenso após ${newCount} cancelamentos de última hora`,
+          );
         }
 
         // Aviso in-app + email ao 5.º cancelamento de última hora
@@ -1206,7 +1506,11 @@ export class RidesService {
             'Aviso de cancelamentos',
             `Cancelaste ${newCount} boleias de última hora nos últimos 30 dias. Ao próximo cancelamento a tua conta pode ser suspensa.`,
           );
-          void this.notificationsService.queueLateCancelWarningEmail(fullUser.email, userName, newCount);
+          void this.notificationsService.queueLateCancelWarningEmail(
+            fullUser.email,
+            userName,
+            newCount,
+          );
         }
       }
     }
@@ -1257,7 +1561,9 @@ export class RidesService {
       .map((b) => b.ride);
 
     const allRides = [...asDriver, ...passengerRides].sort(
-      (a, b) => new Date(b.departureTime).getTime() - new Date(a.departureTime).getTime(),
+      (a, b) =>
+        new Date(b.departureTime).getTime() -
+        new Date(a.departureTime).getTime(),
     );
 
     return allRides.map((ride) => ({
@@ -1267,16 +1573,46 @@ export class RidesService {
     }));
   }
 
-  async getReliabilityScore(userId: string): Promise<{ score: number | null; totalRides: number; cancelledRides: number; label: string }> {
+  async getReliabilityScore(userId: string): Promise<{
+    score: number | null;
+    totalRides: number;
+    cancelledRides: number;
+    label: string;
+  }> {
     const since = new Date(Date.now() - 30 * 24 * 3_600_000);
     const [completed, cancelled] = await Promise.all([
-      this.prisma.ride.count({ where: { driverId: userId, status: 'COMPLETED', departureTime: { gte: since } } }),
-      this.prisma.ride.count({ where: { driverId: userId, status: 'CANCELLED', cancelledAt: { gte: since } } }),
+      this.prisma.ride.count({
+        where: {
+          driverId: userId,
+          status: 'COMPLETED',
+          departureTime: { gte: since },
+        },
+      }),
+      this.prisma.ride.count({
+        where: {
+          driverId: userId,
+          status: 'CANCELLED',
+          cancelledAt: { gte: since },
+        },
+      }),
     ]);
     const total = completed + cancelled;
-    if (total < 3) return { score: null, totalRides: total, cancelledRides: cancelled, label: 'Novo condutor' };
+    if (total < 3)
+      return {
+        score: null,
+        totalRides: total,
+        cancelledRides: cancelled,
+        label: 'Novo condutor',
+      };
     const score = Math.round((completed / total) * 100);
-    const label = score >= 98 ? 'Excelente' : score >= 90 ? 'Bom' : score >= 75 ? 'Regular' : 'Baixo';
+    const label =
+      score >= 98
+        ? 'Excelente'
+        : score >= 90
+          ? 'Bom'
+          : score >= 75
+            ? 'Regular'
+            : 'Baixo';
     return { score, totalRides: total, cancelledRides: cancelled, label };
   }
 
@@ -1290,14 +1626,18 @@ export class RidesService {
     }
 
     if (ride.driverId !== userId) {
-      throw new ForbiddenException('Não tens permissão para modificar esta boleia');
+      throw new ForbiddenException(
+        'Não tens permissão para modificar esta boleia',
+      );
     }
   }
 
   private toResponse(ride: any) {
     const bookedSeats = ride.bookings
       ? ride.bookings
-          .filter((b: any) => b.status === 'CONFIRMED' || b.status === 'PENDING')
+          .filter(
+            (b: any) => b.status === 'CONFIRMED' || b.status === 'PENDING',
+          )
           .reduce((sum: number, b: any) => sum + b.seats, 0)
       : 0;
 
@@ -1308,10 +1648,22 @@ export class RidesService {
       origin: ride.origin,
       destination: ride.destination,
       originLocation: ride.originLocation
-        ? { id: ride.originLocation.id, label: ride.originLocation.label, lat: ride.originLocation.lat, lng: ride.originLocation.lng, city: ride.originLocation.city }
+        ? {
+            id: ride.originLocation.id,
+            label: ride.originLocation.label,
+            lat: ride.originLocation.lat,
+            lng: ride.originLocation.lng,
+            city: ride.originLocation.city,
+          }
         : null,
       destinationLocation: ride.destinationLocation
-        ? { id: ride.destinationLocation.id, label: ride.destinationLocation.label, lat: ride.destinationLocation.lat, lng: ride.destinationLocation.lng, city: ride.destinationLocation.city }
+        ? {
+            id: ride.destinationLocation.id,
+            label: ride.destinationLocation.label,
+            lat: ride.destinationLocation.lat,
+            lng: ride.destinationLocation.lng,
+            city: ride.destinationLocation.city,
+          }
         : null,
       departureTime: ride.departureTime,
       availableSeats: ride.availableSeats,
@@ -1326,7 +1678,9 @@ export class RidesService {
       instantBooking: ride.instantBooking ?? false,
       meetingPoint: ride.meetingPoint ?? null,
       communityId: ride.communityId ?? null,
-      community: ride.community ? { id: ride.community.id, name: ride.community.name } : null,
+      community: ride.community
+        ? { id: ride.community.id, name: ride.community.name }
+        : null,
       scheduleTemplateId: ride.scheduleTemplateId ?? null,
       status: ride.status,
       arrivedAt: ride.arrivedAt ?? null,
@@ -1400,8 +1754,14 @@ export class RidesService {
     const nearbyUsers = await this.prisma.user.findMany({
       where: {
         id: { not: driverId },
-        currentLat: { gte: originLat - RADIUS_DEG, lte: originLat + RADIUS_DEG },
-        currentLng: { gte: originLng - RADIUS_DEG, lte: originLng + RADIUS_DEG },
+        currentLat: {
+          gte: originLat - RADIUS_DEG,
+          lte: originLat + RADIUS_DEG,
+        },
+        currentLng: {
+          gte: originLng - RADIUS_DEG,
+          lte: originLng + RADIUS_DEG,
+        },
         locationUpdatedAt: { gte: staleCutoff },
       },
       select: { id: true },
@@ -1427,24 +1787,42 @@ export class RidesService {
     originCoords: { lat: number; lng: number } | null,
     destCoords: { lat: number; lng: number } | null,
   ) {
-    const ORIGIN_RADIUS_KM = 5;   // origem do request até à origem da boleia
-    const DEST_RADIUS_KM = 8;     // destino do request até ao destino da boleia
+    const ORIGIN_RADIUS_KM = 5; // origem do request até à origem da boleia
+    const DEST_RADIUS_KM = 8; // destino do request até ao destino da boleia
 
     const openRequests = await this.prisma.rideRequest.findMany({
-      where: { status: 'OPEN', expiresAt: { gte: new Date() }, passengerId: { not: driverId } },
+      where: {
+        status: 'OPEN',
+        expiresAt: { gte: new Date() },
+        passengerId: { not: driverId },
+      },
       include: { passenger: { select: { id: true } } },
     });
 
     for (const req of openRequests) {
       // Verificar proximidade de origem (se coords disponíveis)
       if (originCoords && req.originLat != null && req.originLng != null) {
-        const distKm = this.haversineKm(originCoords.lat, originCoords.lng, req.originLat, req.originLng);
+        const distKm = this.haversineKm(
+          originCoords.lat,
+          originCoords.lng,
+          req.originLat,
+          req.originLng,
+        );
         if (distKm > ORIGIN_RADIUS_KM) continue;
       }
 
       // Verificar proximidade de destino (se coords disponíveis)
-      if (destCoords && req.destinationLat != null && req.destinationLng != null) {
-        const distKm = this.haversineKm(destCoords.lat, destCoords.lng, req.destinationLat, req.destinationLng);
+      if (
+        destCoords &&
+        req.destinationLat != null &&
+        req.destinationLng != null
+      ) {
+        const distKm = this.haversineKm(
+          destCoords.lat,
+          destCoords.lng,
+          req.destinationLat,
+          req.destinationLng,
+        );
         if (distKm > DEST_RADIUS_KM) continue;
       }
 
@@ -1457,6 +1835,4 @@ export class RidesService {
       );
     }
   }
-
 }
-

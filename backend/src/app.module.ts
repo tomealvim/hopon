@@ -59,9 +59,7 @@ const backendEnv = join(__dirname, '..', '.env');
       isGlobal: true,
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
-        stores: [
-          createKeyv(config.get('REDIS_URL', 'redis://localhost:6379')),
-        ],
+        stores: [createKeyv(config.get('REDIS_URL', 'redis://localhost:6379'))],
       }),
       inject: [ConfigService],
     }),
@@ -69,15 +67,19 @@ const backendEnv = join(__dirname, '..', '.env');
       {
         name: 'default',
         ttl: 60_000,
-        limit: 300,  // 300 req/min por IP (5/s) - protege contra abuso sem bloquear testes
+        limit: 300, // 300 req/min por IP (5/s) - protege contra abuso sem bloquear testes
       },
     ]),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-        transport: process.env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
-          : undefined,
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? {
+                target: 'pino-pretty',
+                options: { colorize: true, singleLine: true },
+              }
+            : undefined,
         redact: ['req.headers.authorization'], // não logar tokens JWT
       },
     }),
@@ -107,4 +109,3 @@ const backendEnv = join(__dirname, '..', '.env');
   ],
 })
 export class AppModule {}
-

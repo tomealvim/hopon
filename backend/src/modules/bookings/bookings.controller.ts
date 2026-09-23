@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingStatusDto } from './dto/update-booking-status.dto';
@@ -15,19 +24,31 @@ export class BookingsController {
 
   @Post('rides/:rideId/intent')
   @UseGuards(VerifiedUserGuard)
-  @ApiOperation({ summary: 'Criar PaymentIntent Stripe para pagar boleia diretamente' })
+  @ApiOperation({
+    summary: 'Criar PaymentIntent Stripe para pagar boleia diretamente',
+  })
   createPaymentIntent(
     @Request() req,
     @Param('rideId') rideId: string,
     @Body() body: { seats?: number },
   ) {
-    return this.bookingsService.createPaymentIntent(req.user.id, rideId, body.seats ?? 1);
+    return this.bookingsService.createPaymentIntent(
+      req.user.id,
+      rideId,
+      body.seats ?? 1,
+    );
   }
 
   @Post('rides/:rideId')
   @UseGuards(VerifiedUserGuard)
-  @ApiOperation({ summary: 'Reservar lugar numa boleia (requer email e telefone verificados)' })
-  create(@Request() req, @Param('rideId') rideId: string, @Body() dto: CreateBookingDto) {
+  @ApiOperation({
+    summary: 'Reservar lugar numa boleia (requer email e telefone verificados)',
+  })
+  create(
+    @Request() req,
+    @Param('rideId') rideId: string,
+    @Body() dto: CreateBookingDto,
+  ) {
     return this.bookingsService.create(req.user.id, rideId, dto);
   }
 
@@ -38,8 +59,14 @@ export class BookingsController {
   }
 
   @Patch(':id/status')
-  @ApiOperation({ summary: 'Aceitar ou recusar reserva (só o condutor da boleia)' })
-  updateStatus(@Request() req, @Param('id') id: string, @Body() dto: UpdateBookingStatusDto) {
+  @ApiOperation({
+    summary: 'Aceitar ou recusar reserva (só o condutor da boleia)',
+  })
+  updateStatus(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() dto: UpdateBookingStatusDto,
+  ) {
     return this.bookingsService.updateStatus(req.user.id, id, dto.status);
   }
 
@@ -59,4 +86,3 @@ export class BookingsController {
     return this.bookingsService.confirmPresence(req.user.id, id, body.present);
   }
 }
-

@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Delete, Patch, Body, Param, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Patch,
+  Body,
+  Param,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { RecurringArrangementsService } from './recurring-arrangements.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -22,20 +32,34 @@ export class RecurringArrangementsController {
   constructor(private readonly service: RecurringArrangementsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Condutor propõe arranjo recorrente a passageiro de boleia concluída' })
+  @ApiOperation({
+    summary:
+      'Condutor propõe arranjo recorrente a passageiro de boleia concluída',
+  })
   propose(@Request() req, @Body() dto: ProposeArrangementDto) {
-    return this.service.propose(req.user.id, dto.rideId, dto.passengerId, dto.note);
+    return this.service.propose(
+      req.user.id,
+      dto.rideId,
+      dto.passengerId,
+      dto.note,
+    );
   }
 
   @Get('mine')
-  @ApiOperation({ summary: 'Listar os meus arranjos recorrentes (como condutor e passageiro)' })
+  @ApiOperation({
+    summary: 'Listar os meus arranjos recorrentes (como condutor e passageiro)',
+  })
   findMine(@Request() req) {
     return this.service.findMine(req.user.id);
   }
 
   @Patch(':id/respond')
   @ApiOperation({ summary: 'Passageiro aceita ou recusa proposta de arranjo' })
-  respond(@Request() req, @Param('id') id: string, @Body() dto: RespondArrangementDto) {
+  respond(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() dto: RespondArrangementDto,
+  ) {
     return this.service.respond(req.user.id, id, dto.accept);
   }
 

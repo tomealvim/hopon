@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Patch, Delete, Param, Body, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CommunitiesService } from './communities.service';
 import { CreateCommunityDto } from './dto/create-community.dto';
@@ -34,17 +44,29 @@ export class CommunitiesController {
   }
 
   @Patch(':id/members/:userId/approve')
-  approve(@Request() req, @Param('id') id: string, @Param('userId') userId: string) {
+  approve(
+    @Request() req,
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+  ) {
     return this.service.approveMember(req.user.id, id, userId);
   }
 
   @Patch(':id/members/:userId/reject')
-  reject(@Request() req, @Param('id') id: string, @Param('userId') userId: string) {
+  reject(
+    @Request() req,
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+  ) {
     return this.service.rejectMember(req.user.id, id, userId);
   }
 
   @Delete(':id/members/:userId')
-  removeMember(@Request() req, @Param('id') id: string, @Param('userId') userId: string) {
+  removeMember(
+    @Request() req,
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+  ) {
     return this.service.removeMember(req.user.id, id, userId);
   }
 

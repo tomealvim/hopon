@@ -14,7 +14,6 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { RefreshDto } from './dto/refresh.dto';
-import { LogoutDto } from './dto/logout.dto';
 import * as bcrypt from 'bcrypt';
 import { randomUUID, randomInt } from 'crypto';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -57,7 +56,10 @@ export class AuthService {
 
       // Criar user e profile numa transação
       // Garantir que phone seja null se não fornecido (não undefined)
-      const referralCode = randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+      const referralCode = randomUUID()
+        .replace(/-/g, '')
+        .slice(0, 8)
+        .toUpperCase();
 
       const userData: any = {
         email: dto.email,
@@ -69,7 +71,7 @@ export class AuthService {
           },
         },
       };
-      
+
       // Só incluir phone se fornecido
       if (dto.phone) {
         userData.phone = dto.phone;
@@ -107,7 +109,10 @@ export class AuthService {
         throw new UnauthorizedException('Credenciais inválidas');
       }
 
-      const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
+      const isPasswordValid = await bcrypt.compare(
+        dto.password,
+        user.passwordHash,
+      );
       if (!isPasswordValid) {
         throw new UnauthorizedException('Credenciais inválidas');
       }
@@ -140,19 +145,45 @@ export class AuthService {
     // Calcular fiabilidade como condutor (últimos 30 dias)
     const since = new Date(Date.now() - 30 * 24 * 3_600_000);
     const [completedRides, cancelledRides] = await Promise.all([
-      this.prisma.ride.count({ where: { driverId: userId, status: 'COMPLETED', departureTime: { gte: since } } }),
-      this.prisma.ride.count({ where: { driverId: userId, status: 'CANCELLED', cancelledAt: { gte: since } } }),
+      this.prisma.ride.count({
+        where: {
+          driverId: userId,
+          status: 'COMPLETED',
+          departureTime: { gte: since },
+        },
+      }),
+      this.prisma.ride.count({
+        where: {
+          driverId: userId,
+          status: 'CANCELLED',
+          cancelledAt: { gte: since },
+        },
+      }),
     ]);
     const totalDriverRides = completedRides + cancelledRides;
-    const reliabilityScore = totalDriverRides >= 3 ? Math.round((completedRides / totalDriverRides) * 100) : null;
-    const reliabilityLabel = reliabilityScore === null ? 'Novo condutor'
-      : reliabilityScore >= 98 ? 'Excelente'
-      : reliabilityScore >= 90 ? 'Bom'
-      : reliabilityScore >= 75 ? 'Regular' : 'Baixo';
+    const reliabilityScore =
+      totalDriverRides >= 3
+        ? Math.round((completedRides / totalDriverRides) * 100)
+        : null;
+    const reliabilityLabel =
+      reliabilityScore === null
+        ? 'Novo condutor'
+        : reliabilityScore >= 98
+          ? 'Excelente'
+          : reliabilityScore >= 90
+            ? 'Bom'
+            : reliabilityScore >= 75
+              ? 'Regular'
+              : 'Baixo';
 
     return {
       ...base,
-      reliability: { score: reliabilityScore, label: reliabilityLabel, totalRides: totalDriverRides, cancelledRides },
+      reliability: {
+        score: reliabilityScore,
+        label: reliabilityLabel,
+        totalRides: totalDriverRides,
+        cancelledRides,
+      },
     };
   }
 
@@ -167,7 +198,9 @@ export class AuthService {
       });
 
       if (existingPhone) {
-        throw new ConflictException('Telefone já registado por outro utilizador');
+        throw new ConflictException(
+          'Telefone já registado por outro utilizador',
+        );
       }
     }
 
@@ -176,15 +209,18 @@ export class AuthService {
     if (dto.username !== undefined) profileData.username = dto.username;
     if (dto.avatarUrl !== undefined) profileData.avatarUrl = dto.avatarUrl;
     if (dto.bio !== undefined) profileData.bio = dto.bio;
-    if (dto.contactEmail !== undefined) profileData.contactEmail = dto.contactEmail;
+    if (dto.contactEmail !== undefined)
+      profileData.contactEmail = dto.contactEmail;
     if (dto.schedule !== undefined) profileData.schedule = dto.schedule;
     if (dto.setupCompleted === true) profileData.setupCompleted = true;
-    if (dto.homeAddress !== undefined) profileData.homeAddress = dto.homeAddress;
+    if (dto.homeAddress !== undefined)
+      profileData.homeAddress = dto.homeAddress;
     if (dto.homeLat !== undefined) profileData.homeLat = dto.homeLat;
     if (dto.homeLng !== undefined) profileData.homeLng = dto.homeLng;
 
     const hasProfileUpdate = Object.keys(profileData).length > 0;
-    const hasUserUpdates = dto.phone !== undefined || dto.pushPreferences !== undefined;
+    const hasUserUpdates =
+      dto.phone !== undefined || dto.pushPreferences !== undefined;
 
     if (!hasUserUpdates && !hasProfileUpdate) {
       return this.getMe(userId);
@@ -220,7 +256,7 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Refresh token inválido');
     }
-    
+
     if (!payload.jti) {
       throw new UnauthorizedException('Refresh token inválido');
     }
@@ -230,7 +266,12 @@ export class AuthService {
       where: { tokenId: payload.jti },
     });
     // eslint-disable-next-line no-console
-    console.log('[AuthService] Refresh lookup', payload.jti, '=>', validToken ? 'found' : 'not found');
+    console.log(
+      '[AuthService] Refresh lookup',
+      payload.jti,
+      '=>',
+      validToken ? 'found' : 'not found',
+    );
 
     if (
       !validToken ||
@@ -311,11 +352,15 @@ export class AuthService {
     }
 
     if (purpose === 'phone' && !user.phone) {
-      throw new BadRequestException('Adiciona primeiro o teu número de telefone no perfil');
+      throw new BadRequestException(
+        'Adiciona primeiro o teu número de telefone no perfil',
+      );
     }
 
     const since = new Date();
-    since.setMinutes(since.getMinutes() - AuthService.OTP_RATE_LIMIT_WINDOW_MINUTES);
+    since.setMinutes(
+      since.getMinutes() - AuthService.OTP_RATE_LIMIT_WINDOW_MINUTES,
+    );
     const recentCount = await this.prisma.otpCode.count({
       where: {
         userId,
@@ -332,7 +377,9 @@ export class AuthService {
     const code = String(randomInt(100000, 999999));
     const codeHash = await bcrypt.hash(code, await bcrypt.genSalt());
     const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + AuthService.OTP_EXPIRY_MINUTES);
+    expiresAt.setMinutes(
+      expiresAt.getMinutes() + AuthService.OTP_EXPIRY_MINUTES,
+    );
 
     await this.prisma.otpCode.create({
       data: {
@@ -367,7 +414,9 @@ export class AuthService {
     });
 
     if (!otp) {
-      throw new BadRequestException('Código inválido ou expirado. Pede um novo código.');
+      throw new BadRequestException(
+        'Código inválido ou expirado. Pede um novo código.',
+      );
     }
     if (otp.expiresAt < new Date()) {
       await this.prisma.otpCode.delete({ where: { id: otp.id } });
@@ -375,7 +424,9 @@ export class AuthService {
     }
     if (otp.attempts >= AuthService.OTP_MAX_VERIFY_ATTEMPTS) {
       await this.prisma.otpCode.delete({ where: { id: otp.id } });
-      throw new BadRequestException('Demasiadas tentativas. Pede um novo código.');
+      throw new BadRequestException(
+        'Demasiadas tentativas. Pede um novo código.',
+      );
     }
 
     const valid = await bcrypt.compare(code, otp.codeHash);
@@ -416,7 +467,9 @@ export class AuthService {
     const v = this.configService.get<string>('ALLOW_TEST_VERIFY');
     const enabled = v === '1' || String(v).trim() === '1' || v === 'true';
     if (!enabled) {
-      throw new BadRequestException('Endpoint apenas disponível em ambiente de testes (ALLOW_TEST_VERIFY=1)');
+      throw new BadRequestException(
+        'Endpoint apenas disponível em ambiente de testes (ALLOW_TEST_VERIFY=1)',
+      );
     }
     await this.prisma.user.update({
       where: { id: userId },
@@ -436,7 +489,9 @@ export class AuthService {
     const v = this.configService.get<string>('ALLOW_TEST_VERIFY');
     const enabled = v === '1' || String(v).trim() === '1' || v === 'true';
     if (!enabled) {
-      throw new BadRequestException('Endpoint apenas disponível em ambiente de testes (ALLOW_TEST_VERIFY=1)');
+      throw new BadRequestException(
+        'Endpoint apenas disponível em ambiente de testes (ALLOW_TEST_VERIFY=1)',
+      );
     }
     await this.prisma.user.update({
       where: { id: userId },
@@ -450,7 +505,8 @@ export class AuthService {
 
   async findOrCreateGoogleUser(profile: Profile) {
     const email = profile.emails?.[0]?.value;
-    if (!email) throw new BadRequestException('Email não disponível na conta Google');
+    if (!email)
+      throw new BadRequestException('Email não disponível na conta Google');
 
     const googleId = profile.id;
     const name = profile.displayName || profile.name?.givenName || 'Utilizador';
@@ -485,7 +541,10 @@ export class AuthService {
         });
       } else {
         // Criar novo utilizador - Google já verificou o email
-        const googleReferralCode = randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+        const googleReferralCode = randomUUID()
+          .replace(/-/g, '')
+          .slice(0, 8)
+          .toUpperCase();
         user = await this.prisma.user.create({
           data: {
             email,
@@ -520,7 +579,11 @@ export class AuthService {
   }
 
   async uploadAvatar(userId: string, file: Express.Multer.File) {
-    const avatarUrl = await this.storageService.uploadAvatar(userId, file.buffer, file.mimetype);
+    const avatarUrl = await this.storageService.uploadAvatar(
+      userId,
+      file.buffer,
+      file.mimetype,
+    );
 
     const user = await this.prisma.user.update({
       where: { id: userId },
@@ -561,7 +624,9 @@ export class AuthService {
     ccNumber: string,
   ) {
     if (!ccNumber || ccNumber.trim().length < 4) {
-      throw new BadRequestException('O número do Cartão de Cidadão é obrigatório.');
+      throw new BadRequestException(
+        'O número do Cartão de Cidadão é obrigatório.',
+      );
     }
 
     const docUrl = await this.storageService.uploadDriverLicense(
@@ -587,11 +652,14 @@ export class AuthService {
   private async generateTokens(user: any, userAgent?: string, ip?: string) {
     try {
       const basePayload = { sub: user.id, email: user.email };
-      
+
       // Access token (curto)
-      const accessTokenSecret = this.configService.get<string>('JWT_ACCESS_SECRET');
-      const accessTokenExpiration = this.configService.get<string>('JWT_ACCESS_EXPIRATION');
-      
+      const accessTokenSecret =
+        this.configService.get<string>('JWT_ACCESS_SECRET');
+      const accessTokenExpiration = this.configService.get<string>(
+        'JWT_ACCESS_EXPIRATION',
+      );
+
       if (!accessTokenSecret) {
         console.error('[AuthService] JWT_ACCESS_SECRET não configurado');
         throw new Error('Configuração de autenticação inválida');
@@ -604,9 +672,12 @@ export class AuthService {
       });
 
       // Refresh token (longo)
-      const refreshTokenSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
-      const refreshTokenExpiration = this.configService.get<string>('JWT_REFRESH_EXPIRATION');
-      
+      const refreshTokenSecret =
+        this.configService.get<string>('JWT_REFRESH_SECRET');
+      const refreshTokenExpiration = this.configService.get<string>(
+        'JWT_REFRESH_EXPIRATION',
+      );
+
       if (!refreshTokenSecret) {
         console.error('[AuthService] JWT_REFRESH_SECRET não configurado');
         throw new Error('Configuração de autenticação inválida');
@@ -620,7 +691,10 @@ export class AuthService {
       });
 
       // Hash do refresh token para guardar na BD
-      const refreshTokenHash = await bcrypt.hash(refreshToken, await bcrypt.genSalt());
+      const refreshTokenHash = await bcrypt.hash(
+        refreshToken,
+        await bcrypt.genSalt(),
+      );
 
       // Calcular expiração baseada na configuração
       const expiresAt = this.calculateExpirationDate(
@@ -629,7 +703,12 @@ export class AuthService {
 
       // Guardar refresh token na BD
       // eslint-disable-next-line no-console
-      console.log('[AuthService] Guardar refresh token', refreshTokenId, 'para user', user.id);
+      console.log(
+        '[AuthService] Guardar refresh token',
+        refreshTokenId,
+        'para user',
+        user.id,
+      );
       await this.prisma.refreshToken.create({
         data: {
           userId: user.id,
@@ -653,6 +732,7 @@ export class AuthService {
   }
 
   private buildUserResponse(user: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash, ...rest } = user;
 
     let profile = rest.profile as any;
@@ -701,7 +781,7 @@ export class AuthService {
    */
   private calculateExpirationDate(expirationString?: string): Date {
     const expiresAt = new Date();
-    
+
     if (!expirationString) {
       // Fallback padrão: 7 dias se não configurado
       expiresAt.setDate(expiresAt.getDate() + 7);

@@ -38,7 +38,9 @@ export class EventsController {
       throw new UnauthorizedException('Token inválido ou expirado');
     }
 
-    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+    });
     if (!user) {
       throw new UnauthorizedException('Utilizador não encontrado');
     }

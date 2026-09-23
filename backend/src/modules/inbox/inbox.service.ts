@@ -80,7 +80,8 @@ export class InboxService {
 
     const response = this.toMessageResponse(message);
 
-    const senderName = message.sender?.profile?.name ?? message.sender?.email ?? 'Alguém';
+    const senderName =
+      message.sender?.profile?.name ?? message.sender?.email ?? 'Alguém';
 
     // Emitir SSE para todos os participantes excepto o remetente
     const otherParticipants = participation.conversation.participants
@@ -159,7 +160,11 @@ export class InboxService {
   }
 
   /** Envia mensagem de sistema automática no chat de grupo da boleia */
-  async sendSystemMessageToGroup(rideId: string, senderId: string, body: string) {
+  async sendSystemMessageToGroup(
+    rideId: string,
+    senderId: string,
+    body: string,
+  ) {
     const conv = await this.prisma.conversation.findFirst({
       where: { rideId, bookingId: null },
       include: { participants: true },
@@ -263,7 +268,10 @@ export class InboxService {
       metadata: message.metadata ?? null,
       sender: {
         id: message.senderId,
-        name: message.sender?.profile?.name ?? message.sender?.email ?? 'Utilizador',
+        name:
+          message.sender?.profile?.name ??
+          message.sender?.email ??
+          'Utilizador',
         avatarUrl: message.sender?.profile?.avatarUrl ?? null,
       },
       createdAt: message.createdAt,

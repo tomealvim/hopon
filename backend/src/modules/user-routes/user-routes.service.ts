@@ -55,7 +55,9 @@ export class UserRoutesService {
   }
 
   async remove(userId: string, id: string) {
-    const route = await this.prisma.userRoute.findFirst({ where: { id, userId } });
+    const route = await this.prisma.userRoute.findFirst({
+      where: { id, userId },
+    });
     if (!route) throw new NotFoundException('Rota não encontrada');
     await this.prisma.userRoute.delete({ where: { id } });
     return { ok: true };

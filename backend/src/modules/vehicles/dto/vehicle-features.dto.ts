@@ -12,4 +12,3 @@ export class VehicleFeaturesDto {
   @IsBoolean()
   heater?: boolean;
 }
-

@@ -10,9 +10,15 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { StripeModule } from '../stripe/stripe.module';
 
 @Module({
-  imports: [PrismaModule, InboxModule, EventsModule, WalletModule, NotificationsModule, StripeModule],
+  imports: [
+    PrismaModule,
+    InboxModule,
+    EventsModule,
+    WalletModule,
+    NotificationsModule,
+    StripeModule,
+  ],
   controllers: [BookingsController],
   providers: [BookingsService, VerifiedUserGuard],
 })
 export class BookingsModule {}
-

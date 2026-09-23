@@ -51,7 +51,11 @@ export class EventsService {
   }
 
   /** Emitir para vários utilizadores de uma vez */
-  emitToMany(userIds: string[], type: string, data: Record<string, unknown> = {}): void {
+  emitToMany(
+    userIds: string[],
+    type: string,
+    data: Record<string, unknown> = {},
+  ): void {
     for (const userId of userIds) {
       this.emit(userId, type, data);
     }

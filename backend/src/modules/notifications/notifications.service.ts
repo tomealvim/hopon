@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -13,7 +18,12 @@ import {
   LateCancelWarningEmailPayload,
 } from './email-jobs.types';
 
-type PushPrefs = { messages: boolean; bookings: boolean; rides: boolean; matches: boolean };
+type PushPrefs = {
+  messages: boolean;
+  bookings: boolean;
+  rides: boolean;
+  matches: boolean;
+};
 
 @Injectable()
 export class NotificationsService {
@@ -99,13 +109,20 @@ export class NotificationsService {
         where: { id: userId },
         select: { pushPreferences: true },
       });
-      const prefs = (userPrefs?.pushPreferences as Partial<PushPrefs> | null) ?? {};
+      const prefs =
+        (userPrefs?.pushPreferences as Partial<PushPrefs> | null) ?? {};
       const enabled = prefs[category] !== false; // default true se nao definido
       if (enabled) {
-        void this.pushService.sendToUser(userId, title, body, { ...metadata, tab });
+        void this.pushService.sendToUser(userId, title, body, {
+          ...metadata,
+          tab,
+        });
       }
     } else {
-      void this.pushService.sendToUser(userId, title, body, { ...metadata, tab });
+      void this.pushService.sendToUser(userId, title, body, {
+        ...metadata,
+        tab,
+      });
     }
 
     return notification;
@@ -123,7 +140,8 @@ export class NotificationsService {
     const notification = await this.prisma.notification.findUnique({
       where: { id: notificationId },
     });
-    if (!notification) throw new NotFoundException('Notificação não encontrada');
+    if (!notification)
+      throw new NotFoundException('Notificação não encontrada');
     if (notification.userId !== userId) throw new ForbiddenException();
 
     return this.prisma.notification.update({
@@ -143,7 +161,12 @@ export class NotificationsService {
     return this.prisma.notification.count({ where: { userId, read: false } });
   }
 
-  async queueOtpEmail(to: string, code: string, purpose: 'email' | 'phone', expiryMinutes: number) {
+  async queueOtpEmail(
+    to: string,
+    code: string,
+    purpose: 'email' | 'phone',
+    expiryMinutes: number,
+  ) {
     const payload: OtpEmailPayload = { to, code, purpose, expiryMinutes };
     await this.queue.add('email.otp', payload);
   }
@@ -185,7 +208,10 @@ export class NotificationsService {
       departureTime,
       status,
     };
-    const jobName = status === 'CONFIRMED' ? 'email.booking-confirmed' : 'email.booking-declined';
+    const jobName =
+      status === 'CONFIRMED'
+        ? 'email.booking-confirmed'
+        : 'email.booking-declined';
     await this.queue.add(jobName, payload);
   }
 
@@ -208,8 +234,17 @@ export class NotificationsService {
     await this.queue.add('email.booking-cancelled', payload);
   }
 
-  async queueLateCancelWarningEmail(userEmail: string, userName: string, count: number) {
-    const payload: LateCancelWarningEmailPayload = { userEmail, userName, count, windowDays: 30 };
+  async queueLateCancelWarningEmail(
+    userEmail: string,
+    userName: string,
+    count: number,
+  ) {
+    const payload: LateCancelWarningEmailPayload = {
+      userEmail,
+      userName,
+      count,
+      windowDays: 30,
+    };
     await this.queue.add('email.late-cancel-warning', payload);
   }
 
@@ -264,7 +299,11 @@ export class NotificationsService {
 
     // Emitir SSE ride.arrived para passageiros conectados
     for (const userId of passengerUserIds) {
-      this.eventsService.emit(userId, 'ride.arrived', { rideId, origin, destination });
+      this.eventsService.emit(userId, 'ride.arrived', {
+        rideId,
+        origin,
+        destination,
+      });
     }
   }
 
@@ -277,7 +316,11 @@ export class NotificationsService {
   ) {
     if (passengerUserIds.length === 0) return;
 
-    const depMin = departureTime.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Lisbon' });
+    const depMin = departureTime.toLocaleTimeString('pt-PT', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Lisbon',
+    });
     const title = 'Condutor a caminho!';
     const body = `O teu condutor está a caminho para a boleia ${origin} → ${destination} (${depMin}). Prepara-te para sair!`;
 
@@ -290,7 +333,11 @@ export class NotificationsService {
     }
 
     for (const userId of passengerUserIds) {
-      this.eventsService.emit(userId, 'ride.on_the_way', { rideId, origin, destination });
+      this.eventsService.emit(userId, 'ride.on_the_way', {
+        rideId,
+        origin,
+        destination,
+      });
     }
   }
 
@@ -316,7 +363,9 @@ export class NotificationsService {
 
     const route = `${rideOrigin} → ${rideDestination}`;
     const timeStr = rideDepartureTime.toLocaleTimeString('pt-PT', {
-      hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Lisbon',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Lisbon',
     });
     const departureTime = rideDepartureTime.toISOString();
 

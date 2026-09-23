@@ -7,4 +7,3 @@ export class RefreshDto {
   @IsNotEmpty()
   refreshToken: string;
 }
-

@@ -1,4 +1,15 @@
-import { Controller, Get, Patch, Delete, Param, Body, Query, UseGuards, Request, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  Request,
+  Post,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { SuspendUserDto } from './dto/suspend-user.dto';
 import { ResolveDisputeDto } from './dto/resolve-dispute.dto';
@@ -27,7 +38,11 @@ export class AdminController {
 
   @Patch('users/:id/suspend')
   @ApiOperation({ summary: 'Suspender um utilizador' })
-  suspendUser(@Request() req, @Param('id') id: string, @Body() dto: SuspendUserDto) {
+  suspendUser(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() dto: SuspendUserDto,
+  ) {
     return this.adminService.suspendUser(req.user.id, id, dto.reason);
   }
 
@@ -62,7 +77,9 @@ export class AdminController {
   }
 
   @Get('driver-licenses/pending')
-  @ApiOperation({ summary: 'Listar cartas de condução pendentes de verificação' })
+  @ApiOperation({
+    summary: 'Listar cartas de condução pendentes de verificação',
+  })
   getPendingDriverLicenses() {
     return this.adminService.getPendingDriverLicenses();
   }
@@ -75,7 +92,10 @@ export class AdminController {
 
   @Patch('users/:id/driver-license/reject')
   @ApiOperation({ summary: 'Rejeitar carta de condução com nota opcional' })
-  rejectDriverLicense(@Param('id') id: string, @Body() dto: { adminNote?: string }) {
+  rejectDriverLicense(
+    @Param('id') id: string,
+    @Body() dto: { adminNote?: string },
+  ) {
     return this.adminService.rejectDriverLicense(id, dto.adminNote);
   }
 
@@ -98,8 +118,13 @@ export class AdminController {
   }
 
   @Patch('payout-requests/:id')
-  @ApiOperation({ summary: 'Aprovar, processar ou rejeitar pedido de levantamento' })
-  processPayoutRequest(@Param('id') id: string, @Body() dto: { status: string; adminNote?: string }) {
+  @ApiOperation({
+    summary: 'Aprovar, processar ou rejeitar pedido de levantamento',
+  })
+  processPayoutRequest(
+    @Param('id') id: string,
+    @Body() dto: { status: string; adminNote?: string },
+  ) {
     return this.adminService.processPayoutRequest(id, dto);
   }
 }

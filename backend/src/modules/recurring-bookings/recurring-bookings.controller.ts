@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { RecurringBookingsService } from './recurring-bookings.service';
 import { CreateRecurringBookingDto } from './dto/create-recurring-booking.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';

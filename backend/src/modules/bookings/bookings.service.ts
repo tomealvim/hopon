@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { InboxService } from '../inbox/inbox.service';
@@ -32,7 +37,12 @@ export function calculateRefundCents(
 
 // ── Algoritmo de desvio de rota ────────────────────────────────────────────
 
-function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+function haversineMeters(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
   const R = 6_371_000;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLng = ((lng2 - lng1) * Math.PI) / 180;
@@ -45,15 +55,21 @@ function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number)
 }
 
 function pointToSegmentMeters(
-  pLat: number, pLng: number,
-  aLat: number, aLng: number,
-  bLat: number, bLng: number,
+  pLat: number,
+  pLng: number,
+  aLat: number,
+  aLng: number,
+  bLat: number,
+  bLng: number,
 ): number {
   const dx = bLat - aLat;
   const dy = bLng - aLng;
   const lenSq = dx * dx + dy * dy;
   if (lenSq === 0) return haversineMeters(pLat, pLng, aLat, aLng);
-  const t = Math.max(0, Math.min(1, ((pLat - aLat) * dx + (pLng - aLng) * dy) / lenSq));
+  const t = Math.max(
+    0,
+    Math.min(1, ((pLat - aLat) * dx + (pLng - aLng) * dy) / lenSq),
+  );
   return haversineMeters(pLat, pLng, aLat + t * dx, aLng + t * dy);
 }
 
@@ -64,10 +80,18 @@ function pointToPolylineMeters(
   polyline: { lat: number; lng: number }[],
 ): number {
   if (polyline.length === 0) return Infinity;
-  if (polyline.length === 1) return haversineMeters(lat, lng, polyline[0].lat, polyline[0].lng);
+  if (polyline.length === 1)
+    return haversineMeters(lat, lng, polyline[0].lat, polyline[0].lng);
   let min = Infinity;
   for (let i = 0; i < polyline.length - 1; i++) {
-    const d = pointToSegmentMeters(lat, lng, polyline[i].lat, polyline[i].lng, polyline[i + 1].lat, polyline[i + 1].lng);
+    const d = pointToSegmentMeters(
+      lat,
+      lng,
+      polyline[i].lat,
+      polyline[i].lng,
+      polyline[i + 1].lat,
+      polyline[i + 1].lng,
+    );
     if (d < min) min = d;
   }
   return min;
@@ -76,7 +100,8 @@ function pointToPolylineMeters(
 /** Label de desvio para notificações (português). */
 function detourLabel(meters: number): string {
   if (meters <= 500) return 'na rota';
-  if (meters <= 2000) return `${Math.round(meters)}m fora da rota (pequeno desvio)`;
+  if (meters <= 2000)
+    return `${Math.round(meters)}m fora da rota (pequeno desvio)`;
   return `${(meters / 1000).toFixed(1)}km fora da rota`;
 }
 
@@ -103,17 +128,37 @@ export class BookingsService {
 
     const ride = await this.prisma.ride.findUnique({
       where: { id: rideId },
-      select: { priceCents: true, platformFeeCents: true, status: true, availableSeats: true, driverId: true },
+      select: {
+        priceCents: true,
+        platformFeeCents: true,
+        status: true,
+        availableSeats: true,
+        driverId: true,
+      },
     });
 
     if (!ride) throw new NotFoundException('Boleia não encontrada');
-    if (ride.status !== 'SCHEDULED') throw new BadRequestException('A boleia não está disponível para reservas');
-    if (ride.driverId === userId) throw new BadRequestException('Não podes reservar lugar na tua própria boleia');
-    if (!ride.priceCents || ride.priceCents <= 0) throw new BadRequestException('Esta boleia não tem custo - reserva diretamente.');
+    if (ride.status !== 'SCHEDULED')
+      throw new BadRequestException(
+        'A boleia não está disponível para reservas',
+      );
+    if (ride.driverId === userId)
+      throw new BadRequestException(
+        'Não podes reservar lugar na tua própria boleia',
+      );
+    if (!ride.priceCents || ride.priceCents <= 0)
+      throw new BadRequestException(
+        'Esta boleia não tem custo - reserva diretamente.',
+      );
 
     const totalCents = (ride.priceCents + (ride.platformFeeCents ?? 0)) * seats;
 
-    return this.stripeService.createBookingPaymentIntent(userId, rideId, seats, totalCents);
+    return this.stripeService.createBookingPaymentIntent(
+      userId,
+      rideId,
+      seats,
+      totalCents,
+    );
   }
 
   async create(userId: string, rideId: string, dto: CreateBookingDto) {
@@ -133,13 +178,24 @@ export class BookingsService {
 
     if (isStripePayment) {
       // Verificar PI Stripe (status, ownership, rideId)
-      await this.stripeService.verifyBookingPaymentIntent(dto.stripePaymentIntentId!, userId, rideId);
+      await this.stripeService.verifyBookingPaymentIntent(
+        dto.stripePaymentIntentId!,
+        userId,
+        rideId,
+      );
     } else {
       // Pré-verificar saldo antes de criar a reserva (wallet path)
-      const rideCheck = await this.prisma.ride.findUnique({ where: { id: rideId }, select: { priceCents: true, platformFeeCents: true } });
+      const rideCheck = await this.prisma.ride.findUnique({
+        where: { id: rideId },
+        select: { priceCents: true, platformFeeCents: true },
+      });
       if (rideCheck?.priceCents != null && rideCheck.priceCents > 0) {
-        const neededCents = (rideCheck.priceCents + (rideCheck.platformFeeCents ?? 0)) * dto.seats;
-        const wallet = await this.prisma.wallet.findFirst({ where: { userId } });
+        const neededCents =
+          (rideCheck.priceCents + (rideCheck.platformFeeCents ?? 0)) *
+          dto.seats;
+        const wallet = await this.prisma.wallet.findFirst({
+          where: { userId },
+        });
         const balanceCents = wallet?.balanceCents ?? 0;
         if (balanceCents < neededCents) {
           throw new BadRequestException(
@@ -166,11 +222,15 @@ export class BookingsService {
       if (!ride) throw new NotFoundException('Boleia não encontrada');
 
       if (ride.status !== 'SCHEDULED') {
-        throw new BadRequestException('A boleia não está disponível para reservas');
+        throw new BadRequestException(
+          'A boleia não está disponível para reservas',
+        );
       }
 
       if (ride.driverId === userId) {
-        throw new BadRequestException('Não podes reservar lugar na tua própria boleia');
+        throw new BadRequestException(
+          'Não podes reservar lugar na tua própria boleia',
+        );
       }
 
       const alreadyBooked = ride.bookings.some((b) => b.userId === userId);
@@ -192,7 +252,10 @@ export class BookingsService {
         const piUsed = await tx.booking.findFirst({
           where: { stripePaymentIntentId: dto.stripePaymentIntentId },
         });
-        if (piUsed) throw new BadRequestException('Este pagamento já foi utilizado numa reserva.');
+        if (piUsed)
+          throw new BadRequestException(
+            'Este pagamento já foi utilizado numa reserva.',
+          );
       }
 
       // Calcular desvio de rota se o passageiro forneceu ponto de embarque
@@ -204,7 +267,9 @@ export class BookingsService {
         ride.routePolyline != null
       ) {
         const polyline = ride.routePolyline as { lat: number; lng: number }[];
-        detourMeters = Math.round(pointToPolylineMeters(dto.pickupLat, dto.pickupLng, polyline));
+        detourMeters = Math.round(
+          pointToPolylineMeters(dto.pickupLat, dto.pickupLng, polyline),
+        );
         isOnRoute = detourMeters <= 500;
       }
 
@@ -238,8 +303,14 @@ export class BookingsService {
     });
 
     // Debitar carteira do passageiro se a boleia tiver preço e pagamento for wallet
-    if (!isStripePayment && booking.ride.priceCents != null && booking.ride.priceCents > 0) {
-      const amountCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
+    if (
+      !isStripePayment &&
+      booking.ride.priceCents != null &&
+      booking.ride.priceCents > 0
+    ) {
+      const amountCents =
+        (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) *
+        booking.seats;
       try {
         await this.walletService.debit(
           userId,
@@ -249,7 +320,10 @@ export class BookingsService {
         );
       } catch (err) {
         // Reverter: cancelar a reserva
-        await this.prisma.booking.update({ where: { id: booking.id }, data: { status: 'CANCELLED' } });
+        await this.prisma.booking.update({
+          where: { id: booking.id },
+          data: { status: 'CANCELLED' },
+        });
         throw err;
       }
     }
@@ -273,7 +347,8 @@ export class BookingsService {
       void this.inboxService.addParticipantToGroup(rideId, userId);
     }
 
-    const passengerName = booking.user?.profile?.name ?? booking.user?.email ?? 'Passageiro';
+    const passengerName =
+      booking.user?.profile?.name ?? booking.user?.email ?? 'Passageiro';
     const detourMeters = (booking as any).detourMeters as number | null;
     const isAutoConfirmed = booking.status === 'CONFIRMED';
 
@@ -288,9 +363,8 @@ export class BookingsService {
       );
     } else {
       // Notificar o driver via SSE que tem uma nova reserva
-      const detourSuffix = detourMeters != null
-        ? ` - ${detourLabel(detourMeters)}`
-        : '';
+      const detourSuffix =
+        detourMeters != null ? ` - ${detourLabel(detourMeters)}` : '';
 
       this.eventsService.emit(booking.ride.driverId, 'booking.new', {
         bookingId: booking.id,
@@ -309,7 +383,11 @@ export class BookingsService {
         'booking.new',
         'Nova reserva',
         `${passengerName} quer ${booking.seats} lugar(es) em ${booking.ride.origin} → ${booking.ride.destination}${detourSuffix}`,
-        { bookingId: booking.id, rideId, detourMeters: detourMeters ?? undefined },
+        {
+          bookingId: booking.id,
+          rideId,
+          detourMeters: detourMeters ?? undefined,
+        },
       );
     }
 
@@ -348,7 +426,11 @@ export class BookingsService {
     return bookings.map((booking) => this.toResponse(booking));
   }
 
-  async updateStatus(driverId: string, bookingId: string, status: 'CONFIRMED' | 'DECLINED' | 'NO_SHOW') {
+  async updateStatus(
+    driverId: string,
+    bookingId: string,
+    status: 'CONFIRMED' | 'DECLINED' | 'NO_SHOW',
+  ) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
       include: { ride: true },
@@ -356,20 +438,28 @@ export class BookingsService {
 
     if (!booking) throw new NotFoundException('Reserva não encontrada');
     if (booking.ride.driverId !== driverId) {
-      throw new ForbiddenException('Só o condutor pode gerir reservas desta boleia');
+      throw new ForbiddenException(
+        'Só o condutor pode gerir reservas desta boleia',
+      );
     }
 
     // NO_SHOW: apenas quando ride.status === IN_PROGRESS e booking.status === CONFIRMED
     if (status === 'NO_SHOW') {
       if (booking.ride.status !== 'IN_PROGRESS') {
-        throw new BadRequestException('Só é possível marcar no-show quando a boleia está IN_PROGRESS');
+        throw new BadRequestException(
+          'Só é possível marcar no-show quando a boleia está IN_PROGRESS',
+        );
       }
       if (booking.status !== 'CONFIRMED') {
-        throw new BadRequestException('Só é possível marcar no-show em reservas CONFIRMED');
+        throw new BadRequestException(
+          'Só é possível marcar no-show em reservas CONFIRMED',
+        );
       }
     } else {
       if (booking.status !== 'PENDING') {
-        throw new BadRequestException('Só é possível alterar reservas com estado PENDING');
+        throw new BadRequestException(
+          'Só é possível alterar reservas com estado PENDING',
+        );
       }
     }
 
@@ -378,7 +468,9 @@ export class BookingsService {
         where: { id: bookingId },
         data: { status },
         include: {
-          ride: { include: { vehicle: true, driver: { include: { profile: true } } } },
+          ride: {
+            include: { vehicle: true, driver: { include: { profile: true } } },
+          },
           user: { include: { profile: true } },
         },
       });
@@ -390,12 +482,26 @@ export class BookingsService {
         booking.ride.priceCents > 0 &&
         booking.paymentMethod !== 'STRIPE'
       ) {
-        const amountCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
-        let wallet = await tx.wallet.findFirst({ where: { userId: booking.userId } });
-        if (!wallet) wallet = await tx.wallet.create({ data: { userId: booking.userId } });
-        await tx.wallet.update({ where: { id: wallet.id }, data: { balanceCents: { increment: amountCents } } });
+        const amountCents =
+          (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) *
+          booking.seats;
+        let wallet = await tx.wallet.findFirst({
+          where: { userId: booking.userId },
+        });
+        if (!wallet)
+          wallet = await tx.wallet.create({ data: { userId: booking.userId } });
+        await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balanceCents: { increment: amountCents } },
+        });
         await tx.walletTransaction.create({
-          data: { walletId: wallet.id, type: 'REFUND', amountCents, description: 'Reserva recusada pelo condutor', reference: bookingId },
+          data: {
+            walletId: wallet.id,
+            type: 'REFUND',
+            amountCents,
+            description: 'Reserva recusada pelo condutor',
+            reference: bookingId,
+          },
         });
       }
 
@@ -412,7 +518,9 @@ export class BookingsService {
       booking.paymentMethod === 'STRIPE' &&
       booking.stripePaymentIntentId
     ) {
-      const amountCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
+      const amountCents =
+        (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) *
+        booking.seats;
       try {
         await this.stripeService.createRefunds([
           { paymentIntentId: booking.stripePaymentIntentId, amountCents },
@@ -424,14 +532,22 @@ export class BookingsService {
 
     // Gerir participação no grupo da boleia + mensagem de sistema
     if (status === 'CONFIRMED') {
-      void this.inboxService.addParticipantToGroup(booking.rideId, booking.userId);
-      const passengerNameForGroup = updated.user?.profile?.name ?? updated.user?.email ?? 'Passageiro';
+      void this.inboxService.addParticipantToGroup(
+        booking.rideId,
+        booking.userId,
+      );
+      const passengerNameForGroup =
+        updated.user?.profile?.name ?? updated.user?.email ?? 'Passageiro';
       void this.inboxService.sendSystemMessageToGroup(
-        booking.rideId, booking.userId,
+        booking.rideId,
+        booking.userId,
         `${passengerNameForGroup} confirmou reserva`,
       );
     } else if (status === 'DECLINED') {
-      void this.inboxService.removeParticipantFromGroup(booking.rideId, booking.userId);
+      void this.inboxService.removeParticipantFromGroup(
+        booking.rideId,
+        booking.userId,
+      );
     }
 
     if (status === 'NO_SHOW') {
@@ -443,7 +559,10 @@ export class BookingsService {
         `Foste marcado como não aparecido na boleia ${booking.ride.origin} → ${booking.ride.destination}. O valor pago não será reembolsado.`,
         { bookingId, rideId: booking.rideId },
       );
-      this.eventsService.emit(booking.userId, 'booking.no_show', { bookingId, rideId: booking.rideId });
+      this.eventsService.emit(booking.userId, 'booking.no_show', {
+        bookingId,
+        rideId: booking.rideId,
+      });
       return this.toResponse(updated);
     }
 
@@ -485,9 +604,14 @@ export class BookingsService {
       include: { ride: true },
     });
     if (!booking) throw new NotFoundException('Reserva não encontrada');
-    if (booking.userId !== userId) throw new ForbiddenException('Sem permissão');
-    if (booking.status !== 'COMPLETED') throw new BadRequestException('Só é possível confirmar presença em boleias concluídas');
-    if (booking.passengerConfirmed !== null) throw new BadRequestException('Presença já confirmada');
+    if (booking.userId !== userId)
+      throw new ForbiddenException('Sem permissão');
+    if (booking.status !== 'COMPLETED')
+      throw new BadRequestException(
+        'Só é possível confirmar presença em boleias concluídas',
+      );
+    if (booking.passengerConfirmed !== null)
+      throw new BadRequestException('Presença já confirmada');
 
     await this.prisma.booking.update({
       where: { id: bookingId },
@@ -515,8 +639,14 @@ export class BookingsService {
     });
 
     if (!booking) throw new NotFoundException('Reserva não encontrada');
-    if (booking.userId !== userId) throw new ForbiddenException('Não tens permissão para cancelar esta reserva');
-    if (booking.status === 'COMPLETED') throw new BadRequestException('Não é possível cancelar uma reserva já completada');
+    if (booking.userId !== userId)
+      throw new ForbiddenException(
+        'Não tens permissão para cancelar esta reserva',
+      );
+    if (booking.status === 'COMPLETED')
+      throw new BadRequestException(
+        'Não é possível cancelar uma reserva já completada',
+      );
 
     const refundFraction = getRefundFraction(booking.ride.departureTime);
 
@@ -527,7 +657,8 @@ export class BookingsService {
         data: { status: 'CANCELLED' },
       });
 
-      if (result.count === 0) throw new BadRequestException('A reserva já foi cancelada');
+      if (result.count === 0)
+        throw new BadRequestException('A reserva já foi cancelada');
 
       // Reembolso wallet (apenas para pagamentos wallet)
       if (
@@ -536,17 +667,31 @@ export class BookingsService {
         refundFraction > 0 &&
         booking.paymentMethod !== 'STRIPE'
       ) {
-        const fullCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
-        const refundCents = calculateRefundCents(fullCents, booking.ride.departureTime);
+        const fullCents =
+          (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) *
+          booking.seats;
+        const refundCents = calculateRefundCents(
+          fullCents,
+          booking.ride.departureTime,
+        );
         const description =
           refundFraction === 1.0
             ? 'Cancelamento de reserva (reembolso total)'
             : 'Cancelamento de reserva (reembolso 50% - cancelamento entre 30min e 2h antes)';
         let wallet = await tx.wallet.findFirst({ where: { userId } });
         if (!wallet) wallet = await tx.wallet.create({ data: { userId } });
-        await tx.wallet.update({ where: { id: wallet.id }, data: { balanceCents: { increment: refundCents } } });
+        await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balanceCents: { increment: refundCents } },
+        });
         await tx.walletTransaction.create({
-          data: { walletId: wallet.id, type: 'REFUND', amountCents: refundCents, description, reference: bookingId },
+          data: {
+            walletId: wallet.id,
+            type: 'REFUND',
+            amountCents: refundCents,
+            description,
+            reference: bookingId,
+          },
         });
       }
     });
@@ -559,11 +704,19 @@ export class BookingsService {
       booking.paymentMethod === 'STRIPE' &&
       booking.stripePaymentIntentId
     ) {
-      const fullCents = (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) * booking.seats;
-      const refundCents = calculateRefundCents(fullCents, booking.ride.departureTime);
+      const fullCents =
+        (booking.ride.priceCents + (booking.ride.platformFeeCents ?? 0)) *
+        booking.seats;
+      const refundCents = calculateRefundCents(
+        fullCents,
+        booking.ride.departureTime,
+      );
       try {
         await this.stripeService.createRefunds([
-          { paymentIntentId: booking.stripePaymentIntentId, amountCents: refundCents },
+          {
+            paymentIntentId: booking.stripePaymentIntentId,
+            amountCents: refundCents,
+          },
         ]);
       } catch {
         // Log mas não falhar - admin pode reembolsar manualmente no Stripe Dashboard
@@ -586,9 +739,13 @@ export class BookingsService {
     // Remover passageiro do grupo da boleia se cancelou reserva confirmada + mensagem de sistema
     if (booking.status === 'CONFIRMED') {
       void this.inboxService.removeParticipantFromGroup(booking.rideId, userId);
-      const cancellerName = updatedBooking?.user?.profile?.name ?? updatedBooking?.user?.email ?? 'Passageiro';
+      const cancellerName =
+        updatedBooking?.user?.profile?.name ??
+        updatedBooking?.user?.email ??
+        'Passageiro';
       void this.inboxService.sendSystemMessageToGroup(
-        booking.rideId, userId,
+        booking.rideId,
+        userId,
         `${cancellerName} cancelou a reserva`,
       );
     }
@@ -597,8 +754,11 @@ export class BookingsService {
     if (updatedBooking) {
       void this.notificationsService.queueBookingCancelledEmail(
         updatedBooking.ride.driver.email,
-        updatedBooking.ride.driver.profile?.name ?? updatedBooking.ride.driver.email,
-        updatedBooking.user?.profile?.name ?? updatedBooking.user?.email ?? 'Passageiro',
+        updatedBooking.ride.driver.profile?.name ??
+          updatedBooking.ride.driver.email,
+        updatedBooking.user?.profile?.name ??
+          updatedBooking.user?.email ??
+          'Passageiro',
         updatedBooking.ride.origin,
         updatedBooking.ride.destination,
         updatedBooking.ride.departureTime.toISOString(),
@@ -639,7 +799,8 @@ export class BookingsService {
                   id: booking.ride.driver.id,
                   email: booking.ride.driver.email,
                   phone: booking.ride.driver.phone,
-                  isIdentityVerified: booking.ride.driver.isIdentityVerified ?? false,
+                  isIdentityVerified:
+                    booking.ride.driver.isIdentityVerified ?? false,
                   profile: booking.ride.driver.profile
                     ? {
                         name: booking.ride.driver.profile.name,
@@ -676,4 +837,3 @@ export class BookingsService {
     };
   }
 }
-

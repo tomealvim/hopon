@@ -62,7 +62,11 @@ function greeting(name: string): string {
   return `<p style="margin:0 0 20px;font-size:15px;color:${BASE.muted};">Olá, <strong style="color:${BASE.primary};">${name}</strong> 👋</p>`;
 }
 
-function routeCard(origin: string, destination: string, departureTime: string): string {
+function routeCard(
+  origin: string,
+  destination: string,
+  departureTime: string,
+): string {
   return `
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:${BASE.bg};border-radius:12px;margin:20px 0;">
     <tr>
@@ -92,7 +96,11 @@ function divider(): string {
 
 // ─── Templates públicos ───────────────────────────────────────────────────────
 
-export function otpEmailHtml(code: string, purpose: 'email' | 'phone', expiryMinutes: number): string {
+export function otpEmailHtml(
+  code: string,
+  purpose: 'email' | 'phone',
+  expiryMinutes: number,
+): string {
   const isEmail = purpose === 'email';
   return layout(`
     ${h1(isEmail ? 'Verifica o teu email' : 'Verifica o teu telefone')}

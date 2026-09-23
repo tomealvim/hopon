@@ -1,4 +1,13 @@
-import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { WalletService } from './wallet.service';
@@ -22,7 +31,10 @@ export class WalletController {
   /** GET /wallet/transactions?limit=30 - histórico de transações */
   @Get('transactions')
   getTransactions(@Request() req: any, @Query('limit') limit?: string) {
-    return this.walletService.getTransactions(req.user.id, limit ? parseInt(limit) : 30);
+    return this.walletService.getTransactions(
+      req.user.id,
+      limit ? parseInt(limit) : 30,
+    );
   }
 
   /** POST /wallet/topup/intent - criar PaymentIntent Stripe */
@@ -35,7 +47,11 @@ export class WalletController {
   /** POST /wallet/topup - carregar saldo (demo) */
   @Post('topup')
   topup(@Request() req: any, @Body() dto: TopupDto) {
-    return this.walletService.topup(req.user.id, dto.amountCents, dto.description);
+    return this.walletService.topup(
+      req.user.id,
+      dto.amountCents,
+      dto.description,
+    );
   }
 
   /** POST /wallet/withdraw - passageiro reembolsa saldo não usado para o cartão original */
@@ -47,7 +63,10 @@ export class WalletController {
     }
 
     // Validar saldo e calcular plano de reembolso
-    const { walletId, plan } = await this.walletService.buildStripeRefundPlan(req.user.id, amountCents);
+    const { walletId, plan } = await this.walletService.buildStripeRefundPlan(
+      req.user.id,
+      amountCents,
+    );
 
     // Executar reembolsos no Stripe
     const stripeService = this.moduleRef.get(StripeService, { strict: false });
@@ -63,8 +82,15 @@ export class WalletController {
 
   /** POST /wallet/payout-request - condutor pede levantamento para IBAN */
   @Post('payout-request')
-  createPayoutRequest(@Request() req: any, @Body() body: { amountCents: number; iban: string }) {
-    return this.walletService.createPayoutRequest(req.user.id, Math.round(Number(body.amountCents)), body.iban);
+  createPayoutRequest(
+    @Request() req: any,
+    @Body() body: { amountCents: number; iban: string },
+  ) {
+    return this.walletService.createPayoutRequest(
+      req.user.id,
+      Math.round(Number(body.amountCents)),
+      body.iban,
+    );
   }
 
   /** GET /wallet/payout-requests - histórico de pedidos de levantamento */

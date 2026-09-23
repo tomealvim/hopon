@@ -85,7 +85,8 @@ export class RatingsService {
         bookingId: b.id,
         role: 'passenger' as const,
         revieweeId: b.ride.driverId,
-        revieweeName: b.ride.driver?.profile?.name ?? b.ride.driver?.email ?? 'Condutor',
+        revieweeName:
+          b.ride.driver?.profile?.name ?? b.ride.driver?.email ?? 'Condutor',
         origin: b.ride.origin,
         destination: b.ride.destination,
         departureTime: b.ride.departureTime,
@@ -113,7 +114,10 @@ export class RatingsService {
 
     const average =
       ratings.length > 0
-        ? Math.round((ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length) * 10) / 10
+        ? Math.round(
+            (ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length) *
+              10,
+          ) / 10
         : null;
 
     return {

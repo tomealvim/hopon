@@ -23,7 +23,9 @@ export class DisputesService {
 
     // Só passageiro ou condutor pode abrir disputa
     if (booking.userId !== userId && booking.ride.driverId !== userId) {
-      throw new ForbiddenException('Não tens permissão para contestar esta boleia.');
+      throw new ForbiddenException(
+        'Não tens permissão para contestar esta boleia.',
+      );
     }
 
     // Só boleias concluídas
@@ -51,7 +53,9 @@ export class DisputesService {
     });
 
     if (existing) {
-      throw new BadRequestException('Já tens uma disputa aberta para esta reserva.');
+      throw new BadRequestException(
+        'Já tens uma disputa aberta para esta reserva.',
+      );
     }
 
     return (this.prisma as any).dispute.create({

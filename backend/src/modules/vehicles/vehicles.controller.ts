@@ -60,4 +60,3 @@ export class VehiclesController {
     return this.vehiclesService.remove(req.user.id, id);
   }
 }
-

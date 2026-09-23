@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  RawBodyRequest,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { WalletService } from '../wallet/wallet.service';
@@ -111,7 +106,9 @@ export class StripeService {
     }
 
     if (pi.status !== 'succeeded') {
-      throw new BadRequestException('O pagamento ainda não foi confirmado. Tenta novamente.');
+      throw new BadRequestException(
+        'O pagamento ainda não foi confirmado. Tenta novamente.',
+      );
     }
 
     if (pi.metadata?.userId !== userId) {
@@ -119,12 +116,16 @@ export class StripeService {
     }
 
     if (pi.metadata?.rideId !== rideId) {
-      throw new BadRequestException('Este pagamento foi criado para uma boleia diferente.');
+      throw new BadRequestException(
+        'Este pagamento foi criado para uma boleia diferente.',
+      );
     }
   }
 
   /** Criar reembolsos Stripe (para withdraw de passageiro) */
-  async createRefunds(refunds: { paymentIntentId: string; amountCents: number }[]) {
+  async createRefunds(
+    refunds: { paymentIntentId: string; amountCents: number }[],
+  ) {
     if (!this.enabled || !this.stripe) {
       throw new BadRequestException(
         'Reembolso via Stripe não está configurado neste servidor. Contacta o suporte.',
@@ -138,7 +139,9 @@ export class StripeService {
           amount: amountCents,
         });
       } catch (err: any) {
-        this.logger.error(`Erro ao reembolsar ${paymentIntentId}: ${err.message}`);
+        this.logger.error(
+          `Erro ao reembolsar ${paymentIntentId}: ${err.message}`,
+        );
         throw new BadRequestException(
           `Erro ao processar reembolso Stripe: ${err.message ?? 'erro desconhecido'}`,
         );

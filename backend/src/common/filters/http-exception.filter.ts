@@ -6,7 +6,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import * as Sentry from '@sentry/nestjs';
 
 @Catch()
@@ -16,7 +16,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
 
     const isHttpException = exception instanceof HttpException;
     const status = isHttpException
@@ -26,11 +25,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let message: string | string[];
     if (isHttpException) {
       const res = exception.getResponse();
-      message = typeof res === 'object' && res !== null && 'message' in res
-        ? (res as { message: string | string[] }).message
-        : exception.message;
+      message =
+        typeof res === 'object' && res !== null && 'message' in res
+          ? (res as { message: string | string[] }).message
+          : exception.message;
     } else {
-      message = exception instanceof Error ? exception.message : 'Internal server error';
+      message =
+        exception instanceof Error
+          ? exception.message
+          : 'Internal server error';
       this.logger.error(
         `Unhandled exception: ${message}`,
         exception instanceof Error ? exception.stack : String(exception),
@@ -45,7 +48,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
     };
 
     // Em desenvolvimento, incluir detalhe do erro quando for 500
-    if (status === 500 && !isHttpException && exception instanceof Error && process.env.NODE_ENV !== 'production') {
+    if (
+      status === 500 &&
+      !isHttpException &&
+      exception instanceof Error &&
+      process.env.NODE_ENV !== 'production'
+    ) {
       body.error = exception.message;
       body.stack = exception.stack;
     }

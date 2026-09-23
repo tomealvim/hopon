@@ -1,5 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, Length, IsEmail, IsBoolean, IsNumber } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  Length,
+  IsEmail,
+  IsBoolean,
+  IsNumber,
+} from 'class-validator';
 import { IsValidPhoneNumber } from '../../../common/decorators/is-valid-phone-number.decorator';
 
 export class UpdateProfileDto {
@@ -39,7 +46,9 @@ export class UpdateProfileDto {
   @IsOptional()
   schedule?: Record<string, any>;
 
-  @ApiPropertyOptional({ description: 'True when user has finished the 3-step profile setup' })
+  @ApiPropertyOptional({
+    description: 'True when user has finished the 3-step profile setup',
+  })
   @IsOptional()
   @IsBoolean()
   setupCompleted?: boolean;
@@ -59,7 +68,9 @@ export class UpdateProfileDto {
   @IsNumber()
   homeLng?: number;
 
-  @ApiPropertyOptional({ description: 'Push notification preferences per category' })
+  @ApiPropertyOptional({
+    description: 'Push notification preferences per category',
+  })
   @IsOptional()
   pushPreferences?: {
     messages?: boolean;
@@ -68,4 +79,3 @@ export class UpdateProfileDto {
     matches?: boolean;
   };
 }
-

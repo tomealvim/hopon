@@ -7,7 +7,12 @@ import { GeocodingModule } from '../geocoding/geocoding.module';
 import { RideRequestsModule } from '../ride-requests/ride-requests.module';
 
 @Module({
-  imports: [PrismaModule, NotificationsModule, GeocodingModule, RideRequestsModule],
+  imports: [
+    PrismaModule,
+    NotificationsModule,
+    GeocodingModule,
+    RideRequestsModule,
+  ],
   controllers: [SchedulerController],
   providers: [SchedulerService],
 })

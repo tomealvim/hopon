@@ -1,6 +1,11 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { createTestApp, cleanDatabase, closeTestApp, prisma } from './setup-e2e';
+import {
+  createTestApp,
+  cleanDatabase,
+  closeTestApp,
+  prisma,
+} from './setup-e2e';
 
 describe('GET /api/v1/rides/search - seat availability filter (e2e)', () => {
   let app: INestApplication;

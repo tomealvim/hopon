@@ -21,11 +21,15 @@ export class PushService {
         webpush.setVapidDetails(email, publicKey, privateKey);
         this.ready = true;
       } catch (err: any) {
-        this.logger.error(`VAPID keys inválidas - push notifications desativadas: ${err.message}`);
+        this.logger.error(
+          `VAPID keys inválidas - push notifications desativadas: ${err.message}`,
+        );
         this.ready = false;
       }
     } else {
-      this.logger.warn('VAPID keys não configuradas - push notifications desativadas');
+      this.logger.warn(
+        'VAPID keys não configuradas - push notifications desativadas',
+      );
       this.ready = false;
     }
   }
@@ -34,7 +38,12 @@ export class PushService {
     return this.config.get<string>('VAPID_PUBLIC_KEY', '');
   }
 
-  async subscribe(userId: string, endpoint: string, p256dh: string, auth: string) {
+  async subscribe(
+    userId: string,
+    endpoint: string,
+    p256dh: string,
+    auth: string,
+  ) {
     return this.prisma.pushSubscription.upsert({
       where: { endpoint },
       create: { userId, endpoint, p256dh, auth },
@@ -46,7 +55,12 @@ export class PushService {
     await this.prisma.pushSubscription.deleteMany({ where: { endpoint } });
   }
 
-  async sendToUser(userId: string, title: string, body: string, data?: Record<string, unknown>) {
+  async sendToUser(
+    userId: string,
+    title: string,
+    body: string,
+    data?: Record<string, unknown>,
+  ) {
     if (!this.ready) return;
 
     const subscriptions = await this.prisma.pushSubscription.findMany({
@@ -58,15 +72,22 @@ export class PushService {
     for (const sub of subscriptions) {
       try {
         await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          {
+            endpoint: sub.endpoint,
+            keys: { p256dh: sub.p256dh, auth: sub.auth },
+          },
           payload,
         );
       } catch (err: any) {
         if (err.statusCode === 410 || err.statusCode === 404) {
           // Subscription expired - remove
-          await this.prisma.pushSubscription.deleteMany({ where: { endpoint: sub.endpoint } }).catch(() => {});
+          await this.prisma.pushSubscription
+            .deleteMany({ where: { endpoint: sub.endpoint } })
+            .catch(() => {});
         } else {
-          this.logger.error(`Push send failed for user ${userId}: ${err.message}`);
+          this.logger.error(
+            `Push send failed for user ${userId}: ${err.message}`,
+          );
         }
       }
     }

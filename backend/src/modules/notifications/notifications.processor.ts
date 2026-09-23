@@ -41,17 +41,25 @@ export class NotificationsProcessor extends WorkerHost {
 
   async process(job: Job<EmailJobPayload, void, EmailJobName>): Promise<void> {
     const resendKey = this.config.get<string>('RESEND_API_KEY');
-    const fromEmail = this.config.get<string>('RESEND_FROM') || 'onboarding@resend.dev';
+    const fromEmail =
+      this.config.get<string>('RESEND_FROM') || 'onboarding@resend.dev';
 
     switch (job.name) {
       case 'email.otp': {
-        const { to, code, purpose, expiryMinutes } = job.data as OtpEmailPayload;
-        const subject = purpose === 'email'
-          ? 'Código de verificação - HopOn'
-          : 'Código de verificação de telefone - HopOn';
+        const { to, code, purpose, expiryMinutes } =
+          job.data as OtpEmailPayload;
+        const subject =
+          purpose === 'email'
+            ? 'Código de verificação - HopOn'
+            : 'Código de verificação de telefone - HopOn';
         if (resendKey) {
           const resend = new Resend(resendKey);
-          await resend.emails.send({ from: fromEmail, to, subject, html: otpEmailHtml(code, purpose, expiryMinutes) });
+          await resend.emails.send({
+            from: fromEmail,
+            to,
+            subject,
+            html: otpEmailHtml(code, purpose, expiryMinutes),
+          });
         } else {
           this.logger.log(`[dev] OTP (${purpose}) para ${to}: ${code}`);
         }
@@ -59,56 +67,106 @@ export class NotificationsProcessor extends WorkerHost {
       }
 
       case 'email.booking-created': {
-        const { driverEmail, driverName, passengerName, origin, destination, departureTime, seats } =
-          job.data as BookingCreatedEmailPayload;
+        const {
+          driverEmail,
+          driverName,
+          passengerName,
+          origin,
+          destination,
+          departureTime,
+          seats,
+        } = job.data as BookingCreatedEmailPayload;
         if (resendKey) {
           const resend = new Resend(resendKey);
           await resend.emails.send({
             from: fromEmail,
             to: driverEmail,
             subject: 'Nova reserva pendente - HopOn',
-            html: bookingCreatedEmailHtml(driverName, passengerName, origin, destination, departureTime, seats),
+            html: bookingCreatedEmailHtml(
+              driverName,
+              passengerName,
+              origin,
+              destination,
+              departureTime,
+              seats,
+            ),
           });
         } else {
-          this.logger.log(`[dev] email.booking-created → ${driverEmail} (passageiro: ${passengerName})`);
+          this.logger.log(
+            `[dev] email.booking-created → ${driverEmail} (passageiro: ${passengerName})`,
+          );
         }
         break;
       }
 
       case 'email.booking-confirmed':
       case 'email.booking-declined': {
-        const { passengerEmail, passengerName, origin, destination, departureTime, status } =
-          job.data as BookingStatusEmailPayload;
+        const {
+          passengerEmail,
+          passengerName,
+          origin,
+          destination,
+          departureTime,
+          status,
+        } = job.data as BookingStatusEmailPayload;
         const isConfirmed = status === 'CONFIRMED';
         if (resendKey) {
           const resend = new Resend(resendKey);
           await resend.emails.send({
             from: fromEmail,
             to: passengerEmail,
-            subject: isConfirmed ? 'Reserva confirmada - HopOn' : 'Reserva não aceite - HopOn',
+            subject: isConfirmed
+              ? 'Reserva confirmada - HopOn'
+              : 'Reserva não aceite - HopOn',
             html: isConfirmed
-              ? bookingConfirmedEmailHtml(passengerName, origin, destination, departureTime)
-              : bookingDeclinedEmailHtml(passengerName, origin, destination, departureTime),
+              ? bookingConfirmedEmailHtml(
+                  passengerName,
+                  origin,
+                  destination,
+                  departureTime,
+                )
+              : bookingDeclinedEmailHtml(
+                  passengerName,
+                  origin,
+                  destination,
+                  departureTime,
+                ),
           });
         } else {
-          this.logger.log(`[dev] ${job.name} → ${passengerEmail} (status: ${status})`);
+          this.logger.log(
+            `[dev] ${job.name} → ${passengerEmail} (status: ${status})`,
+          );
         }
         break;
       }
 
       case 'email.booking-cancelled': {
-        const { driverEmail, driverName, passengerName, origin, destination, departureTime } =
-          job.data as BookingCancelledEmailPayload;
+        const {
+          driverEmail,
+          driverName,
+          passengerName,
+          origin,
+          destination,
+          departureTime,
+        } = job.data as BookingCancelledEmailPayload;
         if (resendKey) {
           const resend = new Resend(resendKey);
           await resend.emails.send({
             from: fromEmail,
             to: driverEmail,
             subject: 'Reserva cancelada - HopOn',
-            html: bookingCancelledEmailHtml(driverName, passengerName, origin, destination, departureTime),
+            html: bookingCancelledEmailHtml(
+              driverName,
+              passengerName,
+              origin,
+              destination,
+              departureTime,
+            ),
           });
         } else {
-          this.logger.log(`[dev] email.booking-cancelled → ${driverEmail} (passageiro: ${passengerName})`);
+          this.logger.log(
+            `[dev] email.booking-cancelled → ${driverEmail} (passageiro: ${passengerName})`,
+          );
         }
         break;
       }
@@ -122,7 +180,12 @@ export class NotificationsProcessor extends WorkerHost {
             from: fromEmail,
             to: userEmail,
             subject: 'Boleia cancelada - HopOn',
-            html: rideCancelledEmailHtml(userName, origin, destination, departureTime),
+            html: rideCancelledEmailHtml(
+              userName,
+              origin,
+              destination,
+              departureTime,
+            ),
           });
         } else {
           this.logger.log(`[dev] email.ride-cancelled → ${userEmail}`);
@@ -131,7 +194,8 @@ export class NotificationsProcessor extends WorkerHost {
       }
 
       case 'email.late-cancel-warning': {
-        const { userEmail, userName, count, windowDays } = job.data as LateCancelWarningEmailPayload;
+        const { userEmail, userName, count, windowDays } =
+          job.data as LateCancelWarningEmailPayload;
         if (resendKey) {
           const resend = new Resend(resendKey);
           await resend.emails.send({
@@ -141,7 +205,9 @@ export class NotificationsProcessor extends WorkerHost {
             html: lateCancelWarningEmailHtml(userName, count, windowDays),
           });
         } else {
-          this.logger.log(`[dev] email.late-cancel-warning → ${userEmail} (${count} cancelamentos)`);
+          this.logger.log(
+            `[dev] email.late-cancel-warning → ${userEmail} (${count} cancelamentos)`,
+          );
         }
         break;
       }
@@ -155,6 +221,8 @@ export class NotificationsProcessor extends WorkerHost {
 
   @OnWorkerEvent('failed')
   onFailed(job: Job, err: Error) {
-    this.logger.error(`[NotificationsProcessor] job ${job.name} (id=${job.id}) failed: ${err.message}`);
+    this.logger.error(
+      `[NotificationsProcessor] job ${job.name} (id=${job.id}) failed: ${err.message}`,
+    );
   }
 }

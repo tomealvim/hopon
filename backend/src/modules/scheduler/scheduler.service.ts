@@ -7,7 +7,15 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { GeocodingService } from '../geocoding/geocoding.service';
 import { RideRequestsService } from '../ride-requests/ride-requests.service';
 
-const DAY_NAMES = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+const DAY_NAMES = [
+  'domingo',
+  'segunda',
+  'terca',
+  'quarta',
+  'quinta',
+  'sexta',
+  'sabado',
+];
 
 // Quantos dias à frente criar boleias recorrentes
 const DAYS_AHEAD = 7;
@@ -30,9 +38,14 @@ export class SchedulerService {
    * Corre todos os dias às 06:00 - cria boleias para os próximos DAYS_AHEAD dias
    * a partir de todos os templates ativos.
    */
-  @Cron('0 6 * * *', { name: 'generate-upcoming-rides', timeZone: 'Europe/Lisbon' })
+  @Cron('0 6 * * *', {
+    name: 'generate-upcoming-rides',
+    timeZone: 'Europe/Lisbon',
+  })
   async generateUpcomingRides() {
-    this.logger.log(`[cron] generateUpcomingRides - a gerar boleias para os próximos ${DAYS_AHEAD} dias`);
+    this.logger.log(
+      `[cron] generateUpcomingRides - a gerar boleias para os próximos ${DAYS_AHEAD} dias`,
+    );
 
     const templates = await this.prisma.scheduleTemplate.findMany({
       where: { active: true },
@@ -54,8 +67,10 @@ export class SchedulerService {
       let templatePolyline: { lat: number; lng: number }[] | null = null;
       if (originCoords && destCoords) {
         templatePolyline = await this.geocodingService.getRoutePolyline(
-          originCoords.lat, originCoords.lng,
-          destCoords.lat, destCoords.lng,
+          originCoords.lat,
+          originCoords.lng,
+          destCoords.lat,
+          destCoords.lng,
         );
       }
 
@@ -85,7 +100,10 @@ export class SchedulerService {
           },
         });
 
-        if (existing) { skipped++; continue; }
+        if (existing) {
+          skipped++;
+          continue;
+        }
 
         try {
           // Criar Location records se geocoding funcionou
@@ -94,14 +112,22 @@ export class SchedulerService {
 
           if (originCoords) {
             const loc = await this.prisma.location.create({
-              data: { label: template.origin, lat: originCoords.lat, lng: originCoords.lng },
+              data: {
+                label: template.origin,
+                lat: originCoords.lat,
+                lng: originCoords.lng,
+              },
             });
             originLocationId = loc.id;
           }
 
           if (destCoords) {
             const loc = await this.prisma.location.create({
-              data: { label: template.destination, lat: destCoords.lat, lng: destCoords.lng },
+              data: {
+                label: template.destination,
+                lat: destCoords.lat,
+                lng: destCoords.lng,
+              },
             });
             destinationLocationId = loc.id;
           }
@@ -120,12 +146,16 @@ export class SchedulerService {
               ...(originLocationId && { originLocationId }),
               ...(destinationLocationId && { destinationLocationId }),
               ...(templatePolyline && { routePolyline: templatePolyline }),
-              ...(template.meetingPoint && { meetingPoint: template.meetingPoint }),
+              ...(template.meetingPoint && {
+                meetingPoint: template.meetingPoint,
+              }),
             },
           });
 
           created++;
-          this.logger.log(`[cron] Ride criada: ${ride.id} - ${date.toISOString().slice(0, 10)} ${template.time}`);
+          this.logger.log(
+            `[cron] Ride criada: ${ride.id} - ${date.toISOString().slice(0, 10)} ${template.time}`,
+          );
 
           // Notificar condutor apenas para hoje (d === 0) para não spam
           if (d === 0) {
@@ -139,10 +169,12 @@ export class SchedulerService {
           }
 
           // Criar reservas automáticas para passageiros com RecurringBooking ativo neste template
-          const recurringBookings = await this.prisma.recurringBooking.findMany({
-            where: { scheduleTemplateId: template.id, status: 'ACTIVE' },
-            include: { passenger: { include: { profile: true } } },
-          });
+          const recurringBookings = await this.prisma.recurringBooking.findMany(
+            {
+              where: { scheduleTemplateId: template.id, status: 'ACTIVE' },
+              include: { passenger: { include: { profile: true } } },
+            },
+          );
 
           for (const rb of recurringBookings) {
             // Verificar se o passageiro já tem reserva nesta ride
@@ -153,7 +185,10 @@ export class SchedulerService {
 
             // Verificar se há lugares disponíveis
             const bookedSeats = await this.prisma.booking.aggregate({
-              where: { rideId: ride.id, status: { in: ['PENDING', 'CONFIRMED'] } },
+              where: {
+                rideId: ride.id,
+                status: { in: ['PENDING', 'CONFIRMED'] },
+              },
               _sum: { seats: true },
             });
             const usedSeats = bookedSeats._sum.seats ?? 0;
@@ -177,16 +212,22 @@ export class SchedulerService {
                 { rideId: ride.id },
               );
             } catch (err) {
-              this.logger.error(`[cron] Erro ao criar reserva recorrente para passageiro ${rb.passengerId}: ${err}`);
+              this.logger.error(
+                `[cron] Erro ao criar reserva recorrente para passageiro ${rb.passengerId}: ${err}`,
+              );
             }
           }
         } catch (err) {
-          this.logger.error(`[cron] Erro ao criar ride para template ${template.id} dia +${d}: ${err}`);
+          this.logger.error(
+            `[cron] Erro ao criar ride para template ${template.id} dia +${d}: ${err}`,
+          );
         }
       }
     }
 
-    this.logger.log(`[cron] generateUpcomingRides concluído - criadas: ${created}, ignoradas: ${skipped}`);
+    this.logger.log(
+      `[cron] generateUpcomingRides concluído - criadas: ${created}, ignoradas: ${skipped}`,
+    );
   }
 
   // ─── 9.4 - Lembrete 1h antes da boleia ───────────────────────────────────
@@ -199,7 +240,7 @@ export class SchedulerService {
   async sendRideReminders() {
     const now = new Date();
     const from = new Date(now.getTime() + 55 * 60 * 1000); // 55 min
-    const to   = new Date(now.getTime() + 65 * 60 * 1000); // 65 min
+    const to = new Date(now.getTime() + 65 * 60 * 1000); // 65 min
 
     const rides = await this.prisma.ride.findMany({
       where: {
@@ -223,7 +264,9 @@ export class SchedulerService {
       await this.cache.set(cacheKey, true, 3 * 60 * 60 * 1000);
 
       const dep = ride.departureTime.toLocaleTimeString('pt-PT', {
-        hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Lisbon',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Lisbon',
       });
       const route = `${ride.origin} → ${ride.destination}`;
 
@@ -250,7 +293,9 @@ export class SchedulerService {
         );
       }
 
-      this.logger.log(`[cron] Lembretes enviados para ride ${ride.id} (${ride.bookings.length} passageiros)`);
+      this.logger.log(
+        `[cron] Lembretes enviados para ride ${ride.id} (${ride.bookings.length} passageiros)`,
+      );
     }
   }
 
@@ -267,8 +312,14 @@ export class SchedulerService {
 
     const [userRoutes, templates] = await Promise.all([
       this.prisma.userRoute.findMany({
-        where: { active: true, originLat: { not: null }, originLng: { not: null } },
-        include: { user: { select: { id: true, profile: { select: { name: true } } } } },
+        where: {
+          active: true,
+          originLat: { not: null },
+          originLng: { not: null },
+        },
+        include: {
+          user: { select: { id: true, profile: { select: { name: true } } } },
+        },
       }),
       this.prisma.scheduleTemplate.findMany({
         where: { active: true },
@@ -281,7 +332,10 @@ export class SchedulerService {
     ]);
 
     // Pré-carregar a polilinha mais recente de cada template (uma query por template, em paralelo)
-    const templatePolylines = new Map<string, { lat: number; lng: number }[] | null>();
+    const templatePolylines = new Map<
+      string,
+      { lat: number; lng: number }[] | null
+    >();
     await Promise.all(
       templates.map(async (t) => {
         const ride = await this.prisma.ride.findFirst({
@@ -289,7 +343,11 @@ export class SchedulerService {
           orderBy: { createdAt: 'desc' },
           select: { routePolyline: true },
         });
-        templatePolylines.set(t.id, ride?.routePolyline as { lat: number; lng: number }[] | null ?? null);
+        templatePolylines.set(
+          t.id,
+          (ride?.routePolyline as { lat: number; lng: number }[] | null) ??
+            null,
+        );
       }),
     );
 
@@ -332,12 +390,18 @@ export class SchedulerService {
             ride: { scheduleTemplateId: template.id },
           },
         });
-        if (existingBooking) { skipped++; continue; }
+        if (existingBooking) {
+          skipped++;
+          continue;
+        }
 
         // 5 - Deduplicação Redis (TTL 24h)
         const dedupKey = `match:${passengerId}:${template.userId}:${template.id}`;
         const alreadyNotified = await this.cache.get(dedupKey);
-        if (alreadyNotified) { skipped++; continue; }
+        if (alreadyNotified) {
+          skipped++;
+          continue;
+        }
         await this.cache.set(dedupKey, true, 24 * 60 * 60 * 1000);
 
         // 6 - Notificar passageiro
@@ -358,7 +422,8 @@ export class SchedulerService {
         const driverAlreadyNotified = await this.cache.get(driverDedupKey);
         if (!driverAlreadyNotified) {
           await this.cache.set(driverDedupKey, true, 24 * 60 * 60 * 1000);
-          const passengerName = (route.user as any)?.profile?.name ?? 'Um passageiro';
+          const passengerName =
+            (route.user as any)?.profile?.name ?? 'Um passageiro';
           void this.notificationsService.createNotification(
             template.userId,
             'match.passenger',
@@ -369,11 +434,15 @@ export class SchedulerService {
         }
 
         notified++;
-        this.logger.log(`[cron] Match: passenger ${passengerId} ↔ template ${template.id} (driver ${template.userId})`);
+        this.logger.log(
+          `[cron] Match: passenger ${passengerId} ↔ template ${template.id} (driver ${template.userId})`,
+        );
       }
     }
 
-    this.logger.log(`[cron] matchUserRoutesWithTemplates concluído - notificados: ${notified}, ignorados: ${skipped}`);
+    this.logger.log(
+      `[cron] matchUserRoutesWithTemplates concluído - notificados: ${notified}, ignorados: ${skipped}`,
+    );
   }
 
   // ─── Helpers de matching ──────────────────────────────────────────────────
@@ -383,26 +452,39 @@ export class SchedulerService {
     return h * 60 + m;
   }
 
-  private haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  private haversineMeters(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number,
+  ): number {
     const R = 6_371_000;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLng = ((lng2 - lng1) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) ** 2 +
-      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
   private pointToSegmentMeters(
-    pLat: number, pLng: number,
-    aLat: number, aLng: number,
-    bLat: number, bLng: number,
+    pLat: number,
+    pLng: number,
+    aLat: number,
+    aLng: number,
+    bLat: number,
+    bLng: number,
   ): number {
     const dx = bLat - aLat;
     const dy = bLng - aLng;
     const lenSq = dx * dx + dy * dy;
     if (lenSq === 0) return this.haversineMeters(pLat, pLng, aLat, aLng);
-    const t = Math.max(0, Math.min(1, ((pLat - aLat) * dx + (pLng - aLng) * dy) / lenSq));
+    const t = Math.max(
+      0,
+      Math.min(1, ((pLat - aLat) * dx + (pLng - aLng) * dy) / lenSq),
+    );
     return this.haversineMeters(pLat, pLng, aLat + t * dx, aLng + t * dy);
   }
 
@@ -421,11 +503,21 @@ export class SchedulerService {
     if (!polyline || polyline.length === 0) return false;
 
     if (polyline.length === 1) {
-      return this.haversineMeters(lat, lng, polyline[0].lat, polyline[0].lng) <= THRESHOLD_M;
+      return (
+        this.haversineMeters(lat, lng, polyline[0].lat, polyline[0].lng) <=
+        THRESHOLD_M
+      );
     }
 
     for (let i = 0; i < polyline.length - 1; i++) {
-      const d = this.pointToSegmentMeters(lat, lng, polyline[i].lat, polyline[i].lng, polyline[i + 1].lat, polyline[i + 1].lng);
+      const d = this.pointToSegmentMeters(
+        lat,
+        lng,
+        polyline[i].lat,
+        polyline[i].lng,
+        polyline[i + 1].lat,
+        polyline[i + 1].lng,
+      );
       if (d <= THRESHOLD_M) return true;
     }
     return false;
@@ -433,8 +525,12 @@ export class SchedulerService {
 
   private dayLabel(day: string): string {
     const map: Record<string, string> = {
-      segunda: 'segunda-feira', terca: 'terça-feira', quarta: 'quarta-feira',
-      quinta: 'quinta-feira', sexta: 'sexta-feira', sabado: 'sábado',
+      segunda: 'segunda-feira',
+      terca: 'terça-feira',
+      quarta: 'quarta-feira',
+      quinta: 'quinta-feira',
+      sexta: 'sexta-feira',
+      sabado: 'sábado',
     };
     return map[day] ?? day;
   }
@@ -447,7 +543,10 @@ export class SchedulerService {
    * Notifica condutores quando há passageiro à procura na sua rota.
    * Deduplicação via Redis: nunca notificar o mesmo par mais de 1x/dia.
    */
-  @Cron('0 9 * * *', { name: 'ride-request-matching', timeZone: 'Europe/Lisbon' })
+  @Cron('0 9 * * *', {
+    name: 'ride-request-matching',
+    timeZone: 'Europe/Lisbon',
+  })
   async matchRideRequestsWithTemplates() {
     this.logger.log('[cron] matchRideRequestsWithTemplates - a iniciar');
 
@@ -459,7 +558,9 @@ export class SchedulerService {
       }),
     ]);
 
-    this.logger.log(`[cron] ${rideRequests.length} pedidos abertos, ${templates.length} templates ativos`);
+    this.logger.log(
+      `[cron] ${rideRequests.length} pedidos abertos, ${templates.length} templates ativos`,
+    );
 
     let notified = 0;
     let skipped = 0;
@@ -485,24 +586,35 @@ export class SchedulerService {
 
         // Proximidade geográfica (corredor 2km) - se temos coords
         if (
-          request.originLat != null && request.originLng != null &&
+          request.originLat != null &&
+          request.originLng != null &&
           template.user // template não tem coords diretas - usar text overlap como fallback
         ) {
           // Texto de origem/destino deve ter alguma sobreposição
           const origMatch = this.textOverlap(request.origin, template.origin);
-          const destMatch = this.textOverlap(request.destination, template.destination);
+          const destMatch = this.textOverlap(
+            request.destination,
+            template.destination,
+          );
           if (!origMatch && !destMatch) continue;
         }
 
         // Deduplicação Redis
         const dedupKey = `rr:${request.passengerId}:${template.userId}:${template.id}`;
         const alreadySent = await this.cache.get(dedupKey);
-        if (alreadySent) { skipped++; continue; }
+        if (alreadySent) {
+          skipped++;
+          continue;
+        }
         await this.cache.set(dedupKey, true, 24 * 60 * 60 * 1000);
 
         // Notificar o condutor
-        const passengerName = request.passenger?.profile?.name ?? 'Um passageiro';
-        const dayLabels = sharedDays.slice(0, 3).map((d) => this.dayLabel(d)).join(', ');
+        const passengerName =
+          request.passenger?.profile?.name ?? 'Um passageiro';
+        const dayLabels = sharedDays
+          .slice(0, 3)
+          .map((d) => this.dayLabel(d))
+          .join(', ');
 
         void this.notificationsService.createNotification(
           template.userId,
@@ -523,7 +635,9 @@ export class SchedulerService {
       }
     }
 
-    this.logger.log(`[cron] matchRideRequestsWithTemplates concluído - notificados: ${notified}, ignorados: ${skipped}`);
+    this.logger.log(
+      `[cron] matchRideRequestsWithTemplates concluído - notificados: ${notified}, ignorados: ${skipped}`,
+    );
   }
 
   /** Trigger manual para testes */
@@ -532,8 +646,14 @@ export class SchedulerService {
   }
 
   private textOverlap(a: string, b: string): boolean {
-    const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-    const na = norm(a); const nb = norm(b);
+    const norm = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+    const na = norm(a);
+    const nb = norm(b);
     return na.includes(nb) || nb.includes(na);
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReportDto } from './dto/create-report.dto';
 
@@ -11,7 +15,9 @@ export class ReportsService {
       throw new BadRequestException('Não podes denunciar-te a ti mesmo.');
     }
 
-    const target = await this.prisma.user.findUnique({ where: { id: dto.targetId } });
+    const target = await this.prisma.user.findUnique({
+      where: { id: dto.targetId },
+    });
     if (!target) throw new NotFoundException('Utilizador não encontrado.');
 
     const report = await this.prisma.report.create({
@@ -23,6 +29,10 @@ export class ReportsService {
       },
     });
 
-    return { id: report.id, status: report.status, createdAt: report.createdAt };
+    return {
+      id: report.id,
+      status: report.status,
+      createdAt: report.createdAt,
+    };
   }
 }

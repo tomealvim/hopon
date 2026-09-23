@@ -8,23 +8,23 @@ import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 /**
  * Valida se o número de telefone é válido usando libphonenumber-js
  * Aceita números internacionais no formato E.164 (ex: +351912345678)
- * 
+ *
  * A validação verifica:
  * - Formato internacional válido
  * - Comprimento correto baseado no código de país
  * - Números possíveis (não aceita números impossíveis)
- * 
+ *
  * A validação final será feita via OTP/SMS quando o utilizador verificar o telefone
  */
 export function IsValidPhoneNumber(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'isValidPhoneNumber',
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any, args: ValidationArguments) {
+        validate(value: any) {
           // Se o valor for undefined ou null e o campo for opcional, aceitar
           if (value === undefined || value === null) {
             return true;
@@ -49,7 +49,7 @@ export function IsValidPhoneNumber(validationOptions?: ValidationOptions) {
 
             // Tentar parsear para verificar formato
             const phoneNumber = parsePhoneNumber(value);
-            
+
             // Verificar se tem número nacional válido
             if (!phoneNumber.isValid()) {
               return false;
@@ -68,4 +68,3 @@ export function IsValidPhoneNumber(validationOptions?: ValidationOptions) {
     });
   };
 }
-
