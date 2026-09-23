@@ -64,7 +64,7 @@ export async function apiRequest<T = any>(endpoint: string, options: ApiOptions 
   const { token, headers, skipRefresh = false, ...rest } = options;
   
   // Obter token do localStorage se não for passado explicitamente
-  let storedToken = token || localStorage.getItem(STORAGE_KEY_TOKEN);
+  const storedToken = token || localStorage.getItem(STORAGE_KEY_TOKEN);
 
   const config: RequestInit = {
     ...rest,
@@ -93,7 +93,7 @@ export async function apiRequest<T = any>(endpoint: string, options: ApiOptions 
         Authorization: `Bearer ${newToken}`,
       };
       response = await fetch(`${API_URL}${cleanEndpoint}`, config);
-    } catch (refreshError) {
+    } catch {
       // Refresh falhou - limpar tokens e lançar erro
       localStorage.removeItem(STORAGE_KEY_TOKEN);
       localStorage.removeItem(STORAGE_KEY_REFRESH);

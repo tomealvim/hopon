@@ -373,11 +373,13 @@ function Screen5Terms({
 }
 
 // ─── Helpers exportados ────────────────────────────────────────────────────────
+// eslint-disable-next-line react-refresh/only-export-components
 export function hasCompletedOnboarding(): boolean {
   if (typeof window === "undefined") return false;
   return localStorage.getItem(ONBOARDING_STORAGE_KEY) === "true";
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function resetOnboarding(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(ONBOARDING_STORAGE_KEY);

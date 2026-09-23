@@ -85,7 +85,6 @@ export default function RequestSeatSheet({
   priceCents,
   platformFeeCents,
   seats = 1,
-  departureTime: _departureTime,
   pickupLat,
   pickupLng,
   meetingPoint,

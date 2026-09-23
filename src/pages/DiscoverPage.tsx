@@ -40,7 +40,8 @@ function activeFilterCount(f: DiscoverFilters): number {
   return n;
 }
 
-export default function DiscoverPage({ onOpenInbox: _onOpenInbox }: DiscoverPageProps) {
+export default function DiscoverPage(_props?: DiscoverPageProps) {
+  void _props;
   const { user } = useAuth();
   const { showSuccess, showError } = useNotifications();
   const [tab, setTab] = useState<DiscoverTab>("explore");

@@ -264,6 +264,7 @@ export function InboxProvider({ children }: { children: ReactNode }) {
   return <InboxContext.Provider value={value}>{children}</InboxContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useInbox() {
   const context = useContext(InboxContext);
   if (!context) {

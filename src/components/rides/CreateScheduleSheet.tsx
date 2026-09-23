@@ -10,8 +10,8 @@ import { eurosToCents } from "../../utils/money";
 import type { ApiSchedule, CreateSchedulePayload } from "../../pages/types/schedule-api";
 import type { Vehicle } from "../../pages/types/user";
 
-const DAYS_API = ["segunda", "terca", "quarta", "quinta", "sexta"] as const;
-const DAYS_SHORT: Array<{ value: (typeof DAYS_API)[number]; label: string }> = [
+type ScheduleDay = "segunda" | "terca" | "quarta" | "quinta" | "sexta";
+const DAYS_SHORT: Array<{ value: ScheduleDay; label: string }> = [
   { value: "segunda", label: "Seg" },
   { value: "terca", label: "Ter" },
   { value: "quarta", label: "Qua" },
