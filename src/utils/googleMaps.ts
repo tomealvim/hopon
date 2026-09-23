@@ -31,8 +31,10 @@ export async function getPlaceSuggestions(
   await loadGoogleMaps();
   try {
     // Nova API (Places API New) - obrigatória para novos clientes desde março 2025
-    const { AutocompleteSuggestion } = await google.maps.importLibrary("places") as any;
-    const request: any = {
+    const { AutocompleteSuggestion } = (await google.maps.importLibrary(
+      "places"
+    )) as google.maps.PlacesLibrary;
+    const request: google.maps.places.AutocompleteRequest = {
       input: query,
       includedRegionCodes: ["pt"],
       language: "pt",
@@ -41,11 +43,13 @@ export async function getPlaceSuggestions(
       }),
     };
     const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
-    return suggestions.map((s: any) => ({
-      placeId: s.placePrediction.placeId,
-      mainText: s.placePrediction.mainText?.toString() ?? "",
-      secondaryText: s.placePrediction.secondaryText?.toString() ?? "",
-    }));
+    return suggestions
+      .filter((s) => s.placePrediction != null)
+      .map((s) => ({
+        placeId: s.placePrediction!.placeId,
+        mainText: s.placePrediction!.mainText?.toString() ?? "",
+        secondaryText: s.placePrediction!.secondaryText?.toString() ?? "",
+      }));
   } catch {
     return [];
   }
@@ -56,7 +60,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string> 
     await loadGoogleMaps();
     return new Promise((resolve) => {
       const geocoder = new google.maps.Geocoder();
-      geocoder.geocode({ location: { lat, lng }, language: "pt" } as any, (results, status) => {
+      geocoder.geocode({ location: { lat, lng }, language: "pt" }, (results, status) => {
         if (status === "OK" && results?.[0]) {
           resolve(results[0].formatted_address);
         } else {
