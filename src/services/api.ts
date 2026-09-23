@@ -60,7 +60,7 @@ async function refreshAccessToken(): Promise<string> {
   return refreshPromise;
 }
 
-export async function apiRequest<T = any>(endpoint: string, options: ApiOptions = {}): Promise<T> {
+export async function apiRequest<T = unknown>(endpoint: string, options: ApiOptions = {}): Promise<T> {
   const { token, headers, skipRefresh = false, ...rest } = options;
   
   // Obter token do localStorage se não for passado explicitamente
