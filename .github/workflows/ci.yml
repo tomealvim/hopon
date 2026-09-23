@@ -1,44 +1,100 @@
+# .github/workflows/ci.yml
+#
+# Corre em cada push e em cada pull request para main.
+# Dois jobs independentes (backend e frontend), para o feedback ser mais
+# rapido e para se perceber logo pelo nome do job onde e que partiu.
+
 name: CI
 
 on:
   push:
-    branches: [dev, main]
+    branches: [main]
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  # ── Backend ───────────────────────────────────────────────────────────────
   backend:
-    name: Backend — build & test
+    name: Backend (lint + unit + e2e)
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: hopon_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     defaults:
       run:
         working-directory: backend
 
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hopon_test
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: ci-test-access-secret-not-for-production-use
+      JWT_ACCESS_EXPIRATION: 15m
+      JWT_REFRESH_SECRET: ci-test-refresh-secret-not-for-production-use
+      JWT_REFRESH_EXPIRATION: 7d
+      ALLOW_TEST_VERIFY: '1'
+      FRONTEND_URL: http://localhost:5173
+      RESEND_FROM: onboarding@resend.dev
+      VAPID_EMAIL: mailto:ci@hopon.dev
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: 22
+          cache: npm
           cache-dependency-path: backend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install
         run: npm ci
 
-      - name: Generate Prisma client
+      - name: Lint
+        run: npm run lint
+
+      - name: Prisma generate
         run: npm run prisma:generate
 
-      - name: Build (TypeScript)
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Build
         run: npm run build
 
-      - name: Tests
-        run: npm test -- --passWithNoTests --forceExit
+      - name: Unit tests
+        run: npm test
 
-  # ── Frontend ──────────────────────────────────────────────────────────────
+      - name: E2E tests
+        run: npm run test:e2e
+
   frontend:
-    name: Frontend — build
+    name: Frontend (lint + build)
     runs-on: ubuntu-latest
 
     steps:
@@ -46,16 +102,20 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: 22
+          cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
+      - name: Install
         run: npm ci
 
-      - name: Build (TypeScript + Vite)
-        run: npm run build
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
         env:
-          # Variáveis obrigatórias em build-time; valores dummy para CI
-          VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN || 'pk.dummy_ci_token' }}
-          VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://localhost:3000/api/v1' }}
+          VITE_API_URL: http://localhost:3000/api/v1
+          VITE_GOOGLE_MAPS_KEY: dummy-ci-key
+          VITE_MAPBOX_TOKEN: pk.dummy_ci_token
+          VITE_STRIPE_PUBLISHABLE_KEY: pk_test_dummy
+        run: npm run build
