@@ -44,6 +44,8 @@ export interface Vehicle {
   color?: string;
   imageUrl?: string;
   seats?: number;
+  fuelType?: 'gasolina95' | 'gasoleo' | 'gpl' | 'eletrico' | 'hibrido';
+  avgConsumption?: number;
   features: VehicleFeatures;
   createdAt: string;
   updatedAt: string;

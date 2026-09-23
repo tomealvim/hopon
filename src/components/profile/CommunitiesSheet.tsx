@@ -22,6 +22,30 @@ type Member = {
   user: { email: string; profile?: { name?: string; avatarUrl?: string } | null };
 };
 
+interface CommunityPreview {
+  id: string;
+  name: string;
+  description: string | null;
+  logoUrl: string | null;
+  ownerId: string;
+  owner: {
+    id: string;
+    email: string;
+    profile?: { name?: string; avatarUrl?: string } | null;
+  };
+  inviteCode: string;
+  requiresApproval: boolean;
+  domain: string | null;
+  memberCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CommunityJoinResult {
+  status: "PENDING" | "APPROVED";
+  communityName?: string;
+}
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -57,7 +81,7 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
 
   // Join form
   const [inviteCode, setInviteCode] = useState("");
-  const [joinPreview, setJoinPreview] = useState<any>(null);
+  const [joinPreview, setJoinPreview] = useState<CommunityPreview | null>(null);
   const [joinError, setJoinError] = useState("");
   const [joining, setJoining] = useState(false);
   const [joinDone, setJoinDone] = useState(false);
@@ -70,7 +94,7 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
         setView("join");
         setJoinDone(false);
         // auto-preview
-        apiRequest<any>(`/communities/preview/${initialInviteCode.toUpperCase()}`)
+        apiRequest<CommunityPreview>(`/communities/preview/${initialInviteCode.toUpperCase()}`)
           .then((data) => setJoinPreview(data))
           .catch(() => setJoinError("Código inválido ou comunidade não encontrada"));
       }
@@ -107,7 +131,7 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
     if (!inviteCode.trim()) return;
     setJoinError("");
     try {
-      const data = await apiRequest<any>(`/communities/preview/${inviteCode.trim().toUpperCase()}`);
+      const data = await apiRequest<CommunityPreview>(`/communities/preview/${inviteCode.trim().toUpperCase()}`);
       setJoinPreview(data);
     } catch { setJoinError("Código inválido ou comunidade não encontrada"); setJoinPreview(null); }
   }
@@ -116,7 +140,7 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
     if (!inviteCode.trim()) return;
     setJoining(true); setJoinError("");
     try {
-      const res = await apiRequest<any>(`/communities/join/${inviteCode.trim().toUpperCase()}`, { method: "POST" });
+      const res = await apiRequest<CommunityJoinResult>(`/communities/join/${inviteCode.trim().toUpperCase()}`, { method: "POST" });
       setJoinDone(true);
       setJoinPreview(null);
       if (res.status === "APPROVED") await loadCommunities();

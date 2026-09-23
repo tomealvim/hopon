@@ -1574,8 +1574,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                 imageUrl: editingVehicle.imageUrl ?? "",
                 airConditioning: editingVehicle.features.airConditioning,
                 heater: editingVehicle.features.heater,
-                fuelType: (editingVehicle as any).fuelType ?? "",
-                avgConsumption: (editingVehicle as any).avgConsumption ?? undefined,
+                fuelType: editingVehicle.fuelType ?? "",
+                avgConsumption: editingVehicle.avgConsumption ?? undefined,
               }
             : undefined
         }
