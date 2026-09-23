@@ -3,6 +3,12 @@ import Sheet from "../components/ui/Sheet";
 import { cn } from "../utils/cn";
 import { TERMS_LAST_UPDATED, TERMS_SECTIONS, TERMS_TITLE } from "../data/terms";
 
+declare global {
+  interface Window {
+    resetOnboarding: typeof resetOnboarding;
+  }
+}
+
 const ONBOARDING_STORAGE_KEY = "hopon_onboarding_completed";
 export const LOCATION_PERMISSION_KEY = "hopon_location_permission"; // "granted" | "declined"
 
@@ -387,5 +393,5 @@ export function resetOnboarding(): void {
 }
 
 if (typeof window !== "undefined") {
-  (window as any).resetOnboarding = resetOnboarding;
+  window.resetOnboarding = resetOnboarding;
 }

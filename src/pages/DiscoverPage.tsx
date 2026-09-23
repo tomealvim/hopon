@@ -356,7 +356,7 @@ export default function DiscoverPage(_props?: DiscoverPageProps) {
         setMyRecurringTemplateIds((prev) => new Set([...prev, ride.scheduleTemplateId!]));
         showSuccess("Reserva recorrente ativada!", `Serás reservado automaticamente sempre que ${ride.origin} → ${ride.destination} for publicada.`);
       }
-    } catch (err: any) {
+    } catch (err) {
       showError("Erro", err instanceof Error ? err.message : "Tenta novamente.");
     }
   }
@@ -365,8 +365,8 @@ export default function DiscoverPage(_props?: DiscoverPageProps) {
     if (!selectedRideId) return;
     try {
       await doBook(selectedRideId, opts);
-    } catch (err: any) {
-      const msg = err?.message ?? String(err);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("PASSENGER_POLICY_NOT_ACCEPTED")) {
         setPendingBookingRideId(selectedRideId);
         setOpenRequestSeat(false);

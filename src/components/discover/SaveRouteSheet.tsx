@@ -140,8 +140,8 @@ export default function SaveRouteSheet({ open, onClose, onSaved, onSkip, isOnboa
       });
       setDone(true);
       onSaved();
-    } catch (e: any) {
-      setError(e?.message ?? "Erro ao guardar rota.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao guardar rota.");
     } finally {
       setLoading(false);
     }

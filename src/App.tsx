@@ -215,8 +215,8 @@ function AppContent() {
     }
     try {
       await doSubmitOffer(vals);
-    } catch (err: any) {
-      const msg = err?.message ?? String(err);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("DRIVER_POLICY_NOT_ACCEPTED")) {
         setPendingOfferValues(vals);
         setOpenDriverPolicy(true);

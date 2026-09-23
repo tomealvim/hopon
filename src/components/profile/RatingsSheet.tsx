@@ -74,8 +74,8 @@ export default function RatingsSheet({
         body: JSON.stringify({ bookingId, revieweeId, score, comment: comment.trim() || undefined }),
       });
       setShowSuccess(true);
-    } catch (err: any) {
-      setError(err?.message ?? "Erro ao enviar avaliação");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao enviar avaliação");
     } finally {
       setSubmitting(false);
     }

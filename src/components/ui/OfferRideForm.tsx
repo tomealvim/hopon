@@ -173,8 +173,8 @@ export default function OfferRideForm({ initial, onCancel, onSubmit, onRequireVe
           platformFeeCents: first.breakdown.platformFeeCents,
         }));
       }
-    } catch (err: any) {
-      const msg = err?.message ?? String(err);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("GOOGLE_MAPS_API_KEY")) {
         setPricingError("API de rotas não configurada. Define um preço manualmente.");
       } else {

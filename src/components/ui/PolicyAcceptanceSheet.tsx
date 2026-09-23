@@ -90,8 +90,8 @@ export default function PolicyAcceptanceSheet({ open, role, onClose, onAccepted 
       // Atualizar o estado do utilizador no contexto
       await refresh();
       onAccepted();
-    } catch (err: any) {
-      setError(err?.message ?? "Erro ao guardar. Tenta novamente.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao guardar. Tenta novamente.");
     } finally {
       setLoading(false);
     }

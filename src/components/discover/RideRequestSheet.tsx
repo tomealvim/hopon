@@ -131,8 +131,8 @@ export default function RideRequestSheet({ open, onClose, onSaved }: Props) {
       });
       setDone(true);
       onSaved();
-    } catch (e: any) {
-      setError(e?.message ?? "Erro ao publicar pedido.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao publicar pedido.");
     } finally {
       setLoading(false);
     }

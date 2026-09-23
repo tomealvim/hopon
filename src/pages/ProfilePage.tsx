@@ -1276,8 +1276,8 @@ export default function ProfilePage({ onLogout, vehicleSheetTrigger, onVehicleSh
                       });
                       setApplyCodeMsg({ ok: true, text: `Código aplicado! Convidado por ${res.referrerName}.` });
                       setReferralInfo((prev) => prev ? { ...prev, isReferred: true } : prev);
-                    } catch (e: any) {
-                      setApplyCodeMsg({ ok: false, text: e?.message ?? "Código inválido." });
+                    } catch (e) {
+                      setApplyCodeMsg({ ok: false, text: e instanceof Error ? e.message : "Código inválido." });
                     } finally {
                       setApplyCodeLoading(false);
                     }

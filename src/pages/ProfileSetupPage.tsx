@@ -100,8 +100,8 @@ export default function ProfileSetupPage() {
         homeLng,
         setupCompleted: true,
       });
-    } catch (err: any) {
-      setSaveError(err?.message ?? "Erro ao guardar perfil. Tenta novamente.");
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Erro ao guardar perfil. Tenta novamente.");
     } finally {
       setSaving(false);
     }

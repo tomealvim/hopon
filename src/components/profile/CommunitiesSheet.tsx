@@ -39,7 +39,7 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
   function shareInvite(c: Community) {
     const link = `${window.location.origin}/join/${c.inviteCode}`;
     if ("share" in navigator) {
-      (navigator as any).share({ title: c.name, text: `Junta-te a ${c.name} no HopOn e partilha boleias!`, url: link });
+      navigator.share({ title: c.name, text: `Junta-te a ${c.name} no HopOn e partilha boleias!`, url: link });
     } else {
       (navigator as Navigator).clipboard?.writeText(link).then(() => {
         setCopiedId(c.id);
@@ -98,8 +98,8 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
       setName(""); setDescription(""); setRequiresApproval(true);
       await loadCommunities();
       setView("list");
-    } catch (e: any) {
-      setCreateError(e?.message ?? "Erro ao criar comunidade");
+    } catch (e) {
+      setCreateError(e instanceof Error ? e.message : "Erro ao criar comunidade");
     } finally { setCreating(false); }
   }
 
@@ -120,8 +120,8 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
       setJoinDone(true);
       setJoinPreview(null);
       if (res.status === "APPROVED") await loadCommunities();
-    } catch (e: any) {
-      setJoinError(e?.message ?? "Erro ao entrar na comunidade");
+    } catch (e) {
+      setJoinError(e instanceof Error ? e.message : "Erro ao entrar na comunidade");
     } finally { setJoining(false); }
   }
 
@@ -323,9 +323,9 @@ export default function CommunitiesSheet({ open, onClose, initialInviteCode }: P
                 onClick={() => {
                   const link = `${window.location.origin}/join/${selectedCommunity.inviteCode}`;
                   if ("share" in navigator) {
-                    (navigator as any).share({ title: selectedCommunity.name, text: `Junta-te à comunidade ${selectedCommunity.name} no HopOn`, url: link });
+                    navigator.share({ title: selectedCommunity.name, text: `Junta-te à comunidade ${selectedCommunity.name} no HopOn`, url: link });
                   } else {
-                    (navigator as any).clipboard.writeText(link);
+                    (navigator as Navigator).clipboard.writeText(link);
                   }
                 }}>
                 {"share" in navigator ? "Partilhar" : "Copiar link"}
