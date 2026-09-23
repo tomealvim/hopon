@@ -3,6 +3,7 @@
  * Usa Leaflet + OpenStreetMap (sem token necessário).
  */
 import { useEffect, useRef, useState } from "react";
+import type { Map, Marker, LeafletMouseEvent } from "leaflet";
 import { Button } from "./Button";
 import { reverseGeocode } from "../../utils/googleMaps";
 
@@ -21,8 +22,8 @@ const DEFAULT_LNG = -9.1399;
 
 export default function MapPicker({ open, onClose, onConfirm, initialLat, initialLng }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const leafletMap = useRef<any>(null);
-  const markerRef = useRef<any>(null);
+  const leafletMap = useRef<Map | null>(null);
+  const markerRef = useRef<Marker | null>(null);
   const [pinLat, setPinLat] = useState(initialLat ?? DEFAULT_LAT);
   const [pinLng, setPinLng] = useState(initialLng ?? DEFAULT_LNG);
   const [label, setLabel] = useState("");
@@ -33,15 +34,15 @@ export default function MapPicker({ open, onClose, onConfirm, initialLat, initia
   useEffect(() => {
     if (!open || !mapRef.current) return;
 
-    let map: any;
-    let marker: any;
+    let map: Map;
+    let marker: Marker;
 
     async function init() {
       const L = (await import("leaflet")).default;
       await import("leaflet/dist/leaflet.css");
 
       // Fix leaflet default icon path
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
         iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -77,7 +78,7 @@ export default function MapPicker({ open, onClose, onConfirm, initialLat, initia
       setGeocoding(false);
 
       // Click no mapa move o marcador
-      map.on("click", async (e: any) => {
+      map.on("click", async (e: LeafletMouseEvent) => {
         const { lat, lng } = e.latlng;
         marker.setLatLng([lat, lng]);
         setPinLat(lat);
