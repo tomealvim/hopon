@@ -63,16 +63,17 @@ Requires Node 22 and Docker.
 git clone https://github.com/tomealvim/hopon.git
 cd hopon
 
-# Postgres + Redis + MinIO
-docker compose up -d
-
 # Backend
 cd backend
 cp .env.example .env
+
+# Postgres + Redis + MinIO
+docker compose up -d
+
 npm ci
 npx prisma migrate deploy
 npm run seed
-npm run start:dev
+npm run dev
 
 # Frontend, in another terminal, from the repo root
 npm ci
