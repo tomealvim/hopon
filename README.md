@@ -40,10 +40,10 @@ Two things worth being upfront about:
 
 ## Stack
 
-**Backend** NestJS 10, TypeScript, PostgreSQL 15 (Prisma), Redis + BullMQ, Stripe
-**Frontend** React 19, Vite, Tailwind CSS
-**Infra** Docker Compose (local), Railway (deploy), Cloudflare R2 (object storage)
-**Maps** Google Geocoding and Directions (backend), Google Places (frontend),
+- **Backend** NestJS 10, TypeScript, PostgreSQL 15 (Prisma), Redis + BullMQ, Stripe
+- **Frontend** React 19, Vite, Tailwind CSS
+- **Infra** Docker Compose (local), Railway (deploy), Cloudflare R2 (object storage)
+- **Maps** Google Geocoding and Directions (backend), Google Places (frontend),
 Leaflet + OpenStreetMap for the interactive map picker
 
 Full dependency list in `backend/package.json` and `package.json`.
