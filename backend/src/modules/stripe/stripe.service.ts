@@ -184,7 +184,7 @@ export class StripeService {
         return { received: true };
       }
 
-      await this.walletService.creditFromStripe(intent.id, userId, amountCents);
+      await this.walletService.creditFromStripe(event.id, intent.id, userId, amountCents);
       this.logger.log(
         `Wallet creditada: userId=${userId} amount=€${(amountCents / 100).toFixed(2)} pi=${intent.id}`,
       );

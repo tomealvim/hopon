@@ -65,33 +65,43 @@ export class WalletService {
    * Chamado pelo StripeService no webhook payment_intent.succeeded.
    */
   async creditFromStripe(
+    stripeEventId: string,
     paymentIntentId: string,
     userId: string,
     amountCents: number,
   ) {
     const wallet = await this.getOrCreate(userId);
 
-    // Idempotência: não creditar se já existe transação com este paymentIntentId
-    const existing = await this.prisma.walletTransaction.findFirst({
-      where: { walletId: wallet.id, reference: paymentIntentId },
-    });
-    if (existing) return existing;
-
-    return this.prisma.$transaction(async (tx) => {
-      await tx.wallet.update({
-        where: { id: wallet.id },
-        data: { balanceCents: { increment: amountCents } },
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balanceCents: { increment: amountCents } },
+        });
+        return tx.walletTransaction.create({
+          data: {
+            walletId: wallet.id,
+            type: TRANSACTION_TYPES.CREDIT,
+            amountCents,
+            description: 'Carregamento via Stripe',
+            reference: paymentIntentId,
+            stripeEventId,
+          },
+        });
       });
-      return tx.walletTransaction.create({
-        data: {
-          walletId: wallet.id,
-          type: TRANSACTION_TYPES.CREDIT,
-          amountCents,
-          description: 'Carregamento via Stripe',
-          reference: paymentIntentId,
-        },
-      });
-    });
+    } catch (err: any) {
+      // P2002 = violação de constraint única do Prisma. Se stripeEventId já
+      // existe, este evento já foi processado antes (entrega duplicada do
+      // webhook, que o próprio Stripe documenta que pode acontecer) - a
+      // base de dados é que garante a idempotência, não uma verificação
+      // prévia que pode perder a corrida contra outra chamada concorrente.
+      if (err.code === 'P2002' && err.meta?.target?.includes('stripeEventId')) {
+        return this.prisma.walletTransaction.findUniqueOrThrow({
+          where: { stripeEventId },
+        });
+      }
+      throw err;
+    }
   }
 
   /** Carregamento de saldo (demo - sem gateway de pagamento real) */

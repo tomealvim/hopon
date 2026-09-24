@@ -355,6 +355,7 @@ model WalletTransaction {
   amountCents Int      // valor em cêntimos
   reference   String?  // bookingId, rideId, etc.
   description String?
+  stripeEventId String? @unique // Stripe event.id - garante idempotência do webhook ao nível da BD
   createdAt   DateTime @default(now())
 
   @@map("wallet_transactions")
