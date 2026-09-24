@@ -1258,55 +1258,6 @@ A política atual (>24h=100%, 2–24h=50%, <2h=0%) foi desenhada para viagens lo
 
 ---
 
-### 17.2 - Assistente HopOn AI (chat bot)
-
-> Tab separado no Inbox - não substitui o chat pessoa-a-pessoa, coexiste com ele. O utilizador conversa em linguagem natural com o assistente que usa o algoritmo 17.1 por baixo e o contexto do utilizador (rotas guardadas, horários habituais) para sugerir boleias.
-
-**Exemplo de conversa:**
-> User: "Amanhã preciso de estar no trabalho às 8h30, tens alguma coisa?"
-> Bot: "Encontrei 2 opções para amanhã: O Carlos parte de Odivelas às 7h50, chegas a 5 min a pé do teu trabalho às 8h20 ✓. Queres que reserve?"
-
-**Arquitetura:**
-- Frontend: nova tab "AI" no InboxPage (ícone distinto - ex: estrela ou faísca)
-- Interface de chat igual ao inbox normal mas com respostas do bot
-- Backend: `POST /assistant/message { message, userId }` → processa com Claude API → devolve resposta + lista de boleias sugeridas (se aplicável)
-- Claude API (claude-haiku-4-5 para custo baixo) com system prompt que conhece: rotas guardadas do user, horários habituais, boleias disponíveis hoje/amanhã
-- Ações diretas: bot pode sugerir "Reservar agora?" com botão inline na resposta
-
-| # | Item | Estado |
-|---|---|---|
-| 17.2.1 | Tab "AI" no InboxPage - ícone separado, interface de chat igual ao inbox | ⏳ v2 - adiado |
-| 17.2.2 | `AssistantModule` no backend - `POST /assistant/message` | ⏳ v2 - adiado |
-| 17.2.3 | Integração Claude API (Haiku para custo baixo) com system prompt contextualizado (rotas do user, boleias disponíveis) | ⏳ v2 - adiado |
-| 17.2.4 | Bot usa algoritmo 17.1 internamente para responder a perguntas de "chegar a tempo" | ⏳ v2 - adiado |
-| 17.2.5 | Respostas com ações inline: card de boleia + botão "Reservar" diretamente no chat | ⏳ v2 - adiado |
-| 17.2.6 | Histórico de conversa por utilizador (persistido em DB, janela de contexto máx. 20 mensagens) | ⏳ v2 - adiado |
-
-**Env vars necessárias:**
-```
-# backend/.env
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-**Custo estimado:**
-- Claude Haiku: ~$0.25/1M tokens input + $1.25/1M tokens output
-- Uma conversa típica de 5 mensagens ≈ 2000 tokens ≈ $0.003
-- Muito baixo para uma base de utilizadores beta
-
----
-
-> **Nota:** o multimodal completo (boleia + transporte público + caminhada) requer GTFS feeds por cidade e é Fase 20+. A Fase 17 foca em boleia + caminhada que é simples e já resolve 80% dos casos.
-
----
-
-### 17.2 - Assistente HopOn AI ⏳ v2 (adiar)
-
-> Feature para uma segunda versão da app - após lançamento com utilizadores reais e validação do produto core. O 17.1 resolve o problema sem precisar de AI. O assistente é um "nice to have" que adiciona custo e complexidade sem ser essencial para a v1.
-
-Ver detalhe acima - implementar apenas após 17.1 estar sólido e com feedback real de utilizadores.
-
----
-
 ## Fase 18 - Redesign UI/UX
 
 > Polimento visual da app com foco em consistência, espaçamento e fluxo de navegação.
