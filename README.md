@@ -155,7 +155,3 @@ enables.
 Backend and frontend deploy separately on Railway, auto-deploying from `main`.
 PostgreSQL, Redis, and Cloudflare R2 (object storage) are also on Railway/Cloudflare.
 Stripe, Google Maps, Google Vision, and Resend run in production as external services.
-
-## License
-
-MIT
