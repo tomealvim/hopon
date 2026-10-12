@@ -35,6 +35,12 @@ PostgreSQL (HopOn) -> CSV export (no personal data) -> Snowflake stage -> RAW ->
 - Dedicated XS warehouse with 60 second auto suspend and a resource monitor that suspends it at a monthly credit quota.
 - dbt connects with key-pair authentication and a least-privilege `TRANSFORMER` role (read on `RAW`, write on `STAGING` and `MARTS`).
 
+## Setup scripts
+
+- `setup/postgres/demo_data.sql`: generates the synthetic data (users, rides, bookings, wallet movements) in the HopOn Postgres, respecting business rules: no overbooking, wallet balances consistent with transactions.
+- `setup/postgres/export_csv.sql`: exports the five source tables to CSV, selecting only the columns needed for analysis (no emails, phones, password hashes or documents).
+- `setup/snowflake/01` to `05`: warehouse and resource monitor, database and layers, file format and stage, RAW tables with `COPY INTO` and reconciliation, and the dbt role with key-pair auth.
+
 ## Running it
 
 ```bash

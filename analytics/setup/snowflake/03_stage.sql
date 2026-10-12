@@ -1,0 +1,17 @@
+-- CSV file format and internal stage for the exported files
+USE ROLE ACCOUNTADMIN;
+USE WAREHOUSE HOPON_WH;
+USE SCHEMA HOPON.RAW;
+
+CREATE OR REPLACE FILE FORMAT HOPON.RAW.CSV_HOPON
+  TYPE = CSV
+  SKIP_HEADER = 1
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  NULL_IF = ('')
+  EMPTY_FIELD_AS_NULL = TRUE;
+
+CREATE OR REPLACE STAGE HOPON.RAW.HOPON_STAGE
+  FILE_FORMAT = HOPON.RAW.CSV_HOPON;
+
+-- Upload the CSVs from setup/postgres/export_csv.sql to this stage (Snowsight UI or PUT), then:
+LIST @HOPON.RAW.HOPON_STAGE;
