@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: stg_users
+    columns:
+      - name: user_id
+        data_tests: [unique, not_null]
+
+  - name: stg_rides
+    columns:
+      - name: ride_id
+        data_tests: [unique, not_null]
+      - name: driver_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_users')
+                field: user_id
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
+
+  - name: stg_bookings
+    columns:
+      - name: booking_id
+        data_tests: [unique, not_null]
+      - name: ride_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_rides')
+                field: ride_id
+      - name: passenger_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_users')
+                field: user_id
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'REJECTED', 'NO_SHOW', 'DECLINED']
+
+  - name: stg_wallets
+    columns:
+      - name: wallet_id
+        data_tests: [unique, not_null]
+      - name: user_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_users')
+                field: user_id
+
+  - name: stg_wallet_transactions
+    columns:
+      - name: transaction_id
+        data_tests: [unique, not_null]
+      - name: wallet_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_wallets')
+                field: wallet_id
+      - name: transaction_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['CREDIT', 'DEBIT', 'REFUND', 'PAYOUT']

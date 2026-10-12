@@ -1,0 +1,7 @@
+version: 2
+
+seeds:
+  - name: pt_holidays
+    columns:
+      - name: holiday_date
+        data_tests: [unique, not_null]

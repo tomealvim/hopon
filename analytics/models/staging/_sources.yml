@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: raw
+    database: HOPON
+    schema: RAW
+    tables:
+      - name: users
+      - name: rides
+      - name: bookings
+      - name: wallets
+      - name: wallet_transactions
