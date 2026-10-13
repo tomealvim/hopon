@@ -8,6 +8,8 @@ route, the same time, the same few people, with the cost split automatically.
 
 **Live demo:** https://hopon.up.railway.app
 
+**Analytics:** a Snowflake and dbt layer built on this app's schema, see [analytics/](analytics/).
+
 ## The problem
 
 Someone driving the same route every morning has empty seats and pays for fuel and
@@ -44,6 +46,7 @@ Two things worth being upfront about:
 - **Frontend** React 19, Vite, Tailwind CSS
 - **Infra** Docker Compose (local), Railway (deploy), Cloudflare R2 (object storage)
 - **Maps** Google Geocoding and Directions (backend), Google Places (frontend),
+- **Analytics** Snowflake, dbt Core (see `analytics/`)
 Leaflet + OpenStreetMap for the interactive map picker
 
 Full dependency list in `backend/package.json` and `package.json`.
@@ -111,6 +114,21 @@ Every push to `main` runs lint and build for backend and frontend, applies all
 migrations to a fresh database (so a broken migration fails the build instead of
 surfacing in production), and runs the full suite against real Postgres and Redis
 containers.
+
+## Analytics
+
+The `analytics/` folder holds a separate data project built on top of HopOn's
+PostgreSQL schema, using synthetic data (no real users or payments).
+
+- **Load:** the source tables are exported to CSV without personal data and
+  loaded into Snowflake with `COPY INTO`, with row counts reconciled against Postgres.
+- **Model:** dbt Core turns them into staging views and mart tables (route
+  occupancy, bookings by weekday, driver revenue), plus an incremental
+  `fact_bookings` model that merges only new or changed bookings.
+- **Test:** 24 data tests, including one that checks no ride is ever booked
+  above its available seats, the same rule the booking lock enforces in the app.
+
+Setup, models and the lineage graph are in [analytics/README.md](analytics/README.md).
 
 ## Running locally
 
